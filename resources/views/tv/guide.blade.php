@@ -31,7 +31,7 @@
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.13.0/css/all.css"
         integrity="sha384-IIED/eyOkM6ihtOiQsX2zizxFBphgnv1zbe1bKA+njdFzkr6cDNy16jfIKWu4FNH" crossorigin="anonymous">
 
-    
+
 
     <style>
         div#names,
@@ -97,7 +97,7 @@
 
 <div style="border:1px dotted red">
     <h1>
-Siden legges ned 7. januar 2025</h1>
+        Denne siden administreres nå av fengselsaspirant Birger Marius Kristiansen. Har du forslag til ting som kunne være kjekt å ha på denne siden, ta gjerne kontakt på mail: innsatt@innsatt.no</h1>
 <br />
 <br />
 <br />
@@ -117,6 +117,10 @@ Siden legges ned 7. januar 2025</h1>
         <a href="/print" class="btn btn-primary btn-lg btn-block" tabindex="1" role="button" aria-disabled="true"><i
                 class="far fa-print"></i> TV-guide for i dag</a>
         <br />
+        <ul>
+            <li><a href="https://wheelofnames.com/">https://wheelofnames.com/</a></li>
+            <li><a href="https://www.kriminalomsorgen.no/ringerike-fengsel.5031519-237612.html">https://www.kriminalomsorgen.no/ringerike-fengsel.5031519-237612.html</a></li>
+        </ul>
         <br />
 
         {{-- <iframe src="https://www.tvkampen.com/widget/638bd1bc1f1c1?heading=Sport&border_color=blue&autoscroll=0" frameborder="0" style="width: 600px; height: 500px; border: none"></iframe> --}}
@@ -126,7 +130,7 @@ Siden legges ned 7. januar 2025</h1>
 
 
 
-      
+
 
 
 
@@ -143,9 +147,9 @@ Siden legges ned 7. januar 2025</h1>
 
 
 
-	
 
-        
+
+
 
 
 
