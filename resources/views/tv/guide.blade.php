@@ -97,7 +97,7 @@
 
 <div style="border:1px dotted red">
     <h1>
-        Denne siden administreres nå av fengselsaspirant Birger Marius Kristiansen. Har du forslag til ting som kunne være kjekt å ha på denne siden, ta gjerne kontakt på mail: innsatt@innsatt.no</h1>
+        Denne siden administreres av fengselsbetjent Birger Marius Kristiansen. Har du forslag til ting som kunne være kjekt å ha på denne siden, ta gjerne kontakt på mail: innsatt@innsatt.no</h1>
 <br />
 <br />
 <br />
