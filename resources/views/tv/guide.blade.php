@@ -110,7 +110,8 @@
     Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
 </p>
         <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
-                class="far fa-print"></i> TV-guide for i dag</a>
+  <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
+    <i class="far fa-print"></i> TV-guide for i dag</a>
         <br />
         <ul>
             <li><a href="https://wheelofnames.com/">https://wheelofnames.com/</a></li>
