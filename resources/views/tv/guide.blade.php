@@ -21,7 +21,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>TV-guide - RF</title>
+    <title>TV-guide - Ringerike Fengsel</title>
 
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -95,26 +95,21 @@
     <div class="container my-5">
 
 
-<div style="border:1px dotted red">
-    <h1>
-        Denne siden administreres av fengselsbetjent Birger Marius Kristiansen. Har du forslag til ting som kunne være kjekt å ha på denne siden, ta gjerne kontakt på mail: innsatt@innsatt.no</h1>
-<br />
-<br />
-<br />
+<div class="alert alert-info">
+    <strong>Innsatt.no</strong> administreres av fengselsbetjent Birger Marius Kristiansen.
+    Har du forslag eller tilbakemeldinger, send gjerne en e-post til
+    <a href="mailto:innsatt@innsatt.no">innsatt@innsatt.no</a>.
 </div>
 
 
 
-        <h1><i class="fad fa-tv-retro"></i> TV-guide RF</h1>
+        <h1><i class="fad fa-tv-retro"></i> TV-guide Ringerike Fengsel</h1>
 
 
-        <br />
-
-        <br /> <br />
-        (Husk å velge 2 sider pr. ark, og printe dobbeltsidig så unngår man å bruke for mye papir)
-        <br />
-        <br />
-        <a href="/print" class="btn btn-primary btn-lg btn-block" tabindex="1" role="button" aria-disabled="true"><i
+      <p class="text-muted">
+    Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
+</p>
+        <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
                 class="far fa-print"></i> TV-guide for i dag</a>
         <br />
         <ul>
