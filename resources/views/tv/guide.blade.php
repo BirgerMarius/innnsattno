@@ -108,22 +108,26 @@
 </h1>
 
 
-      <p class="text-muted">
-    Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
+     <p class="text-muted">
+Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
+<br>
+Sist oppdatert: 12.06.2026
 </p>
-        <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
-  <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
-    <i class="far fa-print"></i> TV-guide for i dag</a>
-        <br />
-       <div class="mt-3 text-center">
+<a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
+    <i class="far fa-print"></i> TV-guide for i dag
+</a>
+
+<br />
+
+<div class="mt-3 text-center">
     <a href="https://wheelofnames.com/" target="_blank" class="btn btn-outline-primary">
-        Spin the wheel
+        🎲 Spin the wheel
     </a>
 
     <a href="https://www.kriminalomsorgen.no/ringerike-fengsel.5031519-237612.html"
        target="_blank"
        class="btn btn-outline-secondary">
-        Info: Ringerike fengsel
+        ℹ️ Ringerike fengsel
     </a>
 </div>
         <br />
