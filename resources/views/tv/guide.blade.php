@@ -103,7 +103,9 @@
 
 
 
-        <h1><i class="fad fa-tv-retro"></i> TV-guide Ringerike Fengsel</h1>
+        <h1 class="display-4">
+    <i class="fad fa-tv-retro"></i> TV-guide Ringerike Fengsel
+</h1>
 
 
       <p class="text-muted">
@@ -113,32 +115,26 @@
   <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
     <i class="far fa-print"></i> TV-guide for i dag</a>
         <br />
-       <div class="mt-3">
+       <div class="mt-3 text-center">
     <a href="https://wheelofnames.com/" target="_blank" class="btn btn-outline-primary">
-        Tilfeldig navnevelger
+        Spin the wheel
     </a>
 
     <a href="https://www.kriminalomsorgen.no/ringerike-fengsel.5031519-237612.html"
        target="_blank"
        class="btn btn-outline-secondary">
-        Ringerike fengsel
+        Info: Ringerike fengsel
     </a>
 </div>
         <br />
 
         {{-- <iframe src="https://www.tvkampen.com/widget/638bd1bc1f1c1?heading=Sport&border_color=blue&autoscroll=0" frameborder="0" style="width: 600px; height: 500px; border: none"></iframe> --}}
 
-        <br />
-        <br />
+       
 
-
-
-
-
-
-
-
-
+<h2 class="mt-5 mb-3">
+    Værvarsel for Tyristrand
+</h2>
         <center>
             <img src="https://www.yr.no/nb/innhold/1-2378693/meteogram.svg" width="100%">
         </center>
