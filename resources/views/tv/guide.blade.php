@@ -3,21 +3,7 @@
 
 <head>
 
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-163151131-1"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-
-        function gtag() {
-            dataLayer.push(arguments);
-        }
-        gtag('js', new Date());
-
-        gtag('config', 'UA-163151131-1');
-    </script>
-
-
-
+  
     <meta charset="UTF-8">
     <meta name="robots" content="noindex">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -32,42 +18,6 @@
         integrity="sha384-IIED/eyOkM6ihtOiQsX2zizxFBphgnv1zbe1bKA+njdFzkr6cDNy16jfIKWu4FNH" crossorigin="anonymous">
 
 
-
-    <style>
-        div#names,
-        div#picker {
-            display: none;
-        }
-
-        div#headerNames {
-            width: 100%;
-            margin: 60px auto;
-            background-color: #fff;
-            color: #000;
-            font-family: Georgia, serif;
-            font-size: 175px;
-            text-align: center;
-            cursor: pointer;
-            padding: 10px 20px 20px 20px;
-            overflow: hidden;
-            border: 2px solid #222;
-        }
-
-        .button {
-            width: 200px;
-            margin: 10px;
-            padding: 20px;
-            color: rgb(0, 0, 0);
-            font-family: Arial, sans-serif;
-            font-size: 30px;
-            font-weight: bold;
-            text-align: center;
-            text-transform: uppercase;
-            display: inline-block;
-            cursor: pointer;
-            border: none;
-        }
-    </style>
 
 <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 
