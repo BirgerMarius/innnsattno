@@ -100,10 +100,10 @@
      alt="TV-guide Ringerike Fengsel">
 
 
-     <p class="text-muted">
+     <p class="text-muted-center">
 Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
 <br>
-Sist oppdatert: 12.06.2026
+Siden er sist oppdatert: 13.06.2026
 </p>
 <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
     <i class="far fa-print"></i> Skriv ut TV-guide for i dag
@@ -137,10 +137,19 @@ Sist oppdatert: 12.06.2026
         <br />
 
 
-<div class="alert alert-info">
-    <strong>Innsatt.no</strong> administreres av fengselsbetjent Birger Marius Kristiansen.
-    Har du forslag eller tilbakemeldinger, send gjerne en e-post til
-    <a href="mailto:innsatt@innsatt.no">innsatt@innsatt.no</a>.
+<div class="bg-dark text-white text-center p-4 mt-5 rounded">
+    <h5>INNSATT.NO</h5>
+
+    <p class="mb-2">
+        TV-guide for Ringerike fengsel administreres av fengselsbetjent Birger Marius Kristiansen.
+    </p>
+
+    <p class="mb-0">
+        Kontakt:
+        <a href="mailto:innsatt@innsatt.no" class="text-light">
+            innsatt@innsatt.no
+        </a>
+    </p>
 </div>
 
 
