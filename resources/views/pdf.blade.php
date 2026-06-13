@@ -14,8 +14,14 @@
 
 
 
-<h2>Ringerike fengsel TV-guide {{ \Carbon\Carbon::now()->locale('nb_NO')->dayName }}
-    {{ \Carbon\Carbon::now()->locale('nb_NO')->format('d.m') }}</h2>
+<h2 style="text-align:center; margin-bottom:10px;">
+    Ringerike fengsel TV-guide
+</h2>
+
+<p style="text-align:center; margin-top:0; margin-bottom:20px;">
+    {{ \Carbon\Carbon::now()->locale('nb_NO')->dayName }}
+    {{ \Carbon\Carbon::now()->locale('nb_NO')->format('d.m.Y') }}
+</p>
     
     
 <br />
@@ -24,7 +30,7 @@
 
 
 
-<div style="column-count:4; column-gap: 0.5em; margin-left:5pt; font-size:11pt;">
+<div style="column-count:4; column-gap:0.8em; font-size:12pt; line-height:1.2;">
 
 
 
@@ -32,7 +38,9 @@
 
     @foreach ($channels as $channel)
         <div>
-            <strong>{{ $channel['channel']['name'] }}</strong><br />
+            <div style="margin-top:8px;">
+    <strong>{{ $channel['channel']['name'] }}</strong>
+</div>
 
             @foreach ($channel['listings'] as $listing)
                 @if (\Carbon\Carbon::parse($listing['startsAt'])->addHours($hours)->format('Y-m-d H:i:s') < now())
