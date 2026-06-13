@@ -96,22 +96,21 @@
 
 
    <img src="/img/tv-header.png"
-     class="img-fluid mb-3"
+    class="img-fluid mb-4 rounded shadow"
      alt="TV-guide Ringerike Fengsel">
 
 
-     <p class="text-muted-center">
-Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
-<br>
-Siden er sist oppdatert: 13.06.2026
+<p class="text-muted text-center">
+    Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
+    <br>
+    Siden er sist oppdatert: 13.06.2026
 </p>
+
 <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
     <i class="far fa-print"></i> Skriv ut TV-guide for i dag
 </a>
 
-<br />
-
-<div class="mt-3 text-center">
+<div class="mt-4 text-center">
     <a href="https://wheelofnames.com/" target="_blank" class="btn btn-outline-primary">
         🎲 Spin the wheel
     </a>
@@ -122,19 +121,16 @@ Siden er sist oppdatert: 13.06.2026
         ℹ️ Ringerike fengsel
     </a>
 </div>
-        <br />
 
-        {{-- <iframe src="https://www.tvkampen.com/widget/638bd1bc1f1c1?heading=Sport&border_color=blue&autoscroll=0" frameborder="0" style="width: 600px; height: 500px; border: none"></iframe> --}}
+{{-- <iframe src="https://www.tvkampen.com/widget/638bd1bc1f1c1?heading=Sport&border_color=blue&autoscroll=0" frameborder="0" style="width: 600px; height: 500px; border: none"></iframe> --}}
 
-       
+<h3 class="mt-5 mb-3 text-muted text-center">
+    Værvarsel for Tyristrand
+</h3>
 
-<h2 class="mt-5 mb-3">
-<h3 class="mt-4">Værvarsel for Tyristrand</h3>
-</h2>
-        <center>
-            <img src="https://www.yr.no/nb/innhold/1-2378693/meteogram.svg" width="100%">
-        </center>
-        <br />
+<div class="text-center">
+    <img src="https://www.yr.no/nb/innhold/1-2378693/meteogram.svg" width="100%">
+</div>
 
 
 <div class="bg-dark text-white text-center p-4 mt-5 rounded">
