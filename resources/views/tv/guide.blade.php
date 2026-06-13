@@ -103,9 +103,9 @@
 
 
 
-        <h1 class="display-4">
-    <i class="fad fa-tv-retro"></i> TV-guide Ringerike Fengsel
-</h1>
+   <img src="/img/tv-header.png"
+     class="img-fluid mb-3"
+     alt="TV-guide Ringerike Fengsel">
 
 
      <p class="text-muted">
