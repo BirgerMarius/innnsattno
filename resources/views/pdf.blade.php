@@ -15,7 +15,7 @@
 
 
 <h2 style="text-align:center; margin-bottom:10px;">
-    Ringerike fengsel TV-guide
+    TV-guide Ringerike fengsel
 </h2>
 
 <p style="text-align:center; margin-top:0; margin-bottom:20px;">
@@ -30,7 +30,7 @@
 
 
 
-<div style="column-count:4; column-gap:0.8em; font-size:12pt; line-height:1.2;">
+<div style="column-count:4; column-gap:0.6em; font-size:11pt; line-height:1.2;">
 
 
 
