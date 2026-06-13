@@ -95,14 +95,6 @@
     <div class="container my-5">
 
 
-<div class="alert alert-info">
-    <strong>Innsatt.no</strong> administreres av fengselsbetjent Birger Marius Kristiansen.
-    Har du forslag eller tilbakemeldinger, send gjerne en e-post til
-    <a href="mailto:innsatt@innsatt.no">innsatt@innsatt.no</a>.
-</div>
-
-
-
    <img src="/img/tv-header.png"
      class="img-fluid mb-3"
      alt="TV-guide Ringerike Fengsel">
@@ -114,7 +106,7 @@ Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirfor
 Sist oppdatert: 12.06.2026
 </p>
 <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
-    <i class="far fa-print"></i> TV-guide for i dag
+    <i class="far fa-print"></i> Skriv ut TV-guide for i dag
 </a>
 
 <br />
@@ -137,21 +129,19 @@ Sist oppdatert: 12.06.2026
        
 
 <h2 class="mt-5 mb-3">
-    Værvarsel for Tyristrand
+<h3 class="mt-4">Værvarsel for Tyristrand</h3>
 </h2>
         <center>
             <img src="https://www.yr.no/nb/innhold/1-2378693/meteogram.svg" width="100%">
         </center>
         <br />
-        <br />
-        <br />
 
 
-
-
-
-
-
+<div class="alert alert-info">
+    <strong>Innsatt.no</strong> administreres av fengselsbetjent Birger Marius Kristiansen.
+    Har du forslag eller tilbakemeldinger, send gjerne en e-post til
+    <a href="mailto:innsatt@innsatt.no">innsatt@innsatt.no</a>.
+</div>
 
 
     </div>
