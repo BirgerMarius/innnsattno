@@ -41,8 +41,7 @@ Route::get('/tv-guiden', function () {
 Route::get('/print', function () {
 
     $response = Http::acceptJson()->get('https://tvguide.vg.no/backend/api/tv-schedule', [
-        'channels' => 'dr1,c-more-hits,nrk1,nrk2,nrk3,tv2-direkte,tv2-livsstil,tv2-sport-1,tv2-sport-2,tv2-zebra,tv3,tv3-plus,tvnorge,rex,investigation-discovery,national-geographic,discovery-channel,bbc-world-news,mtv,fem,eurosport-norge,eurosport-1,al-jazeera-english,nickelodeon',
-        'date' => Carbon::parse(now())->format('Y-m-d'),
+    'channels' => 'nrk1,nrk2,nrk3,tv2-direkte,tv2-zebra,tvnorge,tv3,tv3-plus,tv2-sport-1,tv2-sport-2,eurosport-norge,eurosport-1,c-more-hits,tv2-livsstil,rex,fem,national-geographic,discovery-channel,investigation-discovery,bbc-world-news,al-jazeera-english,nickelodeon,dr1,mtv',        'date' => Carbon::parse(now())->format('Y-m-d'),
         'tz' => 'Europe/Oslo',
     ]);
 
