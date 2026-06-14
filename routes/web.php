@@ -38,10 +38,6 @@ Route::get('/tv-guiden', function () {
     return redirect('tv');
 });
 
-Route::get('/print', function () {
-
-   Route::get('/print', function () {
-
     $channels = [
         'nrk1',
         'nrk2',
