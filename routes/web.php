@@ -58,8 +58,3 @@ Route::get('/print', function () {
 Route::get('/test', function () {
     return '<h1>Dette er testsiden min</h1>';
 });
-
-Route::get('/redirect', function () {
-    $referer = request()->headers->get('referer');
-    return redirect()->away($referer);
-});
