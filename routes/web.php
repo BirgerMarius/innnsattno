@@ -15,15 +15,6 @@ use Illuminate\Support\Facades\Route;
 |
  */
 
-Route::get('/', function () {
-    //return view('video.video');
-    return redirect('tv');
-});
-
-Route::get('/video', function () {
-    return view('video.video');
-});
-
 Route::get('/tv', function () {
     return view('tv.guide');
 });
@@ -63,10 +54,6 @@ Route::get('/print', function () {
         return view('pdf')->with(['channels' => $channels]);
     }
 
-});
-
-Route::get('tw', function () {
-    return view('welcome');
 });
 
 Route::get('/test', function () {
