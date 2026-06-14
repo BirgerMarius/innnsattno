@@ -50,15 +50,13 @@
      alt="TV-guide Ringerike Fengsel">
 
 
-<p class="text-muted text-center">
-    Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
-    <br>
-Siden er sist oppdatert: {{ trim(shell_exec('git log -1 --format="%cd" --date=format:"%d.%m.%Y"')) }}
-</p>
-
 <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
     <i class="far fa-print"></i> Skriv ut TV-guide for i dag
 </a>
+
+<p class="text-center text-muted mt-3">
+    Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
+</p>
 
 <div class="mt-4 text-center">
     <a href="https://wheelofnames.com/" target="_blank" class="btn btn-outline-primary">
@@ -82,9 +80,13 @@ Siden er sist oppdatert: {{ trim(shell_exec('git log -1 --format="%cd" --date=fo
     <img src="https://www.yr.no/nb/innhold/1-2378693/meteogram.svg" width="100%">
 </div>
 
+<p class="text-center text-muted mt-4">
+    Siden er sist oppdatert:
+    {{ trim(shell_exec('git log -1 --format="%cd" --date=format:"%d.%m.%Y"')) }}
+</p>
 
-<div class="bg-dark text-white text-center p-4 mt-5 rounded">
-    <h5>INNSATT.NO</h5>
+<div class="bg-dark text-white text-center p-3 mt-4 rounded">
+        <h5>INNSATT.NO</h5>
 
     <p class="mb-2">
         TV-guide for Ringerike fengsel administreres av fengselsbetjent Birger Marius Kristiansen.
