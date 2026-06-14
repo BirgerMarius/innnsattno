@@ -72,9 +72,6 @@
 
 {{-- <iframe src="https://www.tvkampen.com/widget/638bd1bc1f1c1?heading=Sport&border_color=blue&autoscroll=0" frameborder="0" style="width: 600px; height: 500px; border: none"></iframe> --}}
 
-<h3 class="mt-5 mb-3 text-muted text-center">
-    Værvarsel for Tyristrand
-</h3>
 
 <div class="text-center">
     <img src="https://www.yr.no/nb/innhold/1-2378693/meteogram.svg" width="100%">
