@@ -53,7 +53,7 @@
 <p class="text-muted text-center">
     Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
     <br>
-    Siden er sist oppdatert: {{ date('d.m.Y', filemtime(resource_path('views/tv/guide.blade.php'))) }}
+Siden er sist oppdatert: {{ trim(shell_exec('git log -1 --format="%cd" --date=format:"%d.%m.%Y"')) }}
 </p>
 
 <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
