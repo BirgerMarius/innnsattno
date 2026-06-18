@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="robots" content="noindex">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>TV-guide - Ringerike Fengsel</title>
+    <title>TV-guide - Ilseng Fengsel</title>
 
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -52,10 +52,6 @@
 
 <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
     <i class="far fa-print"></i> Skriv ut TV-guide for i dag
-</a>
-
-<a href="/ilseng" class="btn btn-primary btn-lg btn-block mt-2" role="button">
-    TV-guide Ilseng fengsel
 </a>
 
 <p class="text-center text-muted mt-3">

@@ -22,6 +22,10 @@ Route::get('/tv', function () {
     return view('tv.guide');
 });
 
+Route::get('/ilseng', function () {
+    return view('tv.ilseng');
+});
+
 Route::get('/guide', function () {
     return redirect('tv');
 });
