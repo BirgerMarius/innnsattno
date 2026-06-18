@@ -74,7 +74,7 @@ $flagDays = [
 '25-12' => '1. juledag',
 ];
 
-$today = now()->format('m-d');
+$today = now()->format('d-m');
 
 $nextFlagDay = null;
 $nextFlagDayName = null;
@@ -104,8 +104,8 @@ $formattedDate = \Carbon\Carbon::createFromFormat('m-d', $nextFlagDay)
     {{ $flagDays[$today] }}
 </div>
 @else
-<div class="alert alert-light mt-3 text-center">
-    🇳🇴 <strong>Neste flaggdag:</strong><br>
+<div class="alert alert-secondary mt-3 text-center">
+        🇳🇴 <strong>Neste flaggdag:</strong><br>
     {{ $formattedDate }} – {{ $nextFlagDayName }}
 </div>
 @endif
