@@ -57,6 +57,60 @@
 <a href="/ilseng" class="btn btn-primary btn-lg btn-block mt-2" role="button">
     TV-guide Ilseng fengsel
 </a>
+@php
+$flagDays = [
+'01-01' => '1. nyttårsdag',
+'21-01' => 'H.K.H. Prinsesse Ingrid Alexandra',
+'06-02' => 'Samenes nasjonaldag',
+'21-02' => 'H.M. Kong Harald V',
+'01-05' => 'Arbeidernes dag',
+'08-05' => 'Frigjørings- og veterandagen',
+'17-05' => 'Grunnlovsdagen',
+'07-06' => 'Unionsoppløsningen 1905',
+'04-07' => 'H.M. Dronning Sonja',
+'20-07' => 'H.K.H. Kronprins Haakon',
+'29-07' => 'Olsokdagen',
+'19-08' => 'H.K.H. Kronprinsesse Mette-Marit',
+'25-12' => '1. juledag',
+];
+
+$today = now()->format('m-d');
+
+$nextFlagDay = null;
+$nextFlagDayName = null;
+
+foreach ($flagDays as $date => $name) {
+if ($date >= $today) {
+$nextFlagDay = $date;
+$nextFlagDayName = $name;
+break;
+}
+}
+
+if (!$nextFlagDay) {
+$nextFlagDay = array_key_first($flagDays);
+$nextFlagDayName = reset($flagDays);
+}
+
+$formattedDate = \Carbon\Carbon::createFromFormat('m-d', $nextFlagDay)
+->locale('nb')
+->translatedFormat('j. F');
+@endphp
+
+@if(isset($flagDays[$today]))
+
+<div class="alert alert-info mt-3 text-center">
+    🇳🇴 <strong>Offentlig flaggdag i dag:</strong><br>
+    {{ $flagDays[$today] }}
+</div>
+@else
+<div class="alert alert-light mt-3 text-center">
+    🇳🇴 <strong>Neste flaggdag:</strong><br>
+    {{ $formattedDate }} – {{ $nextFlagDayName }}
+</div>
+@endif
+
+
 
 <p class="text-center text-muted mt-3">
     Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
