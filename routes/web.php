@@ -90,21 +90,48 @@ Route::get('/print', function () {
 
 Route::get('/print-ilseng', function () {
 
-    $channels = [
-        'nrk1',
-        'nrk2',
-        'nrk3',
-        'tv2-direkte',
-        'tv2-zebra',
-        'tvnorge',
-        'tv3',
-        'tv3-plus',
+ $channels = [
+    'nrk1',
+    'nrk2',
+    'nrk3',
 
-        'tv2-sport-1',
-        'tv2-sport-2',
-        'eurosport-norge',
-        'eurosport-1',
-    ];
+    'tv2-direkte',
+    'tv2-zebra',
+    'tv2-livsstil',
+    'tv2-nyheter',
+
+    'tvnorge',
+
+    'tv3',
+    'tv3-plus',
+    'tv6',
+
+    'fem',
+    'rex',
+    'vox',
+
+    'discovery-channel',
+    'national-geographic',
+
+    'eurosport-1',
+    'eurosport-norge',
+
+    'tv2-sport-1',
+    'tv2-sport-2',
+
+    'v-sport-plus',
+    'v-sport-1',
+    'v-sport-2',
+    'v-sport-3',
+
+    'bbc-nordic',
+
+    'disney-channel',
+
+    'history-channel',
+
+    'tlc',
+];
 
     $response = Http::acceptJson()->get('https://tvguide.vg.no/backend/api/tv-schedule', [
         'channels' => implode(',', $channels),
