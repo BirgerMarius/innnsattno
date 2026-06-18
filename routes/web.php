@@ -147,6 +147,8 @@ Route::get('/print-ilseng', function () {
 
 dd($tvChannels);
 
+});
+
 Route::get('/test', function () {
     return '<h1>Dette er testsiden min</h1>';
 });
