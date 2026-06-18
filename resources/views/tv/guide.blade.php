@@ -40,19 +40,6 @@
 
     <div class="container my-5">
 
-
-   <img src="/img/tv-header.png"
-    class="img-fluid mb-4 rounded shadow"
-     alt="TV-guide Ringerike Fengsel">
-
-
-<a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
-    <i class="far fa-print"></i> Skriv ut TV-guide for i dag
-</a>
-
-<a href="/ilseng" class="btn btn-primary btn-lg btn-block mt-2" role="button">
-    TV-guide Ilseng fengsel
-</a>
 @php
 $flagDays = [
 '01-01' => '1. nyttårsdag',
@@ -112,19 +99,29 @@ $formattedDate = $nextFlagDay
 ->translatedFormat('j. F');
 @endphp
 
-@if($nextFlagDay->isToday())
+    @php
+$todayText = now()->locale('nb')->translatedFormat('l j. F Y');
+$weekNumber = now()->weekOfYear;
+@endphp
 
-<div class="alert alert-info mt-3 text-center">
-    🇳🇴 <strong>Offentlig flaggdag i dag:</strong><br>
-    {{ $nextFlagDayName }}
+<div class="alert alert-secondary text-center py-2 mb-4">
+    <strong>📅 {{ ucfirst($todayText) }}</strong> • Uke {{ $weekNumber }}
+    <br>
+    🇳🇴 Neste flaggdag: {{ $formattedDate }} – {{ $nextFlagDayName }}
 </div>
-@else
-<div class="alert alert-secondary mt-3 text-center">
-    🇳🇴 <strong>Neste flaggdag:</strong><br>
-    {{ $formattedDate }} – {{ $nextFlagDayName }}
-</div>
-@endif
 
+   <img src="/img/tv-header.png"
+    class="img-fluid mb-4 rounded shadow"
+     alt="TV-guide Ringerike Fengsel">
+
+
+<a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
+    <i class="far fa-print"></i> Skriv ut TV-guide for i dag
+</a>
+
+<a href="/ilseng" class="btn btn-primary btn-lg btn-block mt-2" role="button">
+    TV-guide Ilseng fengsel
+</a>
 
 <p class="text-center text-muted mt-3">
     Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
