@@ -75,6 +75,7 @@ $flagDays = [
 ];
 
 $today = now()->format('d-m');
+dd($today);
 
 $nextFlagDay = null;
 $nextFlagDayName = null;
