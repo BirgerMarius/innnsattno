@@ -118,7 +118,7 @@ Route::get('/print-ilseng', function () {
 
     $tvChannels = json_decode($response, true);
 
-    return view('pdf')->with(['channels' => $tvChannels]);
+return view('pdf-ilseng')->with(['channels' => $tvChannels]);
 });
 
 Route::get('/test', function () {
