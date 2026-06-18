@@ -8,12 +8,8 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
- */
+*/
+
 Route::get('/', function () {
     return redirect('tv');
 });
@@ -23,7 +19,7 @@ Route::get('/tv', function () {
 });
 
 Route::get('/ilseng', function () {
-    return view('tv.ilseng');
+    return redirect('print-ilseng');
 });
 
 Route::get('/guide', function () {
@@ -41,7 +37,9 @@ Route::get('/tv-guide', function () {
 Route::get('/tv-guiden', function () {
     return redirect('tv');
 });
+
 Route::get('/print', function () {
+
     $channels = [
         'nrk1',
         'nrk2',
@@ -83,12 +81,44 @@ Route::get('/print', function () {
 
     if ($response->serverError()) {
         return "Innsatt.no klarer ikke hente TV-guide fra vg.no - dette kan være fordi siden er nede.";
-    } else {
-        $tvChannels = json_decode($response, true);
-
-        return view('pdf')->with(['channels' => $tvChannels]);
     }
 
+    $tvChannels = json_decode($response, true);
+
+    return view('pdf')->with(['channels' => $tvChannels]);
+});
+
+Route::get('/print-ilseng', function () {
+
+    $channels = [
+        'nrk1',
+        'nrk2',
+        'nrk3',
+        'tv2-direkte',
+        'tv2-zebra',
+        'tvnorge',
+        'tv3',
+        'tv3-plus',
+
+        'tv2-sport-1',
+        'tv2-sport-2',
+        'eurosport-norge',
+        'eurosport-1',
+    ];
+
+    $response = Http::acceptJson()->get('https://tvguide.vg.no/backend/api/tv-schedule', [
+        'channels' => implode(',', $channels),
+        'date' => Carbon::parse(now())->format('Y-m-d'),
+        'tz' => 'Europe/Oslo',
+    ]);
+
+    if ($response->serverError()) {
+        return "Innsatt.no klarer ikke hente TV-guide fra vg.no - dette kan være fordi siden er nede.";
+    }
+
+    $tvChannels = json_decode($response, true);
+
+    return view('pdf')->with(['channels' => $tvChannels]);
 });
 
 Route::get('/test', function () {
