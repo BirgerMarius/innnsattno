@@ -94,43 +94,16 @@ Route::get('/print-ilseng', function () {
     'nrk1',
     'nrk2',
     'nrk3',
-
     'tv2-direkte',
     'tv2-zebra',
-    'tv2-livsstil',
-    'tv2-nyheter',
-
     'tvnorge',
-
     'tv3',
     'tv3-plus',
-    'tv6',
-
-    'fem',
-    'rex',
-    'vox',
-
-    'discovery-channel',
-    'national-geographic',
-
-    'eurosport-1',
-    'eurosport-norge',
 
     'tv2-sport-1',
     'tv2-sport-2',
-
-    'v-sport-plus',
-    'v-sport-1',
-    'v-sport-2',
-    'v-sport-3',
-
-    'bbc-nordic',
-
-    'disney-channel',
-
-    'history-channel',
-
-    'tlc',
+    'eurosport-norge',
+    'eurosport-1',
 ];
 
     $response = Http::acceptJson()->get('https://tvguide.vg.no/backend/api/tv-schedule', [
@@ -145,7 +118,7 @@ Route::get('/print-ilseng', function () {
 
     $tvChannels = json_decode($response, true);
 
-dd($tvChannels);
+    return view('pdf-ilseng')->with(['channels' => $tvChannels]);
 
 });
 
