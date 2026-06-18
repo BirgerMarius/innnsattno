@@ -123,6 +123,10 @@ $channels = [
     'v-sport-2',
     'v-sport-3',
 
+    'v-film-premiere',
+    'v-film-action',
+    'v-series',
+
     'bbc-nordic',
     'disney-channel',
     'history',
