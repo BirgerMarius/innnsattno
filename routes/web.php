@@ -145,8 +145,7 @@ Route::get('/print-ilseng', function () {
 
     $tvChannels = json_decode($response, true);
 
-return view('pdf-ilseng')->with(['channels' => $tvChannels]);
-});
+dd($tvChannels);
 
 Route::get('/test', function () {
     return '<h1>Dette er testsiden min</h1>';
