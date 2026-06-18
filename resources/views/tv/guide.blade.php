@@ -18,7 +18,6 @@
         integrity="sha384-IIED/eyOkM6ihtOiQsX2zizxFBphgnv1zbe1bKA+njdFzkr6cDNy16jfIKWu4FNH" crossorigin="anonymous">
 
 
-
 <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 
     <script type="text/javascript">
@@ -37,9 +36,6 @@
 </head>
 
 <body>
-
-
-
 
 
     <div class="container my-5">
@@ -74,43 +70,60 @@ $flagDays = [
 '25-12' => '1. juledag',
 ];
 
-$today = now()->format('d-m');
-dd($today);
+$today = now();
 
 $nextFlagDay = null;
 $nextFlagDayName = null;
 
 foreach ($flagDays as $date => $name) {
-if ($date >= $today) {
-$nextFlagDay = $date;
-$nextFlagDayName = $name;
-break;
+
+
+[$day, $month] = explode('-', $date);
+
+$flagDate = \Carbon\Carbon::create(now()->year, $month, $day);
+
+if ($flagDate->isToday() || $flagDate->isFuture()) {
+    $nextFlagDay = $flagDate;
+    $nextFlagDayName = $name;
+    break;
 }
+
+
 }
 
 if (!$nextFlagDay) {
-$nextFlagDay = array_key_first($flagDays);
+$firstDate = array_key_first($flagDays);
+[$day, $month] = explode('-', $firstDate);
+
+
+$nextFlagDay = \Carbon\Carbon::create(
+    now()->year + 1,
+    $month,
+    $day
+);
+
 $nextFlagDayName = reset($flagDays);
+
+
 }
 
-$formattedDate = \Carbon\Carbon::createFromFormat('m-d', $nextFlagDay)
+$formattedDate = $nextFlagDay
 ->locale('nb')
 ->translatedFormat('j. F');
 @endphp
 
-@if(isset($flagDays[$today]))
+@if($nextFlagDay->isToday())
 
 <div class="alert alert-info mt-3 text-center">
     🇳🇴 <strong>Offentlig flaggdag i dag:</strong><br>
-    {{ $flagDays[$today] }}
+    {{ $nextFlagDayName }}
 </div>
 @else
 <div class="alert alert-secondary mt-3 text-center">
-        🇳🇴 <strong>Neste flaggdag:</strong><br>
+    🇳🇴 <strong>Neste flaggdag:</strong><br>
     {{ $formattedDate }} – {{ $nextFlagDayName }}
 </div>
 @endif
-
 
 
 <p class="text-center text-muted mt-3">
