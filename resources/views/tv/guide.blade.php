@@ -116,11 +116,11 @@ $weekNumber = now()->weekOfYear;
 
 
 <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
-    <i class="far fa-print"></i> Skriv ut TV-guide for i dag
+    <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ringerike fengsel
 </a>
 
 <a href="/ilseng" class="btn btn-primary btn-lg btn-block mt-2" role="button">
-    TV-guide Ilseng fengsel
+    <i class="far fa-print"></i> TV-guide Ilseng fengsel
 </a>
 
 <p class="text-center text-muted mt-3">
