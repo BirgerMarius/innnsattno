@@ -120,7 +120,7 @@ $weekNumber = now()->weekOfYear;
 </a>
 
 <a href="/ilseng" class="btn btn-primary btn-lg btn-block mt-2" role="button">
-    <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ilseng fengsel
+    <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ilseng fengsel - Kriminalomsorgen Innlandet 
 </a>
 
 <p class="text-center text-muted mt-3">
