@@ -22,17 +22,35 @@ public function index()
         $homeId = $event['participantIds'][0] ?? null;
         $awayId = $event['participantIds'][1] ?? null;
 
-        $matches[] = [
-            'date' => $event['startDate'] ?? '',
-            'group' => $event['tournament']['groupName'] ?? '',
-            'status' => $event['status']['type'] ?? '',
-            'home' => $participants[$homeId]['name'] ?? 'Ukjent',
-            'away' => $participants[$awayId]['name'] ?? 'Ukjent',
-        ];
-    }
+     $homeScore = null;
+$awayScore = null;
 
-    return view('football.index', [
-        'matches' => $matches
-    ]);
+if (isset($event['results'][$homeId]['runningScore'])) {
+    $homeScore = $event['results'][$homeId]['runningScore'];
 }
+
+if (isset($event['results'][$awayId]['runningScore'])) {
+    $awayScore = $event['results'][$awayId]['runningScore'];
+}
+
+$matches[] = [
+    'date' => $event['startDate'] ?? '',
+    'group' => $event['tournament']['groupName'] ?? '',
+    'status' => $event['status']['type'] ?? '',
+    'home' => $participants[$homeId]['name'] ?? 'Ukjent',
+    'away' => $participants[$awayId]['name'] ?? 'Ukjent',
+    'homeScore' => $homeScore,
+    'awayScore' => $awayScore,
+];
+}
+
+usort($matches, function ($a, $b) {
+    return strcmp($b['date'], $a['date']);
+});
+
+return view('football.index', [
+    'matches' => $matches
+]);
+}
+
 }
