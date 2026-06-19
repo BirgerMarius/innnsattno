@@ -180,7 +180,6 @@ $response = Http::acceptJson()
 
 $times = json_decode($response, true);
 
-dd($times);
     return view('bonnetider')->with([
         'times' => $times
     ]);
