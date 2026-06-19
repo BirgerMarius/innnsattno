@@ -175,7 +175,7 @@ Route::get('/bonnetider', function () {
     );
 
     $times = json_decode($response, true);
-
+    dd($times);
     return view('bonnetider')->with([
         'times' => $times
     ]);
