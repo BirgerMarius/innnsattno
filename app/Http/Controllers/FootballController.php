@@ -13,8 +13,8 @@ class FootballController extends Controller
         );
 
         $data = $response->json();
-        dd($data['participants']);
-        
+        dd(reset($data['participants']));
+
         return view('football.index', [
             'data' => $data
         ]);
