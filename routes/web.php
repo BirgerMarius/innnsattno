@@ -184,3 +184,21 @@ $times = json_decode($response, true);
         'times' => $times
     ]);
 });
+Route::get('/bonnetider-maned', function () {
+
+    $response = Http::acceptJson()
+        ->withHeaders([
+            'api-token' => '92affaa6-0e9b-4402-8d8a-0fcd8d9e91ec'
+        ])
+        ->get(
+            'https://api.bonnetid.no/prayertimes/146/' .
+            now()->year . '/' .
+            now()->month . '/'
+        );
+
+    $days = json_decode($response, true);
+
+    return view('bonnetider-maned')->with([
+        'days' => $days
+    ]);
+});
