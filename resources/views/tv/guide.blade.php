@@ -57,6 +57,23 @@ $flagDays = [
 '25-12' => '1. juledag',
 ];
 
+$easterSunday = \Carbon\Carbon::createFromTimestamp(
+    easter_date(now()->year)
+);
+
+$pentecostSunday = $easterSunday->copy()->addDays(49);
+
+$flagDays[$easterSunday->format('d-m')] = '1. påskedag';
+$flagDays[$pentecostSunday->format('d-m')] = '1. pinsedag';
+
+uksort($flagDays, function ($a, $b) {
+    [$dayA, $monthA] = explode('-', $a);
+    [$dayB, $monthB] = explode('-', $b);
+
+    return sprintf('%02d%02d', $monthA, $dayA)
+         <=> sprintf('%02d%02d', $monthB, $dayB);
+});
+
 $today = now();
 
 $nextFlagDay = null;
