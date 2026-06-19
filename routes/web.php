@@ -132,6 +132,19 @@ $channels = [
     'history',
     'tlc',
 ];
+Route::get('/bonnetider', function () {
+
+    $response = Http::acceptJson()->get(
+        'https://api.bonnetid.no/prayertimes/146/' .
+        now()->format('Y/m/d') . '/'
+    );
+
+    $times = json_decode($response, true);
+
+    return view('bonnetider')->with([
+        'times' => $times
+    ]);
+});
 
     $response = Http::acceptJson()->get('https://tvguide.vg.no/backend/api/tv-schedule', [
         'channels' => implode(',', $channels),
@@ -151,4 +164,19 @@ $channels = [
 
 Route::get('/test', function () {
     return '<h1>Dette er testsiden min</h1>';
+});
+Route::get('/bonnetider', function () {
+
+    $response = Http::acceptJson()->get(
+        'https://api.bonnetid.no/prayertimes/146/' .
+        now()->year . '/' .
+        now()->month . '/' .
+        now()->day
+    );
+
+    $times = json_decode($response, true);
+
+    return view('bonnetider')->with([
+        'times' => $times
+    ]);
 });
