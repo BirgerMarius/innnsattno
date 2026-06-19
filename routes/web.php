@@ -167,15 +167,20 @@ Route::get('/test', function () {
 });
 Route::get('/bonnetider', function () {
 
-    $response = Http::acceptJson()->get(
+$response = Http::acceptJson()
+    ->withHeaders([
+        'api-token' => '92affaa6-0e9b-4402-8d8a-0fcd8d9e91ec'
+    ])
+    ->get(
         'https://api.bonnetid.no/prayertimes/146/' .
         now()->year . '/' .
         now()->month . '/' .
-        now()->day
+        now()->day . '/'
     );
 
-    $times = json_decode($response, true);
-    dd($times);
+$times = json_decode($response, true);
+
+dd($times);
     return view('bonnetider')->with([
         'times' => $times
     ]);
