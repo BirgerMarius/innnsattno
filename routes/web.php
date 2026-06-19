@@ -3,6 +3,7 @@
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\FootballController;
 
 /*
 |--------------------------------------------------------------------------
@@ -202,3 +203,4 @@ Route::get('/bonnetider-maned', function () {
         'days' => $days
     ]);
 });
+Route::get('/fotball', [FootballController::class, 'index']);
