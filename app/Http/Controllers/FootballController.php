@@ -55,8 +55,13 @@ usort($matches, function ($a, $b) {
     return strcmp($a['date'], $b['date']);
 });
 
+$todayMatches = array_filter($matches, function ($match) {
+    return str_starts_with($match['date'], date('d.m.Y'));
+});
+
 return view('football.index', [
-    'matches' => $matches
+    'matches' => $matches,
+    'todayMatches' => $todayMatches,
 ]);
 }
 

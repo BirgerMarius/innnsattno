@@ -1,5 +1,30 @@
 <h1>⚽ Fotball-VM 2026</h1>
 
+<h2>Dagens kamper</h2>
+
+@if(count($todayMatches) > 0)
+
+<table border="1" cellpadding="5">
+    <tr>
+        <th>Tid</th>
+        <th>Kamp</th>
+    </tr>
+
+    @foreach($todayMatches as $match)
+        <tr>
+            <td>{{ $match['date'] }}</td>
+            <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+        </tr>
+    @endforeach
+
+</table>
+
+@else
+
+<p>Ingen kamper i dag.</p>
+
+@endif
+
 <p>Antall kamper: {{ count($matches) }}</p>
 
 <table border="1" cellpadding="5">
