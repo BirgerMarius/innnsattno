@@ -25,16 +25,23 @@ public function index()
      $homeScore = null;
 $awayScore = null;
 
-if (isset($event['results'][$homeId]['runningScore'])) {
-    $homeScore = $event['results'][$homeId]['runningScore'];
-}
+if (($event['status']['type'] ?? '') === 'finished') {
 
-if (isset($event['results'][$awayId]['runningScore'])) {
-    $awayScore = $event['results'][$awayId]['runningScore'];
+    if (isset($event['results'][$homeId]['runningScore'])) {
+        $homeScore = $event['results'][$homeId]['runningScore'];
+    }
+
+    if (isset($event['results'][$awayId]['runningScore'])) {
+        $awayScore = $event['results'][$awayId]['runningScore'];
+    }
+
 }
 
 $matches[] = [
-    'date' => $event['startDate'] ?? '',
+    'date' => date(
+    'd.m.Y H:i',
+    strtotime($event['startDate'])
+),
     'group' => $event['tournament']['groupName'] ?? '',
     'status' => $event['status']['type'] ?? '',
     'home' => $participants[$homeId]['name'] ?? 'Ukjent',
@@ -45,7 +52,7 @@ $matches[] = [
 }
 
 usort($matches, function ($a, $b) {
-    return strcmp($b['date'], $a['date']);
+    return strcmp($a['date'], $b['date']);
 });
 
 return view('football.index', [
