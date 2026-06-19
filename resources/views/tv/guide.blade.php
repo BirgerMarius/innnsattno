@@ -123,6 +123,10 @@ $weekNumber = now()->weekOfYear;
     <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ilseng fengsel - Kriminalomsorgen Innlandet 
 </a>
 
+<a href="/bonnetider" class="btn btn-info btn-lg btn-block mt-2" role="button">
+    🕌 Bønnetider – Ringerike fengsel
+</a>
+
 <p class="text-center text-muted mt-3">
     Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
 </p>
