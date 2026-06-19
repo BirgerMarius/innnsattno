@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+
     <title>Bønnetider Ringerike - Måned</title>
 
     <style>
@@ -27,9 +28,17 @@
         h1 {
             margin-bottom: 20px;
         }
+ 
+        @media print {
+    button {
+        display: none;
+    }
+}
     </style>
 </head>
 <body>
+    
+    <button onclick="window.print()">🖨 Skriv ut</button>
 
 <h1>Bønnetider Ringerike fengsel</h1>
 

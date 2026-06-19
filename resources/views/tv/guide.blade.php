@@ -127,6 +127,10 @@ $weekNumber = now()->weekOfYear;
     🕌 Bønnetider – Ringerike fengsel
 </a>
 
+<a href="/bonnetider-maned" class="btn btn-secondary btn-lg btn-block mt-2" role="button">
+    🕌 Bønnetider – månedstabell
+</a>
+
 <p class="text-center text-muted mt-3">
     Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
 </p>
