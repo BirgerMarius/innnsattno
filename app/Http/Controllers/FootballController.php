@@ -35,3 +35,4 @@ public function index()
         'matches' => $matches
     ]);
 }
+}
