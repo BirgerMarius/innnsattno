@@ -1,10 +1,26 @@
 <h1>⚽ Fotball-VM 2026</h1>
 
+<style>
+.top-section {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.top-box {
+    width: 32%;
+}
+</style>
+
 <p>
     <a href="/fotball-utskrift" target="_blank">
         🖨 Utskriftsversjon
     </a>
 </p>
+
+<div class="top-section">
+
+<div class="top-box">
 
 <h2>Dagens kamper</h2>
 
@@ -50,6 +66,10 @@
 
 @endif
 
+</div>
+
+<div class="top-box">
+
 <h2>Siste resultater</h2>
 
 <table border="1" cellpadding="5">
@@ -66,6 +86,10 @@
 
 </table>
 
+</div>
+
+<div class="top-box">
+
 <h2>Kommende kamper</h2>
 
 <table border="1" cellpadding="5">
@@ -80,6 +104,10 @@
 @endforeach
 
 </table>
+
+</div>
+
+</div>
 
 <h2>Gruppetabeller</h2>
 
