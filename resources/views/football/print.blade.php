@@ -89,13 +89,11 @@
 
 <div style="page-break-before: always;"></div>
 
-<h2>Gruppetabeller</h2>
-
 <style>
 .groups {
     display: flex;
     flex-wrap: wrap;
-    gap: 15px;
+    gap: 5px;
 }
 
 .group-box {
@@ -104,13 +102,17 @@
 
 .group-box table {
     width: 100%;
-    font-size: 12px;
+    font-size: 11px;
 }
 
 .group-box h3 {
-    margin-bottom: 5px;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 </style>
+
+<h2>Gruppetabeller</h2>
+
 
 <div class="groups">
 
