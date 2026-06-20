@@ -118,16 +118,10 @@
 </table>
 
 </div>
-
 @endforeach
 
 </div>
 
-</table>
-
-<br>
-
-@endforeach
 <script>
 window.print();
 </script>
