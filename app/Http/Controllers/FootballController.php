@@ -14,6 +14,13 @@ public function index()
 
     $data = $response->json();
 
+    $standingsResponse = Http::get(
+    'https://api.sportsnext.schibsted.io/v1/vg/tournaments/seasons/7767/standings'
+);
+
+$standings = $standingsResponse->json();
+dd($standings);
+
     $participants = $data['participants'];
     $matches = [];
 
