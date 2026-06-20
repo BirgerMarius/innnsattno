@@ -66,37 +66,62 @@
 
 <h2>Gruppetabeller</h2>
 
+<style>
+.groups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.group-box {
+    width: 31%;
+}
+
+.group-box table {
+    width: 100%;
+    font-size: 12px;
+}
+
+.group-box h3 {
+    margin-bottom: 5px;
+}
+</style>
+
+<div class="groups">
+
 @foreach($groups as $groupName => $group)
+
+<div class="group-box">
 
 <h3>Gruppe {{ $groupName }}</h3>
 
-<table border="1" cellpadding="5">
+<table border="1" cellpadding="3">
 
 <tr>
-   <th>#</th>
-<th>Lag</th>
-<th>K</th>
-<th>V</th>
-<th>U</th>
-<th>T</th>
-<th>M-F</th>
-<th>P</th>
+    <th>#</th>
+    <th>Lag</th>
+    <th>K</th>
+    <th>P</th>
 </tr>
 
 @foreach($group as $team)
 
 <tr>
     <td>{{ $team['rank'] }}</td>
-<td>{{ $team['name'] }}</td>
-<td>{{ $team['played'] }}</td>
-<td>{{ $team['wins'] }}</td>
-<td>{{ $team['draws'] }}</td>
-<td>{{ $team['losses'] }}</td>
-<td>{{ $team['goalsFor'] }}-{{ $team['goalsAgainst'] }}</td>
-<td>{{ $team['points'] }}</td>
+    <td>{{ $team['name'] }}</td>
+    <td>{{ $team['played'] }}</td>
+    <td>{{ $team['points'] }}</td>
 </tr>
 
 @endforeach
+
+</table>
+
+</div>
+
+@endforeach
+
+</div>
 
 </table>
 
