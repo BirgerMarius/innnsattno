@@ -98,6 +98,7 @@ return view('football.index', [
     'todayMatches' => $todayMatches,
     'finishedMatches' => array_slice(array_reverse($finishedMatches), 0, 10),
     'upcomingMatches' => array_slice($upcomingMatches, 0, 10),
+    'groupA' => $groupA,
 ]);
 }
 
