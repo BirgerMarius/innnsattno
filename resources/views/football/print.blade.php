@@ -1,3 +1,5 @@
+<h1>UTSKRIFTSVERSJON</h1>
+<hr>
 <h1>⚽ Fotball-VM 2026</h1>
 
 <h2>Dagens kamper</h2>
