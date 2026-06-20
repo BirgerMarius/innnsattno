@@ -1,5 +1,7 @@
 <h1>UTSKRIFTSVERSJON</h1>
 <hr>
+<p>Oppdatert: {{ date('d.m.Y H:i') }}</p>
+
 <h1>⚽ Fotball-VM 2026</h1>
 
 <h2>Dagens kamper</h2>
@@ -62,21 +64,6 @@
 
 </table>
 
-<h2>Kommende kamper</h2>
-
-<table border="1" cellpadding="5">
-
-@foreach($upcomingMatches as $match)
-
-<tr>
-    <td>{{ $match['date'] }}</td>
-    <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
-</tr>
-
-@endforeach
-
-</table>
-
 <h2>Gruppetabeller</h2>
 
 @foreach($groups as $groupName => $group)
@@ -116,3 +103,6 @@
 <br>
 
 @endforeach
+<script>
+window.print();
+</script>

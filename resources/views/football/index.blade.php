@@ -1,5 +1,11 @@
 <h1>⚽ Fotball-VM 2026</h1>
 
+<p>
+    <a href="/fotball-utskrift" target="_blank">
+        🖨 Utskriftsversjon
+    </a>
+</p>
+
 <h2>Dagens kamper</h2>
 
 @if(count($todayMatches) > 0)
