@@ -145,10 +145,6 @@
 
 <br>
 
-@endforeach
-
-</table>
-
 </div>
 
 @endforeach
