@@ -19,6 +19,7 @@ public function index()
 );
 
 $standings = $standingsResponse->json();
+dd($standings['standings'][0]['teamStandings'][0]);
 $groups = [];
 
 foreach ($standings['standings'] as $group) {
