@@ -12,8 +12,26 @@
 
     @foreach($todayMatches as $match)
         <tr>
-            <td>{{ $match['date'] }}</td>
-            <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+            <td>{{ substr($match['date'], 11, 5) }}</td>
+    <td>
+
+@if($match['status'] == 'finished')
+
+    {{ $match['home'] }}
+    {{ $match['homeScore'] }}
+    -
+    {{ $match['awayScore'] }}
+    {{ $match['away'] }}
+
+@else
+
+    {{ $match['home'] }}
+    -
+    {{ $match['away'] }}
+
+@endif
+
+</td>
         </tr>
     @endforeach
 
