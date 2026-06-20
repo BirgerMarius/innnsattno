@@ -59,9 +59,28 @@ $todayMatches = array_filter($matches, function ($match) {
     return str_starts_with($match['date'], date('d.m.Y'));
 });
 
+$todayMatches = [];
+$finishedMatches = [];
+$upcomingMatches = [];
+
+foreach ($matches as $match) {
+
+    if ($match['status'] === 'finished') {
+        $finishedMatches[] = $match;
+    } else {
+        $upcomingMatches[] = $match;
+    }
+
+    if (str_starts_with($match['date'], date('d.m.Y'))) {
+        $todayMatches[] = $match;
+    }
+}
+
 return view('football.index', [
     'matches' => $matches,
     'todayMatches' => $todayMatches,
+    'finishedMatches' => array_slice(array_reverse($finishedMatches), 0, 10),
+    'upcomingMatches' => array_slice($upcomingMatches, 0, 10),
 ]);
 }
 

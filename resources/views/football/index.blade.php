@@ -31,6 +31,7 @@
 
 @endif
 
+
 </td>
         </tr>
     @endforeach
@@ -42,6 +43,37 @@
 <p>Ingen kamper i dag.</p>
 
 @endif
+
+<h2>Siste resultater</h2>
+
+<table border="1" cellpadding="5">
+
+@foreach($finishedMatches as $match)
+
+<tr>
+    <td>{{ $match['home'] }}</td>
+    <td>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</td>
+    <td>{{ $match['away'] }}</td>
+</tr>
+
+@endforeach
+
+</table>
+
+<h2>Kommende kamper</h2>
+
+<table border="1" cellpadding="5">
+
+@foreach($upcomingMatches as $match)
+
+<tr>
+    <td>{{ $match['date'] }}</td>
+    <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+</tr>
+
+@endforeach
+
+</table>
 
 <p>Antall kamper: {{ count($matches) }}</p>
 
