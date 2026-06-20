@@ -140,6 +140,10 @@ $weekNumber = now()->weekOfYear;
     <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ilseng fengsel - Kriminalomsorgen Innlandet 
 </a>
 
+<a href="/fotball" class="btn btn-warning btn-lg btn-block mt-2" role="button">
+    ⚽ Fotball-VM 2026
+</a>
+
 <a href="/bonnetider" class="btn btn-info btn-lg btn-block mt-2" role="button">
     🕌 Bønnetider – Ringerike fengsel
 </a>
