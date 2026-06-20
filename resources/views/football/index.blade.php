@@ -75,9 +75,14 @@
 
 </table>
 
-<h2>Gruppe A</h2>
+<h2>Gruppetabeller</h2>
+
+@foreach($groups as $groupName => $group)
+
+<h3>Gruppe {{ $groupName }}</h3>
 
 <table border="1" cellpadding="5">
+
 <tr>
     <th>#</th>
     <th>Lag</th>
@@ -85,7 +90,7 @@
     <th>P</th>
 </tr>
 
-@foreach($groupA as $team)
+@foreach($group as $team)
 
 <tr>
     <td>{{ $team['rank'] }}</td>
@@ -97,6 +102,10 @@
 @endforeach
 
 </table>
+
+<br>
+
+@endforeach
 
 <p>Antall kamper: {{ count($matches) }}</p>
 

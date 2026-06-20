@@ -19,16 +19,23 @@ public function index()
 );
 
 $standings = $standingsResponse->json();
-$groupA = [];
+$groups = [];
 
-foreach ($standings['standings'][0]['teamStandings'] as $team) {
+foreach ($standings['standings'] as $group) {
 
-    $groupA[] = [
-        'rank' => $team['rank'],
-        'name' => $standings['participants'][$team['teamId']]['name'],
-        'played' => $team['played'],
-        'points' => $team['points'],
-    ];
+    $groupName = $group['groupName'];
+
+    $groups[$groupName] = [];
+
+    foreach ($group['teamStandings'] as $team) {
+
+        $groups[$groupName][] = [
+            'rank' => $team['rank'],
+            'name' => $standings['participants'][$team['teamId']]['name'],
+            'played' => $team['played'],
+            'points' => $team['points'],
+        ];
+    }
 }
 
     $participants = $data['participants'];
@@ -98,7 +105,7 @@ return view('football.index', [
     'todayMatches' => $todayMatches,
     'finishedMatches' => array_slice(array_reverse($finishedMatches), 0, 10),
     'upcomingMatches' => array_slice($upcomingMatches, 0, 10),
-    'groupA' => $groupA,
+    'groups' => $groups,
 ]);
 }
 
