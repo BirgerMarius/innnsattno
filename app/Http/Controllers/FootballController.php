@@ -6,7 +6,18 @@ use Illuminate\Support\Facades\Http;
 
 class FootballController extends Controller
 {
+
 public function index()
+{
+    return view('football.index', $this->getFootballData());
+}
+
+public function print()
+{
+    return view('football.print', $this->getFootballData());
+}
+
+private function getFootballData()
 {
     $response = Http::get(
         'https://api.sportsnext.schibsted.io/v1/vg/tournaments/seasons/7767/schedule'
@@ -15,33 +26,34 @@ public function index()
     $data = $response->json();
 
     $standingsResponse = Http::get(
-    'https://api.sportsnext.schibsted.io/v1/vg/tournaments/seasons/7767/standings'
-);
+        'https://api.sportsnext.schibsted.io/v1/vg/tournaments/seasons/7767/standings'
+    );
 
-$standings = $standingsResponse->json();
-$groups = [];
+    $standings = $standingsResponse->json();
 
-foreach ($standings['standings'] as $group) {
+    $groups = [];
 
-    $groupName = $group['groupName'];
+    foreach ($standings['standings'] as $group) {
 
-    $groups[$groupName] = [];
+        $groupName = $group['groupName'];
 
-    foreach ($group['teamStandings'] as $team) {
+        $groups[$groupName] = [];
 
-        $groups[$groupName][] = [
-    'rank' => $team['rank'],
-    'name' => $standings['participants'][$team['teamId']]['name'],
-    'played' => $team['played'],
-    'wins' => $team['wins'],
-    'draws' => $team['draws'],
-    'losses' => $team['losses'],
-    'goalsFor' => $team['goalsFor'],
-    'goalsAgainst' => $team['goalsAgainst'],
-    'points' => $team['points'],
-];
+        foreach ($group['teamStandings'] as $team) {
+
+            $groups[$groupName][] = [
+                'rank' => $team['rank'],
+                'name' => $standings['participants'][$team['teamId']]['name'],
+                'played' => $team['played'],
+                'wins' => $team['wins'],
+                'draws' => $team['draws'],
+                'losses' => $team['losses'],
+                'goalsFor' => $team['goalsFor'],
+                'goalsAgainst' => $team['goalsAgainst'],
+                'points' => $team['points'],
+            ];
+        }
     }
-}
 
     $participants = $data['participants'];
     $matches = [];
@@ -51,70 +63,59 @@ foreach ($standings['standings'] as $group) {
         $homeId = $event['participantIds'][0] ?? null;
         $awayId = $event['participantIds'][1] ?? null;
 
-     $homeScore = null;
-$awayScore = null;
+        $homeScore = null;
+        $awayScore = null;
 
-if (($event['status']['type'] ?? '') === 'finished') {
+        if (($event['status']['type'] ?? '') === 'finished') {
 
-    if (isset($event['results'][$homeId]['runningScore'])) {
-        $homeScore = $event['results'][$homeId]['runningScore'];
+            if (isset($event['results'][$homeId]['runningScore'])) {
+                $homeScore = $event['results'][$homeId]['runningScore'];
+            }
+
+            if (isset($event['results'][$awayId]['runningScore'])) {
+                $awayScore = $event['results'][$awayId]['runningScore'];
+            }
+        }
+
+        $matches[] = [
+            'date' => date('d.m.Y H:i', strtotime($event['startDate'])),
+            'group' => $event['tournament']['groupName'] ?? '',
+            'status' => $event['status']['type'] ?? '',
+            'home' => $participants[$homeId]['name'] ?? 'Ukjent',
+            'away' => $participants[$awayId]['name'] ?? 'Ukjent',
+            'homeScore' => $homeScore,
+            'awayScore' => $awayScore,
+        ];
     }
 
-    if (isset($event['results'][$awayId]['runningScore'])) {
-        $awayScore = $event['results'][$awayId]['runningScore'];
+    usort($matches, function ($a, $b) {
+        return strcmp($a['date'], $b['date']);
+    });
+
+    $todayMatches = [];
+    $finishedMatches = [];
+    $upcomingMatches = [];
+
+    foreach ($matches as $match) {
+
+        if ($match['status'] === 'finished') {
+            $finishedMatches[] = $match;
+        } else {
+            $upcomingMatches[] = $match;
+        }
+
+        if (str_starts_with($match['date'], date('d.m.Y'))) {
+            $todayMatches[] = $match;
+        }
     }
 
+    return [
+        'matches' => $matches,
+        'todayMatches' => $todayMatches,
+        'finishedMatches' => array_slice(array_reverse($finishedMatches), 0, 10),
+        'upcomingMatches' => array_slice($upcomingMatches, 0, 10),
+        'groups' => $groups,
+    ];
 }
 
-$matches[] = [
-    'date' => date(
-    'd.m.Y H:i',
-    strtotime($event['startDate'])
-),
-    'group' => $event['tournament']['groupName'] ?? '',
-    'status' => $event['status']['type'] ?? '',
-    'home' => $participants[$homeId]['name'] ?? 'Ukjent',
-    'away' => $participants[$awayId]['name'] ?? 'Ukjent',
-    'homeScore' => $homeScore,
-    'awayScore' => $awayScore,
-];
-}
-
-usort($matches, function ($a, $b) {
-    return strcmp($a['date'], $b['date']);
-});
-
-$todayMatches = array_filter($matches, function ($match) {
-    return str_starts_with($match['date'], date('d.m.Y'));
-});
-
-$todayMatches = [];
-$finishedMatches = [];
-$upcomingMatches = [];
-
-foreach ($matches as $match) {
-
-    if ($match['status'] === 'finished') {
-        $finishedMatches[] = $match;
-    } else {
-        $upcomingMatches[] = $match;
-    }
-
-    if (str_starts_with($match['date'], date('d.m.Y'))) {
-        $todayMatches[] = $match;
-    }
-}
-
-return view('football.index', [
-    'matches' => $matches,
-    'todayMatches' => $todayMatches,
-    'finishedMatches' => array_slice(array_reverse($finishedMatches), 0, 10),
-    'upcomingMatches' => array_slice($upcomingMatches, 0, 10),
-    'groups' => $groups,
-]);
-}
-public function print()
-{
-    return $this->index();
-}
 }
