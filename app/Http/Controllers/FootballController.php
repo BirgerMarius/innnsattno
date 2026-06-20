@@ -104,10 +104,13 @@ private function getFootballData()
             $upcomingMatches[] = $match;
         }
 
-        if (str_starts_with($match['date'], date('d.m.Y'))) {
-            $todayMatches[] = $match;
-        }
-    }
+       if (date('H') < 12) {
+    $start = strtotime('yesterday 12:00');
+    $end = strtotime('today 12:00');
+} else {
+    $start = strtotime('today 12:00');
+    $end = strtotime('tomorrow 12:00');
+}
 
     return [
         'matches' => $matches,
