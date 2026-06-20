@@ -19,7 +19,17 @@ public function index()
 );
 
 $standings = $standingsResponse->json();
-dd($standings['participants']['13629']);
+$groupA = [];
+
+foreach ($standings['standings'][0]['teamStandings'] as $team) {
+
+    $groupA[] = [
+        'rank' => $team['rank'],
+        'name' => $standings['participants'][$team['teamId']]['name'],
+        'played' => $team['played'],
+        'points' => $team['points'],
+    ];
+}
 
     $participants = $data['participants'];
     $matches = [];
