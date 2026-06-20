@@ -19,7 +19,7 @@ public function index()
 );
 
 $standings = $standingsResponse->json();
-dd($standings['standings'][0]);
+dd($standings['standings'][0]['teamStandings']);
 
     $participants = $data['participants'];
     $matches = [];
