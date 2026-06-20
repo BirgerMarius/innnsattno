@@ -105,7 +105,7 @@ foreach ($matches as $match) {
     }
 }
 
-return view('football.index', [
+return view('football.print', [
     'matches' => $matches,
     'todayMatches' => $todayMatches,
     'finishedMatches' => array_slice(array_reverse($finishedMatches), 0, 10),
@@ -113,5 +113,8 @@ return view('football.index', [
     'groups' => $groups,
 ]);
 }
-
+public function print()
+{
+    return $this->index();
+}
 }

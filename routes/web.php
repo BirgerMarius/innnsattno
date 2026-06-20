@@ -204,3 +204,4 @@ Route::get('/bonnetider-maned', function () {
     ]);
 });
 Route::get('/fotball', [FootballController::class, 'index']);
+Route::get('/fotball-utskrift', [FootballController::class, 'print']);
