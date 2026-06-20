@@ -1,5 +1,3 @@
-<h1>UTSKRIFTSVERSJON</h1>
-<hr>
 <p>Oppdatert: {{ date('d.m.Y H:i') }}</p>
 
 <h1>⚽ Fotball-VM 2026</h1>

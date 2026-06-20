@@ -83,7 +83,33 @@
 
 <h2>Gruppetabeller</h2>
 
+<style>
+.groups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.group-box {
+    width: 31%;
+}
+
+.group-box table {
+    width: 100%;
+    font-size: 11px;
+}
+
+.group-box h3 {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+</style>
+
+<div class="groups">
+
 @foreach($groups as $groupName => $group)
+
+<div class="group-box">
 
 <h3>Gruppe {{ $groupName }}</h3>
 
@@ -120,3 +146,11 @@
 <br>
 
 @endforeach
+
+</table>
+
+</div>
+
+@endforeach
+
+</div>
