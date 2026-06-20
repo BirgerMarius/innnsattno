@@ -84,19 +84,27 @@
 <table border="1" cellpadding="5">
 
 <tr>
-    <th>#</th>
-    <th>Lag</th>
-    <th>K</th>
-    <th>P</th>
+   <th>#</th>
+<th>Lag</th>
+<th>K</th>
+<th>V</th>
+<th>U</th>
+<th>T</th>
+<th>Mål</th>
+<th>P</th>
 </tr>
 
 @foreach($group as $team)
 
 <tr>
     <td>{{ $team['rank'] }}</td>
-    <td>{{ $team['name'] }}</td>
-    <td>{{ $team['played'] }}</td>
-    <td>{{ $team['points'] }}</td>
+<td>{{ $team['name'] }}</td>
+<td>{{ $team['played'] }}</td>
+<td>{{ $team['wins'] }}</td>
+<td>{{ $team['draws'] }}</td>
+<td>{{ $team['losses'] }}</td>
+<td>{{ $team['goalsFor'] }}-{{ $team['goalsAgainst'] }}</td>
+<td>{{ $team['points'] }}</td>
 </tr>
 
 @endforeach

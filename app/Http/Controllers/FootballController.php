@@ -19,7 +19,6 @@ public function index()
 );
 
 $standings = $standingsResponse->json();
-dd($standings['standings'][0]['teamStandings'][0]);
 $groups = [];
 
 foreach ($standings['standings'] as $group) {
@@ -31,11 +30,16 @@ foreach ($standings['standings'] as $group) {
     foreach ($group['teamStandings'] as $team) {
 
         $groups[$groupName][] = [
-            'rank' => $team['rank'],
-            'name' => $standings['participants'][$team['teamId']]['name'],
-            'played' => $team['played'],
-            'points' => $team['points'],
-        ];
+    'rank' => $team['rank'],
+    'name' => $standings['participants'][$team['teamId']]['name'],
+    'played' => $team['played'],
+    'wins' => $team['wins'],
+    'draws' => $team['draws'],
+    'losses' => $team['losses'],
+    'goalsFor' => $team['goalsFor'],
+    'goalsAgainst' => $team['goalsAgainst'],
+    'points' => $team['points'],
+];
     }
 }
 
