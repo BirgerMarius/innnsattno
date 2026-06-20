@@ -96,20 +96,27 @@ private function getFootballData()
     $finishedMatches = [];
     $upcomingMatches = [];
 
-    foreach ($matches as $match) {
+   foreach ($matches as $match) {
 
-        if ($match['status'] === 'finished') {
-            $finishedMatches[] = $match;
-        } else {
-            $upcomingMatches[] = $match;
-        }
+    if ($match['status'] === 'finished') {
+        $finishedMatches[] = $match;
+    } else {
+        $upcomingMatches[] = $match;
+    }
 
-       if (date('H') < 12) {
-    $start = strtotime('yesterday 12:00');
-    $end = strtotime('today 12:00');
-} else {
-    $start = strtotime('today 12:00');
-    $end = strtotime('tomorrow 12:00');
+    if (date('H') < 12) {
+        $start = strtotime('yesterday 12:00');
+        $end = strtotime('today 12:00');
+    } else {
+        $start = strtotime('today 12:00');
+        $end = strtotime('tomorrow 12:00');
+    }
+
+    $matchTime = strtotime($match['date']);
+
+    if ($matchTime >= $start && $matchTime < $end) {
+        $todayMatches[] = $match;
+    }
 }
 
     return [
