@@ -4,6 +4,22 @@
 
 <h1>⚽ Fotball-VM 2026</h1>
 
+<style>
+.top-section {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.top-box {
+    width: 48%;
+}
+</style>
+
+<div class="top-section">
+
+<div class="top-box">
+
 <h2>Dagens kamper</h2>
 
 @if(count($todayMatches) > 0)
@@ -35,7 +51,6 @@
 
 @endif
 
-
 </td>
         </tr>
     @endforeach
@@ -47,6 +62,10 @@
 <p>Ingen kamper i dag.</p>
 
 @endif
+
+</div>
+
+<div class="top-box">
 
 <h2>Siste resultater</h2>
 
@@ -63,6 +82,12 @@
 @endforeach
 
 </table>
+
+</div>
+
+</div>
+
+<div style="page-break-before: always;"></div>
 
 <h2>Gruppetabeller</h2>
 
