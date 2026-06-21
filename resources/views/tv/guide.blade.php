@@ -160,10 +160,11 @@ Kommende flaggdager: {{ $tooltipText }}
 
 </div>
 
-   <img src="/img/innsatt-logo.png"
-    class="img-fluid mb-4 rounded shadow"
-     alt="TV-guide Ringerike Fengsel">
-
+  <div class="text-center mb-3">
+    <img src="/img/innsatt-logo.png"
+         alt="INNSATT.NO"
+         style="max-width: 500px; width:100%; height:auto;">
+</div>
 
 <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
     <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ringerike fengsel
