@@ -104,6 +104,9 @@ private function getFootballData()
     $playoffMatches = [];
 
    foreach ($matches as $match) {
+    if ($match['phaseType'] === 'cup') {
+    $playoffMatches[] = $match;
+    }
 
     if ($match['status'] === 'finished') {
         $finishedMatches[] = $match;
@@ -136,4 +139,5 @@ private function getFootballData()
     'groups' => $groups,
 ];
 
+}
 }
