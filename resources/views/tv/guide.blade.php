@@ -160,7 +160,7 @@ Kommende flaggdager: {{ $tooltipText }}
 
 </div>
 
-   <img src="/img/tv-header.png"
+   <img src="/img/innsatt-logo.png"
     class="img-fluid mb-4 rounded shadow"
      alt="TV-guide Ringerike Fengsel">
 
