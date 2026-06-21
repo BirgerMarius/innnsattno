@@ -160,10 +160,10 @@ Kommende flaggdager: {{ $tooltipText }}
 
 </div>
 
-  <div class="text-center" style="margin-bottom:-10px;">
+ <div class="text-center mb-2">
     <img src="/img/innsatt-logo-v2.png"
          alt="INNSATT.NO"
-         style="width:100%; max-width:1400px; max-height:200px; object-fit:contain;">
+         style="width:100%; height:auto;">
 </div>
 
 <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
