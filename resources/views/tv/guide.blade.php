@@ -151,7 +151,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
 <div class="row mb-3">
 
     <div class="col-md-6 mb-2">
-        <div class="card text-center border-primary">
+    <div class="card text-center border-primary h-100">
             <div class="card-body py-2">
                 <h5 class="mb-1">📅 Dato</h5>
                 <h4 class="mb-0">{{ ucfirst($todayText) }}</h4>
@@ -160,7 +160,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
     </div>
 
     <div class="col-md-6 mb-2">
-        <div class="card text-center border-success">
+    <div class="card text-center border-success h-100">
             <div class="card-body py-2">
                 <h5 class="mb-1">📆 Ukenummer</h5>
                <h1 class="mb-0 font-weight-bold">
@@ -177,10 +177,20 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
 </div>
 
-<div class="text-center mb-2">
-    <small class="text-muted" style="font-size:0.75rem;">
-        🇳🇴 Neste flaggdag: {{ $formattedDate }} – {{ $nextFlagDayName }}
+<div class="alert alert-light text-center py-1 mb-3">
+
+    <strong>
+        🇳🇴 Neste flaggdag:
+        {{ $formattedDate }} – {{ $nextFlagDayName }}
+    </strong>
+
+    <br>
+
+    <small class="text-muted">
+        Kommende flaggdager:
+        {{ $tooltipText }}
     </small>
+
 </div>
 
  <div class="text-center mb-2">
