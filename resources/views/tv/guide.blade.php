@@ -144,20 +144,41 @@ $todayText = now()->locale('nb')->translatedFormat('l j. F Y');
 $weekNumber = now()->weekOfYear;
 @endphp
 
-<div class="alert alert-secondary text-center py-2 mb-4">
-    <strong>📅 {{ ucfirst($todayText) }}</strong> • Uke {{ $weekNumber }}
-    <br>
+@php
+$isEvenWeek = $weekNumber % 2 === 0;
+@endphp
 
-    <span title="{{ $tooltipText }}">
-        🇳🇴 Neste flaggdag: {{ $formattedDate }} – {{ $nextFlagDayName }}
-    </span>
+<div class="row mb-3">
 
-    <br>
+    <div class="col-md-6 mb-2">
+        <div class="card text-center border-primary">
+            <div class="card-body py-2">
+                <h5 class="mb-1">📅 Dato</h5>
+                <h4 class="mb-0">{{ ucfirst($todayText) }}</h4>
+            </div>
+        </div>
+    </div>
 
+    <div class="col-md-6 mb-2">
+        <div class="card text-center border-success">
+            <div class="card-body py-2">
+                <h5 class="mb-1">📆 Ukenummer</h5>
+                <h2 class="mb-0">
+                    Uke {{ $weekNumber }}
+                    <small class="text-muted">
+                        ({{ $isEvenWeek ? 'Partallsuke' : 'Oddetallsuke' }})
+                    </small>
+                </h2>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="text-center mb-3">
     <small class="text-muted">
-Kommende flaggdager: {{ $tooltipText }}
-</small>
-
+        🇳🇴 Neste flaggdag: {{ $formattedDate }} – {{ $nextFlagDayName }}
+    </small>
 </div>
 
  <div class="text-center mb-2">
