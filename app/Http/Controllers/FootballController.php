@@ -129,6 +129,12 @@ private function getFootballData()
     }
 }
 
+    $playoffStages = [];
+
+    foreach ($playoffMatches as $match) {
+    $playoffStages[$match['stage']][] = $match;
+}
+
     return [
    
     'matches' => $matches,
@@ -136,6 +142,7 @@ private function getFootballData()
     'finishedMatches' => array_slice(array_reverse($finishedMatches), 0, 10),
     'upcomingMatches' => array_slice($upcomingMatches, 0, 10),
     'playoffMatches' => $playoffMatches,
+    'playoffStages' => $playoffStages,
     'groups' => $groups,
 ];
 
