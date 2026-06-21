@@ -193,41 +193,114 @@
 </div>
 @endif
 
+<style>
+.playoff-columns {
+    display: flex;
+    gap: 20px;
+}
+
+.playoff-column {
+    width: 32%;
+}
+
+.playoff-column table {
+    width: 100%;
+    margin-bottom: 15px;
+}
+</style>
+
 <h2>Sluttspill</h2>
 
-@foreach($playoffStages as $stage => $matches)
+<div class="playoff-columns">
 
-<h3>
-@if($stage == 'roundOf32')
-32-delsfinaler
-@elseif($stage == 'roundOf16')
-16-delsfinaler
-@elseif($stage == 'quarterfinal')
-Kvartfinaler
-@elseif($stage == 'semifinal')
-Semifinaler
-@elseif($stage == '3rdPlaceFinal')
-Bronsefinale
-@elseif($stage == 'final')
-Finale
-@else
-{{ $stage }}
-@endif
-</h3>
+<div class="playoff-column">
+
+<h3>32-delsfinaler</h3>
 
 <table border="1" cellpadding="5">
 
-@foreach($matches as $match)
-
+@foreach($playoffStages['roundOf32'] ?? [] as $match)
 <tr>
     <td>{{ $match['date'] }}</td>
     <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
 </tr>
-
 @endforeach
 
 </table>
 
-<br>
+</div>
 
+<div class="playoff-column">
+
+<h3>16-delsfinaler</h3>
+
+<table border="1" cellpadding="5">
+
+@foreach($playoffStages['roundOf16'] ?? [] as $match)
+<tr>
+    <td>{{ $match['date'] }}</td>
+    <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+</tr>
 @endforeach
+
+</table>
+
+<h3>Kvartfinaler</h3>
+
+<table border="1" cellpadding="5">
+
+@foreach($playoffStages['quarterfinal'] ?? [] as $match)
+<tr>
+    <td>{{ $match['date'] }}</td>
+    <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+</tr>
+@endforeach
+
+</table>
+
+</div>
+
+<div class="playoff-column">
+
+<h3>Semifinaler</h3>
+
+<table border="1" cellpadding="5">
+
+@foreach($playoffStages['semifinal'] ?? [] as $match)
+<tr>
+    <td>{{ $match['date'] }}</td>
+    <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+</tr>
+@endforeach
+
+</table>
+
+<h3>Bronsefinale</h3>
+
+<table border="1" cellpadding="5">
+
+@foreach($playoffStages['3rdPlaceFinal'] ?? [] as $match)
+<tr>
+    <td>{{ $match['date'] }}</td>
+    <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+</tr>
+@endforeach
+
+</table>
+
+<h3>Finale</h3>
+
+<table border="1" cellpadding="5">
+
+@foreach($playoffStages['final'] ?? [] as $match)
+<tr>
+    <td>{{ $match['date'] }}</td>
+    <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+</tr>
+@endforeach
+
+</table>
+
+</div>
+
+</div>
