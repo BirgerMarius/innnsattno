@@ -133,7 +133,7 @@ $nextFlagDayName = reset($flagDays);
 
 
 }
-$tooltipText = implode("\n", array_slice($upcomingFlagDays, 0, 10));
+$tooltipText = implode("\n", array_slice($upcomingFlagDays, 1, 10));
 $formattedDate = $nextFlagDay
 ->locale('nb')
 ->translatedFormat('j. F');
@@ -154,7 +154,9 @@ $weekNumber = now()->weekOfYear;
 
     <br>
 
-    <small>{{ $tooltipText }}</small>
+    <small class="text-muted">
+Kommende flaggdager: {{ $tooltipText }}
+</small>
 
 </div>
 
