@@ -110,9 +110,16 @@ if ($flagDate->isToday() || $flagDate->isFuture()) {
 }
 
 if ($flagDate->isToday() || $flagDate->isFuture()) {
-    $nextFlagDay = $flagDate;
-    $nextFlagDayName = $name;
-    break;
+
+    $upcomingFlagDays[] =
+        $flagDate->locale('nb')->translatedFormat('j. F')
+        . ' - '
+        . $name;
+
+    if (!$nextFlagDay) {
+        $nextFlagDay = $flagDate;
+        $nextFlagDayName = $name;
+    }
 }
 
 
@@ -134,7 +141,6 @@ $nextFlagDayName = reset($flagDays);
 
 }
 $tooltipText = implode("\n", array_slice($upcomingFlagDays, 0, 10));
-dd($upcomingFlagDays);
 $formattedDate = $nextFlagDay
 ->locale('nb')
 ->translatedFormat('j. F');
