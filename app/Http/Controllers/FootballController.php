@@ -127,7 +127,7 @@ private function getFootballData()
 }
 
     return [
-       return [
+   
     'matches' => $matches,
     'todayMatches' => $todayMatches,
     'finishedMatches' => array_slice(array_reverse($finishedMatches), 0, 10),
