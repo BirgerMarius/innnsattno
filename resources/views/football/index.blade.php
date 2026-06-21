@@ -12,11 +12,11 @@
 }
 </style>
 
-<p>
-    <a href="/fotball-utskrift" target="_blank">
-        🖨 Utskriftsversjon
-    </a>
-</p>
+<a href="/fotball-utskrift"
+   target="_blank"
+   class="btn btn-primary mb-3">
+   🖨 Utskriftsversjon
+</a>
 
 <div class="top-section">
 
