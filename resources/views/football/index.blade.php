@@ -10,11 +10,22 @@
 .top-box {
     width: 32%;
 }
+
+.print-button {
+    display: inline-block;
+    padding: 10px 15px;
+    background: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
 </style>
 
 <a href="/fotball-utskrift"
    target="_blank"
-   class="btn btn-primary mb-3">
+   class="print-button">
    🖨 Utskriftsversjon
 </a>
 
