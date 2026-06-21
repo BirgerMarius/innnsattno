@@ -61,10 +61,24 @@ $easterSunday = \Carbon\Carbon::createFromTimestamp(
     easter_date(now()->year)
 );
 
-$pentecostSunday = $easterSunday->copy()->addDays(49);
+$holyThursday = $easterSunday->copy()->subDays(3);
+$goodFriday = $easterSunday->copy()->subDays(2);
+$easterMonday = $easterSunday->copy()->addDay();
 
+$ascensionDay = $easterSunday->copy()->addDays(39);
+
+$pentecostSunday = $easterSunday->copy()->addDays(49);
+$pentecostMonday = $easterSunday->copy()->addDays(50);
+
+$flagDays[$holyThursday->format('d-m')] = 'Skjærtorsdag';
+$flagDays[$goodFriday->format('d-m')] = 'Langfredag';
 $flagDays[$easterSunday->format('d-m')] = '1. påskedag';
+$flagDays[$easterMonday->format('d-m')] = '2. påskedag';
+
+$flagDays[$ascensionDay->format('d-m')] = 'Kristi himmelfartsdag';
+
 $flagDays[$pentecostSunday->format('d-m')] = '1. pinsedag';
+$flagDays[$pentecostMonday->format('d-m')] = '2. pinsedag';
 
 uksort($flagDays, function ($a, $b) {
     [$dayA, $monthA] = explode('-', $a);
