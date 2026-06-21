@@ -161,9 +161,9 @@ Kommende flaggdager: {{ $tooltipText }}
 </div>
 
   <div class="text-center mb-3">
-    <img src="/img/innsatt-logo.png"
+    <img src="/img/innsatt-logo-v2.png"
          alt="INNSATT.NO"
-         style="max-width: 500px; width:100%; height:auto;">
+         style="width:100%; max-width:1400px; height:auto;">
 </div>
 
 <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
