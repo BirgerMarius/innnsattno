@@ -154,7 +154,13 @@ $isEvenWeek = $weekNumber % 2 === 0;
     <div class="card text-center border-primary h-100">
             <div class="card-body py-2">
                 <h5 class="mb-1">📅 Dato</h5>
-                <h4 class="mb-0">{{ ucfirst($todayText) }}</h4>
+                <h4 class="mb-0">
+    {{ now()->locale('nb')->translatedFormat('j. F Y') }}
+</h4>
+
+<small class="text-muted">
+    {{ ucfirst(now()->locale('nb')->translatedFormat('l')) }}
+</small>
             </div>
         </div>
     </div>
@@ -163,11 +169,11 @@ $isEvenWeek = $weekNumber % 2 === 0;
     <div class="card text-center border-success h-100">
             <div class="card-body py-2">
                 <h5 class="mb-1">📆 Ukenummer</h5>
-               <h1 class="mb-0 font-weight-bold">
-                Uke {{ $weekNumber }}
-                </h1>
+              <h1 class="mb-0 font-weight-bold text-success">
+    UKE {{ $weekNumber }}
+</h1>
 
-                <small class="text-muted d-block">
+<small class="text-muted d-block">
                     {{ $isEvenWeek ? 'Partallsuke' : 'Oddetallsuke' }}
                 </small>
                 </h2>
@@ -251,7 +257,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
         <h5>INNSATT.NO</h5>
 
     <p class="mb-2">
-        TV-guide for Ringerike fengsel administreres av fengselsbetjent Birger Marius Kristiansen.
+        Innsatt.no administreres av fengselsbetjent Birger Marius Kristiansen. Ta gjerne kontakt med forslag til forbedringer, feilrettinger eller andre innspill!
     </p>
 
     <p class="mb-0">
