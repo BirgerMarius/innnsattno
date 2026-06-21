@@ -120,6 +120,7 @@
 
 </div>
 
+@if(count($playoffMatches) == 0)
 <h2>Gruppetabeller</h2>
 
 <style>
@@ -185,6 +186,7 @@
 <br>
 
 </div>
+@endif
 
 @endforeach
 
