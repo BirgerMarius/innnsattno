@@ -189,3 +189,42 @@
 @endforeach
 
 </div>
+
+<h2>Sluttspill</h2>
+
+@foreach($playoffStages as $stage => $matches)
+
+<h3>
+@if($stage == 'roundOf32')
+32-delsfinaler
+@elseif($stage == 'roundOf16')
+16-delsfinaler
+@elseif($stage == 'quarterfinal')
+Kvartfinaler
+@elseif($stage == 'semifinal')
+Semifinaler
+@elseif($stage == '3rdPlaceFinal')
+Bronsefinale
+@elseif($stage == 'final')
+Finale
+@else
+{{ $stage }}
+@endif
+</h3>
+
+<table border="1" cellpadding="5">
+
+@foreach($matches as $match)
+
+<tr>
+    <td>{{ $match['date'] }}</td>
+    <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+</tr>
+
+@endforeach
+
+</table>
+
+<br>
+
+@endforeach
