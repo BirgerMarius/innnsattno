@@ -189,3 +189,25 @@
 @endforeach
 
 </div>
+
+<h2>Test - Sluttspill</h2>
+
+<table border="1" cellpadding="5">
+
+<tr>
+    <th>Dato</th>
+    <th>Stage</th>
+    <th>Kamp</th>
+</tr>
+
+@foreach(array_slice($playoffMatches, 0, 10) as $match)
+
+<tr>
+    <td>{{ $match['date'] }}</td>
+    <td>{{ $match['stage'] }}</td>
+    <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+</tr>
+
+@endforeach
+
+</table>
