@@ -101,6 +101,7 @@ private function getFootballData()
     $todayMatches = [];
     $finishedMatches = [];
     $upcomingMatches = [];
+    $playoffMatches = [];
 
    foreach ($matches as $match) {
 
@@ -126,12 +127,13 @@ private function getFootballData()
 }
 
     return [
-        'matches' => $matches,
-        'todayMatches' => $todayMatches,
-        'finishedMatches' => array_slice(array_reverse($finishedMatches), 0, 10),
-        'upcomingMatches' => array_slice($upcomingMatches, 0, 10),
-        'groups' => $groups,
-    ];
-}
+       return [
+    'matches' => $matches,
+    'todayMatches' => $todayMatches,
+    'finishedMatches' => array_slice(array_reverse($finishedMatches), 0, 10),
+    'upcomingMatches' => array_slice($upcomingMatches, 0, 10),
+    'playoffMatches' => $playoffMatches,
+    'groups' => $groups,
+];
 
 }
