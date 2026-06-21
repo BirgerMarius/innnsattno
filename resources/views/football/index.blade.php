@@ -186,11 +186,12 @@
 <br>
 
 </div>
-@endif
+
 
 @endforeach
 
 </div>
+@endif
 
 <h2>Sluttspill</h2>
 
