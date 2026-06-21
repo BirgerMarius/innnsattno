@@ -120,7 +120,7 @@
 
 </div>
 
-@if(count($playoffMatches) == 0)
+@if(!$groupStageFinished)
 <h2>Gruppetabeller</h2>
 
 <style>
