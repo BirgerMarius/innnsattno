@@ -60,8 +60,9 @@ private function getFootballData()
 
     foreach ($data['events'] as $event) {
     if (isset($event['tournament'])) {
-        dump($event['tournament']);
-        break;
+       if (($event['tournament']['phaseType'] ?? '') !== 'group') {
+    dump($event['tournament']);
+}
     }
 
         $homeId = $event['participantIds'][0] ?? null;
