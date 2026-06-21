@@ -211,3 +211,11 @@
 @endforeach
 
 </table>
+
+<h3>Stages funnet i API:</h3>
+
+@foreach($playoffMatches as $match)
+
+{{ $match['stage'] }}<br>
+
+@endforeach
