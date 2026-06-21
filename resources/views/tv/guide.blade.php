@@ -134,6 +134,7 @@ $nextFlagDayName = reset($flagDays);
 
 }
 $tooltipText = implode("\n", array_slice($upcomingFlagDays, 0, 10));
+dd($upcomingFlagDays);
 $formattedDate = $nextFlagDay
 ->locale('nb')
 ->translatedFormat('j. F');
