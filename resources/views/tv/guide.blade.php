@@ -163,11 +163,13 @@ $isEvenWeek = $weekNumber % 2 === 0;
         <div class="card text-center border-success">
             <div class="card-body py-2">
                 <h5 class="mb-1">📆 Ukenummer</h5>
-                <h2 class="mb-0">
-                    Uke {{ $weekNumber }}
-                    <small class="text-muted">
-                        ({{ $isEvenWeek ? 'Partallsuke' : 'Oddetallsuke' }})
-                    </small>
+               <h1 class="mb-0 font-weight-bold">
+                Uke {{ $weekNumber }}
+                </h1>
+
+                <small class="text-muted d-block">
+                    {{ $isEvenWeek ? 'Partallsuke' : 'Oddetallsuke' }}
+                </small>
                 </h2>
             </div>
         </div>
@@ -175,8 +177,8 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
 </div>
 
-<div class="text-center mb-3">
-    <small class="text-muted">
+<div class="text-center mb-2">
+    <small class="text-muted" style="font-size:0.75rem;">
         🇳🇴 Neste flaggdag: {{ $formattedDate }} – {{ $nextFlagDayName }}
     </small>
 </div>
