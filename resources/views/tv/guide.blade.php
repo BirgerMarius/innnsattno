@@ -103,13 +103,6 @@ foreach ($flagDays as $date => $name) {
 $flagDate = \Carbon\Carbon::create(now()->year, $month, $day);
 
 if ($flagDate->isToday() || $flagDate->isFuture()) {
-    $upcomingFlagDays[] =
-        $flagDate->locale('nb')->translatedFormat('j. F')
-        . ' - '
-        . $name;
-}
-
-if ($flagDate->isToday() || $flagDate->isFuture()) {
 
     $upcomingFlagDays[] =
         $flagDate->locale('nb')->translatedFormat('j. F')
@@ -154,9 +147,15 @@ $weekNumber = now()->weekOfYear;
 <div class="alert alert-secondary text-center py-2 mb-4">
     <strong>📅 {{ ucfirst($todayText) }}</strong> • Uke {{ $weekNumber }}
     <br>
-  <span title="{{ $tooltipText }}">
-    🇳🇴 Neste flaggdag: {{ $formattedDate }} – {{ $nextFlagDayName }}
-</span>
+
+    <span title="{{ $tooltipText }}">
+        🇳🇴 Neste flaggdag: {{ $formattedDate }} – {{ $nextFlagDayName }}
+    </span>
+
+    <br>
+
+    <small>{{ $tooltipText }}</small>
+
 </div>
 
    <img src="/img/tv-header.png"
