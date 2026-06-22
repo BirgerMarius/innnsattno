@@ -171,8 +171,7 @@
 <tr>
     <td>{{ $team['rank'] }}</td>
 <td>
-    {{ $team['flag'] }}
-    <br>
+    <img src="{{ $team['flag'] }}" height="16">
     {{ $team['name'] }}
 </td>
 <td>{{ $team['played'] }}</td>
