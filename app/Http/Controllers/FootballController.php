@@ -43,6 +43,9 @@ class FootballController extends Controller
                 $groups[$groupName][] = [
                     'rank' => $team['rank'],
                     'name' => $standings['participants'][$team['teamId']]['name'],
+                    'countryCode' => strtolower(
+                        $standings['participants'][$team['teamId']]['countryCode'] ?? ''
+                    ),
                     'played' => $team['played'],
                     'wins' => $team['wins'],
                     'draws' => $team['draws'],
@@ -55,8 +58,7 @@ class FootballController extends Controller
         }
 
         $participants = $data['participants'];
-        dd($participants);
-        $matches = [];
+                $matches = [];
 
         foreach ($data['events'] as $event) {
 
@@ -87,6 +89,14 @@ class FootballController extends Controller
                 'status' => $event['status']['type'] ?? '',
                 'home' => $participants[$homeId]['name'] ?? 'Ukjent',
                 'away' => $participants[$awayId]['name'] ?? 'Ukjent',
+
+                'homeCountryCode' => strtolower(
+                $participants[$homeId]['countryCode'] ?? ''
+                ),
+
+                'awayCountryCode' => strtolower(
+                $participants[$awayId]['countryCode'] ?? ''
+                ),
                 'homeScore' => $homeScore,
                 'awayScore' => $awayScore,
             ];
