@@ -55,6 +55,7 @@ class FootballController extends Controller
         }
 
         $participants = $data['participants'];
+        dd($participants);
         $matches = [];
 
         foreach ($data['events'] as $event) {
