@@ -171,9 +171,14 @@
 <tr>
     <td>{{ $team['rank'] }}</td>
 <td>
-  {{ $team['countryCode'] }} - {{ $team['name'] }}
-  
+    @if(!empty($team['flag']))
+        <img src="{{ $team['flag'] }}"
+             style="height:16px; margin-right:5px;">
+    @endif
+
+    {{ $team['name'] }}
 </td>
+
 <td>{{ $team['played'] }}</td>
 <td>{{ $team['wins'] }}</td>
 <td>{{ $team['draws'] }}</td>
