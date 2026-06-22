@@ -171,11 +171,8 @@
 <tr>
     <td>{{ $team['rank'] }}</td>
 <td>
-    <img src="https://flagcdn.com/24x18/{{ $team['countryCode'] }}.png"
-         alt=""
-         style="margin-right:5px;">
-
-    {{ $team['name'] }}
+  {{ $team['countryCode'] }} - {{ $team['name'] }}
+  
 </td>
 <td>{{ $team['played'] }}</td>
 <td>{{ $team['wins'] }}</td>
