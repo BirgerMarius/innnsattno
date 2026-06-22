@@ -170,7 +170,11 @@
 
 <tr>
     <td>{{ $team['rank'] }}</td>
-
+<td>
+    {{ $team['flag'] }}
+    <br>
+    {{ $team['name'] }}
+</td>
 <td>{{ $team['played'] }}</td>
 <td>{{ $team['wins'] }}</td>
 <td>{{ $team['draws'] }}</td>
