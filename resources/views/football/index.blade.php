@@ -169,11 +169,8 @@
 @foreach($group as $team)
 
 <tr>
-    <td>{{ $team['rank'] }}</td>
-<td>
-    <img src="{{ $team['flag'] }}" height="16">
-    {{ $team['name'] }}
-</td>
+<td>{{ $team['rank'] }}</td>
+<td>{{ $team['name'] }}</td>
 <td>{{ $team['played'] }}</td>
 <td>{{ $team['wins'] }}</td>
 <td>{{ $team['draws'] }}</td>
