@@ -170,7 +170,6 @@
 
 <tr>
     <td>{{ $team['rank'] }}</td>
-dd($standings['participants'][$team['teamId']]['images']['countryFlag']);
 
 <td>{{ $team['played'] }}</td>
 <td>{{ $team['wins'] }}</td>
