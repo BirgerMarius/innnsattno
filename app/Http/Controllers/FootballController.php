@@ -40,6 +40,7 @@ class FootballController extends Controller
 
             foreach ($group['teamStandings'] as $team) {
 
+            dd($standings['participants'][$team['teamId']]);
                 $groups[$groupName][] = [
                     'rank' => $team['rank'],
                     'name' => $standings['participants'][$team['teamId']]['name'],
