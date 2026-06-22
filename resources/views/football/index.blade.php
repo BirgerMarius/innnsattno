@@ -171,7 +171,7 @@
 <tr>
     <td>{{ $team['rank'] }}</td>
 <td>
-    <img src="{{ $team['flag'] }}"
+    <img src="{{ $team['flag'] }}/32"
          alt=""
          style="height:16px; margin-right:5px; vertical-align:middle;">
 
