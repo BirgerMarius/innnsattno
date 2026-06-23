@@ -77,6 +77,9 @@ $flagMap = [
     'pan' => 'pa',
     'hrv' => 'hr',
     'gb-eng' => 'gb',
+    'gb-sct' => 'gb',
+    'gb-wls' => 'gb',
+    'gb-nir' => 'gb',
     ];
 
         foreach ($standings['standings'] as $group) {
@@ -158,7 +161,7 @@ $flagMap = [
                 'awayFlagCode' => $flagMap[
                     strtolower($participants[$awayId]['countryCode'] ?? '')
                 ] ?? null,
-                
+
                 'homeScore' => $homeScore,
                 'awayScore' => $awayScore,
             ];

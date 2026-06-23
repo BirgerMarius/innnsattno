@@ -43,7 +43,7 @@
 
 @if(count($todayMatches) > 0)
 
-<table border="1" cellpadding="5">
+<table border="1" cellpadding="5" style="width:100%;">
     <tr>
         <th>Tid</th>
         <th>Kamp</th>
@@ -52,7 +52,7 @@
     @foreach($todayMatches as $match)
         <tr>
             <td>{{ substr($match['date'], 11, 5) }}</td>
-    <td>
+    <td style="white-space: nowrap;">
 
 @if($match['status'] == 'finished')
 
@@ -66,7 +66,7 @@
 
 @if(!empty($match['homeFlagCode']))
     <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
-         style="vertical-align:middle;">
+         style="vertical-align:middle; margin-right:4px;">
 @endif
 {{ $match['home'] }}
 
@@ -74,7 +74,7 @@
 
 @if(!empty($match['awayFlagCode']))
     <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
-         style="vertical-align:middle;">
+         style="vertical-align:middle; margin-right:4px;">
 @endif
 {{ $match['away'] }}
 
