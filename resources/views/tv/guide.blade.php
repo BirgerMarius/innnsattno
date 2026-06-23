@@ -1,6 +1,6 @@
-{{-- @extends('layouts.app') --}}
-{{-- @section('title', 'Innsatt.no') --}}
-{{-- @section('content') --}}
+@extends('layouts.app') --}}
+@section('title', 'Innsatt.no') --}}
+@section('content') --}}
 
 <!DOCTYPE html>
 <html lang="nb">
@@ -260,4 +260,4 @@ $isEvenWeek = $weekNumber % 2 === 0;
 </body>
 </html>
 
-{{-- @endsection --}}
+@endsection --}}
