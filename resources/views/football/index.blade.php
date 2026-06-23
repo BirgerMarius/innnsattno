@@ -178,13 +178,7 @@
 <td>{{ $team['rank'] }}</td>
 <td>
 
-@if(!empty($team['flag']))
-    <img src="{{ $team['flag'] }}"
-         alt=""
-         style="width:20px;height:auto;margin-right:6px;">
-@endif
-
-{{ $team['name'] }}
+{{ $team['flag'] }}
 
 </td>
 <td>{{ $team['played'] }}</td>
