@@ -45,6 +45,7 @@ class FootballController extends Controller
                 $groups[$groupName][] = [
                     'rank' => $team['rank'],
                     'name' => $standings['participants'][$team['teamId']]['name'],
+                    'debug' => $standings['participants'][$team['teamId']],
                     'countryCode' => strtolower(
                         $standings['participants'][$team['teamId']]['countryCode'] ?? ''
                     ),

@@ -177,8 +177,7 @@
 <tr>
 <td>{{ $team['rank'] }}</td>
 <td>
-    {{ $team['name'] }}
-    ({{ $team['countryCode'] }})
+    <pre>{{ json_encode($team['debug'], JSON_PRETTY_PRINT) }}</pre>
 </td>
 <td>{{ $team['played'] }}</td>
 <td>{{ $team['wins'] }}</td>
