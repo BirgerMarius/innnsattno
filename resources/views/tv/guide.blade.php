@@ -142,8 +142,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
 <small class="text-muted d-block">
                     {{ $isEvenWeek ? 'Partallsuke' : 'Oddetallsuke' }}
                 </small>
-                </h2>
-            </div>
+                </div>
         </div>
     </div>
 
