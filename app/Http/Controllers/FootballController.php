@@ -144,7 +144,11 @@ $flagMap = [
                 'tournamentName' => $event['tournament']['name'] ?? '',
                 'status' => $event['status']['type'] ?? '',
                 'home' => $participants[$homeId]['name'] ?? 'Ukjent',
+                'homeCountryCodeRaw' =>
+                $participants[$homeId]['countryCode'] ?? '',
                 'away' => $participants[$awayId]['name'] ?? 'Ukjent',
+                'awayCountryCodeRaw' =>
+                $participants[$awayId]['countryCode'] ?? '',
 
                 'homeCountryCode' => strtolower(
     $participants[$homeId]['countryCode'] ?? ''

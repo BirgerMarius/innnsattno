@@ -56,25 +56,23 @@
 
 @if($match['status'] == 'finished')
 
-    {{ $match['home'] }}
+   {{ $match['home'] }}
+({{ $match['homeCountryCodeRaw'] }})
     {{ $match['homeScore'] }}
     -
     {{ $match['awayScore'] }}
     {{ $match['away'] }}
+({{ $match['awayCountryCodeRaw'] }})
 
 @else
 
 @if(!empty($match['homeFlagCode']))
 <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="vertical-align:middle;">
-@endif
-{{ $match['home'] }}
-
--
+@endif {{ $match['home'] }} -
 
 @if(!empty($match['awayFlagCode']))
 <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="vertical-align:middle;">
-@endif
-{{ $match['away'] }}
+@endif {{ $match['away'] }}
 
 @endif
 
