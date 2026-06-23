@@ -60,15 +60,7 @@ img {
     @foreach($todayMatches as $match)
         <tr>
             <td>{{ substr($match['date'], 11, 5) }}</td>
-    <td>
-
-@if($match['status'] == 'finished')
-
-   {{ $match['home'] }}
-    {{ $match['homeScore'] }}
-    -
-    {{ $match['awayScore'] }}
-    {{ $match['away'] }}
+<td>
 
 @if($match['status'] == 'finished')
 
@@ -82,6 +74,7 @@ img {
 {{ $match['home'] }}
 {{ $match['homeScore'] }}
 -
+
 {{ $match['awayScore'] }}
 
 @if(!empty($match['awayFlagCode']))
