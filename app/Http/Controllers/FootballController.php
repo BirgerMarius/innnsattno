@@ -32,6 +32,34 @@ class FootballController extends Controller
 
         $groups = [];
 
+$flagMap = [
+    'nor' => 'no',
+    'swe' => 'se',
+    'deu' => 'de',
+    'fra' => 'fr',
+    'eng' => 'gb',
+    'usa' => 'us',
+    'mex' => 'mx',
+    'bra' => 'br',
+    'arg' => 'ar',
+    'can' => 'ca',
+    'kor' => 'kr',
+    'jpn' => 'jp',
+    'aus' => 'au',
+    'mar' => 'ma',
+    'tun' => 'tn',
+    'egy' => 'eg',
+    'qat' => 'qa',
+    'tur' => 'tr',
+    'ecu' => 'ec',
+    'cuw' => 'cw',
+    'hti' => 'ht',
+    'zaf' => 'za',
+    'civ' => 'ci',
+    'che' => 'ch',
+    'bih' => 'ba',
+];
+
         foreach ($standings['standings'] as $group) {
 
             $groupName = $group['groupName'];
@@ -41,15 +69,17 @@ class FootballController extends Controller
             foreach ($group['teamStandings'] as $team) {
 
             
-
                 $groups[$groupName][] = [
                     'rank' => $team['rank'],
                     'name' => $standings['participants'][$team['teamId']]['name'],
-                    'debug' => $standings['participants'][$team['teamId']],
                     'countryCode' => strtolower(
                         $standings['participants'][$team['teamId']]['countryCode'] ?? ''
                     ),
-                    'flag' => $standings['participants'][$team['teamId']]['images']['countryFlag']['url'] ?? null,
+                    'flagCode' => $flagMap[
+                        strtolower(
+                            $standings['participants'][$team['teamId']]['countryCode'] ?? ''
+                      )
+                    ] ?? null,
                     'played' => $team['played'],
                     'wins' => $team['wins'],
                     'draws' => $team['draws'],
