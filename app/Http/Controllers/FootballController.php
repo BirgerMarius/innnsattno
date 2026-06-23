@@ -155,11 +155,15 @@ $flagMap = [
                 ),
 
                 'homeFlagCode' => $flagMap[
+                    'homeCountryCodeRaw' =>
+                        $participants[$homeId]['countryCode'] ?? '',
                      strtolower($participants[$homeId]['countryCode'] ?? '')
                 ] ?? null,
 
                 'awayFlagCode' => $flagMap[
-                    strtolower($participants[$awayId]['countryCode'] ?? '')
+                    'awayCountryCodeRaw' =>
+    $participants[$awayId]['countryCode'] ?? '',
+                     strtolower($participants[$awayId]['countryCode'] ?? '')
                 ] ?? null,
 
                 'homeScore' => $homeScore,
