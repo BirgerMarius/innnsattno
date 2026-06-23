@@ -58,7 +58,26 @@ $flagMap = [
     'civ' => 'ci',
     'che' => 'ch',
     'bih' => 'ba',
-];
+    'bel' => 'be',
+    'nzl' => 'nz',
+    'esp' => 'es',
+    'ury' => 'uy',
+    'cpv' => 'cv',
+    'sau' => 'sa',
+    'sen' => 'sn',
+    'irq' => 'iq',
+    'aut' => 'at',
+    'dza' => 'dz',
+    'jor' => 'jo',
+    'col' => 'co',
+    'cod' => 'cd',
+    'prt' => 'pt',
+    'uzb' => 'uz',
+    'gha' => 'gh',
+    'pan' => 'pa',
+    'hrv' => 'hr',
+    'gb-eng' => 'gb',
+    ];
 
         foreach ($standings['standings'] as $group) {
 

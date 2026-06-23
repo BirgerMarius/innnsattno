@@ -185,9 +185,6 @@
 @endif
 
 {{ $team['name'] }}
-@if(empty($team['flagCode']))
-    ({{ $team['countryCode'] }})
-@endif
 
 </td>
 <td>{{ $team['played'] }}</td>
