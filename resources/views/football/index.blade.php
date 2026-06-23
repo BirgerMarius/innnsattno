@@ -64,9 +64,19 @@
 
 @else
 
-    {{ $match['home'] }}
-    -
-    {{ $match['away'] }}
+@if(!empty($match['homeFlagCode']))
+    <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png">
+@endif
+
+{{ $match['home'] }}
+
+-
+
+@if(!empty($match['awayFlagCode']))
+    <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png">
+@endif
+
+{{ $match['away'] }}
 
 @endif
 
