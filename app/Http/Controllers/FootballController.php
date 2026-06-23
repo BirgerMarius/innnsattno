@@ -94,6 +94,7 @@ $flagMap = [
                 $groups[$groupName][] = [
                     'rank' => $team['rank'],
                     'name' => $standings['participants'][$team['teamId']]['name'],
+                    'debugCode' => $standings['participants'][$team['teamId']]['countryCode'] ?? '',
                     'countryCode' => strtolower(
                         $standings['participants'][$team['teamId']]['countryCode'] ?? ''
                     ),
