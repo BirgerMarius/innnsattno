@@ -1,10 +1,30 @@
-@extends('layouts.app')
+{{-- @extends('layouts.app') --}}
+{{-- @section('title', 'Innsatt.no') --}}
+{{-- @section('content') --}}
 
-@section('title', 'Innsatt.no')
+<!DOCTYPE html>
+<html lang="nb">
+<head>
 
-@section('content')
+<meta charset="UTF-8">
+<link rel="icon" type="image/png" href="/favicon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>INNSATT.NO</title>
 
-    <div class="container my-5">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOENV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+crossorigin="anonymous">
+
+<link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.13.0/css/all.css"
+integrity="sha384-IIED/eyOkM6ihtOiQsX2zizxFBphgnv1zbelbKA+njdFzkr6cDNy16jTiKWu4FNH"
+crossorigin="anonymous">
+
+<link href="{{ asset('css/app.css') }}" rel="stylesheet">
+</head>
+<body>
+<div class="container my-5">
 
 @php
 $flagDays = [
@@ -239,6 +259,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
 
 
+</body>
+</html>
 
-
-@endsection
+{{-- @endsection --}}
