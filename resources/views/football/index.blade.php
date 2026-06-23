@@ -70,13 +70,20 @@
 
 @else
 
-@if(!empty($match['homeFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="vertical-align:middle;">
-@endif {{ $match['home'] }} -
+<span style="white-space: nowrap;">
 
+@if(!empty($match['homeFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
+     style="vertical-align:middle;">
+@endif
+{{ $match['home'] }} -
 @if(!empty($match['awayFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="vertical-align:middle;">
-@endif {{ $match['away'] }}
+<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
+     style="vertical-align:middle;">
+@endif
+{{ $match['away'] }}
+
+</span>
 
 @endif
 
