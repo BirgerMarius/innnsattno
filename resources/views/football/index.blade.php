@@ -78,8 +78,6 @@
 @endif
 {{ $match['away'] }}
 
-style="vertical-align:middle; margin-right:4px;"
-
 @endif
 
 
