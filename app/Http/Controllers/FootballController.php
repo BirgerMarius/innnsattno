@@ -147,24 +147,20 @@ $flagMap = [
                 'away' => $participants[$awayId]['name'] ?? 'Ukjent',
 
                 'homeCountryCode' => strtolower(
-                $participants[$homeId]['countryCode'] ?? ''
-                ),
+    $participants[$homeId]['countryCode'] ?? ''
+),
 
-                'awayCountryCode' => strtolower(
-                $participants[$awayId]['countryCode'] ?? ''
-                ),
+'awayCountryCode' => strtolower(
+    $participants[$awayId]['countryCode'] ?? ''
+),
 
-                'homeFlagCode' => $flagMap[
-                    'homeCountryCodeRaw' =>
-                        $participants[$homeId]['countryCode'] ?? '',
-                     strtolower($participants[$homeId]['countryCode'] ?? '')
-                ] ?? null,
+'homeFlagCode' => $flagMap[
+    strtolower($participants[$homeId]['countryCode'] ?? '')
+] ?? null,
 
-                'awayFlagCode' => $flagMap[
-                    'awayCountryCodeRaw' =>
-    $participants[$awayId]['countryCode'] ?? '',
-                     strtolower($participants[$awayId]['countryCode'] ?? '')
-                ] ?? null,
+'awayFlagCode' => $flagMap[
+    strtolower($participants[$awayId]['countryCode'] ?? '')
+] ?? null,
 
                 'homeScore' => $homeScore,
                 'awayScore' => $awayScore,
