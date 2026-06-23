@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="nb">
-<head>
-    <meta charset="UTF-8">
-    <title>Fotball-VM 2026 - INNSATT.NO</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-</head>
-<body>
+@extends('layouts.app')
+
+@section('title', 'Fotball-VM 2026 | INNSATT.NO')
+
+@section('content')
 
 <h1>⚽ Fotball-VM 2026</h1>
 
@@ -313,5 +310,4 @@
 </div>
 
 </div>
-</body>
-</html>
+@endsection
