@@ -14,7 +14,11 @@
 }
 
 .top-box {
-    width: 32%;
+    width: 33%;
+}
+
+.top-box table {
+    width: 100%;
 }
 
 .print-button {
@@ -43,7 +47,7 @@
 
 @if(count($todayMatches) > 0)
 
-<table border="1" cellpadding="5" style="width:100%;">
+<table border="1" cellpadding="5">
     <tr>
         <th>Tid</th>
         <th>Kamp</th>
@@ -52,7 +56,7 @@
     @foreach($todayMatches as $match)
         <tr>
             <td>{{ substr($match['date'], 11, 5) }}</td>
-    <td style="white-space: nowrap;">
+    <td>
 
 @if($match['status'] == 'finished')
 
