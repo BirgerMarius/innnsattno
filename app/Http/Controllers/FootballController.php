@@ -76,10 +76,14 @@ $flagMap = [
     'gha' => 'gh',
     'pan' => 'pa',
     'hrv' => 'hr',
-    'gb-eng' => 'gb',
-    'gb-sct' => 'gb',
-    'gb-wls' => 'gb',
-    'gb-nir' => 'gb',
+    'cze' => 'cz',   // Tsjekkia
+    'pry' => 'py',   // Paraguay
+    'nld' => 'nl',   // Nederland
+    'irn' => 'ir',   // Iran
+    '_gb-eng' => 'gb',
+    '_gb-sct' => 'gb',
+    '_gb-wls' => 'gb',
+    '_gb-nir' => 'gb',
     ];
 
         foreach ($standings['standings'] as $group) {

@@ -201,7 +201,7 @@ img {
          style="margin-right:6px;">
 @endif
 
-{{ $team['name'] }} ({{ $team['debugCode'] }})
+{{ $team['name'] }}
 
 </td>
 <td>{{ $team['played'] }}</td>
