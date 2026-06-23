@@ -176,7 +176,14 @@
 
 <tr>
 <td>{{ $team['rank'] }}</td>
-<td>{{ $team['name'] }}</td>
+<td>
+    <img
+        src="https://flagcdn.com/24x18/{{ $team['countryCode'] }}.png"
+        alt=""
+        style="vertical-align:middle; margin-right:6px;"
+    >
+    {{ $team['name'] }}
+</td>
 <td>{{ $team['played'] }}</td>
 <td>{{ $team['wins'] }}</td>
 <td>{{ $team['draws'] }}</td>
