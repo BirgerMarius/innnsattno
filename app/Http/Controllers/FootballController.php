@@ -49,6 +49,7 @@ class FootballController extends Controller
                     'countryCode' => strtolower(
                         $standings['participants'][$team['teamId']]['countryCode'] ?? ''
                     ),
+                    'flag' => $standings['participants'][$team['teamId']]['images']['countryFlag']['url'] ?? null,
                     'played' => $team['played'],
                     'wins' => $team['wins'],
                     'draws' => $team['draws'],

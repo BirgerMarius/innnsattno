@@ -177,7 +177,15 @@
 <tr>
 <td>{{ $team['rank'] }}</td>
 <td>
-    <pre>{{ json_encode($team['debug'], JSON_PRETTY_PRINT) }}</pre>
+
+@if(!empty($team['flag']))
+    <img src="{{ $team['flag'] }}"
+         alt=""
+         style="width:20px;height:auto;margin-right:6px;">
+@endif
+
+{{ $team['name'] }}
+
 </td>
 <td>{{ $team['played'] }}</td>
 <td>{{ $team['wins'] }}</td>
