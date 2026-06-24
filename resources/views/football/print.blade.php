@@ -187,6 +187,7 @@
 
 @if(!$groupStageFinished)
 
+<div style="page-break-before: always;"></div>
 <h2>Gruppetabeller</h2>
 
 <div class="groups">
