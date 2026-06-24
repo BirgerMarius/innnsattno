@@ -4,44 +4,61 @@
 
 @section('content')
 
+<p>Oppdatert: {{ date('d.m.Y H:i') }}</p>
+
 <h1>⚽ Fotball-VM 2026</h1>
 
 <style>
 .top-section {
     display: flex;
-    gap: 20px;
+    gap: 30px;
     align-items: flex-start;
 }
 
 .top-box {
+    width: 48%;
+}
+
+.groups {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.group-box {
+    width: 31%;
+}
+
+.group-box table {
+    width: 100%;
+    font-size: 11px;
+}
+
+.group-box h3 {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.playoff-columns {
+    display: flex;
+    gap: 10px;
+}
+
+.playoff-column {
     width: 32%;
 }
 
-img {
-    display: inline;
-}
-
-.top-box table {
+.playoff-column table {
     width: 100%;
+    font-size: 10px;
+    margin-bottom: 10px;
 }
 
-.print-button {
-    display: inline-block;
-    padding: 10px 15px;
-    background: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 4px;
-    margin-bottom: 15px;
+.playoff-column h3 {
+    margin-top: 5px;
+    margin-bottom: 3px;
 }
-
 </style>
-
-<a href="/fotball-utskrift"
-   target="_blank"
-   class="print-button">
-   🖨 Utskriftsversjon
-</a>
 
 <div class="top-section">
 
@@ -60,7 +77,7 @@ img {
     @foreach($todayMatches as $match)
         <tr>
             <td>{{ substr($match['date'], 11, 5) }}</td>
-<td>
+            <td>
 
 @if($match['status'] == 'finished')
 
@@ -108,7 +125,7 @@ img {
 
 @endif
 
-</td>
+            </td>
         </tr>
     @endforeach
 
@@ -131,13 +148,11 @@ img {
 @foreach($finishedMatches as $match)
 
 <tr>
-    <tr>
     <td>
         @if(!empty($match['homeFlagCode']))
         <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
              style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
         @endif
-
         {{ $match['home'] }}
     </td>
 
@@ -148,7 +163,6 @@ img {
         <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
              style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
         @endif
-
         {{ $match['away'] }}
     </td>
 </tr>
@@ -159,71 +173,13 @@ img {
 
 </div>
 
-<div class="top-box">
-
-<h2>Kommende kamper</h2>
-
-<table border="1" cellpadding="5">
-
-@foreach($upcomingMatches as $match)
-
-<tr>
-    <td>{{ $match['date'] }}</td>
-<td>
-
-<span style="white-space: nowrap;">
-
-@if(!empty($match['homeFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
-     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
-@endif
-
-{{ $match['home'] }} -
-
-@if(!empty($match['awayFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
-     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
-@endif
-
-{{ $match['away'] }}
-
-</span>
-
-</td>
-</tr>
-
-@endforeach
-
-</table>
-
 </div>
 
-</div>
+<div style="page-break-before: always;"></div>
 
 @if(!$groupStageFinished)
+
 <h2>Gruppetabeller</h2>
-
-<style>
-.groups {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-}
-
-.group-box {
-    width: 31%;
-}
-
-.group-box table {
-    width: 100%;
-    font-size: 11px;
-}
-
-.group-box h3 {
-    margin-top: 2px;
-    margin-bottom: 2px;
-}
-</style>
 
 <div class="groups">
 
@@ -233,71 +189,47 @@ img {
 
 <h3>Gruppe {{ $groupName }}</h3>
 
-<table border="1" cellpadding="5">
+<table border="1" cellpadding="3">
 
 <tr>
-   <th>#</th>
-<th>Lag</th>
-<th>K</th>
-<th>V</th>
-<th>U</th>
-<th>T</th>
-<th>M-F</th>
-<th>P</th>
+    <th>#</th>
+    <th>Lag</th>
+    <th>K</th>
+    <th>P</th>
 </tr>
 
 @foreach($group as $team)
 
 <tr>
-<td>{{ $team['rank'] }}</td>
-<td>
+    <td>{{ $team['rank'] }}</td>
 
-@if(!empty($team['flagCode']))
-    <img src="https://flagcdn.com/24x18/{{ $team['flagCode'] }}.png"
-         alt=""
-         style="margin-right:6px;">
-@endif
+    <td>
+        @if(!empty($team['flagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $team['flagCode'] }}.png"
+             alt=""
+             style="margin-right:6px;">
+        @endif
 
-{{ $team['name'] }}
+        {{ $team['name'] }}
+    </td>
 
-</td>
-<td>{{ $team['played'] }}</td>
-<td>{{ $team['wins'] }}</td>
-<td>{{ $team['draws'] }}</td>
-<td>{{ $team['losses'] }}</td>
-<td>{{ $team['goalsFor'] }}-{{ $team['goalsAgainst'] }}</td>
-<td>{{ $team['points'] }}</td>
+    <td>{{ $team['played'] }}</td>
+    <td>{{ $team['points'] }}</td>
 </tr>
 
 @endforeach
 
 </table>
 
-<br>
-
 </div>
-
 
 @endforeach
 
 </div>
+
 @endif
 
-<style>
-.playoff-columns {
-    display: flex;
-    gap: 20px;
-}
-
-.playoff-column {
-    width: 32%;
-}
-
-.playoff-column table {
-    width: 100%;
-    margin-bottom: 15px;
-}
-</style>
+@if($groupStageFinished)
 
 <h2>Sluttspill</h2>
 
@@ -307,32 +239,24 @@ img {
 
 <h3>32-delsfinaler</h3>
 
-<table border="1" cellpadding="5">
+<table border="1" cellpadding="3">
 
 @foreach($playoffStages['roundOf32'] ?? [] as $match)
 <tr>
-    <td>{{ $match['date'] }}</td>
-   <td>
+    <td>{{ substr($match['date'], 0, 16) }}</td>
+    <td>
+        @if(!empty($match['homeFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
 
-<span style="white-space: nowrap;">
+        {{ $match['home'] }} -
 
-@if(!empty($match['homeFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
-     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
-@endif
+        @if(!empty($match['awayFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
 
-{{ $match['home'] }} -
-
-@if(!empty($match['awayFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
-     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
-@endif
-
-{{ $match['away'] }}
-
-</span>
-
-</td>
+        {{ $match['away'] }}
+    </td>
 </tr>
 @endforeach
 
@@ -344,32 +268,21 @@ img {
 
 <h3>16-delsfinaler</h3>
 
-<table border="1" cellpadding="5">
+<table border="1" cellpadding="3">
 
 @foreach($playoffStages['roundOf16'] ?? [] as $match)
 <tr>
-    <td>{{ $match['date'] }}</td>
-<td>
-
-<span style="white-space: nowrap;">
-
-@if(!empty($match['homeFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
-     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
-@endif
-
-{{ $match['home'] }} -
-
-@if(!empty($match['awayFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
-     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
-@endif
-
-{{ $match['away'] }}
-
-</span>
-
-</td>
+    <td>{{ substr($match['date'], 0, 16) }}</td>
+    <td>
+        @if(!empty($match['homeFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['home'] }} -
+        @if(!empty($match['awayFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['away'] }}
+    </td>
 </tr>
 @endforeach
 
@@ -377,32 +290,21 @@ img {
 
 <h3>Kvartfinaler</h3>
 
-<table border="1" cellpadding="5">
+<table border="1" cellpadding="3">
 
 @foreach($playoffStages['quarterfinal'] ?? [] as $match)
 <tr>
-    <td>{{ $match['date'] }}</td>
+    <td>{{ substr($match['date'], 0, 16) }}</td>
     <td>
-
-<span style="white-space: nowrap;">
-
-@if(!empty($match['homeFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
-     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
-@endif
-
-{{ $match['home'] }} -
-
-@if(!empty($match['awayFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
-     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
-@endif
-
-{{ $match['away'] }}
-
-</span>
-
-</td>
+        @if(!empty($match['homeFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['home'] }} -
+        @if(!empty($match['awayFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['away'] }}
+    </td>
 </tr>
 @endforeach
 
@@ -414,32 +316,21 @@ img {
 
 <h3>Semifinaler</h3>
 
-<table border="1" cellpadding="5">
+<table border="1" cellpadding="3">
 
 @foreach($playoffStages['semifinal'] ?? [] as $match)
 <tr>
-    <td>{{ $match['date'] }}</td>
+    <td>{{ substr($match['date'], 0, 16) }}</td>
     <td>
-
-<span style="white-space: nowrap;">
-
-@if(!empty($match['homeFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
-     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
-@endif
-
-{{ $match['home'] }} -
-
-@if(!empty($match['awayFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
-     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
-@endif
-
-{{ $match['away'] }}
-
-</span>
-
-</td>
+        @if(!empty($match['homeFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['home'] }} -
+        @if(!empty($match['awayFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['away'] }}
+    </td>
 </tr>
 @endforeach
 
@@ -447,32 +338,21 @@ img {
 
 <h3>Bronsefinale</h3>
 
-<table border="1" cellpadding="5">
+<table border="1" cellpadding="3">
 
 @foreach($playoffStages['3rdPlaceFinal'] ?? [] as $match)
 <tr>
-    <td>{{ $match['date'] }}</td>
+    <td>{{ substr($match['date'], 0, 16) }}</td>
     <td>
-
-<span style="white-space: nowrap;">
-
-@if(!empty($match['homeFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
-     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
-@endif
-
-{{ $match['home'] }} -
-
-@if(!empty($match['awayFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
-     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
-@endif
-
-{{ $match['away'] }}
-
-</span>
-
-</td>
+        @if(!empty($match['homeFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['home'] }} -
+        @if(!empty($match['awayFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['away'] }}
+    </td>
 </tr>
 @endforeach
 
@@ -480,32 +360,21 @@ img {
 
 <h3>Finale</h3>
 
-<table border="1" cellpadding="5">
+<table border="1" cellpadding="3">
 
 @foreach($playoffStages['final'] ?? [] as $match)
 <tr>
-    <td>{{ $match['date'] }}</td>
+    <td>{{ substr($match['date'], 0, 16) }}</td>
     <td>
-
-<span style="white-space: nowrap;">
-
-@if(!empty($match['homeFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
-     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
-@endif
-
-{{ $match['home'] }} -
-
-@if(!empty($match['awayFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
-     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
-@endif
-
-{{ $match['away'] }}
-
-</span>
-
-</td>
+        @if(!empty($match['homeFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['home'] }} -
+        @if(!empty($match['awayFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['away'] }}
+    </td>
 </tr>
 @endforeach
 
@@ -514,4 +383,11 @@ img {
 </div>
 
 </div>
+
+@endif
+
+<script>
+window.print();
+</script>
+
 @endsection
