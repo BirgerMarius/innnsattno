@@ -131,9 +131,27 @@ img {
 @foreach($finishedMatches as $match)
 
 <tr>
-    <td>{{ $match['home'] }}</td>
+    <td>
+        @if(isset($countryFlags[$match['home']]))
+            <img src="{{ $countryFlags[$match['home']] }}"
+                 alt="{{ $match['home'] }}"
+                 width="20"
+                 style="vertical-align: middle; margin-right: 5px;">
+        @endif
+        {{ $match['home'] }}
+    </td>
+
     <td>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</td>
-    <td>{{ $match['away'] }}</td>
+
+    <td>
+        @if(isset($countryFlags[$match['away']]))
+            <img src="{{ $countryFlags[$match['away']] }}"
+                 alt="{{ $match['away'] }}"
+                 width="20"
+                 style="vertical-align: middle; margin-right: 5px;">
+        @endif
+        {{ $match['away'] }}
+    </td>
 </tr>
 
 @endforeach
