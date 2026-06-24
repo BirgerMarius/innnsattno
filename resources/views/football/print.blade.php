@@ -26,10 +26,11 @@
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
+    page-break-inside: avoid;
 }
-
 .group-box {
     width: 31%;
+    break-inside: avoid;
 }
 
 .group-box table {
@@ -38,7 +39,7 @@
     line-height: 0.9;
 }
 .group-box table {
-    
+
 .group-box h3 {
     margin-top: 0;
     margin-bottom: 0;
@@ -181,7 +182,7 @@
 
 </div>
 
-<div style="page-break-before: always;"></div>
+<div style="page-break-before: always; page-break-after: avoid;"></div>
 
 @if(!$groupStageFinished)
 
