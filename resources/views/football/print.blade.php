@@ -34,12 +34,13 @@
 
 .group-box table {
     width: 100%;
-    font-size: 11px;
+    font-size: 9px;
 }
 
 .group-box h3 {
-    margin-top: 2px;
-    margin-bottom: 2px;
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 14px;
 }
 
 .playoff-columns {
