@@ -35,8 +35,10 @@
 .group-box table {
     width: 100%;
     font-size: 9px;
+    line-height: 0.9;
 }
-
+.group-box table {
+    
 .group-box h3 {
     margin-top: 0;
     margin-bottom: 0;
