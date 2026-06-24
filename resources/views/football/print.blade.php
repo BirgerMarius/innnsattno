@@ -21,82 +21,7 @@
 .top-box {
     width: 48%;
 }
-</style>
 
-<div class="top-section">
-
-<div class="top-box">
-
-<h2>Dagens kamper</h2>
-
-@if(count($todayMatches) > 0)
-
-<table border="1" cellpadding="5">
-    <tr>
-        <th>Tid</th>
-        <th>Kamp</th>
-    </tr>
-
-    @foreach($todayMatches as $match)
-        <tr>
-            <td>{{ substr($match['date'], 11, 5) }}</td>
-    <td>
-
-@if($match['status'] == 'finished')
-
-    {{ $match['home'] }}
-    {{ $match['homeScore'] }}
-    -
-    {{ $match['awayScore'] }}
-    {{ $match['away'] }}
-
-@else
-
-    {{ $match['home'] }}
-    -
-    {{ $match['away'] }}
-
-@endif
-
-</td>
-        </tr>
-    @endforeach
-
-</table>
-
-@else
-
-<p>Ingen kamper i dag.</p>
-
-@endif
-
-</div>
-
-<div class="top-box">
-
-<h2>Siste resultater</h2>
-
-<table border="1" cellpadding="5">
-
-@foreach($finishedMatches as $match)
-
-<tr>
-    <td>{{ $match['home'] }}</td>
-    <td>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</td>
-    <td>{{ $match['away'] }}</td>
-</tr>
-
-@endforeach
-
-</table>
-
-</div>
-
-</div>
-
-<div style="page-break-before: always;"></div>
-
-<style>
 .groups {
     display: flex;
     flex-wrap: wrap;
@@ -136,12 +61,128 @@
     margin-top: 5px;
     margin-bottom: 3px;
 }
-
 </style>
 
-@if(!$groupStageFinished)
-<h2>Gruppetabeller</h2>
+<div class="top-section">
 
+<div class="top-box">
+
+<h2>Dagens kamper</h2>
+
+@if(count($todayMatches) > 0)
+
+<table border="1" cellpadding="5">
+    <tr>
+        <th>Tid</th>
+        <th>Kamp</th>
+    </tr>
+
+    @foreach($todayMatches as $match)
+        <tr>
+            <td>{{ substr($match['date'], 11, 5) }}</td>
+            <td>
+
+@if($match['status'] == 'finished')
+
+<span style="white-space: nowrap;">
+
+@if(!empty($match['homeFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
+     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
+@endif
+
+{{ $match['home'] }}
+{{ $match['homeScore'] }}
+-
+
+{{ $match['awayScore'] }}
+
+@if(!empty($match['awayFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
+     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
+@endif
+
+{{ $match['away'] }}
+
+</span>
+
+@else
+
+<span style="white-space: nowrap;">
+
+@if(!empty($match['homeFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
+     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
+@endif
+
+{{ $match['home'] }} -
+
+@if(!empty($match['awayFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
+     style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
+@endif
+
+{{ $match['away'] }}
+
+</span>
+
+@endif
+
+            </td>
+        </tr>
+    @endforeach
+
+</table>
+
+@else
+
+<p>Ingen kamper i dag.</p>
+
+@endif
+
+</div>
+
+<div class="top-box">
+
+<h2>Siste resultater</h2>
+
+<table border="1" cellpadding="5">
+
+@foreach($finishedMatches as $match)
+
+<tr>
+    <td>
+        @if(!empty($match['homeFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
+             style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
+        @endif
+        {{ $match['home'] }}
+    </td>
+
+    <td>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</td>
+
+    <td>
+        @if(!empty($match['awayFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
+             style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
+        @endif
+        {{ $match['away'] }}
+    </td>
+</tr>
+
+@endforeach
+
+</table>
+
+</div>
+
+</div>
+
+<div style="page-break-before: always;"></div>
+
+@if(!$groupStageFinished)
+
+<h2>Gruppetabeller</h2>
 
 <div class="groups">
 
@@ -164,7 +205,17 @@
 
 <tr>
     <td>{{ $team['rank'] }}</td>
-    <td>{{ $team['name'] }}</td>
+
+    <td>
+        @if(!empty($team['flagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $team['flagCode'] }}.png"
+             alt=""
+             style="margin-right:6px;">
+        @endif
+
+        {{ $team['name'] }}
+    </td>
+
     <td>{{ $team['played'] }}</td>
     <td>{{ $team['points'] }}</td>
 </tr>
@@ -174,9 +225,11 @@
 </table>
 
 </div>
+
 @endforeach
 
 </div>
+
 @endif
 
 @if($groupStageFinished)
@@ -194,7 +247,19 @@
 @foreach($playoffStages['roundOf32'] ?? [] as $match)
 <tr>
     <td>{{ substr($match['date'], 0, 16) }}</td>
-    <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+    <td>
+        @if(!empty($match['homeFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+
+        {{ $match['home'] }} -
+
+        @if(!empty($match['awayFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+
+        {{ $match['away'] }}
+    </td>
 </tr>
 @endforeach
 
@@ -211,7 +276,16 @@
 @foreach($playoffStages['roundOf16'] ?? [] as $match)
 <tr>
     <td>{{ substr($match['date'], 0, 16) }}</td>
-    <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+    <td>
+        @if(!empty($match['homeFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['home'] }} -
+        @if(!empty($match['awayFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['away'] }}
+    </td>
 </tr>
 @endforeach
 
@@ -224,7 +298,16 @@
 @foreach($playoffStages['quarterfinal'] ?? [] as $match)
 <tr>
     <td>{{ substr($match['date'], 0, 16) }}</td>
-    <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+    <td>
+        @if(!empty($match['homeFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['home'] }} -
+        @if(!empty($match['awayFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['away'] }}
+    </td>
 </tr>
 @endforeach
 
@@ -241,7 +324,16 @@
 @foreach($playoffStages['semifinal'] ?? [] as $match)
 <tr>
     <td>{{ substr($match['date'], 0, 16) }}</td>
-    <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+    <td>
+        @if(!empty($match['homeFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['home'] }} -
+        @if(!empty($match['awayFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['away'] }}
+    </td>
 </tr>
 @endforeach
 
@@ -254,7 +346,16 @@
 @foreach($playoffStages['3rdPlaceFinal'] ?? [] as $match)
 <tr>
     <td>{{ substr($match['date'], 0, 16) }}</td>
-    <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+    <td>
+        @if(!empty($match['homeFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['home'] }} -
+        @if(!empty($match['awayFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['away'] }}
+    </td>
 </tr>
 @endforeach
 
@@ -267,7 +368,16 @@
 @foreach($playoffStages['final'] ?? [] as $match)
 <tr>
     <td>{{ substr($match['date'], 0, 16) }}</td>
-    <td>{{ $match['home'] }} - {{ $match['away'] }}</td>
+    <td>
+        @if(!empty($match['homeFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['home'] }} -
+        @if(!empty($match['awayFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
+        @endif
+        {{ $match['away'] }}
+    </td>
 </tr>
 @endforeach
 
