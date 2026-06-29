@@ -68,6 +68,26 @@
     margin-top: 5px;
     margin-bottom: 3px;
 }
+
+.playoff-column {
+    width: 32%;
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.playoff-column table {
+    width: 100%;
+    font-size: 10px;
+    margin-bottom: 10px;
+
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.playoff-column tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
 </style>
 
 <div class="top-section">
