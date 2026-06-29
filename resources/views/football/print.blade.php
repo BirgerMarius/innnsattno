@@ -255,8 +255,6 @@
 
 @if($groupStageFinished)
 
-<h2>Sluttspill</h2>
-
 <div class="playoff-columns">
 
 <div style="width:100%; margin-bottom:8px;">
