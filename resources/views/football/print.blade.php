@@ -55,6 +55,10 @@
     table-layout: fixed;
 }
 
+.playoff-section h2 {
+    margin: 0 0 10px 0;
+}
+
 .playoff-column {
     display: table-cell;
     width: 33%;
@@ -255,11 +259,13 @@
 
 @if($groupStageFinished)
 
-<div class="playoff-columns">
+<div style="page-break-before: always;"></div>
+
+<div class="playoff-section">
 
 <h2 style="margin:0 0 10px 0;">Sluttspill</h2>
 
-<div class="playoff-column">
+<div class="playoff-columns">
 
 <h3>32-delsfinaler</h3>
 
@@ -404,9 +410,9 @@
 
 </table>
 
-</div>
-
-</div>
+</div> <!-- playoff-column -->
+</div> <!-- playoff-columns -->
+</div> <!-- playoff-section -->
 
 @endif
 
