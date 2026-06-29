@@ -268,8 +268,6 @@
 
 @if($groupStageFinished)
 
-<div class="playoff-wrapper">
-
 <h2>Sluttspill</h2>
 
 <div class="playoff-columns">
@@ -302,8 +300,6 @@
 </table>
 
 </div>
-</div> {{-- playoff-columns --}}
-</div> {{-- playoff-wrapper --}}
 
 <div class="playoff-column">
 
