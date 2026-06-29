@@ -48,21 +48,18 @@
     margin-bottom: 0;
     font-size: 14px;
 }
-
-/* ---------- SLUTTSPILL ---------- */
-
-.playoff-section h2 {
-    margin: 0 0 10px 0;
-}
-
 .playoff-columns {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    align-items: start;
+    display: table;
+    width: 100%;
+    table-layout: fixed;
 }
 
 .playoff-column {
+    display: table-cell;
+    width: 33.333%;
+    vertical-align: top;
+    padding: 0 6px;
+
     break-inside: avoid;
     page-break-inside: avoid;
 }
@@ -72,24 +69,21 @@
     font-size: 10px;
     margin-bottom: 10px;
     border-collapse: collapse;
-    break-inside: avoid;
-    page-break-inside: avoid;
 }
 
-.playoff-column th,
-.playoff-column td {
-    padding: 3px;
+.playoff-column td,
+.playoff-column th {
+    padding: 2px;
     vertical-align: top;
+}
+
+.playoff-column h3 {
+    margin: 4px 0;
 }
 
 .playoff-column tr {
     break-inside: avoid;
     page-break-inside: avoid;
-}
-
-.playoff-column h3 {
-    margin: 5px 0 3px 0;
-    font-size: 13px;
 }
 </style>
 
@@ -208,67 +202,11 @@
 
 </div>
 
-@if(!$groupStageFinished)
-
-<h2>Gruppetabeller</h2>
-
-<div class="groups">
-
-@foreach($groups as $groupName => $group)
-
-<div class="group-box">
-
-<h3>Gruppe {{ $groupName }}</h3>
-
-<table border="1" cellpadding="3">
-
-<tr>
-    <th>#</th>
-    <th>Lag</th>
-    <th>K</th>
-    <th>P</th>
-</tr>
-
-@foreach($group as $team)
-
-<tr>
-    <td>{{ $team['rank'] }}</td>
-
-    <td>
-        @if(!empty($team['flagCode']))
-        <img src="https://flagcdn.com/24x18/{{ $team['flagCode'] }}.png"
-             alt=""
-             style="margin-right:6px;">
-        @endif
-
-        {{ $team['name'] }}
-    </td>
-
-    <td>{{ $team['played'] }}</td>
-    <td>{{ $team['points'] }}</td>
-</tr>
-
-@endforeach
-
-</table>
-
-</div>
-
-@endforeach
-
-</div>
-
-@endif
-
-@if($groupStageFinished)
-
-<div style="page-break-before: always;"></div>
-
-<div class="playoff-section">
-
-<h2 style="margin:0 0 10px 0;">Sluttspill</h2>
+<h2>Sluttspill</h2>
 
 <div class="playoff-columns">
+
+<div class="playoff-column">
 
 <h3>32-delsfinaler</h3>
 
@@ -413,11 +351,11 @@
 
 </table>
 
-</div> <!-- playoff-column -->
-</div> <!-- playoff-columns -->
-</div> <!-- playoff-section -->
+</div>
 
-@endif
+</div>
+
+
 
 <script>
 window.print();
