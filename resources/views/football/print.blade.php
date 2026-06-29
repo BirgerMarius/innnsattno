@@ -50,8 +50,16 @@
 }
 
 .playoff-columns {
-    display: flex;
-    gap: 10px;
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.playoff-column {
+    display: table-cell;
+    width: 33%;
+    vertical-align: top;
+    padding-right: 10px;
 }
 
 .playoff-column {
