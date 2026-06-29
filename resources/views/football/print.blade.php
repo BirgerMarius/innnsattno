@@ -60,25 +60,7 @@
     width: 33%;
     vertical-align: top;
     padding-right: 10px;
-}
 
-.playoff-column {
-    width: 32%;
-}
-
-.playoff-column table {
-    width: 100%;
-    font-size: 10px;
-    margin-bottom: 10px;
-}
-
-.playoff-column h3 {
-    margin-top: 5px;
-    margin-bottom: 3px;
-}
-
-.playoff-column {
-    width: 32%;
     break-inside: avoid;
     page-break-inside: avoid;
 }
@@ -95,6 +77,11 @@
 .playoff-column tr {
     break-inside: avoid;
     page-break-inside: avoid;
+}
+
+.playoff-column h3 {
+    margin-top: 5px;
+    margin-bottom: 3px;
 }
 </style>
 
@@ -271,6 +258,10 @@
 <h2>Sluttspill</h2>
 
 <div class="playoff-columns">
+
+<div style="width:100%; margin-bottom:8px;">
+    <h2 style="margin:0;">Sluttspill</h2>
+</div>
 
 <div class="playoff-column">
 
