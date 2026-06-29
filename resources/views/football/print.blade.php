@@ -202,8 +202,6 @@
 
 </div>
 
-<h2>Sluttspill</h2>
-
 <div class="playoff-columns">
 
 <div class="playoff-column">
