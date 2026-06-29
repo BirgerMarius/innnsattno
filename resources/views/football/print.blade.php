@@ -257,9 +257,7 @@
 
 <div class="playoff-columns">
 
-<div style="width:100%; margin-bottom:8px;">
-    <h2 style="margin:0;">Sluttspill</h2>
-</div>
+<h2 style="margin:0 0 10px 0;">Sluttspill</h2>
 
 <div class="playoff-column">
 
