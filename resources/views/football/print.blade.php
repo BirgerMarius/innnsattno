@@ -49,22 +49,20 @@
     font-size: 14px;
 }
 
-.playoff-columns {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-}
+/* ---------- SLUTTSPILL ---------- */
 
 .playoff-section h2 {
     margin: 0 0 10px 0;
 }
 
-.playoff-column {
-    display: table-cell;
-    width: 33%;
-    vertical-align: top;
-    padding-right: 10px;
+.playoff-columns {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    align-items: start;
+}
 
+.playoff-column {
     break-inside: avoid;
     page-break-inside: avoid;
 }
@@ -73,9 +71,15 @@
     width: 100%;
     font-size: 10px;
     margin-bottom: 10px;
-
+    border-collapse: collapse;
     break-inside: avoid;
     page-break-inside: avoid;
+}
+
+.playoff-column th,
+.playoff-column td {
+    padding: 3px;
+    vertical-align: top;
 }
 
 .playoff-column tr {
@@ -84,8 +88,8 @@
 }
 
 .playoff-column h3 {
-    margin-top: 5px;
-    margin-bottom: 3px;
+    margin: 5px 0 3px 0;
+    font-size: 13px;
 }
 </style>
 
@@ -206,7 +210,6 @@
 
 @if(!$groupStageFinished)
 
-<div style="page-break-before: always;"></div>
 <h2>Gruppetabeller</h2>
 
 <div class="groups">
