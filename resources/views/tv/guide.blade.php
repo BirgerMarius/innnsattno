@@ -2,26 +2,6 @@
 @section('title', 'Innsatt.no') 
 @section('content') 
 
-<!DOCTYPE html>
-<html lang="nb">
-<head>
-
-<meta charset="UTF-8">
-<link rel="icon" type="image/png" href="/favicon.png">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>INNSATT.NO</title>
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
-<link rel="stylesheet"
-href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
-
-<link rel="stylesheet"
-href="https://pro.fontawesome.com/releases/v5.13.0/css/all.css">
-
-<link href="{{ asset('css/app.css') }}" rel="stylesheet">
-</head>
-<body>
 <div class="container my-5">
 
 @php
@@ -257,7 +237,5 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
 
 
-</body>
-</html>
 
 @endsection
