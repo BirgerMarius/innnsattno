@@ -23,26 +23,6 @@ class FootballController extends Controller
         );
 
         $data = $response->json();
-foreach ($data['events'] as $event) {
-
-    if (
-        ($event['tournament']['phaseType'] ?? '') === 'cup' &&
-        ($event['status']['type'] ?? '') === 'finished'
-    ) {
-
-        $homeId = $event['participantIds'][0];
-        $awayId = $event['participantIds'][1];
-
-        if (
-            ($event['results'][$homeId]['runningScore'] ?? -1) ==
-            ($event['results'][$awayId]['runningScore'] ?? -2)
-        ) {
-            echo '<pre>';
-            print_r($event);
-            exit;
-        }
-    }
-}
 
         $standingsResponse = Http::get(
             'https://api.sportsnext.schibsted.io/v1/vg/tournaments/seasons/7767/standings'
@@ -188,7 +168,14 @@ $flagMap = [
 ] ?? null,
 
                 'homeScore' => $homeScore,
-                'awayScore' => $awayScore,
+'awayScore' => $awayScore,
+
+'statusSubtype' => $event['status']['subtype'] ?? '',
+
+'homePenaltyScore' => $event['results'][$homeId]['penaltyShootoutScore'] ?? null,
+'awayPenaltyScore' => $event['results'][$awayId]['penaltyShootoutScore'] ?? null,
+
+'winnerId' => $event['winners']['winnerId'] ?? null,
             ];
         }
 
