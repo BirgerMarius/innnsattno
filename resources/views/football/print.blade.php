@@ -82,6 +82,10 @@
     break-inside: avoid;
     page-break-inside: avoid;
 }
+
+.playoff-column td:last-child span {
+    white-space: nowrap;
+}
 </style>
 
 <div class="top-section">
@@ -218,7 +222,7 @@
 
 @foreach($playoffStages['roundOf32'] ?? [] as $match)
 <tr>
-    <td>{{ substr($match['date'], 0, 16) }}</td>
+    <tr>{{ substr($match['date'], 0, 5) }} {{ substr($match['date'], 11, 5) }}<tr>
     <td>
 
 <span style="white-space: nowrap;">
@@ -268,7 +272,7 @@
 
 @foreach($playoffStages['roundOf16'] ?? [] as $match)
 <tr>
-    <td>{{ substr($match['date'], 0, 16) }}</td>
+    <tr>{{ substr($match['date'], 0, 5) }} {{ substr($match['date'], 11, 5) }}<tr>
     <td>
 
 <span style="white-space: nowrap;">
@@ -314,7 +318,7 @@
 
 @foreach($playoffStages['quarterfinal'] ?? [] as $match)
 <tr>
-    <td>{{ substr($match['date'], 0, 16) }}</td>
+    <tr>{{ substr($match['date'], 0, 5) }} {{ substr($match['date'], 11, 5) }}<tr>
     <td>
 
 <span style="white-space: nowrap;">
@@ -364,7 +368,7 @@
 
 @foreach($playoffStages['semifinal'] ?? [] as $match)
 <tr>
-    <td>{{ substr($match['date'], 0, 16) }}</td>
+    <td>{{ substr($match['date'], 0, 5) }} {{ substr($match['date'], 11, 5) }}/td>
     <td>
 
 <span style="white-space: nowrap;">
@@ -410,7 +414,7 @@
 
 @foreach($playoffStages['3rdPlaceFinal'] ?? [] as $match)
 <tr>
-    <td>{{ substr($match['date'], 0, 16) }}</td>
+    <td>{{ substr($match['date'], 0, 5) }} {{ substr($match['date'], 11, 5) }}td>
     <td>
 
 <span style="white-space: nowrap;">
@@ -444,7 +448,7 @@
 
 @foreach($playoffStages['final'] ?? [] as $match)
 <tr>
-    <td>{{ substr($match['date'], 0, 16) }}</td>
+    <td>{{ substr($match['date'], 0, 5) }} {{ substr($match['date'], 11, 5) }}td>
     <td>
 
 <span style="white-space: nowrap;">
