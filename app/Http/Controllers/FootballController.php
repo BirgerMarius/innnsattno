@@ -23,7 +23,18 @@ class FootballController extends Controller
         );
 
         $data = $response->json();
-dd($data['events']);
+foreach ($data['events'] as $event) {
+
+    if (
+        ($event['tournament']['phaseType'] ?? '') === 'cup' &&
+        ($event['status']['type'] ?? '') === 'finished'
+    ) {
+
+        echo '<pre>';
+        print_r($event);
+        exit;
+    }
+}
 
         $standingsResponse = Http::get(
             'https://api.sportsnext.schibsted.io/v1/vg/tournaments/seasons/7767/standings'
