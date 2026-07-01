@@ -30,9 +30,17 @@ foreach ($data['events'] as $event) {
         ($event['status']['type'] ?? '') === 'finished'
     ) {
 
-        echo '<pre>';
-        print_r($event);
-        exit;
+        $homeId = $event['participantIds'][0];
+        $awayId = $event['participantIds'][1];
+
+        if (
+            ($event['results'][$homeId]['runningScore'] ?? -1) ==
+            ($event['results'][$awayId]['runningScore'] ?? -2)
+        ) {
+            echo '<pre>';
+            print_r($event);
+            exit;
+        }
     }
 }
 
