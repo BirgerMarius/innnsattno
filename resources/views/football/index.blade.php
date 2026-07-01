@@ -377,7 +377,13 @@ img {
      style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
 @endif
 
-{{ $match['home'] }} -
+{{ $match['home'] }}
+
+@if($match['status'] === 'finished')
+    <strong>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</strong>
+@else
+    -
+@endif
 
 @if(!empty($match['awayFlagCode']))
 <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
@@ -385,6 +391,13 @@ img {
 @endif
 
 {{ $match['away'] }}
+
+@if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
+    <br>
+    <small style="font-size:0.8em;color:#666;">
+        Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }}
+    </small>
+@endif
 
 </span>
 
@@ -410,7 +423,13 @@ img {
      style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
 @endif
 
-{{ $match['home'] }} -
+{{ $match['home'] }}
+
+@if($match['status'] === 'finished')
+    <strong>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</strong>
+@else
+    -
+@endif
 
 @if(!empty($match['awayFlagCode']))
 <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
@@ -418,6 +437,13 @@ img {
 @endif
 
 {{ $match['away'] }}
+
+@if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
+    <br>
+    <small style="font-size:0.8em;color:#666;">
+        Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }}
+    </small>
+@endif
 
 </span>
 
@@ -447,7 +473,13 @@ img {
      style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
 @endif
 
-{{ $match['home'] }} -
+{{ $match['home'] }}
+
+@if($match['status'] === 'finished')
+    <strong>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</strong>
+@else
+    -
+@endif
 
 @if(!empty($match['awayFlagCode']))
 <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
@@ -455,6 +487,13 @@ img {
 @endif
 
 {{ $match['away'] }}
+
+@if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
+    <br>
+    <small style="font-size:0.8em;color:#666;">
+        Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }}
+    </small>
+@endif
 
 </span>
 
@@ -480,7 +519,13 @@ img {
      style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
 @endif
 
-{{ $match['home'] }} -
+{{ $match['home'] }}
+
+@if($match['status'] === 'finished')
+    <strong>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</strong>
+@else
+    -
+@endif
 
 @if(!empty($match['awayFlagCode']))
 <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
@@ -488,6 +533,13 @@ img {
 @endif
 
 {{ $match['away'] }}
+
+@if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
+    <br>
+    <small style="font-size:0.8em;color:#666;">
+        Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }}
+    </small>
+@endif
 
 </span>
 
@@ -513,7 +565,13 @@ img {
      style="display:inline-block;vertical-align:middle;width:24px;height:18px;">
 @endif
 
-{{ $match['home'] }} -
+{{ $match['home'] }}
+
+@if($match['status'] === 'finished')
+    <strong>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</strong>
+@else
+    -
+@endif
 
 @if(!empty($match['awayFlagCode']))
 <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
@@ -521,6 +579,13 @@ img {
 @endif
 
 {{ $match['away'] }}
+
+@if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
+    <br>
+    <small style="font-size:0.8em;color:#666;">
+        Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }}
+    </small>
+@endif
 
 </span>
 
