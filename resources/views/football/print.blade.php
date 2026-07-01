@@ -223,49 +223,42 @@
 
 <h3>32-delsfinaler</h3>
 
-<table border="1" cellpadding="3">
-
 @foreach($playoffStages['roundOf32'] ?? [] as $match)
-<tr>
-    <td>{{ substr($match['date'], 0, 5) }} {{ substr($match['date'], 11, 5) }}td>
-    <td>
 
-<span style="white-space: nowrap;">
+<div style="margin-bottom:6px; white-space:nowrap;">
 
-@if(!empty($match['homeFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
-     style="width:24px;height:18px;">
-@endif
+    <strong>{{ date('d.m H:i', strtotime($match['date'])) }}</strong>
 
-{{ $match['home'] }}
+    @if(!empty($match['homeFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
+             style="width:24px;height:18px;vertical-align:middle;">
+    @endif
 
-@if($match['status'] === 'finished')
-    <strong>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</strong>
-@else
-    -
-@endif
+    {{ $match['home'] }}
 
-@if(!empty($match['awayFlagCode']))
-<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
-     style="width:24px;height:18px;">
-@endif
+    @if($match['status'] === 'finished')
+        <strong>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</strong>
+    @else
+        -
+    @endif
 
-{{ $match['away'] }}
+    @if(!empty($match['awayFlagCode']))
+        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
+             style="width:24px;height:18px;vertical-align:middle;">
+    @endif
 
-@if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
-    <br>
-    <small style="font-size:0.8em;color:#666;">
-        Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }}
-    </small>
-@endif
+    {{ $match['away'] }}
 
-</span>
+    @if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
+        <br>
+        <span style="font-size:9px;color:#666;margin-left:58px;">
+            Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }}
+        </span>
+    @endif
 
-</td>
-</tr>
+</div>
+
 @endforeach
-
-</table>
 
 </div>
 
