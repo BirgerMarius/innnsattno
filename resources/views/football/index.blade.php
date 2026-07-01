@@ -141,7 +141,14 @@ img {
         {{ $match['home'] }}
     </td>
 
-    <td>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</td>
+    {{ $match['homeScore'] }} - {{ $match['awayScore'] }}
+
+@if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
+    <br>
+    <small>
+        (Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }})
+    </small>
+@endif
 
     <td>
         @if(!empty($match['awayFlagCode']))
