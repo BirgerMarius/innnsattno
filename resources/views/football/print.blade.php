@@ -82,15 +82,6 @@
     break-inside: avoid;
     page-break-inside: avoid;
 }
-
-.playoff-column td:first-child {
-    width: 70px;
-    white-space: nowrap;
-}
-
-.playoff-column td:last-child span {
-    white-space: nowrap;
-}
 </style>
 
 <div class="top-section">
@@ -223,42 +214,49 @@
 
 <h3>32-delsfinaler</h3>
 
+<table border="1" cellpadding="3">
+
 @foreach($playoffStages['roundOf32'] ?? [] as $match)
+<tr>
+    <td>{{ substr($match['date'], 0, 16) }}</td>
+    <td>
 
-<div style="margin-bottom:6px; white-space:nowrap;">
+<span style="white-space: nowrap;">
 
-    <strong>{{ date('d.m H:i', strtotime($match['date'])) }}</strong>
+@if(!empty($match['homeFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
+     style="width:24px;height:18px;">
+@endif
 
-    @if(!empty($match['homeFlagCode']))
-        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
-             style="width:24px;height:18px;vertical-align:middle;">
-    @endif
+{{ $match['home'] }}
 
-    {{ $match['home'] }}
+@if($match['status'] === 'finished')
+    <strong>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</strong>
+@else
+    -
+@endif
 
-    @if($match['status'] === 'finished')
-        <strong>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</strong>
-    @else
-        -
-    @endif
+@if(!empty($match['awayFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
+     style="width:24px;height:18px;">
+@endif
 
-    @if(!empty($match['awayFlagCode']))
-        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
-             style="width:24px;height:18px;vertical-align:middle;">
-    @endif
+{{ $match['away'] }}
 
-    {{ $match['away'] }}
+@if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
+    <br>
+    <small style="font-size:0.8em;color:#666;">
+        Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }}
+    </small>
+@endif
 
-    @if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
-        <br>
-        <span style="font-size:9px;color:#666;margin-left:58px;">
-            Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }}
-        </span>
-    @endif
+</span>
 
-</div>
-
+</td>
+</tr>
 @endforeach
+
+</table>
 
 </div>
 
@@ -270,8 +268,7 @@
 
 @foreach($playoffStages['roundOf16'] ?? [] as $match)
 <tr>
-    <td>{{ substr($match['date'], 0, 5) }} {{ substr($match['date'], 11, 5) }}<td
-    >
+    <td>{{ substr($match['date'], 0, 16) }}</td>
     <td>
 
 <span style="white-space: nowrap;">
@@ -317,7 +314,7 @@
 
 @foreach($playoffStages['quarterfinal'] ?? [] as $match)
 <tr>
-    <td>{{ substr($match['date'], 0, 5) }} {{ substr($match['date'], 11, 5) }}</td>
+    <td>{{ substr($match['date'], 0, 16) }}</td>
     <td>
 
 <span style="white-space: nowrap;">
@@ -367,7 +364,7 @@
 
 @foreach($playoffStages['semifinal'] ?? [] as $match)
 <tr>
-    <td>{{ substr($match['date'], 0, 5) }} {{ substr($match['date'], 11, 5) }}/td>
+    <td>{{ substr($match['date'], 0, 16) }}</td>
     <td>
 
 <span style="white-space: nowrap;">
@@ -413,7 +410,7 @@
 
 @foreach($playoffStages['3rdPlaceFinal'] ?? [] as $match)
 <tr>
-    <td>{{ substr($match['date'], 0, 5) }} {{ substr($match['date'], 11, 5) }}td>
+    <td>{{ substr($match['date'], 0, 16) }}</td>
     <td>
 
 <span style="white-space: nowrap;">
@@ -447,7 +444,7 @@
 
 @foreach($playoffStages['final'] ?? [] as $match)
 <tr>
-    <td>{{ substr($match['date'], 0, 5) }} {{ substr($match['date'], 11, 5) }}td>
+    <td>{{ substr($match['date'], 0, 16) }}</td>
     <td>
 
 <span style="white-space: nowrap;">
