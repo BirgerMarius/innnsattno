@@ -180,7 +180,16 @@
         {{ $match['home'] }}
     </td>
 
-    <td>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</td>
+    <td style="text-align:center; white-space:nowrap;">
+    {{ $match['homeScore'] }} - {{ $match['awayScore'] }}
+
+    @if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
+        <br>
+        <small style="font-size:0.8em;color:#666;">
+            Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }}
+        </small>
+    @endif
+</td>
 
     <td>
         @if(!empty($match['awayFlagCode']))
@@ -211,18 +220,39 @@
 <tr>
     <td>{{ substr($match['date'], 0, 16) }}</td>
     <td>
-        @if(!empty($match['homeFlagCode']))
-        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
-        @endif
 
-        {{ $match['home'] }} -
+<span style="white-space: nowrap;">
 
-        @if(!empty($match['awayFlagCode']))
-        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
-        @endif
+@if(!empty($match['homeFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
+     style="width:24px;height:18px;">
+@endif
 
-        {{ $match['away'] }}
-    </td>
+{{ $match['home'] }}
+
+@if($match['status'] === 'finished')
+    <strong>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</strong>
+@else
+    -
+@endif
+
+@if(!empty($match['awayFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
+     style="width:24px;height:18px;">
+@endif
+
+{{ $match['away'] }}
+
+@if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
+    <br>
+    <small style="font-size:0.8em;color:#666;">
+        Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }}
+    </small>
+@endif
+
+</span>
+
+</td>
 </tr>
 @endforeach
 
@@ -240,15 +270,39 @@
 <tr>
     <td>{{ substr($match['date'], 0, 16) }}</td>
     <td>
-        @if(!empty($match['homeFlagCode']))
-        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
-        @endif
-        {{ $match['home'] }} -
-        @if(!empty($match['awayFlagCode']))
-        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
-        @endif
-        {{ $match['away'] }}
-    </td>
+
+<span style="white-space: nowrap;">
+
+@if(!empty($match['homeFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
+     style="width:24px;height:18px;">
+@endif
+
+{{ $match['home'] }}
+
+@if($match['status'] === 'finished')
+    <strong>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</strong>
+@else
+    -
+@endif
+
+@if(!empty($match['awayFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
+     style="width:24px;height:18px;">
+@endif
+
+{{ $match['away'] }}
+
+@if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
+    <br>
+    <small style="font-size:0.8em;color:#666;">
+        Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }}
+    </small>
+@endif
+
+</span>
+
+</td>
 </tr>
 @endforeach
 
@@ -262,15 +316,39 @@
 <tr>
     <td>{{ substr($match['date'], 0, 16) }}</td>
     <td>
-        @if(!empty($match['homeFlagCode']))
-        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
-        @endif
-        {{ $match['home'] }} -
-        @if(!empty($match['awayFlagCode']))
-        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
-        @endif
-        {{ $match['away'] }}
-    </td>
+
+<span style="white-space: nowrap;">
+
+@if(!empty($match['homeFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
+     style="width:24px;height:18px;">
+@endif
+
+{{ $match['home'] }}
+
+@if($match['status'] === 'finished')
+    <strong>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</strong>
+@else
+    -
+@endif
+
+@if(!empty($match['awayFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
+     style="width:24px;height:18px;">
+@endif
+
+{{ $match['away'] }}
+
+@if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
+    <br>
+    <small style="font-size:0.8em;color:#666;">
+        Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }}
+    </small>
+@endif
+
+</span>
+
+</td>
 </tr>
 @endforeach
 
@@ -288,15 +366,39 @@
 <tr>
     <td>{{ substr($match['date'], 0, 16) }}</td>
     <td>
-        @if(!empty($match['homeFlagCode']))
-        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
-        @endif
-        {{ $match['home'] }} -
-        @if(!empty($match['awayFlagCode']))
-        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
-        @endif
-        {{ $match['away'] }}
-    </td>
+
+<span style="white-space: nowrap;">
+
+@if(!empty($match['homeFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
+     style="width:24px;height:18px;">
+@endif
+
+{{ $match['home'] }}
+
+@if($match['status'] === 'finished')
+    <strong>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</strong>
+@else
+    -
+@endif
+
+@if(!empty($match['awayFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
+     style="width:24px;height:18px;">
+@endif
+
+{{ $match['away'] }}
+
+@if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
+    <br>
+    <small style="font-size:0.8em;color:#666;">
+        Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }}
+    </small>
+@endif
+
+</span>
+
+</td>
 </tr>
 @endforeach
 
@@ -310,11 +412,23 @@
 <tr>
     <td>{{ substr($match['date'], 0, 16) }}</td>
     <td>
-        @if(!empty($match['homeFlagCode']))
-        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
-        @endif
-        {{ $match['home'] }} -
-        @if(!empty($match['awayFlagCode']))
+
+<span style="white-space: nowrap;">
+
+@if(!empty($match['homeFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
+     style="width:24px;height:18px;">
+@endif
+
+{{ $match['home'] }}
+
+@if($match['status'] === 'finished')
+    <strong>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</strong>
+@else
+    -
+@endif
+
+@if(!empty($match['awayFlagCode']))
         <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
         @endif
         {{ $match['away'] }}
@@ -332,15 +446,39 @@
 <tr>
     <td>{{ substr($match['date'], 0, 16) }}</td>
     <td>
-        @if(!empty($match['homeFlagCode']))
-        <img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png" style="width:24px;height:18px;">
-        @endif
-        {{ $match['home'] }} -
-        @if(!empty($match['awayFlagCode']))
-        <img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png" style="width:24px;height:18px;">
-        @endif
-        {{ $match['away'] }}
-    </td>
+
+<span style="white-space: nowrap;">
+
+@if(!empty($match['homeFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['homeFlagCode'] }}.png"
+     style="width:24px;height:18px;">
+@endif
+
+{{ $match['home'] }}
+
+@if($match['status'] === 'finished')
+    <strong>{{ $match['homeScore'] }} - {{ $match['awayScore'] }}</strong>
+@else
+    -
+@endif
+
+@if(!empty($match['awayFlagCode']))
+<img src="https://flagcdn.com/24x18/{{ $match['awayFlagCode'] }}.png"
+     style="width:24px;height:18px;">
+@endif
+
+{{ $match['away'] }}
+
+@if($match['statusSubtype'] === 'finishedAfterPenaltyShootout')
+    <br>
+    <small style="font-size:0.8em;color:#666;">
+        Str. {{ $match['homePenaltyScore'] }}–{{ $match['awayPenaltyScore'] }}
+    </small>
+@endif
+
+</span>
+
+</td>
 </tr>
 @endforeach
 
