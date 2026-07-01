@@ -63,19 +63,20 @@
 
 .playoff-column table {
     width: 100%;
-    font-size: 10px;
-    margin-bottom: 10px;
+    font-size: 9px;
+    margin-bottom: 8px;
     border-collapse: collapse;
 }
 
 .playoff-column td,
 .playoff-column th {
-    padding: 2px;
+    padding: 1px;
     vertical-align: top;
 }
 
 .playoff-column h3 {
-    margin: 4px 0;
+    margin: 2px 0;
+    font-size: 13px;
 }
 
 .playoff-column tr {
