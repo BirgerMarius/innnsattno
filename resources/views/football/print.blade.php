@@ -217,9 +217,9 @@
 
 </div>
 
-<div class="playoff-columns">
+<div style="page-break-before: always;"></div>
 
-<div class="playoff-column">
+<div class="playoff-columns">
 
 <h3>32-delsfinaler</h3>
 
