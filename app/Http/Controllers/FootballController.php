@@ -23,6 +23,7 @@ class FootballController extends Controller
         );
 
         $data = $response->json();
+dd($data['events']);
 
         $standingsResponse = Http::get(
             'https://api.sportsnext.schibsted.io/v1/vg/tournaments/seasons/7767/standings'
