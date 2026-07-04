@@ -23,7 +23,7 @@ h1 {
 }
 
 h2 {
-    margin: 4px 0 12px 0;
+    margin: 8px 0 12px 0;
     font-size: 16px;
     text-align: center;
     font-weight: normal;
@@ -56,7 +56,11 @@ th {
 </head>
 <body onload="window.print()">
 
-<h1>Innsatt.no</h1>
+<div style="text-align:center; margin-bottom:8px;">
+    <img src="{{ asset('img/innsatt-logo-v2.png') }}"
+         alt="Innsatt.no"
+         style="height:60px;">
+</div>
 
 <h2>
     Bønnetider – {{ $prison['name'] }}<br>
@@ -90,8 +94,7 @@ th {
 </table>
 
 <div class="footer">
-    Automatisk generert fra Bonnetid.no<br>
-    https://innsatt.no/bonnetider
+    Kilde: Bonnetid.no • innsatt.no/bonnetider
 </div>
 
 </body>
