@@ -44,13 +44,27 @@
 
 <div class="toolbar">
 
-    <a href="?year={{ $month == 1 ? $year - 1 : $year }}&month={{ $month == 1 ? 12 : $month - 1 }}">⬅ Forrige måned</a>
+    <a href="?year={{ $month == 1 ? $year - 1 : $year }}&month={{ $month == 1 ? 12 : $month - 1 }}">
+        ⬅ Forrige måned
+    </a>
 
     <strong>{{ $monthName }} {{ $year }}</strong>
 
-    <a href="?year={{ $month == 12 ? $year + 1 : $year }}&month={{ $month == 12 ? 1 : $month + 1 }}">Neste måned ➜</a>
+    <a href="?year={{ $month == 12 ? $year + 1 : $year }}&month={{ $month == 12 ? 1 : $month + 1 }}">
+        Neste måned ➜
+    </a>
 
-    <button onclick="window.print()">🖨 Skriv ut</button>
+    <br><br>
+
+    <a href="{{ request()->path() }}/utskrift?year={{ $year }}&month={{ $month }}">
+        🖨 Skriv ut denne måneden
+    </a>
+
+    |
+
+    <a href="{{ request()->path() }}/utskrift?year={{ $month == 12 ? $year + 1 : $year }}&month={{ $month == 12 ? 1 : $month + 1 }}">
+        🖨 Skriv ut neste måned
+    </a>
 
 </div>
 
