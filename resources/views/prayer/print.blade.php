@@ -59,7 +59,7 @@
 
 <h2>
     Bønnetider – {{ $prison['name'] }}<br>
-    {{ sprintf('%02d', $month) }}/{{ $year }}
+    {{ $monthName }} {{ $year }}
 </h2>
 
 <table>

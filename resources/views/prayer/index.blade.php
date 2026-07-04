@@ -46,7 +46,7 @@
 
     <a href="?year={{ $month == 1 ? $year - 1 : $year }}&month={{ $month == 1 ? 12 : $month - 1 }}">⬅ Forrige måned</a>
 
-    <strong>{{ sprintf('%02d', $month) }}/{{ $year }}</strong>
+    <strong>{{ $monthName }} {{ $year }}</strong>
 
     <a href="?year={{ $month == 12 ? $year + 1 : $year }}&month={{ $month == 12 ? 1 : $month + 1 }}">Neste måned ➜</a>
 
