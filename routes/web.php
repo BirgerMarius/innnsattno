@@ -134,14 +134,6 @@ $channels = [
     'history',
     'tlc',
 ];
-Route::get('/football', [FootballController::class, 'index']);
-Route::get('/fotball-utskrift', [FootballController::class, 'print']);
-
-Route::get('/bonnetider', [PrayerController::class, 'ringerike']);
-Route::get('/bonnetider/utskrift', [PrayerController::class, 'printRingerike']);
-
-Route::get('/bonnetider-ilseng', [PrayerController::class, 'ilseng']);
-Route::get('/bonnetider-ilseng/utskrift', [PrayerController::class, 'printIlseng']);
 
     $response = Http::acceptJson()->get('https://tvguide.vg.no/backend/api/tv-schedule', [
         'channels' => implode(',', $channels),
@@ -163,5 +155,12 @@ Route::get('/test', function () {
     return '<h1>Dette er testsiden min</h1>';
 });
 
-Route::get('/fotball', [FootballController::class, 'index']);
+
+Route::get('/football', [FootballController::class, 'index']);
 Route::get('/fotball-utskrift', [FootballController::class, 'print']);
+
+Route::get('/bonnetider', [PrayerController::class, 'ringerike']);
+Route::get('/bonnetider/utskrift', [PrayerController::class, 'printRingerike']);
+
+Route::get('/bonnetider-ilseng', [PrayerController::class, 'ilseng']);
+Route::get('/bonnetider-ilseng/utskrift', [PrayerController::class, 'printIlseng']);
