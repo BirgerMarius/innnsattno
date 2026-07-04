@@ -5,52 +5,53 @@
     <title>Bønnetider - {{ $prison['name'] }}</title>
 
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 15px;
-            font-size: 12px;
-        }
+    @page {
+    size: A4 portrait;
+    margin: 8mm;
+}
 
-        h1 {
-            text-align: center;
-            margin-bottom: 5px;
-        }
+body {
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    margin: 0;
+}
 
-        h2 {
-            text-align: center;
-            margin-top: 0;
-            margin-bottom: 20px;
-            font-size: 18px;
-            font-weight: normal;
-        }
+h1 {
+    margin: 0;
+    font-size: 22px;
+    text-align: center;
+}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+h2 {
+    margin: 4px 0 12px 0;
+    font-size: 16px;
+    text-align: center;
+    font-weight: normal;
+}
 
-        th, td {
-            border: 1px solid #000;
-            padding: 6px;
-            text-align: center;
-        }
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
 
-        th {
-            background: #eeeeee;
-        }
+th,
+td {
+    border: 1px solid #000;
+    padding: 3px 5px;
+    text-align: center;
+    line-height: 1.2;
+}
 
-        .footer {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 11px;
-            color: #666;
-        }
+th {
+    background: #eeeeee;
+}
 
-        @media print {
-            @page {
-                margin: 10mm;
-            }
-        }
+.footer {
+    margin-top: 8px;
+    text-align: center;
+    font-size: 9px;
+    color: #666;
+}
     </style>
 </head>
 <body onload="window.print()">
