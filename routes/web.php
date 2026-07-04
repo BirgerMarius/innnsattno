@@ -155,7 +155,7 @@ Route::get('/test', function () {
     return '<h1>Dette er testsiden min</h1>';
 });
 
-
+Route::get('/fotball', [FootballController::class, 'index']);
 Route::get('/football', [FootballController::class, 'index']);
 Route::get('/fotball-utskrift', [FootballController::class, 'print']);
 
