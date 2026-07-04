@@ -4,6 +4,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FootballController;
+use App\Http\Controllers\PrayerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -133,19 +134,14 @@ $channels = [
     'history',
     'tlc',
 ];
-Route::get('/bonnetider', function () {
+Route::get('/football', [FootballController::class, 'index']);
+Route::get('/fotball-utskrift', [FootballController::class, 'print']);
 
-    $response = Http::acceptJson()->get(
-        'https://api.bonnetid.no/prayertimes/146/' .
-        now()->format('Y/m/d') . '/'
-    );
+Route::get('/bonnetider', [PrayerController::class, 'ringerike']);
+Route::get('/bonnetider/utskrift', [PrayerController::class, 'printRingerike']);
 
-    $times = json_decode($response, true);
-
-    return view('bonnetider')->with([
-        'times' => $times
-    ]);
-});
+Route::get('/bonnetider-ilseng', [PrayerController::class, 'ilseng']);
+Route::get('/bonnetider-ilseng/utskrift', [PrayerController::class, 'printIlseng']);
 
     $response = Http::acceptJson()->get('https://tvguide.vg.no/backend/api/tv-schedule', [
         'channels' => implode(',', $channels),
@@ -166,42 +162,6 @@ Route::get('/bonnetider', function () {
 Route::get('/test', function () {
     return '<h1>Dette er testsiden min</h1>';
 });
-Route::get('/bonnetider', function () {
 
-$response = Http::acceptJson()
-    ->withHeaders([
-        'api-token' => '92affaa6-0e9b-4402-8d8a-0fcd8d9e91ec'
-    ])
-    ->get(
-        'https://api.bonnetid.no/prayertimes/146/' .
-        now()->year . '/' .
-        now()->month . '/' .
-        now()->day . '/'
-    );
-
-$times = json_decode($response, true);
-
-    return view('bonnetider')->with([
-        'times' => $times
-    ]);
-});
-Route::get('/bonnetider-maned', function () {
-
-    $response = Http::acceptJson()
-        ->withHeaders([
-            'api-token' => '92affaa6-0e9b-4402-8d8a-0fcd8d9e91ec'
-        ])
-        ->get(
-            'https://api.bonnetid.no/prayertimes/146/' .
-            now()->year . '/' .
-            now()->month . '/'
-        );
-
-    $days = json_decode($response, true);
-
-    return view('bonnetider-maned')->with([
-        'days' => $days
-    ]);
-});
 Route::get('/fotball', [FootballController::class, 'index']);
 Route::get('/fotball-utskrift', [FootballController::class, 'print']);

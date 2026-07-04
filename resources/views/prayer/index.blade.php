@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bønnetider - {{ $prison['name'] }}</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #000;
+            padding: 5px;
+            text-align: center;
+        }
+
+        th {
+            background: #eeeeee;
+        }
+
+        .toolbar {
+            margin-bottom: 20px;
+        }
+
+        a {
+            text-decoration: none;
+            margin-right: 15px;
+        }
+
+        @media print {
+            .toolbar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+
+    <a href="?year={{ $month == 1 ? $year - 1 : $year }}&month={{ $month == 1 ? 12 : $month - 1 }}">⬅ Forrige måned</a>
+
+    <strong>{{ sprintf('%02d', $month) }}/{{ $year }}</strong>
+
+    <a href="?year={{ $month == 12 ? $year + 1 : $year }}&month={{ $month == 12 ? 1 : $month + 1 }}">Neste måned ➜</a>
+
+    <button onclick="window.print()">🖨 Skriv ut</button>
+
+</div>
+
+<h1>Bønnetider {{ $prison['name'] }}</h1>
+
+<table>
+
+<tr>
+    <th>Dato</th>
+    <th>Fajr</th>
+    <th>Dhuhr</th>
+    <th>Asr</th>
+    <th>Maghrib</th>
+    <th>Isha</th>
+</tr>
+
+@foreach($days as $day)
+
+<tr>
+    <td>{{ $day['date'] }}</td>
+    <td>{{ $day['fajr'] }}</td>
+    <td>{{ $day['duhr'] }}</td>
+    <td>{{ $day['asr'] }}</td>
+    <td>{{ $day['maghrib'] }}</td>
+    <td>{{ $day['isha'] }}</td>
+</tr>
+
+@endforeach
+
+</table>
+
+</body>
+</html>
