@@ -27,8 +27,16 @@ class PrayerController extends Controller
     {
         return $this->showMonth('ilseng', $request);
     }
+public function printRingerike(Request $request)
+{
+    return $this->showMonth('ringerike', $request, true);
+}
 
-    private function showMonth(string $prison, Request $request)
+public function printIlseng(Request $request)
+{
+    return $this->showMonth('ilseng', $request, true);
+}
+   private function showMonth(string $prison, Request $request, bool $print = false)
     {
         $year = $request->get('year', now()->year);
         $month = $request->get('month', now()->month);
@@ -45,11 +53,13 @@ class PrayerController extends Controller
 
         $days = json_decode($response, true);
 
-        return view('prayer.index', [
-            'days' => $days,
-            'prison' => $location,
-            'year' => $year,
-            'month' => $month,
-        ]);
+        $view = $print ? 'prayer.print' : 'prayer.index';
+
+return view($view, [
+    'days' => $days,
+    'prison' => $location,
+    'year' => $year,
+    'month' => $month,
+]);
     }
 }
