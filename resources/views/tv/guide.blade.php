@@ -184,8 +184,8 @@ $isEvenWeek = $weekNumber % 2 === 0;
     🕌 Bønnetider – Ringerike fengsel
 </a>
 
-<a href="/bonnetider-maned" class="btn btn-secondary btn-lg btn-block mt-2" role="button">
-    🕌 Bønnetider – månedstabell
+<a href="/bonnetider-ilseng" class="btn btn-secondary btn-lg btn-block mt-2" role="button">
+    🕌 Bønnetider – Ilseng fengsel
 </a>
 
 <p class="text-center text-muted mt-3">
