@@ -19,8 +19,11 @@ class TidsfordrivController extends Controller
     $request->has('solution')
 );
 
+$board = str_split($sudoku['puzzle']);
+
 return view('tidsfordriv.sudoku-print', [
-    'sudoku' => $sudoku,
+    'difficulty' => $sudoku['difficulty'],
+    'board' => $board,
 ]);
     }
 
