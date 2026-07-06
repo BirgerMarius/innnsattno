@@ -33,9 +33,12 @@ class TidsfordrivController extends Controller
             'array' => false,
         ]);
 
-        if (!$response->successful()) {
-            return null;
-        }
+       if (!$response->successful()) {
+    dd([
+        'status' => $response->status(),
+        'body' => $response->body(),
+    ]);
+}
 
         return $response->json();
     }
