@@ -1,4 +1,5 @@
 <?php
+use Illuminate\Support\Facades\Storage;
 
 namespace App\Services;
 
@@ -8,18 +9,14 @@ class WordSearchGenerator
 
     public function generate(): array
     {
-        $words = [
-            'BJORN',
-            'ELG',
-            'REV',
-            'ULV',
-            'HARE',
-            'UGLE',
-            'EKORN',
-            'MUS',
-            'SEL',
-            'ORN'
-        ];
+       $words = json_decode(
+    Storage::get('wordsearch/animals.json'),
+    true
+);
+
+shuffle($words);
+
+$words = array_slice($words, 0, 10);
 
         $grid = [];
 
