@@ -32,6 +32,19 @@
 
 <h1>🧩 Tidsfordriv</h1>
 
+@if(session('error'))
+    <div style="
+        background:#fdecea;
+        border:1px solid #f5c2c7;
+        color:#842029;
+        padding:12px;
+        margin-bottom:20px;
+        border-radius:6px;
+    ">
+        {{ session('error') }}
+    </div>
+@endif
+
 <form id="sudokuForm" method="POST" action="/tidsfordriv/sudoku/print">
 
     @csrf

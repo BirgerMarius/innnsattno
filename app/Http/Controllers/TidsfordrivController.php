@@ -22,19 +22,30 @@ class TidsfordrivController extends Controller
 
         $sudokus = [];
 
-        for ($i = 0; $i < ($pages * $boardsPerPage); $i++) {
+try {
 
-            $sudoku = $this->getSudoku(
-                $request->difficulty,
-                $request->has('solution')
-            );
+    for ($i = 0; $i < ($pages * $boardsPerPage); $i++) {
 
-            $sudokus[] = [
-                'difficulty' => $sudoku['difficulty'],
-                'board'      => str_split($sudoku['puzzle']),
-                'solution' => $sudoku['solution'] ?? null,
-            ];
-        }
+        $sudoku = $this->getSudoku(
+            $request->difficulty,
+            $request->has('solution')
+        );
+
+        $sudokus[] = [
+            'difficulty' => $sudoku['difficulty'],
+            'board'      => str_split($sudoku['puzzle']),
+            'solution'   => $sudoku['solution'] ?? null,
+        ];
+    }
+
+} catch (\Exception $e) {
+
+    return redirect()
+        ->back()
+        ->withInput()
+        ->with('error', 'Kunne ikke generere Sudoku akkurat nå. Prøv igjen om litt.');
+
+}
 
         $levels = [
     'easy'   => 'Lett',
@@ -61,11 +72,8 @@ class TidsfordrivController extends Controller
         ]);
 
         if (!$response->successful()) {
-            dd([
-                'status' => $response->status(),
-                'body'   => $response->body(),
-            ]);
-        }
+    throw new \Exception('Kunne ikke hente Sudoku fra tjenesten.');
+}
 
         return $response->json();
     }
