@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Services\WordSearchGenerator;
-use Illuminate\Support\Facades\File;
 
 class WordSearchController extends Controller
 {
@@ -16,53 +15,21 @@ class WordSearchController extends Controller
 
     public function index()
     {
-        $data = $this->createPuzzle();
+        $puzzle = $this->generator->generate();
 
-        return view('wordsearch.index', $data);
+        return view('wordsearch.index', [
+            'grid'  => $puzzle['grid'],
+            'words' => $puzzle['words'],
+        ]);
     }
 
     public function print()
     {
-        $data = $this->createPuzzle();
+        $puzzle = $this->generator->generate();
 
-        return view('wordsearch.print', $data);
-    }
-
-    private function createPuzzle(): array
-    {
-        $path = storage_path('app/wordsearch/animals.json');
-
-        if (! File::exists($path)) {
-            abort(500, 'Fant ikke animals.json');
-        }
-
-        $words = json_decode(File::get($path), true);
-
-        if (! is_array($words)) {
-            abort(500, 'Ugyldig JSON i animals.json');
-        }
-
-        $words = array_map(function ($word) {
-            return mb_strtoupper(trim($word), 'UTF-8');
-        }, $words);
-
-        $words = array_unique($words);
-
-        shuffle($words);
-
-        $selectedWords = array_slice($words, 0, 15);
-
-        $puzzle = $this->generator->generate($selectedWords, 18);
-
-        $placedWords = array_column($puzzle['placed'], 'word');
-
-sort($placedWords);
-
-return [
-    'grid'   => $puzzle['grid'],
-    'placed' => $puzzle['placed'],
-    'words'  => $placedWords,
-    'size'   => 18,
-];
+        return view('wordsearch.print', [
+            'grid'  => $puzzle['grid'],
+            'words' => $puzzle['words'],
+        ]);
     }
 }
