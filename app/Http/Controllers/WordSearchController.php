@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Services\WordSearchGenerator;
 
 class WordSearchController extends Controller
 {
-    public function index()
+    public function index(WordSearchGenerator $generator)
     {
-        return view('wordsearch.index');
+        $data = $generator->generate();
+
+        return view('wordsearch.index', $data);
     }
 }
