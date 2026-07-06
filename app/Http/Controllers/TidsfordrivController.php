@@ -15,11 +15,13 @@ class TidsfordrivController extends Controller
     public function printSudoku(Request $request)
     {
         $sudoku = $this->getSudoku(
-            $request->difficulty,
-            $request->has('solution')
-        );
+    $request->difficulty,
+    $request->has('solution')
+);
 
-        dd($sudoku);
+return view('tidsfordriv.sudoku-print', [
+    'sudoku' => $sudoku,
+]);
     }
 
     private function getSudoku(string $difficulty, bool $solution = true)

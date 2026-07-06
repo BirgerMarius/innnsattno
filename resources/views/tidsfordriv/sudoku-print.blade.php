@@ -6,29 +6,30 @@
 
 <title>Sudoku</title>
 
+<style>
+
+body{
+    font-family: Arial, sans-serif;
+    padding:40px;
+}
+
+</style>
+
 </head>
 
 <body>
 
 <h1>Sudoku</h1>
 
-<p>Vanskelighetsgrad: {{ $difficulty }}</p>
-
-<p>Antall: {{ $count }}</p>
-
-<p>Fasit:
-@if($solution)
-Ja
-@else
-Nei
-@endif
+<p>Vanskelighetsgrad:
+<strong>{{ $sudoku['difficulty'] }}</strong>
 </p>
 
-<script>
+<p>
 
-window.print();
+{{ $sudoku['puzzle'] }}
 
-</script>
+</p>
 
 </body>
 </html>
