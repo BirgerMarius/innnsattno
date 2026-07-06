@@ -61,7 +61,7 @@
 
         <h1>🧩 Ordjakt</h1>
 
-        <a href="{{ url('/wordsearch/print') }}" class="btn btn-success">
+        href="{{ url('/ordjakt/utskrift') }}"
             🖨️ Utskriftsversjon
         </a>
 

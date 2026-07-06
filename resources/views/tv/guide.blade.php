@@ -193,7 +193,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
 </a>
 
 <a href="/ordjakt" class="btn btn-warning btn-lg btn-block mt-2" role="button">
-    <i class="fas fa-puzzle-piece"></i> Ordjakt
+    <i class="fas fa-puzzle-piece"></i> 🧩 Tidsfordriv – Ordjakt
 </a>
 
 <p class="text-center text-muted mt-3">
