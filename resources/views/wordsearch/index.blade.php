@@ -61,9 +61,9 @@
 
         <h1>🧩 Ordjakt</h1>
 
-        href="{{ url('/ordjakt/utskrift') }}"
-            🖨️ Utskriftsversjon
-        </a>
+       <a href="/ordjakt/utskrift" class="btn btn-success">
+    <i class="fas fa-print"></i> Utskriftsversjon
+</a>
 
     </div>
 
