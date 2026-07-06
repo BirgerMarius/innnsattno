@@ -14,7 +14,10 @@ class TidsfordrivController extends Controller
 
     public function printSudoku(Request $request)
     {
-        $pages = (int) $request->pages;
+        $pages = min(
+            max((int) $request->pages, 1),
+            6
+        );
         $boardsPerPage = 9;
 
         $sudokus = [];
@@ -33,8 +36,13 @@ class TidsfordrivController extends Controller
             ];
         }
 
+        $levels = [
+    'easy'   => 'Lett',
+    'medium' => 'Middels',
+    'hard'   => 'Vanskelig',
+    ];
         return view('tidsfordriv.sudoku-print', [
-            'difficulty' => $request->difficulty,
+            'difficulty' => $levels[$request->difficulty] ?? $request->difficulty,
             'sudokus'    => $sudokus,
             'pages'      => $pages,
             'showSolution' => $request->has('solution'),

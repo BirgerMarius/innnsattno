@@ -72,7 +72,7 @@
     name="pages"
     value="1"
     min="1"
-    max="20">
+    max="6">
 
         </p>
 
