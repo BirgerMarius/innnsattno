@@ -162,11 +162,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
 </div>
 
- <div class="text-center mb-2">
-    <img src="/img/innsatt-logo-v2.png"
-         alt="INNSATT.NO"
-         style="width:100%; height:auto;">
-</div>
+@include('partials.header')
 
 <a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
     <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ringerike fengsel

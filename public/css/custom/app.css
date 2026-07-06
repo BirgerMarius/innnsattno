@@ -29,3 +29,13 @@
     height: auto;
     margin: 0 auto;
 }
+
+/* ========================================
+   Header
+======================================== */
+
+.site-logo {
+    display: block;
+    width: 100%;
+    height: auto;
+}
