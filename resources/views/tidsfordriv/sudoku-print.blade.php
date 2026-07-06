@@ -1,28 +1,89 @@
 <!DOCTYPE html>
 <html lang="no">
 <head>
-
     <meta charset="UTF-8">
-
     <title>Sudoku</title>
 
     <style>
 
-        body{
-            font-family: Arial, sans-serif;
-            padding:40px;
+        @page {
+            size: A4;
+            margin: 10mm;
         }
 
-        table{
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .page {
+            height: 277mm;
+            page-break-after: always;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h2 {
+            margin: 0 0 10px 0;
+            text-align: center;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            flex: 1;
+        }
+
+        table.sudoku {
             border-collapse: collapse;
+            margin: auto;
         }
 
-        td{
+        table.sudoku td {
+
+            width: 22px;
+            height: 22px;
+
+            border: 1px solid #999;
+
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        /* Tykke streker */
+
+        table.sudoku tr:nth-child(3n) td {
+            border-bottom: 2px solid #000;
+        }
+
+        table.sudoku tr:first-child td {
+            border-top: 2px solid #000;
+        }
+
+        table.sudoku td:nth-child(3n) {
+            border-right: 2px solid #000;
+        }
+
+        table.sudoku td:first-child {
+            border-left: 2px solid #000;
+        }
+
+        .footer{
+            margin-top:12px;
+            font-size:11px;
             text-align:center;
-            width:35px;
-            height:35px;
-            font-size:22px;
-            border:1px solid #000;
+            color:#666;
+        }
+
+        @media print{
+
+            .page:last-child{
+                page-break-after:auto;
+            }
+
         }
 
     </style>
@@ -31,40 +92,67 @@
 
 <body>
 
-<h1>Sudoku</h1>
+@foreach(array_chunk($sudokus,9) as $page)
 
-<p>
-Vanskelighetsgrad:
-<strong>{{ $difficulty }}</strong>
-</p>
+<div class="page">
 
-<table>
+    <h2>
+        Sudoku – {{ ucfirst($difficulty) }}
+    </h2>
 
-@for($row = 0; $row < 9; $row++)
-<tr>
+    <div class="grid">
 
-    @for($col = 0; $col < 9; $col++)
+        @foreach($page as $sudoku)
 
-        @php
-            $value = $board[$row * 9 + $col];
-        @endphp
+            <table class="sudoku">
 
-        <td>
+                @for($row=0;$row<9;$row++)
 
-            @if($value == "0")
-                &nbsp;
-            @else
-                {{ $value }}
-            @endif
+                    <tr>
 
-        </td>
+                    @for($col=0;$col<9;$col++)
 
-    @endfor
+                        @php
+                            $value = $sudoku['board'][($row*9)+$col];
+                        @endphp
 
-</tr>
-@endfor
+                        <td>
 
-</table>
+                            @if($value=="0")
+                                &nbsp;
+                            @else
+                                {{ $value }}
+                            @endif
+
+                        </td>
+
+                    @endfor
+
+                    </tr>
+
+                @endfor
+
+            </table>
+
+        @endforeach
+
+    </div>
+
+    <div class="footer">
+
+        Generert fra Innsatt.no • {{ now()->format('d.m.Y H:i') }}
+
+    </div>
+
+</div>
+
+@endforeach
+
+<script>
+
+window.print();
+
+</script>
 
 </body>
 </html>
