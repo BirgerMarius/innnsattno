@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FootballController;
 use App\Http\Controllers\PrayerController;
+use App\Http\Controllers\WordSearchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -168,5 +169,6 @@ Route::get('/bonnetider-ilseng/utskrift', [PrayerController::class, 'printIlseng
 use App\Http\Controllers\TidsfordrivController;
 
 Route::get('/tidsfordriv', [TidsfordrivController::class, 'index']);
-
 Route::post('/tidsfordriv/sudoku/print', [TidsfordrivController::class, 'printSudoku']);
+
+Route::get('/ordjakt', [WordSearchController::class, 'index']);
