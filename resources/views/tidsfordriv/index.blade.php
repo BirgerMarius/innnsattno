@@ -5,33 +5,88 @@
     <title>Tidsfordriv</title>
 
     <style>
-        body{
-            font-family: Arial, sans-serif;
-            max-width:700px;
-            margin:40px auto;
-        }
+    body{
+        font-family: Arial, sans-serif;
+        max-width:700px;
+        margin:40px auto;
+        padding:0 15px;
+        background:#f5f5f5;
+    }
 
-        fieldset{
-            padding:20px;
-        }
+    h1{
+        margin-bottom:10px;
+    }
 
-        button{
-            margin-top:20px;
-            padding:12px 25px;
-            font-size:18px;
-            cursor:pointer;
-        }
+    .info{
+        background:#eef6ff;
+        border:1px solid #b9d7f5;
+        padding:15px;
+        border-radius:8px;
+        margin-bottom:20px;
+        line-height:1.5;
+    }
 
-        input[type=number]{
-            width:70px;
-        }
-    </style>
+    fieldset{
+        background:#fff;
+        border:1px solid #ccc;
+        border-radius:8px;
+        padding:25px;
+    }
+
+    legend{
+        font-size:18px;
+        font-weight:bold;
+        padding:0 8px;
+    }
+
+    p{
+        margin-bottom:18px;
+    }
+
+    label{
+        line-height:1.8;
+    }
+
+    input[type=number]{
+        width:80px;
+        padding:6px;
+        font-size:16px;
+    }
+
+    button{
+        margin-top:10px;
+        padding:12px 25px;
+        font-size:18px;
+        border:none;
+        border-radius:6px;
+        background:#0d6efd;
+        color:white;
+        cursor:pointer;
+    }
+
+    button:hover{
+        background:#0b5ed7;
+    }
+
+    button:disabled{
+        background:#999;
+        cursor:not-allowed;
+    }
+
+    small{
+        color:#666;
+    }
+</style>
 
 </head>
 <body>
 
 <h1>🧩 Tidsfordriv</h1>
-
+<div class="info">
+    Velg vanskelighetsgrad og antall sider.<br>
+    PDF-en åpnes automatisk og kan skrives ut eller lagres.<br>
+    Dersom du huker av <strong>Ta med fasit</strong>, legges løsningene bakerst i dokumentet.
+</div>
 @if(session('error'))
     <div style="
         background:#fdecea;
@@ -86,6 +141,10 @@
     value="1"
     min="1"
     max="6">
+
+<br>
+
+<small>Maks 6 sider per utskrift.</small>
 
         </p>
 
