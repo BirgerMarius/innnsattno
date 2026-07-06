@@ -32,7 +32,7 @@
 
 <h1>🧩 Tidsfordriv</h1>
 
-<form method="POST" action="/tidsfordriv/sudoku/print">
+<form id="sudokuForm" method="POST" action="/tidsfordriv/sudoku/print">
 
     @csrf
 
@@ -88,15 +88,29 @@
 
         </p>
 
-        <button type="submit">
-
-            🖨️ Skriv ut Sudoku
-
-        </button>
+        <button id="submitButton" type="submit">
+    🖨️ Skriv ut Sudoku
+</button>
+<p id="loadingMessage" style="display:none; margin-top:15px; color:#0066cc;">
+    ⏳ Genererer Sudoku... Dette kan ta noen sekunder.
+</p>
 
     </fieldset>
 
 </form>
 
+<script>
+document.getElementById('sudokuForm').addEventListener('submit', function () {
+
+    const button = document.getElementById('submitButton');
+    const message = document.getElementById('loadingMessage');
+
+    button.disabled = true;
+    button.textContent = 'Genererer...';
+
+    message.style.display = 'block';
+
+});
+</script>
 </body>
 </html>
