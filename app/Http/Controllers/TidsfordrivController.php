@@ -26,8 +26,8 @@ class TidsfordrivController extends Controller
     {
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
-            'x-api-key' => 'hUOttMQpryPQdc6waPmsNZoanrlmCgqVmzNlTFKJY_s',
-        ])->post('https://youdosudoku.com/api/', [
+            'x-api-key' => env('YOUDOSUDOKU_API_KEY'),
+        ])->post('https://www.youdosudoku.com/api', [
             'difficulty' => $difficulty,
             'solution' => $solution,
             'array' => false,
