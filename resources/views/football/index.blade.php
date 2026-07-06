@@ -4,6 +4,8 @@
 
 @section('content')
 
+@include('partials.header')
+
 <h1>⚽ Fotball-VM 2026</h1>
 
 <style>
@@ -598,4 +600,6 @@ img {
 </div>
 
 </div>
+@include('partials.footer')
+
 @endsection
