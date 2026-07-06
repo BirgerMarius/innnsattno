@@ -192,6 +192,10 @@ $isEvenWeek = $weekNumber % 2 === 0;
     🧩 Tidsfordriv – Sudoku
 </a>
 
+<a href="/ordjakt" class="btn btn-warning btn-lg btn-block mt-2" role="button">
+    <i class="fas fa-puzzle-piece"></i> Ordjakt
+</a>
+
 <p class="text-center text-muted mt-3">
     Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
 </p>
