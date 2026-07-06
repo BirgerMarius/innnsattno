@@ -9,7 +9,7 @@ class WordSearchGenerator
     public function generate(): array
 {
     $words = json_decode(
-        file_get_contents(resource_path('wordsearch/animals.json'))
+        file_get_contents(resource_path('wordsearch/animals.json')),
         true
     );
 
