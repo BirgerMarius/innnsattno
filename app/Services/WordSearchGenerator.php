@@ -2,8 +2,6 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Storage;
-
 class WordSearchGenerator
 {
     private int $size = 15;
@@ -11,7 +9,7 @@ class WordSearchGenerator
     public function generate(): array
 {
     $words = json_decode(
-        Storage::get('wordsearch/animals.json'),
+        file_get_contents(resource_path('wordsearch/animals.json'))
         true
     );
 
