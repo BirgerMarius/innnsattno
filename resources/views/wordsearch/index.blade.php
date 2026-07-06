@@ -1,66 +1,121 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="no">
 <head>
+    <meta charset="UTF-8">
+    <title>Ordjakt</title>
 
-<meta charset="utf-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<title>Ordjakt</title>
+    <style>
+        body{
+            background:#f8f9fa;
+        }
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        .word-grid{
+            border-collapse:collapse;
+            margin:auto;
+        }
 
-<style>
+        .word-grid td{
+            width:34px;
+            height:34px;
+            border:1px solid #999;
+            text-align:center;
+            vertical-align:middle;
+            font-size:22px;
+            font-weight:bold;
+            font-family:monospace;
+            background:#fff;
+        }
 
-table{
-    border-collapse:collapse;
-    margin:auto;
-}
+        .word-list{
+            columns:2;
+            margin-top:25px;
+        }
 
-td{
-    width:34px;
-    height:34px;
-    border:1px solid #ccc;
-    text-align:center;
-    font-size:22px;
-    font-weight:bold;
-}
+        .word-list li{
+            margin-bottom:6px;
+            font-size:18px;
+        }
 
-</style>
+        @media(max-width:768px){
+
+            .word-grid td{
+                width:26px;
+                height:26px;
+                font-size:16px;
+            }
+
+            .word-list{
+                columns:1;
+            }
+        }
+    </style>
 
 </head>
-
 <body>
 
-<div class="container mt-4">
+<div class="container py-4">
 
-<h1>🧩 Ordjakt</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
 
-<p>Finn disse ordene:</p>
+        <h1>🧩 Ordjakt</h1>
 
-<ul>
+        <a href="{{ url('/wordsearch/print') }}" class="btn btn-success">
+            🖨️ Utskriftsversjon
+        </a>
 
-@foreach($words as $word)
-<li>{{ $word }}</li>
-@endforeach
+    </div>
 
-</ul>
+    <div class="card shadow-sm">
 
-<table>
+        <div class="card-body text-center">
 
-@foreach($grid as $row)
+            <table class="word-grid">
 
-<tr>
+                @foreach($grid as $row)
 
-@foreach($row as $letter)
+                    <tr>
 
-<td>{{ $letter }}</td>
+                        @foreach($row as $letter)
 
-@endforeach
+                            <td>{{ $letter }}</td>
 
-</tr>
+                        @endforeach
 
-@endforeach
+                    </tr>
 
-</table>
+                @endforeach
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <div class="card mt-4 shadow-sm">
+
+        <div class="card-header">
+
+            <strong>Finn disse ordene</strong>
+
+        </div>
+
+        <div class="card-body">
+
+            <ul class="word-list">
+
+                @foreach($words as $word)
+
+                    <li>{{ $word }}</li>
+
+                @endforeach
+
+            </ul>
+
+        </div>
+
+    </div>
 
 </div>
 

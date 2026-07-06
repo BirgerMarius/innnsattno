@@ -172,3 +172,4 @@ Route::get('/tidsfordriv', [TidsfordrivController::class, 'index']);
 Route::post('/tidsfordriv/sudoku/print', [TidsfordrivController::class, 'printSudoku']);
 
 Route::get('/ordjakt', [WordSearchController::class, 'index']);
+Route::get('/ordjakt/utskrift', [WordSearchController::class, 'print']);
