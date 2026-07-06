@@ -188,6 +188,10 @@ $isEvenWeek = $weekNumber % 2 === 0;
     🕌 Bønnetider – Ilseng fengsel
 </a>
 
+<a href="/tidsfordriv" class="btn btn-dark btn-lg btn-block mt-2" role="button">
+    🧩 Tidsfordriv – Sudoku
+</a>
+
 <p class="text-center text-muted mt-3">
     Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
 </p>
