@@ -14,36 +14,50 @@ class TidsfordrivController extends Controller
 
     public function printSudoku(Request $request)
     {
-        $sudoku = $this->getSudoku(
-    $request->difficulty,
-    $request->has('solution')
-);
+        $pages = (int) $request->pages;
+        $boardsPerPage = 9;
 
-$board = str_split($sudoku['puzzle']);
+        $sudokus = [];
 
-return view('tidsfordriv.sudoku-print', [
-    'difficulty' => $sudoku['difficulty'],
-    'board' => $board,
-]);
+        for ($i = 0; $i < ($pages * $boardsPerPage); $i++) {
+
+            $sudoku = $this->getSudoku(
+                $request->difficulty,
+                $request->has('solution')
+            );
+
+            $sudokus[] = [
+                'difficulty' => $sudoku['difficulty'],
+                'board'      => str_split($sudoku['puzzle']),
+                'solution'   => $sudoku['solution'],
+            ];
+        }
+
+        return view('tidsfordriv.sudoku-print', [
+            'difficulty' => $request->difficulty,
+            'sudokus'    => $sudokus,
+            'pages'      => $pages,
+            'showSolution' => $request->has('solution'),
+        ]);
     }
 
     private function getSudoku(string $difficulty, bool $solution = true)
     {
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
-            'x-api-key' => env('YOUDOSUDOKU_API_KEY'),
+            'x-api-key'    => env('YOUDOSUDOKU_API_KEY'),
         ])->post('https://www.youdosudoku.com/api', [
             'difficulty' => $difficulty,
-            'solution' => $solution,
-            'array' => false,
+            'solution'   => $solution,
+            'array'      => false,
         ]);
 
-       if (!$response->successful()) {
-    dd([
-        'status' => $response->status(),
-        'body' => $response->body(),
-    ]);
-}
+        if (!$response->successful()) {
+            dd([
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+        }
 
         return $response->json();
     }

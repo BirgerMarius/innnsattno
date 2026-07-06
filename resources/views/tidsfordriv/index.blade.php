@@ -65,14 +65,14 @@
 
         <p>
 
-            Antall oppgaver:
+           Antall sider:
 
-            <input
-                type="number"
-                name="count"
-                value="5"
-                min="1"
-                max="50">
+<input
+    type="number"
+    name="pages"
+    value="1"
+    min="1"
+    max="20">
 
         </p>
 
