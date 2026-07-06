@@ -147,7 +147,55 @@
 </div>
 
 @endforeach
+@if($showSolution)
 
+@foreach(array_chunk($sudokus, 9) as $page)
+
+<div class="page">
+
+    <h2>Fasit – {{ ucfirst($difficulty) }}</h2>
+
+    <div class="grid">
+
+        @foreach($page as $sudoku)
+
+            <table class="sudoku">
+
+                @for($row = 0; $row < 9; $row++)
+
+                    <tr>
+
+                        @for($col = 0; $col < 9; $col++)
+
+                            @php
+                                $value = $sudoku['solution'][($row * 9) + $col] ?? "0";
+                            @endphp
+
+                            <td>
+                                {{ $value }}
+                            </td>
+
+                        @endfor
+
+                    </tr>
+
+                @endfor
+
+            </table>
+
+        @endforeach
+
+    </div>
+
+    <div class="footer">
+        Generert fra Innsatt.no • {{ now()->format('d.m.Y H:i') }}
+    </div>
+
+</div>
+
+@endforeach
+
+@endif
 <script>
 
 window.print();
