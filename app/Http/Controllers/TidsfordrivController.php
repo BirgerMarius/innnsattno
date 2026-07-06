@@ -29,7 +29,7 @@ class TidsfordrivController extends Controller
             $sudokus[] = [
                 'difficulty' => $sudoku['difficulty'],
                 'board'      => str_split($sudoku['puzzle']),
-                'solution'   => $sudoku['solution'],
+                'solution' => $sudoku['solution'] ?? null,
             ];
         }
 
