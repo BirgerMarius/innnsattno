@@ -171,5 +171,5 @@ use App\Http\Controllers\TidsfordrivController;
 Route::get('/tidsfordriv', [TidsfordrivController::class, 'index']);
 Route::post('/tidsfordriv/sudoku/print', [TidsfordrivController::class, 'printSudoku']);
 
-Route::get('/ordjakt', [WordSearchController::class, 'index']);
-Route::get('/ordjakt/utskrift', [WordSearchController::class, 'print']);
+Route::get('/wordsearch', [WordSearchController::class, 'index']);
+Route::get('/wordsearch/print', [WordSearchController::class, 'print']);
