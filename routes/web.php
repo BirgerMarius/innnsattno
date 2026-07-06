@@ -164,3 +164,9 @@ Route::get('/bonnetider/utskrift', [PrayerController::class, 'printRingerike']);
 
 Route::get('/bonnetider-ilseng', [PrayerController::class, 'ilseng']);
 Route::get('/bonnetider-ilseng/utskrift', [PrayerController::class, 'printIlseng']);
+
+use App\Http\Controllers\TidsfordrivController;
+
+Route::get('/tidsfordriv', [TidsfordrivController::class, 'index']);
+
+Route::post('/tidsfordriv/sudoku/print', [TidsfordrivController::class, 'printSudoku']);
