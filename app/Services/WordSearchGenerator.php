@@ -1,7 +1,8 @@
 <?php
-use Illuminate\Support\Facades\Storage;
 
 namespace App\Services;
+
+use Illuminate\Support\Facades\Storage;
 
 class WordSearchGenerator
 {
@@ -91,4 +92,6 @@ class WordSearchGenerator
         'words' => $words
 
     ];
+}
+
 }
