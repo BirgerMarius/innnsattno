@@ -10,16 +10,15 @@
     display:flex;
     justify-content:center;
     align-items:center;
-    min-height:760px;
+    min-height:650px;
 }
 
 #wheelCanvas{
-    width:720px;
-    height:720px;
-    max-width:100%;
-    background:#f2f2f2;
-    border-radius:50%;
-    box-shadow:0 15px 40px rgba(0,0,0,.2);
+    width:min(36vw, 620px);
+    height:min(36vw, 620px);
+
+    min-width:480px;
+    min-height:480px;
 }
 
 .wheel-pointer{
@@ -31,7 +30,7 @@
 }
 
 #statusText{
-    font-size:32px;
+    font-size:28px;
     font-weight:bold;
     margin-top:20px;
 }
