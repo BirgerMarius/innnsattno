@@ -222,13 +222,29 @@ Anne"></textarea>
                         </p>
 
                     </div>
-<div class="card shadow-sm border-success mt-4" id="winnerCard" style="display:none;">
+<div class="winner-card mt-3" id="winnerCard" style="display:none;">
 
-    <div class="card-header bg-success text-white text-center">
-        <h4 class="mb-0">🏆 Den utvalgte</h4>
+    <div class="winner-title">
+
+        🏆 DEN UTVALGTE 🏆
+
     </div>
 
-    <div class="card-body text-center py-3">
+    <div class="winner-body">
+
+        <div id="winnerCardName"></div>
+
+        <div class="winnerTaskLabel">
+
+            skal utføre
+
+        </div>
+
+        <div id="winnerCardTask"></div>
+
+    </div>
+
+</div>
 
         <h2 id="winnerCardName" class="display-5 fw-bold text-success mb-2"></h2>
 

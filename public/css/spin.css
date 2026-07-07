@@ -1,3 +1,9 @@
+body{
+
+    background:#eef3f8;
+
+}
+
 :root{
     --bg:#0f172a;
     --panel:#1e293b;
@@ -30,20 +36,37 @@
 }
 
 #statusText{
-    font-size:28px;
+    font-size:22px;
     font-weight:bold;
     margin-top:20px;
 }
 
 #commentText{
-    font-size:20px;
+    font-size:16px;
     color:#666;
     min-height:30px;
 }
 
 #startButton{
-    font-size:24px;
-    font-weight:bold;
+
+    border-radius:14px;
+
+    font-size:26px;
+
+    font-weight:700;
+
+    padding:14px;
+
+    transition:.25s;
+
+}
+
+#startButton:hover{
+
+    transform:translateY(-2px);
+
+    box-shadow:0 10px 20px rgba(0,0,0,.15);
+
 }
 
 .confetti{
@@ -74,4 +97,100 @@
 
 #winnerTask{
     font-size:28px;
+}
+
+.winner-card{
+
+    display:block;
+
+    background:white;
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+    box-shadow:0 15px 35px rgba(0,0,0,.15);
+
+    border:2px solid #fbbf24;
+
+    animation:fadeWinner .4s ease;
+
+}
+
+.winner-title{
+
+    background:linear-gradient(90deg,#d97706,#fbbf24);
+
+    color:white;
+
+    text-align:center;
+
+    padding:12px;
+
+    font-size:24px;
+
+    font-weight:700;
+
+    letter-spacing:1px;
+
+}
+
+.winner-body{
+
+    padding:30px;
+
+    text-align:center;
+
+}
+
+#winnerCardName{
+
+    font-size:56px;
+
+    font-weight:800;
+
+    color:#15803d;
+
+}
+
+.winnerTaskLabel{
+
+    margin-top:10px;
+
+    color:#666;
+
+    font-size:22px;
+
+}
+
+#winnerCardTask{
+
+    font-size:34px;
+
+    font-weight:bold;
+
+    color:#2563eb;
+
+    margin-top:10px;
+
+}
+
+@keyframes fadeWinner{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(20px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:none;
+
+    }
+
 }
