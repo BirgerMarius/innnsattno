@@ -230,8 +230,7 @@ Anne"></textarea>
 
     <div class="card-body text-center">
 
-        <h1 id="winnerCardName" class="display-4 fw-bold text-success mb-3">
-        </h1>
+        <h2 id="winnerCardName" class="display-5 fw-bold text-success mb-2">
 
         <h4 id="winnerCardTask" class="text-primary">
         </h4>
@@ -273,9 +272,9 @@ Anne"></textarea>
 
             </div>
 
-           <div class="modal-body text-center py-5">
+           <div class="modal-body text-center py-3">
 
-                <h1 id="winnerName" class="display-3 fw-bold text-success"></h1>
+                <h2 id="winnerCardName" class="display-5 fw-bold text-success mb-2">
 
               
                 <h3

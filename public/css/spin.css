@@ -10,12 +10,12 @@
     display:flex;
     justify-content:center;
     align-items:center;
-    min-height:650px;
+    min-height:580px;
 }
 
 #wheelCanvas{
-    width:min(36vw, 620px);
-    height:min(36vw, 620px);
+    width:560px;
+    height:560px;
 
     min-width:480px;
     min-height:480px;
