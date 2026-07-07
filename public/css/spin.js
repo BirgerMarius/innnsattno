@@ -1,3 +1,9 @@
+const taskSelect = document.getElementById("taskSelect");
+const customTask = document.getElementById("customTask");
+const customTaskContainer = document.getElementById("customTaskContainer");
+const winnerName = document.getElementById("winnerName");
+const winnerTask = document.getElementById("winnerTask");
+
 /*==========================================================
     spin.js
     Oppdragshjulet
@@ -30,8 +36,7 @@ let running = false;
 const statusText = document.getElementById("statusText");
 const commentText = document.getElementById("commentText");
 
-const winnerModal =
-    new bootstrap.Modal(document.getElementById("winnerModal"));
+let winnerModal = null;
 
 /*************************************************
 Kommentar
@@ -293,7 +298,7 @@ function finish(name){
 
         "skal utføre:\n\n"+task;
 
-    winnerModal.show();
+    alert(name + " skal utføre: " + task);
 
 }
 
