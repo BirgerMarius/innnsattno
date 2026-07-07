@@ -6,11 +6,11 @@
 
 <div class="container-fluid py-5 px-4" id="spinApp">
 
-    <div class="row">
+    <div class="row g-4 align-items-start">
 
         <!-- Venstre panel -->
 
-        <div class="col-lg-4">
+        <div class="col-xl-4 col-lg-5">
 
             <div class="card-header py-3">
     <h3 class="mb-1 fw-bold">
@@ -174,7 +174,7 @@ Anne"></textarea>
 
         <!-- Høyre panel -->
 
-        <div class="col-lg-8">
+        <div class="col-xl-8 col-lg-7">
 
             <div class="card shadow">
 
