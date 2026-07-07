@@ -302,13 +302,6 @@ winnerTask.innerHTML = `
     </div>
 `;
 
-document.getElementById("winnerCardName").innerText = name;
-
-document.getElementById("winnerCardTask").innerText = task;
-
-document.getElementById("winnerCard").style.display = "block";
-
-
 }
 
 /*************************************************
