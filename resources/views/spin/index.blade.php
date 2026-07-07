@@ -250,10 +250,7 @@ Anne"></textarea>
 <!-- Resultat -->
 
 <div
-
-    class="modal fade"
-
-    id="winnerModal"
+ 
 
     tabindex="-1">
 
@@ -273,15 +270,11 @@ Anne"></textarea>
 
            <div class="modal-body text-center py-3">
 
-                <h2 id="winnerCardName" class="display-5 fw-bold text-success mb-2">
+    <h1 id="winnerName" class="display-3 fw-bold text-success"></h1>
 
-              
-                <h3
-                    id="winnerTask">
+    <h3 id="winnerTask"></h3>
 
-                </h3>
-
-            </div>
+</div>
 
             <div class="modal-footer">
 
@@ -301,7 +294,6 @@ Anne"></textarea>
 
     </div>
 
-</div>
 
 <!-- Lyd -->
 

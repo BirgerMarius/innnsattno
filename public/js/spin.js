@@ -36,8 +36,6 @@ let running = false;
 const statusText = document.getElementById("statusText");
 const commentText = document.getElementById("commentText");
 
-let winnerModal = null;
-
 /*************************************************
 Kommentar
 *************************************************/
@@ -310,15 +308,6 @@ document.getElementById("winnerCardTask").innerText = task;
 
 document.getElementById("winnerCard").style.display = "block";
 
-if (!winnerModal) {
-
-    winnerModal = new bootstrap.Modal(
-        document.getElementById("winnerModal")
-    );
-
-}
-
-winnerModal.show();
 
 }
 
