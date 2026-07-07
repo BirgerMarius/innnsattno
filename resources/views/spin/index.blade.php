@@ -4,7 +4,7 @@
 
 @section('content')
 
-<div class="container-fluid py-4" id="spinApp">
+<div class="container-fluid py-5 px-4" id="spinApp">
 
     <div class="row">
 
@@ -12,15 +12,15 @@
 
         <div class="col-lg-4">
 
-            <div class="card shadow-sm mb-4">
+            <div class="card-header py-3">
+    <h3 class="mb-1 fw-bold">
+        🎡 Oppdragshjulet
+    </h3>
 
-                <div class="card-header bg-primary text-white">
-
-                    <h3 class="mb-0">
-                        🎡 Oppdragshjulet
-                    </h3>
-
-                </div>
+    <small class="text-muted">
+        Fordel oppgaver tilfeldig
+    </small>
+</div>
 
                 <div class="card-body">
 
@@ -127,7 +127,7 @@ Anne"></textarea>
 
                             id="startButton">
 
-                            ▶ START
+                           🎡 Start trekking
 
                         </button>
 
@@ -242,7 +242,7 @@ Anne"></textarea>
 
     <div class="modal-dialog modal-dialog-centered">
 
-        <div class="modal-content">
+        <div class="modal-content border-0 shadow-lg rounded-4">
 
             <div class="modal-header">
 
@@ -254,10 +254,9 @@ Anne"></textarea>
 
             </div>
 
-            <div class="modal-body text-center">
+           <div class="modal-body text-center py-5">
 
-                <h1
-                    id="winnerName">
+                <h1 id="winnerName" class="display-3 fw-bold text-success"></h1>
 
                 </h1>
 

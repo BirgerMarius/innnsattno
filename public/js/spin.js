@@ -292,13 +292,25 @@ function finish(name){
 
     setStatus("🏆 Oppdrag valgt");
 
-    winnerName.innerText=name;
+    winnerName.innerText = name;
 
-    winnerTask.innerText=
+winnerTask.innerHTML = `
+    <div class="mt-3">
+        skal utføre
+    </div>
 
-        "skal utføre:\n\n"+task;
+    <div class="display-6 fw-bold text-primary mt-2">
+        ${task}
+    </div>
+`;
 
-    alert(name + " skal utføre: " + task);
+if (!winnerModal) {
+    winnerModal = new bootstrap.Modal(
+        document.getElementById("winnerModal")
+    );
+}
+
+winnerModal.show();
 
 }
 
