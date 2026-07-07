@@ -1,0 +1,78 @@
+:root{
+    --bg:#0f172a;
+    --panel:#1e293b;
+    --gold:#fbbf24;
+    --green:#22c55e;
+}
+
+.wheel-container{
+    position:relative;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:760px;
+}
+
+#wheelCanvas{
+    width:720px;
+    height:720px;
+    max-width:100%;
+    background:#f2f2f2;
+    border-radius:50%;
+    box-shadow:0 15px 40px rgba(0,0,0,.2);
+}
+
+.wheel-pointer{
+    position:absolute;
+    top:10px;
+    font-size:48px;
+    color:#dc2626;
+    font-weight:bold;
+}
+
+#statusText{
+    font-size:32px;
+    font-weight:bold;
+    margin-top:20px;
+}
+
+#commentText{
+    font-size:20px;
+    color:#666;
+    min-height:30px;
+}
+
+#startButton{
+    font-size:24px;
+    font-weight:bold;
+}
+
+.confetti{
+    position:fixed;
+    width:10px;
+    height:10px;
+    top:-20px;
+    animation:fall 5s linear forwards;
+}
+
+@keyframes fall{
+
+    from{
+        transform:translateY(0) rotate(0deg);
+    }
+
+    to{
+        transform:translateY(120vh) rotate(720deg);
+    }
+
+}
+
+#winnerName{
+    font-size:54px;
+    font-weight:bold;
+    color:#16a34a;
+}
+
+#winnerTask{
+    font-size:28px;
+}
