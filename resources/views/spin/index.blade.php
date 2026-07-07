@@ -12,7 +12,10 @@
 
         <div class="col-xl-4 col-lg-5">
 
-            <div class="card-header py-3">
+    <div class="card shadow-sm h-100">
+
+        <div class="card-header py-3">
+
     <h3 class="mb-1 fw-bold">
         🎡 Oppdragshjulet
     </h3>
@@ -258,8 +261,7 @@ Anne"></textarea>
 
                 <h1 id="winnerName" class="display-3 fw-bold text-success"></h1>
 
-                </h1>
-
+              
                 <h3
                     id="winnerTask">
 
