@@ -295,11 +295,6 @@ function finish(name){
     winnerName.innerText = name;
 
 winnerTask.innerHTML = `
-document.getElementById("winnerCardName").innerText = name;
-
-document.getElementById("winnerCardTask").innerText = task;
-
-document.getElementById("winnerCard").style.display = "block";
     <div class="mt-3">
         skal utføre
     </div>
@@ -309,10 +304,18 @@ document.getElementById("winnerCard").style.display = "block";
     </div>
 `;
 
+document.getElementById("winnerCardName").innerText = name;
+
+document.getElementById("winnerCardTask").innerText = task;
+
+document.getElementById("winnerCard").style.display = "block";
+
 if (!winnerModal) {
+
     winnerModal = new bootstrap.Modal(
         document.getElementById("winnerModal")
     );
+
 }
 
 winnerModal.show();
