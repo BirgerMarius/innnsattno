@@ -295,6 +295,11 @@ function finish(name){
     winnerName.innerText = name;
 
 winnerTask.innerHTML = `
+document.getElementById("winnerCardName").innerText = name;
+
+document.getElementById("winnerCardTask").innerText = task;
+
+document.getElementById("winnerCard").style.display = "block";
     <div class="mt-3">
         skal utføre
     </div>
@@ -334,7 +339,7 @@ document
 
     commentText.innerText=
         "Legg inn deltakere.";
-
+document.getElementById("winnerCard").style.display = "none";
 });
 
 /*************************************************
