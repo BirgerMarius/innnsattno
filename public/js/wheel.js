@@ -135,29 +135,42 @@ class Wheel {
 
             ctx.stroke();
 
-            ctx.save();
+           ctx.save();
 
-            ctx.translate(this.radius,this.radius);
+ctx.translate(this.radius, this.radius);
 
-            ctx.rotate(start+angle/2);
+const textAngle = start + angle / 2;
 
-            ctx.textAlign="right";
+ctx.fillStyle = "#ffffff";
+ctx.font = "bold 28px Arial";
 
-            ctx.fillStyle="#fff";
+ctx.rotate(textAngle);
 
-            ctx.font="bold 28px Arial";
+if (textAngle > Math.PI / 2 && textAngle < Math.PI * 1.5) {
 
-            ctx.fillText(
+    ctx.rotate(Math.PI);
 
-                this.names[i],
+    ctx.textAlign = "left";
 
-                this.radius-40,
+    ctx.fillText(
+        this.names[i],
+        -(this.radius - 40),
+        10
+    );
 
-                10
+} else {
 
-            );
+    ctx.textAlign = "right";
 
-            ctx.restore();
+    ctx.fillText(
+        this.names[i],
+        this.radius - 40,
+        10
+    );
+
+}
+
+ctx.restore();
 
         }
 
