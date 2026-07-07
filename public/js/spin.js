@@ -312,6 +312,7 @@ if (!winnerModal) {
 }
 
 winnerModal.show();
+}
 
 /*************************************************
 Nullstill
