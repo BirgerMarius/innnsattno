@@ -222,53 +222,15 @@ Anne"></textarea>
                         </p>
 
                     </div>
-<div class="winner-card mt-3" id="winnerCard" style="display:none;">
 
-    <div class="winner-title">
-
-        🏆 DEN UTVALGTE 🏆
-
-    </div>
-
-    <div class="winner-body">
-
-        <div id="winnerCardName"></div>
-
-        <div class="winnerTaskLabel">
-
-            skal utføre
-
-        </div>
-
-        <div id="winnerCardTask"></div>
-
-    </div>
-
-</div>
-
-        <h2 id="winnerCardName" class="display-5 fw-bold text-success mb-2"></h2>
-
-        <h4 id="winnerCardTask" class="text-primary mb-0"></h4>
-
-    </div>
-
-</div>
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
+   
 <!-- Resultat -->
 
 <div
- 
-
+    class="modal fade"
+    id="winnerModal"
     tabindex="-1">
+    aria-hidden="true">
 
     <div class="modal-dialog modal-dialog-centered">
 
