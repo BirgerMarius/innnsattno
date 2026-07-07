@@ -32,6 +32,7 @@ let participants = [];
 let task = "";
 
 let running = false;
+let winnerModal = null;
 
 const statusText = document.getElementById("statusText");
 const commentText = document.getElementById("commentText");
@@ -302,7 +303,15 @@ winnerTask.innerHTML = `
     </div>
 `;
 
+if (!winnerModal) {
+
+    winnerModal = new bootstrap.Modal(
+        document.getElementById("winnerModal")
+    );
+
 }
+
+winnerModal.show();
 
 /*************************************************
 Nullstill
@@ -324,7 +333,6 @@ document
 
     commentText.innerText=
         "Legg inn deltakere.";
-document.getElementById("winnerCard").style.display = "none";
 });
 
 /*************************************************
