@@ -228,12 +228,11 @@ Anne"></textarea>
         <h4 class="mb-0">🏆 Den utvalgte</h4>
     </div>
 
-    <div class="card-body text-center">
+    <div class="card-body text-center py-3">
 
-        <h2 id="winnerCardName" class="display-5 fw-bold text-success mb-2">
+        <h2 id="winnerCardName" class="display-5 fw-bold text-success mb-2"></h2>
 
-        <h4 id="winnerCardTask" class="text-primary">
-        </h4>
+        <h4 id="winnerCardTask" class="text-primary mb-0"></h4>
 
     </div>
 
