@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FootballController;
 use App\Http\Controllers\PrayerController;
 use App\Http\Controllers\WordSearchController;
+use App\Http\Controllers\SpinWheelController;
 
 /*
 |--------------------------------------------------------------------------
@@ -173,3 +174,5 @@ Route::post('/tidsfordriv/sudoku/print', [TidsfordrivController::class, 'printSu
 
 Route::get('/wordsearch', [WordSearchController::class, 'index']);
 Route::get('/wordsearch/print', [WordSearchController::class, 'print']);
+
+Route::get('/oppdrag', [SpinWheelController::class, 'index']);
