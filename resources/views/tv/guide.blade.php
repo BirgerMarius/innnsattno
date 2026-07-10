@@ -164,31 +164,31 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
 @include('partials.header')
 
-<a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
+<a href="/print" class="btn btn-primary btn-lg btn-block front-page-btn" tabindex="1" role="button">
     <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ringerike fengsel
 </a>
 
-<a href="/print-ilseng" class="btn btn-primary btn-lg btn-block mt-2" role="button">
-    <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ilseng fengsel - Kriminalomsorgen Innlandet 
+<a href="/print-ilseng" class="btn btn-danger btn-lg btn-block mt-2 front-page-btn" role="button">
+    <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ilseng fengsel
 </a>
 
-<a href="/fotball" class="btn btn-warning btn-lg btn-block mt-2" role="button">
+<a href="/fotball" class="btn btn-warning btn-lg btn-block mt-2 front-page-btn" role="button">
     ⚽ Fotball-VM 2026
 </a>
 
-<a href="/bonnetider" class="btn btn-info btn-lg btn-block mt-2" role="button">
+<a href="/bonnetider" class="btn btn-primary btn-lg btn-block mt-2 front-page-btn" role="button">
     🕌 Bønnetider – Ringerike fengsel
 </a>
 
-<a href="/bonnetider-ilseng" class="btn btn-secondary btn-lg btn-block mt-2" role="button">
+<a href="/bonnetider-ilseng" class="btn btn-danger btn-lg btn-block mt-2 front-page-btn" role="button">
     🕌 Bønnetider – Ilseng fengsel
 </a>
 
-<a href="/tidsfordriv" class="btn btn-dark btn-lg btn-block mt-2" role="button">
+<a href="/tidsfordriv" class="btn btn-warning btn-lg btn-block mt-2 front-page-btn" role="button">
     🧩 Tidsfordriv – Sudoku
 </a>
 
-<a href="/ordjakt" class="btn btn-warning btn-lg btn-block mt-2" role="button">
+<a href="/ordjakt" class="btn btn-warning btn-lg btn-block mt-2 front-page-btn" role="button">
     <i class="fas fa-puzzle-piece"></i> 🧩 Tidsfordriv – Ordjakt
 </a>
 
@@ -197,13 +197,13 @@ $isEvenWeek = $weekNumber % 2 === 0;
 </p>
 
 <div class="mt-4 text-center">
-    <a href="https://wheelofnames.com/" target="_blank" class="btn btn-outline-primary">
+    <a href="https://wheelofnames.com/" target="_blank" class="btn btn-warning btn-lg front-page-btn">
         🎲 Spin the wheel
     </a>
 
     <a href="https://www.kriminalomsorgen.no/ringerike-fengsel.5031519-237612.html"
        target="_blank"
-       class="btn btn-outline-secondary">
+       class="btn btn-primary btn-lg mt-2 front-page-btn">
         ℹ️ Ringerike fengsel
     </a>
 </div>

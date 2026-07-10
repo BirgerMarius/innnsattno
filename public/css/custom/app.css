@@ -39,3 +39,12 @@
     width: 100%;
     height: auto;
 }
+
+.front-page-btn {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    min-height: 52px;
+    text-align: center;
+    width: 100%;
+}
