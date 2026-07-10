@@ -17,7 +17,7 @@
         <div class="card-header py-3">
 
     <h3 class="mb-1 fw-bold">
-        🎡 Oppdragshjulet
+        Oppdragshjulet
     </h3>
 
     <small class="text-muted">
@@ -40,13 +40,7 @@
                             id="taskSelect">
 
                             <option>Luftevakt</option>
-                            <option>Luftegård</option>
-                            <option>Transport</option>
-                            <option>Besøk</option>
-                            <option>Telling</option>
-                            <option>Følge til lege</option>
-                            <option>Kontroll</option>
-                            <option>Annet...</option>
+                            <option>Annet</option>
 
                         </select>
 
@@ -130,7 +124,7 @@ Anne"></textarea>
 
                             id="startButton">
 
-                           🎡 Start trekking
+                           Start trekking
 
                         </button>
 
@@ -196,10 +190,9 @@ Anne"></textarea>
 
                         </canvas>
 
-                        <div class="wheel-pointer">
-
-                            ▼
-
+                        <div class="wheel-pointer" aria-hidden="true">
+                            <span class="wheel-pointer__stem"></span>
+                            <span class="wheel-pointer__tip"></span>
                         </div>
 
                     </div>
@@ -229,18 +222,18 @@ Anne"></textarea>
 <div
     class="modal fade"
     id="winnerModal"
-    tabindex="-1">
+    tabindex="-1"
     aria-hidden="true">
 
     <div class="modal-dialog modal-dialog-centered">
 
-        <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-content border-0 shadow-lg rounded-4 winner-modal">
 
             <div class="modal-header">
 
                 <h3 class="modal-title">
 
-                    🎉 Resultat
+                    Resultat
 
                 </h3>
 
@@ -248,9 +241,11 @@ Anne"></textarea>
 
            <div class="modal-body text-center py-3">
 
+    <div class="winner-badge">Oppdraget går til</div>
+
     <h1 id="winnerName" class="display-3 fw-bold text-success"></h1>
 
-    <h3 id="winnerTask"></h3>
+    <div id="winnerTask"></div>
 
 </div>
 
@@ -272,24 +267,17 @@ Anne"></textarea>
 
     </div>
 
+</div>
 
-<!-- Lyd -->
+                </div>
 
-<audio id="tickAudio" preload="auto">
-    <source src="/audio/tick.mp3" type="audio/mpeg">
-</audio>
+            </div>
 
-<audio id="drumAudio" preload="auto">
-    <source src="/audio/drumroll.mp3" type="audio/mpeg">
-</audio>
+        </div>
 
-<audio id="fanfareAudio" preload="auto">
-    <source src="/audio/fanfare.mp3" type="audio/mpeg">
-</audio>
+    </div>
 
-<audio id="applauseAudio" preload="auto">
-    <source src="/audio/applause.mp3" type="audio/mpeg">
-</audio>
+</div>
 
 @endsection
 
