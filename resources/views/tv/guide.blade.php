@@ -164,47 +164,57 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
 @include('partials.header')
 
-<a href="/print" class="btn btn-primary btn-lg btn-block front-page-btn" tabindex="1" role="button">
-    <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ringerike fengsel
-</a>
+<div class="front-page-actions">
+    <div class="front-page-grid">
+        <a href="/print" class="btn btn-primary btn-lg btn-block front-page-btn front-page-btn--ringerike" tabindex="1" role="button">
+            <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ringerike fengsel
+        </a>
 
-<a href="/print-ilseng" class="btn btn-danger btn-lg btn-block mt-2 front-page-btn" role="button">
-    <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ilseng fengsel
-</a>
+        <a href="/print-ilseng" class="btn btn-danger btn-lg btn-block front-page-btn front-page-btn--ilseng" role="button">
+            <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ilseng fengsel
+        </a>
 
-<a href="/fotball" class="btn btn-warning btn-lg btn-block mt-2 front-page-btn" role="button">
-    ⚽ Fotball-VM 2026
-</a>
+        <a href="/bonnetider" class="btn btn-primary btn-lg btn-block front-page-btn front-page-btn--ringerike" role="button">
+            🕌 Bønnetider – Ringerike fengsel
+        </a>
 
-<a href="/bonnetider" class="btn btn-primary btn-lg btn-block mt-2 front-page-btn" role="button">
-    🕌 Bønnetider – Ringerike fengsel
-</a>
+        <a href="/bonnetider-ilseng" class="btn btn-danger btn-lg btn-block front-page-btn front-page-btn--ilseng" role="button">
+            🕌 Bønnetider – Ilseng fengsel
+        </a>
 
-<a href="/bonnetider-ilseng" class="btn btn-danger btn-lg btn-block mt-2 front-page-btn" role="button">
-    🕌 Bønnetider – Ilseng fengsel
-</a>
+        <a href="/fotball" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
+            ⚽ Fotball-VM 2026
+        </a>
 
-<a href="/tidsfordriv" class="btn btn-warning btn-lg btn-block mt-2 front-page-btn" role="button">
-    🧩 Tidsfordriv – Sudoku
-</a>
+        <a href="/tidsfordriv" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
+            🧩 Tidsfordriv – Sudoku
+        </a>
 
-<a href="/ordjakt" class="btn btn-warning btn-lg btn-block mt-2 front-page-btn" role="button">
-    <i class="fas fa-puzzle-piece"></i> 🧩 Tidsfordriv – Ordjakt
-</a>
+        <a href="/ordjakt" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--wide" role="button">
+            <i class="fas fa-puzzle-piece"></i> 🧩 Tidsfordriv – Ordjakt
+        </a>
+    </div>
+</div>
 
 <p class="text-center text-muted mt-3">
     Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
 </p>
 
-<div class="mt-4 text-center">
-    <a href="https://wheelofnames.com/" target="_blank" class="btn btn-warning btn-lg front-page-btn">
-        🎲 Spin the wheel
-    </a>
-
+<div class="front-page-secondary">
     <a href="https://www.kriminalomsorgen.no/ringerike-fengsel.5031519-237612.html"
        target="_blank"
-       class="btn btn-primary btn-lg mt-2 front-page-btn">
+       class="btn btn-primary btn-lg front-page-btn front-page-btn--ringerike">
         ℹ️ Ringerike fengsel
+    </a>
+
+    <a href="https://www.kriminalomsorgen.no/fengsel/innlandet-kriminalomsorgen-innlandet-avd-lavere-sikkerhet-ilseng"
+       target="_blank"
+       class="btn btn-danger btn-lg front-page-btn front-page-btn--ilseng">
+        ℹ️ Ilseng fengsel
+    </a>
+
+    <a href="https://wheelofnames.com/" target="_blank" class="btn btn-warning btn-lg front-page-btn front-page-btn--shared front-page-btn--wide">
+        🎲 Spin the wheel
     </a>
 </div>
 
