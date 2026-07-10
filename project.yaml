@@ -1,0 +1,27 @@
+project:
+  name: innsatt.no
+  shortName: innsatt-no
+
+type:
+  application: web
+  framework: laravel
+  language: php
+
+repository:
+  provider: github
+  url: git@github.com:BirgerMarius/innnsattno.git
+  defaultBranch: main
+
+deployment:
+  strategy: git-pull
+
+runtime:
+  prompt: developer
+  review: standard
+
+paths:
+  context: context
+  backlog: backlog
+  workPackages: work-packages
+  reviews: reviews
+  releases: releases

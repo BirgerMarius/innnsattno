@@ -168,7 +168,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
     <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ringerike fengsel
 </a>
 
-<a href="/ilseng" class="btn btn-primary btn-lg btn-block mt-2" role="button">
+<a href="/print-ilseng" class="btn btn-primary btn-lg btn-block mt-2" role="button">
     <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ilseng fengsel - Kriminalomsorgen Innlandet 
 </a>
 
