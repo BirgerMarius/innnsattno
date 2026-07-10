@@ -1,188 +1,93 @@
-<!DOCTYPE html>
-<html lang="no">
-<head>
-    <meta charset="UTF-8">
-    <title>Tidsfordriv</title>
+@extends('layouts.app')
 
-    <style>
-    body{
-        font-family: Arial, sans-serif;
-        max-width:700px;
-        margin:40px auto;
-        padding:0 15px;
-        background:#f5f5f5;
-    }
+@section('title', 'Tidsfordriv - Sudoku')
 
-    h1{
-        margin-bottom:10px;
-    }
+@section('content')
+<div class="container page-container tidsfordriv-page">
+    @include('partials.header')
 
-    .info{
-        background:#eef6ff;
-        border:1px solid #b9d7f5;
-        padding:15px;
-        border-radius:8px;
-        margin-bottom:20px;
-        line-height:1.5;
-    }
+    <main class="tidsfordriv-content">
+        <h1>Sudoku</h1>
 
-    fieldset{
-        background:#fff;
-        border:1px solid #ccc;
-        border-radius:8px;
-        padding:25px;
-    }
+        <div class="tidsfordriv-info">
+            Velg vanskelighetsgrad og antall sider.<br>
+            PDF-en åpnes automatisk og kan skrives ut eller lagres.<br>
+            Dersom du huker av <strong>Ta med fasit</strong>, legges løsningene bakerst i dokumentet.
+        </div>
 
-    legend{
-        font-size:18px;
-        font-weight:bold;
-        padding:0 8px;
-    }
+        @if(session('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
+            </div>
+        @endif
 
-    p{
-        margin-bottom:18px;
-    }
+        <form id="sudokuForm" method="POST" action="/tidsfordriv/sudoku/print" class="sudoku-form">
+            @csrf
 
-    label{
-        line-height:1.8;
-    }
+            <fieldset>
+                <legend>Sudoku</legend>
 
-    input[type=number]{
-        width:80px;
-        padding:6px;
-        font-size:16px;
-    }
+                <div class="mb-3">
+                    <label class="d-block">
+                        <input type="radio" name="difficulty" value="easy" checked>
+                        Lett
+                    </label>
 
-    button{
-        margin-top:10px;
-        padding:12px 25px;
-        font-size:18px;
-        border:none;
-        border-radius:6px;
-        background:#0d6efd;
-        color:white;
-        cursor:pointer;
-    }
+                    <label class="d-block">
+                        <input type="radio" name="difficulty" value="medium">
+                        Middels
+                    </label>
 
-    button:hover{
-        background:#0b5ed7;
-    }
+                    <label class="d-block">
+                        <input type="radio" name="difficulty" value="hard">
+                        Vanskelig
+                    </label>
+                </div>
 
-    button:disabled{
-        background:#999;
-        cursor:not-allowed;
-    }
+                <div class="mb-3">
+                    <label for="sudokuPages" class="form-label">Antall sider:</label>
+                    <input
+                        id="sudokuPages"
+                        type="number"
+                        name="pages"
+                        value="1"
+                        min="1"
+                        max="6"
+                        class="form-control sudoku-pages-input">
+                    <small class="text-muted">Maks 6 sider per utskrift.</small>
+                </div>
 
-    small{
-        color:#666;
-    }
-</style>
+                <div class="mb-3">
+                    <label>
+                        <input type="checkbox" name="solution">
+                        Ta med fasit
+                    </label>
+                </div>
 
-</head>
-<body>
+                <button id="submitButton" type="submit" class="btn btn-primary btn-lg">
+                    Skriv ut Sudoku
+                </button>
 
-<h1>🧩 Tidsfordriv</h1>
-<div class="info">
-    Velg vanskelighetsgrad og antall sider.<br>
-    PDF-en åpnes automatisk og kan skrives ut eller lagres.<br>
-    Dersom du huker av <strong>Ta med fasit</strong>, legges løsningene bakerst i dokumentet.
+                <p id="loadingMessage" class="sudoku-loading-message">
+                    Genererer Sudoku... Dette kan ta noen sekunder.
+                </p>
+            </fieldset>
+        </form>
+    </main>
+
+    @include('partials.footer')
 </div>
-@if(session('error'))
-    <div style="
-        background:#fdecea;
-        border:1px solid #f5c2c7;
-        color:#842029;
-        padding:12px;
-        margin-bottom:20px;
-        border-radius:6px;
-    ">
-        {{ session('error') }}
-    </div>
-@endif
+@endsection
 
-<form id="sudokuForm" method="POST" action="/tidsfordriv/sudoku/print">
-
-    @csrf
-
-    <fieldset>
-
-        <legend><strong>Sudoku</strong></legend>
-
-        <p>
-
-            <label>
-                <input type="radio" name="difficulty" value="easy" checked>
-                Lett
-            </label>
-
-            <br>
-
-            <label>
-                <input type="radio" name="difficulty" value="medium">
-                Middels
-            </label>
-
-            <br>
-
-            <label>
-                <input type="radio" name="difficulty" value="hard">
-                Vanskelig
-            </label>
-
-        </p>
-
-        <p>
-
-           Antall sider:
-
-<input
-    type="number"
-    name="pages"
-    value="1"
-    min="1"
-    max="6">
-
-<br>
-
-<small>Maks 6 sider per utskrift.</small>
-
-        </p>
-
-        <p>
-
-            <label>
-
-                <input type="checkbox" name="solution">
-
-                Ta med fasit
-
-            </label>
-
-        </p>
-
-        <button id="submitButton" type="submit">
-    🖨️ Skriv ut Sudoku
-</button>
-<p id="loadingMessage" style="display:none; margin-top:15px; color:#0066cc;">
-    ⏳ Genererer Sudoku... Dette kan ta noen sekunder.
-</p>
-
-    </fieldset>
-
-</form>
-
+@push('scripts')
 <script>
 document.getElementById('sudokuForm').addEventListener('submit', function () {
-
     const button = document.getElementById('submitButton');
     const message = document.getElementById('loadingMessage');
 
     button.disabled = true;
     button.textContent = 'Genererer...';
-
     message.style.display = 'block';
-
 });
 </script>
-</body>
-</html>
+@endpush

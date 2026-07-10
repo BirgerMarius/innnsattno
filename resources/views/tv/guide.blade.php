@@ -213,7 +213,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
         ℹ️ Ilseng fengsel
     </a>
 
-    <a href="/oppdrag" class="btn btn-warning btn-lg front-page-btn front-page-btn--shared front-page-btn--wide">
+    <a href="/oppdrag" class="btn btn-lg front-page-btn front-page-btn--task-wheel front-page-btn--wide">
         🎲 Spinn hjulet – Hvem får oppdraget?
     </a>
 </div>

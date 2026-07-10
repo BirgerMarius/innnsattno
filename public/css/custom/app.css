@@ -98,8 +98,44 @@
     --front-page-btn-color: #212529;
 }
 
+.front-page-btn--task-wheel {
+    --front-page-btn-bg: #f59e0b;
+    --front-page-btn-border: #b45309;
+    --front-page-btn-color: #1f1300;
+    animation: task-wheel-pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.55);
+    font-weight: 700;
+}
+
+.front-page-btn--task-wheel:hover,
+.front-page-btn--task-wheel:focus {
+    --front-page-btn-bg: #d97706;
+    --front-page-btn-border: #92400e;
+    --front-page-btn-color: #fff;
+}
+
 .front-page-btn--wide {
     grid-column: 1 / -1;
+}
+
+@keyframes task-wheel-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .front-page-btn--task-wheel {
+        animation: none;
+    }
 }
 
 @media (max-width: 767.98px) {
@@ -110,5 +146,192 @@
 
     .front-page-btn--wide {
         grid-column: auto;
+    }
+}
+
+.tidsfordriv-content {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.tidsfordriv-info {
+    background: #eef6ff;
+    border: 1px solid #b9d7f5;
+    border-radius: 8px;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    padding: 15px;
+}
+
+.sudoku-form fieldset {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 25px;
+}
+
+.sudoku-form legend {
+    float: none;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 0 8px;
+    width: auto;
+}
+
+.sudoku-pages-input {
+    max-width: 100px;
+}
+
+.sudoku-loading-message {
+    color: #0066cc;
+    display: none;
+    margin-top: 15px;
+}
+
+.wordsearch-toolbar {
+    align-items: end;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.wordsearch-actions {
+    align-items: end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.wordsearch-category-form {
+    min-width: 210px;
+}
+
+.wordsearch-layout {
+    align-items: start;
+    display: grid;
+    gap: 24px;
+    grid-template-columns: minmax(0, 1fr) 280px;
+}
+
+.wordsearch-board-wrap {
+    overflow-x: auto;
+}
+
+.word-grid {
+    border-collapse: collapse;
+    margin: 0 auto;
+    touch-action: none;
+    user-select: none;
+}
+
+.word-grid td {
+    background: #fff;
+    border: 1px solid #999;
+    font-family: monospace;
+    font-size: 22px;
+    font-weight: 700;
+    height: 34px;
+    text-align: center;
+    vertical-align: middle;
+    width: 34px;
+}
+
+.word-grid td.is-selecting {
+    background: #fff3cd;
+}
+
+.word-grid td.is-found {
+    background: #b7f0c1;
+    border-color: #20833a;
+}
+
+.wordsearch-list-panel {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 18px;
+}
+
+.wordsearch-list-panel h2 {
+    font-size: 20px;
+    margin-bottom: 14px;
+}
+
+.word-list {
+    columns: 2;
+    list-style-position: inside;
+    margin: 0;
+    padding: 0;
+}
+
+.word-list li {
+    font-size: 18px;
+    margin-bottom: 6px;
+}
+
+.word-list li.is-found {
+    color: #146c2e;
+    font-weight: 700;
+    text-decoration: line-through;
+}
+
+.word-list small {
+    color: #666;
+    display: block;
+    font-size: 13px;
+    margin-left: 20px;
+}
+
+.wordsearch-complete {
+    display: none;
+}
+
+@media (max-width: 991.98px) {
+    .wordsearch-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .wordsearch-actions {
+        justify-content: flex-start;
+    }
+
+    .wordsearch-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .word-grid td {
+        font-size: 16px;
+        height: 26px;
+        width: 26px;
+    }
+
+    .word-list {
+        columns: 1;
+    }
+
+    .wordsearch-actions .btn,
+    .wordsearch-category-form {
+        width: 100%;
+    }
+}
+
+@media print {
+    .tidsfordriv-page .site-footer,
+    .wordsearch-page .site-footer {
+        break-inside: avoid;
+    }
+
+    .wordsearch-toolbar,
+    .wordsearch-complete {
+        display: none !important;
+    }
+
+    .wordsearch-layout {
+        grid-template-columns: 1fr;
     }
 }

@@ -74,7 +74,7 @@ td{
 
 </div>
 
-<h1>🧩 ORDJAKT</h1>
+<h1>ORDJAKT - {{ $categoryName }}</h1>
 
 <table>
 
@@ -100,7 +100,12 @@ td{
 
 @foreach($words as $word)
 
-<li>{{ $word }}</li>
+<li>
+    {{ $word['display'] }}
+    @if($word['display'] !== $word['word'])
+        ({{ $word['word'] }})
+    @endif
+</li>
 
 @endforeach
 

@@ -1,123 +1,217 @@
-<!DOCTYPE html>
-<html lang="no">
-<head>
-    <meta charset="UTF-8">
-    <title>Ordjakt</title>
+@extends('layouts.app')
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+@section('title', 'Ordjakt')
 
-    <style>
-        body{
-            background:#f8f9fa;
-        }
+@section('content')
+<div class="container page-container wordsearch-page">
+    @include('partials.header')
 
-        .word-grid{
-            border-collapse:collapse;
-            margin:auto;
-        }
+    <main>
+        <div class="wordsearch-toolbar">
+            <div>
+                <h1>Ordjakt</h1>
+                <p class="text-muted mb-0">Kategori: {{ $categoryName }}</p>
+            </div>
 
-        .word-grid td{
-            width:34px;
-            height:34px;
-            border:1px solid #999;
-            text-align:center;
-            vertical-align:middle;
-            font-size:22px;
-            font-weight:bold;
-            font-family:monospace;
-            background:#fff;
-        }
-
-        .word-list{
-            columns:2;
-            margin-top:25px;
-        }
-
-        .word-list li{
-            margin-bottom:6px;
-            font-size:18px;
-        }
-
-        @media(max-width:768px){
-
-            .word-grid td{
-                width:26px;
-                height:26px;
-                font-size:16px;
-            }
-
-            .word-list{
-                columns:1;
-            }
-        }
-    </style>
-
-</head>
-<body>
-
-<div class="container py-4">
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-
-        <h1>🧩 Ordjakt</h1>
-
-       <a href="/ordjakt/utskrift" class="btn btn-success">
-    <i class="fas fa-print"></i> Utskriftsversjon
-</a>
-
-    </div>
-
-    <div class="card shadow-sm">
-
-        <div class="card-body text-center">
-
-            <table class="word-grid">
-
-                @foreach($grid as $row)
-
-                    <tr>
-
-                        @foreach($row as $letter)
-
-                            <td>{{ $letter }}</td>
-
+            <div class="wordsearch-actions">
+                <form method="GET" action="/ordjakt" class="wordsearch-category-form">
+                    <label for="wordsearchCategory" class="form-label">Velg kategori</label>
+                    <select id="wordsearchCategory" name="kategori" class="form-select">
+                        @foreach($categories as $key => $category)
+                            <option value="{{ $key }}" @selected($selectedCategory === $key)>
+                                {{ $category['name'] }}
+                            </option>
                         @endforeach
+                    </select>
+                </form>
 
-                    </tr>
+                <a href="/ordjakt?kategori={{ $selectedCategory }}" class="btn btn-primary">
+                    Ny ordjakt
+                </a>
 
-                @endforeach
-
-            </table>
-
+                <a href="/ordjakt/utskrift?kategori={{ $selectedCategory }}" class="btn btn-success">
+                    Utskriftsversjon
+                </a>
+            </div>
         </div>
 
-    </div>
-
-    <div class="card mt-4 shadow-sm">
-
-        <div class="card-header">
-
-            <strong>Finn disse ordene</strong>
-
+        <div id="wordsearchComplete" class="alert alert-success wordsearch-complete" role="status">
+            Alle ordene er funnet.
         </div>
 
-        <div class="card-body">
+        <div class="wordsearch-layout">
+            <div class="wordsearch-board-wrap" aria-label="Ordjaktbrett">
+                <table id="wordsearchGrid" class="word-grid">
+                    @foreach($grid as $rowIndex => $row)
+                        <tr>
+                            @foreach($row as $colIndex => $letter)
+                                <td data-row="{{ $rowIndex }}" data-col="{{ $colIndex }}">{{ $letter }}</td>
+                            @endforeach
+                        </tr>
+                    @endforeach
+                </table>
+            </div>
 
-            <ul class="word-list">
+            <aside class="wordsearch-list-panel">
+                <h2>Finn disse ordene</h2>
 
-                @foreach($words as $word)
-
-                    <li>{{ $word }}</li>
-
-                @endforeach
-
-            </ul>
-
+                <ul id="wordsearchList" class="word-list">
+                    @foreach($words as $word)
+                        <li data-word="{{ $word['word'] }}">
+                            <span>{{ $word['display'] }}</span>
+                            @if($word['display'] !== $word['word'])
+                                <small>{{ $word['word'] }}</small>
+                            @endif
+                        </li>
+                    @endforeach
+                </ul>
+            </aside>
         </div>
+    </main>
 
-    </div>
-
+    @include('partials.footer')
 </div>
+@endsection
 
-</body>
-</html>
+@push('scripts')
+<script>
+const wordsearchWords = @json($words);
+</script>
+<script>
+(function () {
+    const grid = document.getElementById('wordsearchGrid');
+    const completeMessage = document.getElementById('wordsearchComplete');
+    const categorySelect = document.getElementById('wordsearchCategory');
+    const wordsByCells = new Map();
+    const foundWords = new Set();
+    let startCell = null;
+    let previewCells = [];
+
+    wordsearchWords.forEach(function (word) {
+        wordsByCells.set(cellKey(word.cells), word);
+    });
+
+    categorySelect.addEventListener('change', function () {
+        this.form.submit();
+    });
+
+    grid.addEventListener('pointerdown', function (event) {
+        const cell = event.target.closest('td');
+
+        if (!cell) {
+            return;
+        }
+
+        startCell = readCell(cell);
+        clearPreview();
+        cell.classList.add('is-selecting');
+        previewCells = [cell];
+        grid.setPointerCapture(event.pointerId);
+    });
+
+    grid.addEventListener('pointermove', function (event) {
+        if (!startCell) {
+            return;
+        }
+
+        const cell = document.elementFromPoint(event.clientX, event.clientY)?.closest('#wordsearchGrid td');
+
+        if (!cell) {
+            return;
+        }
+
+        showPreview(startCell, readCell(cell));
+    });
+
+    grid.addEventListener('pointerup', function (event) {
+        if (!startCell) {
+            return;
+        }
+
+        const cell = document.elementFromPoint(event.clientX, event.clientY)?.closest('#wordsearchGrid td');
+        const endCell = cell ? readCell(cell) : startCell;
+        const selectedCells = cellsBetween(startCell, endCell);
+
+        clearPreview();
+        markIfWord(selectedCells);
+        startCell = null;
+        grid.releasePointerCapture(event.pointerId);
+    });
+
+    function showPreview(start, end) {
+        clearPreview();
+        previewCells = cellsBetween(start, end).map(function (position) {
+            const cell = findCell(position);
+            cell.classList.add('is-selecting');
+            return cell;
+        });
+    }
+
+    function markIfWord(cells) {
+        const key = cellKey(cells);
+        const reverseKey = cellKey(cells.slice().reverse());
+        const word = wordsByCells.get(key) || wordsByCells.get(reverseKey);
+
+        if (!word || foundWords.has(word.word)) {
+            return;
+        }
+
+        foundWords.add(word.word);
+
+        word.cells.forEach(function (position) {
+            findCell(position).classList.add('is-found');
+        });
+
+        document.querySelector('[data-word="' + word.word + '"]').classList.add('is-found');
+
+        if (foundWords.size === wordsearchWords.length) {
+            completeMessage.style.display = 'block';
+        }
+    }
+
+    function cellsBetween(start, end) {
+        const rowDiff = end.row - start.row;
+        const colDiff = end.col - start.col;
+        const rowStep = Math.sign(rowDiff);
+        const colStep = Math.sign(colDiff);
+        const length = Math.max(Math.abs(rowDiff), Math.abs(colDiff));
+
+        if (rowDiff !== 0 && colDiff !== 0 && Math.abs(rowDiff) !== Math.abs(colDiff)) {
+            return [[start.row, start.col]];
+        }
+
+        const cells = [];
+
+        for (let i = 0; i <= length; i++) {
+            cells.push([start.row + (rowStep * i), start.col + (colStep * i)]);
+        }
+
+        return cells;
+    }
+
+    function clearPreview() {
+        previewCells.forEach(function (cell) {
+            cell.classList.remove('is-selecting');
+        });
+        previewCells = [];
+    }
+
+    function readCell(cell) {
+        return {
+            row: Number(cell.dataset.row),
+            col: Number(cell.dataset.col)
+        };
+    }
+
+    function findCell(position) {
+        return grid.querySelector('[data-row="' + position[0] + '"][data-col="' + position[1] + '"]');
+    }
+
+    function cellKey(cells) {
+        return cells.map(function (cell) {
+            return cell[0] + ',' + cell[1];
+        }).join('|');
+    }
+})();
+</script>
+@endpush
