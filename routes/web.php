@@ -4,6 +4,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FootballController;
+use App\Http\Controllers\FeedbackSubmissionController;
 use App\Http\Controllers\PrayerController;
 use App\Http\Controllers\WordSearchController;
 use App\Http\Controllers\SpinWheelController;
@@ -41,6 +42,12 @@ Route::get('/tv-guide', function () {
 Route::get('/tv-guiden', function () {
     return redirect('tv');
 });
+
+Route::get('/forslag-og-tilbakemeldinger', [FeedbackSubmissionController::class, 'create'])
+    ->name('feedback.create');
+Route::post('/forslag-og-tilbakemeldinger', [FeedbackSubmissionController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('feedback.store');
 
 Route::get('/print', function () {
 
