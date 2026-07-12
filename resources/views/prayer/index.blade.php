@@ -1,8 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Bønnetider - {{ $prison['name'] }}</title>
+@extends('layouts.app')
 
+@section('title', 'Bønnetider - ' . $prison['name'])
+
+@push('styles')
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -39,8 +39,11 @@
             }
         }
     </style>
-</head>
-<body>
+@endpush
+
+@section('content')
+
+@include('partials.header')
 
 <div class="toolbar">
 
@@ -96,5 +99,4 @@
 
 </table>
 
-</body>
-</html>
+@endsection

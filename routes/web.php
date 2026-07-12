@@ -24,7 +24,7 @@ Route::get('/', function () {
 
 Route::get('/tv', function () {
     return view('tv.guide');
-});
+})->name('tv');
 
 Route::get('/ilseng', function () {
     return redirect('print-ilseng');
