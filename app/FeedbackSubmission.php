@@ -14,6 +14,7 @@ class FeedbackSubmission extends Model
         'name',
         'email',
         'status',
+        'admin_note',
     ];
 
     protected $casts = [

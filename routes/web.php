@@ -3,6 +3,8 @@
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\FeedbackAdminController;
 use App\Http\Controllers\FootballController;
 use App\Http\Controllers\FeedbackSubmissionController;
 use App\Http\Controllers\PrayerController;
@@ -48,6 +50,25 @@ Route::get('/forslag-og-tilbakemeldinger', [FeedbackSubmissionController::class,
 Route::post('/forslag-og-tilbakemeldinger', [FeedbackSubmissionController::class, 'store'])
     ->middleware('throttle:5,1')
     ->name('feedback.store');
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/login', [AdminAuthController::class, 'showLogin'])
+        ->name('login');
+    Route::post('/login', [AdminAuthController::class, 'login'])
+        ->middleware('throttle:5,1')
+        ->name('login.store');
+    Route::middleware('admin.auth')->group(function () {
+        Route::get('/', function () {
+            return redirect()->route('admin.feedback.index');
+        })->name('index');
+        Route::post('/logout', [AdminAuthController::class, 'logout'])
+            ->name('logout');
+        Route::get('/forslag', [FeedbackAdminController::class, 'index'])
+            ->name('feedback.index');
+        Route::patch('/forslag/{feedbackSubmission}', [FeedbackAdminController::class, 'update'])
+            ->name('feedback.update');
+    });
+});
 
 Route::get('/print', function () {
 
