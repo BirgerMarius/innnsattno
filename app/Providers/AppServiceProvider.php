@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Services\FootballApi\Contracts\FootballProviderInterface;
+use App\Services\FootballApi\Providers\ApiFootballProvider;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -17,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind('path.public', function() {
             return base_path().'/public';
           });
+
+        $this->app->bind(FootballProviderInterface::class, ApiFootballProvider::class);
     }
 
     /**

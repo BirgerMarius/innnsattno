@@ -186,6 +186,11 @@ $isEvenWeek = $weekNumber % 2 === 0;
             ⚽ Fotball-VM 2026
         </a>
 
+        <a href="/premier-league" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
+            <span class="front-page-btn-title">⚽ Premier League 2026/27</span>
+            <small>Under utvikling</small>
+        </a>
+
         <a href="/tidsfordriv" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
             🧩 Tidsfordriv – Sudoku
         </a>

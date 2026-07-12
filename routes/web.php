@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\FeedbackAdminController;
 use App\Http\Controllers\FootballController;
 use App\Http\Controllers\FeedbackSubmissionController;
+use App\Http\Controllers\PremierLeagueController;
 use App\Http\Controllers\PrayerController;
 use App\Http\Controllers\WordSearchController;
 use App\Http\Controllers\SpinWheelController;
@@ -188,6 +189,8 @@ Route::get('/test', function () {
 Route::get('/fotball', [FootballController::class, 'index']);
 Route::get('/football', [FootballController::class, 'index']);
 Route::get('/fotball-utskrift', [FootballController::class, 'print']);
+Route::get('/premier-league', [PremierLeagueController::class, 'index']);
+Route::get('/premier-league/test', [PremierLeagueController::class, 'test']);
 
 Route::get('/bonnetider', [PrayerController::class, 'ringerike']);
 Route::get('/bonnetider/utskrift', [PrayerController::class, 'printRingerike']);
