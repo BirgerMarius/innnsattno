@@ -11,6 +11,7 @@ use App\Http\Controllers\PremierLeagueController;
 use App\Http\Controllers\PrayerController;
 use App\Http\Controllers\WordSearchController;
 use App\Http\Controllers\SpinWheelController;
+use App\Http\Controllers\MonthCalendarController;
 
 /*
 |--------------------------------------------------------------------------
@@ -207,5 +208,8 @@ Route::get('/wordsearch', [WordSearchController::class, 'index']);
 Route::get('/wordsearch/print', [WordSearchController::class, 'print']);
 Route::get('/ordjakt', [WordSearchController::class, 'index']);
 Route::get('/ordjakt/utskrift', [WordSearchController::class, 'print']);
+
+Route::get('/manedskalender', [MonthCalendarController::class, 'index'])->name('calendar.index');
+Route::get('/manedskalender/utskrift', [MonthCalendarController::class, 'print'])->name('calendar.print');
 
 Route::get('/oppdrag', [SpinWheelController::class, 'index']);

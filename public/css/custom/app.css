@@ -241,6 +241,45 @@
     margin-top: 15px;
 }
 
+.calendar-choice-content {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.calendar-choice-form fieldset {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 25px;
+}
+
+.calendar-choice-form legend {
+    float: none;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 0 8px;
+    width: auto;
+}
+
+.calendar-generate-button,
+.calendar-generate-button:visited {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+}
+
+.calendar-generate-button:hover,
+.calendar-generate-button:focus {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+    color: #fff;
+}
+
+.calendar-generate-button:focus-visible {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.35);
+    outline: 0;
+}
+
 .wordsearch-toolbar {
     align-items: end;
     display: flex;

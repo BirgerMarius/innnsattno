@@ -199,6 +199,10 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <i class="fas fa-puzzle-piece"></i> 🧩 Tidsfordriv – Ordjakt
         </a>
 
+        <a href="{{ route('calendar.index') }}" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--wide" role="button">
+            <i class="far fa-calendar-alt"></i> Månedskalender – For utskrift
+        </a>
+
         <a href="{{ route('feedback.create') }}" class="btn btn-success btn-lg btn-block front-page-btn front-page-btn--wide front-page-btn--feedback" role="button">
             <span class="front-page-btn-title"><i class="far fa-comment-alt"></i> Har du en idé?</span>
             <small>Har du en idé eller har du oppdaget en feil?</small>
