@@ -207,6 +207,11 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <span class="front-page-btn-title"><i class="far fa-comment-alt"></i> Har du en idé?</span>
             <small>Har du en idé eller har du oppdaget en feil?</small>
         </a>
+
+        <a href="{{ route('professional-resources.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--professional front-page-btn--wide" role="button">
+            <span class="front-page-btn-title"><i class="far fa-book-open"></i> Anbefalt fagstoff</span>
+            <small>Utvalgte ressurser for ansatte og andre interesserte</small>
+        </a>
     </div>
 </div>
 

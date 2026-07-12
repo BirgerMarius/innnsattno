@@ -3,11 +3,16 @@
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
+use App\ProfessionalResource;
+use App\ResourceCategory;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\FeedbackAdminController;
+use App\Http\Controllers\Admin\ProfessionalResourceAdminController;
+use App\Http\Controllers\Admin\ResourceCategoryController;
 use App\Http\Controllers\FootballController;
 use App\Http\Controllers\FeedbackSubmissionController;
 use App\Http\Controllers\PremierLeagueController;
+use App\Http\Controllers\ProfessionalResourceController;
 use App\Http\Controllers\PrayerController;
 use App\Http\Controllers\WordSearchController;
 use App\Http\Controllers\SpinWheelController;
@@ -53,6 +58,9 @@ Route::post('/forslag-og-tilbakemeldinger', [FeedbackSubmissionController::class
     ->middleware('throttle:5,1')
     ->name('feedback.store');
 
+Route::get('/fagstoff', [ProfessionalResourceController::class, 'index'])
+    ->name('professional-resources.index');
+
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login', [AdminAuthController::class, 'showLogin'])
         ->name('login');
@@ -61,10 +69,49 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->name('login.store');
     Route::middleware('admin.auth')->group(function () {
         Route::get('/', function () {
-            return redirect()->route('admin.feedback.index');
+            $statusCounts = ProfessionalResource::query()
+                ->selectRaw('status, count(*) as aggregate')
+                ->groupBy('status')
+                ->pluck('aggregate', 'status');
+
+            return view('admin.dashboard', [
+                'publishedCount' => (int) ($statusCounts[ProfessionalResource::STATUS_PUBLISHED] ?? 0),
+                'draftCount' => (int) ($statusCounts[ProfessionalResource::STATUS_DRAFT] ?? 0),
+                'activeCategoryCount' => ResourceCategory::where('is_active', true)->count(),
+            ]);
         })->name('index');
         Route::post('/logout', [AdminAuthController::class, 'logout'])
             ->name('logout');
+        Route::get('/fagstoff', [ProfessionalResourceAdminController::class, 'index'])
+            ->name('professional-resources.index');
+        Route::get('/fagstoff/opprett', [ProfessionalResourceAdminController::class, 'create'])
+            ->name('professional-resources.create');
+        Route::post('/fagstoff', [ProfessionalResourceAdminController::class, 'store'])
+            ->name('professional-resources.store');
+        Route::get('/fagstoff/kategorier', [ResourceCategoryController::class, 'index'])
+            ->name('resource-categories.index');
+        Route::get('/fagstoff/kategorier/opprett', [ResourceCategoryController::class, 'create'])
+            ->name('resource-categories.create');
+        Route::post('/fagstoff/kategorier', [ResourceCategoryController::class, 'store'])
+            ->name('resource-categories.store');
+        Route::get('/fagstoff/kategorier/{category}/rediger', [ResourceCategoryController::class, 'edit'])
+            ->name('resource-categories.edit');
+        Route::patch('/fagstoff/kategorier/{category}', [ResourceCategoryController::class, 'update'])
+            ->name('resource-categories.update');
+        Route::delete('/fagstoff/kategorier/{category}', [ResourceCategoryController::class, 'destroy'])
+            ->name('resource-categories.destroy');
+        Route::get('/fagstoff/{professionalResource}/rediger', [ProfessionalResourceAdminController::class, 'edit'])
+            ->name('professional-resources.edit');
+        Route::patch('/fagstoff/{professionalResource}', [ProfessionalResourceAdminController::class, 'update'])
+            ->name('professional-resources.update');
+        Route::get('/fagstoff/{professionalResource}/forhandsvis', [ProfessionalResourceAdminController::class, 'preview'])
+            ->name('professional-resources.preview');
+        Route::patch('/fagstoff/{professionalResource}/publiser', [ProfessionalResourceAdminController::class, 'publish'])
+            ->name('professional-resources.publish');
+        Route::patch('/fagstoff/{professionalResource}/avpubliser', [ProfessionalResourceAdminController::class, 'unpublish'])
+            ->name('professional-resources.unpublish');
+        Route::delete('/fagstoff/{professionalResource}', [ProfessionalResourceAdminController::class, 'destroy'])
+            ->name('professional-resources.destroy');
         Route::get('/forslag', [FeedbackAdminController::class, 'index'])
             ->name('feedback.index');
         Route::patch('/forslag/{feedbackSubmission}', [FeedbackAdminController::class, 'update'])

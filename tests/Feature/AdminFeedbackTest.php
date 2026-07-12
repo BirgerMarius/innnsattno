@@ -28,7 +28,7 @@ class AdminFeedbackTest extends TestCase
             'password' => 'hemmelig-passord',
         ]);
 
-        $response->assertRedirect(route('admin.feedback.index'));
+        $response->assertRedirect(route('admin.professional-resources.index'));
         $response->assertSessionHas('admin_authenticated', true);
     }
 
@@ -42,7 +42,7 @@ class AdminFeedbackTest extends TestCase
             'password' => 'hemmelig-passord',
         ]);
 
-        $response->assertRedirect(route('admin.feedback.index'));
+        $response->assertRedirect(route('admin.professional-resources.index'));
         $response->assertSessionHas('admin_authenticated', true);
     }
 

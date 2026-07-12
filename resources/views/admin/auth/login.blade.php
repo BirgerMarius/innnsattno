@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Admininnlogging')
+@section('title', 'Administratorinnlogging')
 
 @section('content')
 <div class="container page-container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-4">
-            <h1 class="h3 mb-4">Admininnlogging</h1>
+            <h1 class="h3 mb-4">Administratorinnlogging</h1>
 
             @if ($errors->any())
                 <div class="alert alert-danger" role="alert">

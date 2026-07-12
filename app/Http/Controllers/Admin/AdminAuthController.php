@@ -29,7 +29,7 @@ class AdminAuthController extends Controller
         $request->session()->regenerate();
         $request->session()->put('admin_authenticated', true);
 
-        return redirect()->intended(route('admin.feedback.index'));
+        return redirect()->intended(route('admin.professional-resources.index'));
     }
 
     public function logout(Request $request)
