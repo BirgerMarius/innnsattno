@@ -1,5 +1,22 @@
 @extends('layouts.app') 
 @section('title', 'Innsatt.no') 
+
+@push('styles')
+<style>
+    .front-page-date-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem 1.5rem;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .front-page-date-row > div {
+        white-space: nowrap;
+    }
+</style>
+@endpush
+
 @section('content') 
 
 <div class="container my-5">
@@ -112,54 +129,30 @@ $weekNumber = now()->weekOfYear;
 $isEvenWeek = $weekNumber % 2 === 0;
 @endphp
 
-<div class="row mb-3">
+<div class="alert alert-light text-center py-2 mb-3">
+    <div class="front-page-date-row">
+        <div>
+            <strong>📅 Dato:</strong>
+            {{ ucfirst(now()->locale('nb')->translatedFormat('l')) }}
+            {{ now()->locale('nb')->translatedFormat('j. F Y') }}
+        </div>
 
-    <div class="col-md-6 mb-2">
-    <div class="card text-center border-primary h-100">
-            <div class="card-body py-2">
-                <h5 class="mb-1">📅 Dato</h5>
-                <h4 class="mb-0">
-    {{ now()->locale('nb')->translatedFormat('j. F Y') }}
-</h4>
+        <div>
+            <strong>📆 Ukenummer:</strong>
+            UKE {{ $weekNumber }}
+            <span class="text-muted">({{ $isEvenWeek ? 'Partallsuke' : 'Oddetallsuke' }})</span>
+        </div>
 
-<small class="text-muted">
-    {{ ucfirst(now()->locale('nb')->translatedFormat('l')) }}
-</small>
-            </div>
+        <div>
+            <strong>🇳🇴 Neste flaggdag:</strong>
+            {{ $formattedDate }} – {{ $nextFlagDayName }}
         </div>
     </div>
 
-    <div class="col-md-6 mb-2">
-    <div class="card text-center border-success h-100">
-            <div class="card-body py-2">
-                <h5 class="mb-1">📆 Ukenummer</h5>
-              <h1 class="mb-0 font-weight-bold text-success">
-    UKE {{ $weekNumber }}
-</h1>
-
-<small class="text-muted d-block">
-                    {{ $isEvenWeek ? 'Partallsuke' : 'Oddetallsuke' }}
-                </small>
-                </div>
-        </div>
-    </div>
-
-</div>
-
-<div class="alert alert-light text-center py-1 mb-3">
-
-    <strong>
-        🇳🇴 Neste flaggdag:
-        {{ $formattedDate }} – {{ $nextFlagDayName }}
-    </strong>
-
-    <br>
-
-    <small class="text-muted">
+    <small class="text-muted d-block mt-1">
         Kommende flaggdager:
         {{ $tooltipText }}
     </small>
-
 </div>
 
 @include('partials.header')
@@ -239,10 +232,6 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
 {{-- <iframe src="https://www.tvkampen.com/widget/638bd1bc1f1c1?heading=Sport&border_color=blue&autoscroll=0" frameborder="0" style="width: 600px; height: 500px; border: none"></iframe> --}}
 
-
-<div class="text-center">
-    <img src="https://www.yr.no/nb/innhold/1-2378693/meteogram.svg" width="100%">
-</div>
 
 <p class="text-center text-muted mt-4">
     Siden er sist oppdatert:
