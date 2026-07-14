@@ -40,4 +40,19 @@ return [
         ],
     ],
 
+    'schibsted_sports' => [
+        'base_url' => env('SCHIBSTED_SPORTS_BASE_URL', 'https://api.sportsnext.schibsted.io/v1/vg'),
+        'cache_ttl' => env('SCHIBSTED_SPORTS_CACHE_TTL', 900),
+        'timeout' => env('SCHIBSTED_SPORTS_TIMEOUT', 10),
+        'retry_times' => env('SCHIBSTED_SPORTS_RETRY_TIMES', 1),
+        'retry_sleep' => env('SCHIBSTED_SPORTS_RETRY_SLEEP', 250),
+        'premier_league_tournament_id' => env('SCHIBSTED_PREMIER_LEAGUE_TOURNAMENT_ID', 3),
+        'premier_league_season_id' => env('SCHIBSTED_PREMIER_LEAGUE_SEASON_ID', 9186),
+        'catalog_path' => env('SCHIBSTED_FOOTBALL_CATALOG_PATH', storage_path('app/reference/schibsted-football-tournaments.json')),
+        'known_season_ids' => [
+            7767,
+            9186,
+        ],
+    ],
+
 ];

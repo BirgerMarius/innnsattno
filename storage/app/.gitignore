@@ -1,3 +1,5 @@
 *
 !public/
+!reference/
+!reference/*.json
 !.gitignore

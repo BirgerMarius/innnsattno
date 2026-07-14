@@ -2,6 +2,9 @@
 
 namespace App\Console;
 
+use App\Console\Commands\DiscoverSchibstedFootball;
+use App\Console\Commands\ExploreSchibstedFootball;
+use App\Console\Commands\ProbeSchibstedFootball;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -13,7 +16,9 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        DiscoverSchibstedFootball::class,
+        ExploreSchibstedFootball::class,
+        ProbeSchibstedFootball::class,
     ];
 
     /**

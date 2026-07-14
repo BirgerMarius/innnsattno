@@ -1,0 +1,235 @@
+{
+    "provider": "Schibsted SportsNext",
+    "sport": "football",
+    "last_verified_at": "2026-07-14T00:00:00+00:00",
+    "source": {
+        "base_url": "https://api.sportsnext.schibsted.io/v1/vg",
+        "discovery_strategy": "Manuell live-verifikasjon fra docker01/containeren for World Cup 2026, og videre discovery bare mot små eksplisitte kandidatsett.",
+        "network_notes": [
+            {
+                "scope": "codex_sandbox",
+                "reason": "dns_unavailable_in_prior_sandbox",
+                "message": "Tidligere Codex-sandbox klarte ikke DNS-oppslag. Manuell curl og Laravel-kommandoer fra docker01/containeren bekreftet at API-et fungerer."
+            }
+        ]
+    },
+    "tournaments": [
+        {
+            "provider": "Schibsted SportsNext",
+            "sport": "football",
+            "country": "International",
+            "region": null,
+            "gender": "men",
+            "competition_type": "national_teams",
+            "name": "FIFA World Cup 2026",
+            "short_name": "World Cup 2026",
+            "tournament_id": 19,
+            "tournament_slug": null,
+            "current_season_name": "World Cup 2026",
+            "current_season_id": 7767,
+            "available_seasons": [
+                {
+                    "season_id": 7767,
+                    "name": "World Cup 2026",
+                    "start_date": null,
+                    "end_date": null,
+                    "active": null
+                }
+            ],
+            "start_date": null,
+            "end_date": null,
+            "endpoints": {
+                "schedule": "/tournaments/seasons/7767/schedule",
+                "standings": "/tournaments/seasons/7767/standings",
+                "season_details": "/tournaments/seasons/7767",
+                "tournament_details": "/tournaments/19",
+                "tournament_seasons": "/tournaments/19/seasons",
+                "season_participants_endpoint": "/tournaments/seasons/7767/participants",
+                "season_teams_endpoint": "/tournaments/seasons/7767/teams",
+                "season_statistics_endpoint": "/tournaments/seasons/7767/statistics",
+                "season_lineups_endpoint": "/tournaments/seasons/7767/lineups"
+            },
+            "endpoint_status": {
+                "schedule": "confirmed",
+                "standings": "confirmed",
+                "season_details": "confirmed",
+                "tournament_details": "confirmed",
+                "tournament_seasons": "confirmed",
+                "season_participants_endpoint": "rejected_404",
+                "season_teams_endpoint": "rejected_404",
+                "season_statistics_endpoint": "rejected_404",
+                "season_lineups_endpoint": "rejected_404"
+            },
+            "capabilities": {
+                "schedule": "confirmed",
+                "standings": "confirmed",
+                "season_details": "confirmed",
+                "tournament_details": "confirmed",
+                "tournament_seasons": "confirmed",
+                "season_participants_endpoint": "rejected_404",
+                "season_teams_endpoint": "rejected_404",
+                "season_statistics_endpoint": "rejected_404",
+                "season_lineups_endpoint": "rejected_404",
+                "matches": true,
+                "results": true,
+                "upcoming_matches": true,
+                "live_matches": null,
+                "match_status": true,
+                "teams": true,
+                "team_details": null,
+                "team_logos": null,
+                "venue": null,
+                "referee": null,
+                "match_details": null,
+                "events": null,
+                "goalscorers": null,
+                "cards": null,
+                "substitutions": null,
+                "lineups": null,
+                "match_statistics": null,
+                "players": null,
+                "player_profiles": null,
+                "top_scorers": null,
+                "news": null
+            },
+            "observed_response": {
+                "schedule_event_count": 104,
+                "schedule_top_level_fields": [
+                    "events",
+                    "participants",
+                    "tournament",
+                    "tournamentSeason",
+                    "countries"
+                ],
+                "standings_top_level_fields": [
+                    "standings",
+                    "tournament",
+                    "tournamentSeason",
+                    "participants",
+                    "countries"
+                ],
+                "participants_embedded_in": [
+                    "schedule",
+                    "standings"
+                ]
+            },
+            "sample_team_ids": [],
+            "sample_match_ids": [],
+            "last_verified_at": "2026-07-14T00:00:00+00:00",
+            "verified_at": "2026-07-14",
+            "verification_method": "live_api_from_docker01",
+            "source": "live_verification",
+            "verification_status": "confirmed",
+            "notes": [
+                "Fem endepunkter returnerte HTTP 200 ved live-verifikasjon fra docker01/containeren 2026-07-14.",
+                "Fire eksplisitte sesongkandidater returnerte HTTP 404 og er klassifisert som avviste kandidater, ikke systemfeil.",
+                "Separate participants- og teams-endepunkter på de testede sesongstiene finnes ikke, men participants-data følger med i schedule og standings."
+            ]
+        },
+        {
+            "provider": "Schibsted SportsNext",
+            "sport": "football",
+            "country": "England",
+            "region": null,
+            "gender": null,
+            "competition_type": "club",
+            "name": "Premier League",
+            "short_name": "Premier League",
+            "tournament_id": 3,
+            "tournament_slug": null,
+            "current_season_name": "2026/27",
+            "current_season_id": 9186,
+            "available_seasons": [
+                {
+                    "season_id": 9186,
+                    "name": "2026/27",
+                    "start_date": null,
+                    "end_date": null,
+                    "active": null
+                }
+            ],
+            "start_date": null,
+            "end_date": null,
+            "endpoints": {
+                "season_details": "/tournaments/seasons/9186",
+                "schedule": "/tournaments/seasons/9186/schedule",
+                "standings": "/tournaments/seasons/9186/standings",
+                "tournament_details": "/tournaments/3",
+                "tournament_seasons": "/tournaments/3/seasons"
+            },
+            "endpoint_status": {
+                "season_details": "confirmed",
+                "schedule": "confirmed",
+                "standings": "confirmed",
+                "tournament_details": "confirmed",
+                "tournament_seasons": "confirmed"
+            },
+            "capabilities": {
+                "season_details": "confirmed",
+                "schedule": "confirmed",
+                "standings": "confirmed",
+                "tournament_details": "confirmed",
+                "tournament_seasons": "confirmed",
+                "matches": true,
+                "results": true,
+                "upcoming_matches": true,
+                "live_matches": null,
+                "match_status": true,
+                "teams": true,
+                "team_details": null,
+                "team_logos": null,
+                "venue": null,
+                "referee": null,
+                "match_details": null,
+                "events": null,
+                "goalscorers": null,
+                "cards": null,
+                "substitutions": null,
+                "lineups": null,
+                "match_statistics": null,
+                "players": null,
+                "player_profiles": null,
+                "top_scorers": null,
+                "news": null
+            },
+            "observed_response": {
+                "schedule_event_count": 380,
+                "schedule_top_level_fields": [
+                    "events",
+                    "participants",
+                    "tournament",
+                    "tournamentSeason",
+                    "countries"
+                ],
+                "standings_group_count": 1,
+                "standings_team_count": 20,
+                "standings_top_level_fields": [
+                    "standings",
+                    "tournament",
+                    "tournamentSeason",
+                    "participants",
+                    "countries"
+                ],
+                "tournament_season_count": 34,
+                "participants_embedded_in": [
+                    "schedule",
+                    "standings"
+                ]
+            },
+            "sample_team_ids": [],
+            "sample_match_ids": [],
+            "last_verified_at": "2026-07-14T00:00:00+00:00",
+            "verified_at": "2026-07-14",
+            "verification_method": "live_api_from_docker01",
+            "source": "live_verification",
+            "verification_status": "confirmed",
+            "notes": [
+                "Fem endepunkter returnerte HTTP 200 ved live-verifikasjon fra docker01/containeren 2026-07-14.",
+                "Schedule-responsen inneholder 380 events.",
+                "Standings-responsen inneholder 1 tabell med 20 lag.",
+                "Tournament seasons-responsen inneholder 34 sesonger.",
+                "Participants-data følger med i schedule og standings."
+            ]
+        }
+    ]
+}
