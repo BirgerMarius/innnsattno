@@ -37,6 +37,11 @@ class SchibstedFootballDiscoveryService
             $catalog[$this->catalogKey($entry)] = $entry;
         }
 
+        if (!$filter || str_contains(strtolower($filter), 'elite')) {
+            $entry = $this->manualEliteserienEntry($verifiedAt);
+            $catalog[$this->catalogKey($entry)] = $entry;
+        }
+
         foreach ($knownSeasons as $seasonId) {
             $entry = $this->discoverSeason($seasonId, $verifiedAt);
             $key = $this->catalogKey($entry);
@@ -266,6 +271,10 @@ class SchibstedFootballDiscoveryService
             $entry = $this->mergeTournamentEntry($this->manualPremierLeagueEntry($verifiedAt), $entry);
         }
 
+        if ($seasonId === $this->eliteserienSeasonId()) {
+            $entry = $this->mergeTournamentEntry($this->manualEliteserienEntry($verifiedAt), $entry);
+        }
+
         return $entry;
     }
 
@@ -444,6 +453,103 @@ class SchibstedFootballDiscoveryService
     private function premierLeagueSeasonId(): int
     {
         return (int) config('services.schibsted_sports.premier_league_season_id', 9186);
+    }
+
+    private function manualEliteserienEntry(string $verifiedAt): array
+    {
+        return [
+            'provider' => self::PROVIDER,
+            'sport' => self::SPORT,
+            'country' => 'Norway',
+            'region' => null,
+            'gender' => 'men',
+            'competition_type' => 'club',
+            'name' => 'Eliteserien',
+            'short_name' => 'Eliteserien',
+            'tournament_id' => 38,
+            'tournament_slug' => null,
+            'current_season_name' => 'Eliteserien 2026',
+            'current_season_id' => 8766,
+            'available_seasons' => [[
+                'season_id' => 8766,
+                'name' => 'Eliteserien 2026',
+                'start_date' => '2026-03-14',
+                'end_date' => '2026-12-13',
+                'active' => null,
+            ]],
+            'start_date' => '2026-03-14',
+            'end_date' => '2026-12-13',
+            'endpoints' => [
+                'tournament_details' => '/tournaments/38',
+                'tournament_seasons' => '/tournaments/38/seasons',
+                'season_details' => '/tournaments/seasons/8766',
+                'schedule' => '/tournaments/seasons/8766/schedule',
+                'standings' => '/tournaments/seasons/8766/standings',
+            ],
+            'endpoint_status' => [
+                'tournament_details' => 'confirmed',
+                'tournament_seasons' => 'confirmed',
+                'season_details' => 'confirmed',
+                'schedule' => 'confirmed',
+                'standings' => 'confirmed',
+            ],
+            'capabilities' => array_merge($this->emptyCapabilities(), [
+                'matches' => true,
+                'results' => true,
+                'upcoming_matches' => true,
+                'match_status' => true,
+                'teams' => true,
+            ], [
+                'schedule' => 'confirmed',
+                'standings' => 'confirmed',
+                'season_details' => 'confirmed',
+                'tournament_details' => 'confirmed',
+                'tournament_seasons' => 'confirmed',
+            ]),
+            'observed_response' => [
+                'schedule_event_count' => 240,
+                'schedule_top_level_fields' => [
+                    'events',
+                    'participants',
+                    'tournament',
+                    'tournamentSeason',
+                    'countries',
+                ],
+                'standings_group_count' => 1,
+                'standings_team_count' => 16,
+                'standings_top_level_fields' => [
+                    'standings',
+                    'tournament',
+                    'tournamentSeason',
+                    'participants',
+                    'countries',
+                ],
+                'tournament_season_count' => 19,
+                'participants_embedded_in' => [
+                    'schedule',
+                    'standings',
+                ],
+            ],
+            'sample_team_ids' => [],
+            'sample_match_ids' => [],
+            'last_verified_at' => $verifiedAt,
+            'verified_at' => '2026-07-14',
+            'verification_method' => 'live_api_from_docker01',
+            'source' => 'live_verification',
+            'verification_status' => 'confirmed',
+            'notes' => [
+                'Fem endepunkter returnerte HTTP 200 ved live-verifikasjon fra docker01/containeren 2026-07-14.',
+                'Schedule-responsen inneholder 240 events.',
+                'Standings-responsen inneholder 1 tabell med 16 lag.',
+                'Tournament seasons-responsen inneholder 19 sesonger.',
+                'Participants-data følger med i schedule og standings.',
+            ],
+        ];
+    }
+
+    private function eliteserienSeasonId(): int
+    {
+        return (int) config('services.schibsted_sports.eliteserien_season_id', 8766);
     }
 
     private function emptyKnownSeasonEntry(int $seasonId, string $verifiedAt): array
@@ -756,6 +862,12 @@ class SchibstedFootballDiscoveryService
 
         if ($configuredPremierLeagueSeason) {
             $ids[] = (int) $configuredPremierLeagueSeason;
+        }
+
+        $configuredEliteserienSeason = config('services.schibsted_sports.eliteserien_season_id');
+
+        if ($configuredEliteserienSeason) {
+            $ids[] = (int) $configuredEliteserienSeason;
         }
 
         return array_values(array_unique($ids));

@@ -170,7 +170,7 @@ class SchibstedFootballDiscoveryServiceTest extends TestCase
     }
 
     /** @test */
-    public function catalog_marks_manual_world_cup_and_premier_league_verification(): void
+    public function catalog_marks_manual_world_cup_premier_league_and_eliteserien_verification(): void
     {
         Http::fake(['*' => Http::response([], 404)]);
 
@@ -178,6 +178,7 @@ class SchibstedFootballDiscoveryServiceTest extends TestCase
 
         $worldCup = collect($catalog['tournaments'])->firstWhere('name', 'FIFA World Cup 2026');
         $premierLeague = collect($catalog['tournaments'])->firstWhere('name', 'Premier League');
+        $eliteserien = collect($catalog['tournaments'])->firstWhere('name', 'Eliteserien');
 
         $this->assertSame('live_verification', $worldCup['source']);
         $this->assertSame('confirmed', $worldCup['verification_status']);
@@ -191,6 +192,12 @@ class SchibstedFootballDiscoveryServiceTest extends TestCase
         $this->assertSame(3, $premierLeague['tournament_id']);
         $this->assertSame(9186, $premierLeague['current_season_id']);
         $this->assertSame('/tournaments/seasons/9186/schedule', $premierLeague['endpoints']['schedule']);
+        $this->assertSame('live_verification', $eliteserien['source']);
+        $this->assertSame('confirmed', $eliteserien['verification_status']);
+        $this->assertSame('live_api_from_docker01', $eliteserien['verification_method']);
+        $this->assertSame(38, $eliteserien['tournament_id']);
+        $this->assertSame(8766, $eliteserien['current_season_id']);
+        $this->assertSame('/tournaments/seasons/8766/schedule', $eliteserien['endpoints']['schedule']);
     }
 
     /** @test */
@@ -227,13 +234,14 @@ class SchibstedFootballDiscoveryServiceTest extends TestCase
     }
 
     /** @test */
-    public function discovery_does_not_degrade_live_verified_world_cup_or_premier_league_ids(): void
+    public function discovery_does_not_degrade_live_verified_world_cup_premier_league_or_eliteserien_ids(): void
     {
         Http::fake(['*' => Http::response([], 404)]);
 
         $catalog = (new SchibstedFootballDiscoveryService())->discover();
         $worldCup = collect($catalog['tournaments'])->firstWhere('name', 'FIFA World Cup 2026');
         $premierLeague = collect($catalog['tournaments'])->firstWhere('name', 'Premier League');
+        $eliteserien = collect($catalog['tournaments'])->firstWhere('name', 'Eliteserien');
 
         $this->assertSame('confirmed', $worldCup['verification_status']);
         $this->assertSame(19, $worldCup['tournament_id']);
@@ -247,6 +255,14 @@ class SchibstedFootballDiscoveryServiceTest extends TestCase
         $this->assertSame(380, $premierLeague['observed_response']['schedule_event_count']);
         $this->assertSame(20, $premierLeague['observed_response']['standings_team_count']);
         $this->assertSame(34, $premierLeague['observed_response']['tournament_season_count']);
+        $this->assertSame('confirmed', $eliteserien['verification_status']);
+        $this->assertSame(38, $eliteserien['tournament_id']);
+        $this->assertSame(8766, $eliteserien['current_season_id']);
+        $this->assertSame('confirmed', $eliteserien['endpoint_status']['schedule']);
+        $this->assertSame('confirmed', $eliteserien['endpoint_status']['standings']);
+        $this->assertSame(240, $eliteserien['observed_response']['schedule_event_count']);
+        $this->assertSame(16, $eliteserien['observed_response']['standings_team_count']);
+        $this->assertSame(19, $eliteserien['observed_response']['tournament_season_count']);
     }
 
     /** @test */
@@ -283,6 +299,42 @@ class SchibstedFootballDiscoveryServiceTest extends TestCase
         $this->assertSame(['schedule', 'standings'], $premierLeague['observed_response']['participants_embedded_in']);
         $this->assertSame(9186, $premierLeague['available_seasons'][0]['season_id']);
         $this->assertSame('2026/27', $premierLeague['available_seasons'][0]['name']);
+    }
+
+    /** @test */
+    public function catalog_preserves_verified_eliteserien_endpoints_and_observed_counts(): void
+    {
+        Http::fake(['*' => Http::response([], 404)]);
+
+        $catalog = (new SchibstedFootballDiscoveryService())->discover();
+        $eliteserien = collect($catalog['tournaments'])->firstWhere('name', 'Eliteserien');
+
+        $confirmed = [
+            'tournament_details' => '/tournaments/38',
+            'tournament_seasons' => '/tournaments/38/seasons',
+            'season_details' => '/tournaments/seasons/8766',
+            'schedule' => '/tournaments/seasons/8766/schedule',
+            'standings' => '/tournaments/seasons/8766/standings',
+        ];
+
+        foreach ($confirmed as $key => $path) {
+            $this->assertSame($path, $eliteserien['endpoints'][$key]);
+            $this->assertSame('confirmed', $eliteserien['endpoint_status'][$key]);
+            $this->assertSame('confirmed', $eliteserien['capabilities'][$key]);
+        }
+
+        $this->assertTrue($eliteserien['capabilities']['matches']);
+        $this->assertTrue($eliteserien['capabilities']['results']);
+        $this->assertTrue($eliteserien['capabilities']['upcoming_matches']);
+        $this->assertTrue($eliteserien['capabilities']['match_status']);
+        $this->assertTrue($eliteserien['capabilities']['teams']);
+        $this->assertSame(240, $eliteserien['observed_response']['schedule_event_count']);
+        $this->assertSame(1, $eliteserien['observed_response']['standings_group_count']);
+        $this->assertSame(16, $eliteserien['observed_response']['standings_team_count']);
+        $this->assertSame(19, $eliteserien['observed_response']['tournament_season_count']);
+        $this->assertSame(['schedule', 'standings'], $eliteserien['observed_response']['participants_embedded_in']);
+        $this->assertSame(8766, $eliteserien['available_seasons'][0]['season_id']);
+        $this->assertSame('Eliteserien 2026', $eliteserien['available_seasons'][0]['name']);
     }
 
     private function schedulePayload(): array

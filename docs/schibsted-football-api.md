@@ -129,6 +129,64 @@ php artisan football:schibsted-explore \
   --no-cache
 ```
 
+## Eliteserien
+
+Eliteserien 2026 er bekreftet live i Schibsted/VG SportsNext API-et.
+
+| Felt | Verdi |
+| --- | --- |
+| Turnering | Eliteserien |
+| tournamentId | 38 |
+| seasonId | 8766 |
+| Sesong | Eliteserien 2026 |
+| Startdato | 14.03.2026 |
+| Sluttdato | 13.12.2026 |
+| Verifikasjon | `live_api_from_docker01` |
+| Dato | 2026-07-14 |
+
+Disse endepunktene returnerte HTTP 200 og gyldig JSON:
+
+```text
+GET /tournaments/38
+GET /tournaments/38/seasons
+GET /tournaments/seasons/8766
+GET /tournaments/seasons/8766/schedule
+GET /tournaments/seasons/8766/standings
+```
+
+Observerte data:
+
+- Schedule inneholder 240 events.
+- Standings inneholder 1 tabell med 16 lag.
+- `/tournaments/38/seasons` inneholder 19 historiske sesonger.
+- `participants` folger med i bade schedule og standings.
+- Schedule har toppnivafeltene `events`, `participants`, `tournament`, `tournamentSeason` og `countries`.
+- Standings har toppnivafeltene `standings`, `tournament`, `tournamentSeason`, `participants` og `countries`.
+
+Brukseksempler:
+
+```bash
+php artisan football:schibsted-explore \
+  --path=/tournaments/seasons/8766 \
+  --summary \
+  --no-cache
+
+php artisan football:schibsted-explore \
+  --path=/tournaments/seasons/8766/schedule \
+  --summary \
+  --no-cache
+
+php artisan football:schibsted-explore \
+  --path=/tournaments/seasons/8766/standings \
+  --summary \
+  --no-cache
+
+php artisan football:schibsted-explore \
+  --path=/tournaments/38/seasons \
+  --summary \
+  --no-cache
+```
+
 ## Turneringskatalog
 
 Maskinlesbar katalog ligger her:

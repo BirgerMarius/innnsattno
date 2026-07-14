@@ -48,10 +48,13 @@ return [
         'retry_sleep' => env('SCHIBSTED_SPORTS_RETRY_SLEEP', 250),
         'premier_league_tournament_id' => env('SCHIBSTED_PREMIER_LEAGUE_TOURNAMENT_ID', 3),
         'premier_league_season_id' => env('SCHIBSTED_PREMIER_LEAGUE_SEASON_ID', 9186),
+        'eliteserien_tournament_id' => env('SCHIBSTED_ELITESERIEN_TOURNAMENT_ID', 38),
+        'eliteserien_season_id' => env('SCHIBSTED_ELITESERIEN_SEASON_ID', 8766),
         'catalog_path' => env('SCHIBSTED_FOOTBALL_CATALOG_PATH', storage_path('app/reference/schibsted-football-tournaments.json')),
         'known_season_ids' => [
             7767,
             9186,
+            8766,
         ],
     ],
 

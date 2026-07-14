@@ -17,6 +17,111 @@
         {
             "provider": "Schibsted SportsNext",
             "sport": "football",
+            "country": "England",
+            "region": null,
+            "gender": null,
+            "competition_type": "club",
+            "name": "Premier League",
+            "short_name": "Premier League",
+            "tournament_id": 3,
+            "tournament_slug": null,
+            "current_season_name": "2026/27",
+            "current_season_id": 9186,
+            "available_seasons": [
+                {
+                    "season_id": 9186,
+                    "name": "2026/27",
+                    "start_date": null,
+                    "end_date": null,
+                    "active": null
+                }
+            ],
+            "start_date": null,
+            "end_date": null,
+            "endpoints": {
+                "season_details": "/tournaments/seasons/9186",
+                "schedule": "/tournaments/seasons/9186/schedule",
+                "standings": "/tournaments/seasons/9186/standings",
+                "tournament_details": "/tournaments/3",
+                "tournament_seasons": "/tournaments/3/seasons"
+            },
+            "endpoint_status": {
+                "season_details": "confirmed",
+                "schedule": "confirmed",
+                "standings": "confirmed",
+                "tournament_details": "confirmed",
+                "tournament_seasons": "confirmed"
+            },
+            "capabilities": {
+                "season_details": "confirmed",
+                "schedule": "confirmed",
+                "standings": "confirmed",
+                "tournament_details": "confirmed",
+                "tournament_seasons": "confirmed",
+                "matches": true,
+                "results": true,
+                "upcoming_matches": true,
+                "live_matches": null,
+                "match_status": true,
+                "teams": true,
+                "team_details": null,
+                "team_logos": null,
+                "venue": null,
+                "referee": null,
+                "match_details": null,
+                "events": null,
+                "goalscorers": null,
+                "cards": null,
+                "substitutions": null,
+                "lineups": null,
+                "match_statistics": null,
+                "players": null,
+                "player_profiles": null,
+                "top_scorers": null,
+                "news": null
+            },
+            "observed_response": {
+                "schedule_event_count": 380,
+                "schedule_top_level_fields": [
+                    "events",
+                    "participants",
+                    "tournament",
+                    "tournamentSeason",
+                    "countries"
+                ],
+                "standings_group_count": 1,
+                "standings_team_count": 20,
+                "standings_top_level_fields": [
+                    "standings",
+                    "tournament",
+                    "tournamentSeason",
+                    "participants",
+                    "countries"
+                ],
+                "tournament_season_count": 34,
+                "participants_embedded_in": [
+                    "schedule",
+                    "standings"
+                ]
+            },
+            "sample_team_ids": [],
+            "sample_match_ids": [],
+            "last_verified_at": "2026-07-14T00:00:00+00:00",
+            "verified_at": "2026-07-14",
+            "verification_method": "live_api_from_docker01",
+            "source": "live_verification",
+            "verification_status": "confirmed",
+            "notes": [
+                "Fem endepunkter returnerte HTTP 200 ved live-verifikasjon fra docker01/containeren 2026-07-14.",
+                "Schedule-responsen inneholder 380 events.",
+                "Standings-responsen inneholder 1 tabell med 20 lag.",
+                "Tournament seasons-responsen inneholder 34 sesonger.",
+                "Participants-data følger med i schedule og standings."
+            ]
+        },
+        {
+            "provider": "Schibsted SportsNext",
+            "sport": "football",
             "country": "International",
             "region": null,
             "gender": "men",
@@ -129,45 +234,45 @@
         {
             "provider": "Schibsted SportsNext",
             "sport": "football",
-            "country": "England",
+            "country": "Norway",
             "region": null,
-            "gender": null,
+            "gender": "men",
             "competition_type": "club",
-            "name": "Premier League",
-            "short_name": "Premier League",
-            "tournament_id": 3,
+            "name": "Eliteserien",
+            "short_name": "Eliteserien",
+            "tournament_id": 38,
             "tournament_slug": null,
-            "current_season_name": "2026/27",
-            "current_season_id": 9186,
+            "current_season_name": "Eliteserien 2026",
+            "current_season_id": 8766,
             "available_seasons": [
                 {
-                    "season_id": 9186,
-                    "name": "2026/27",
-                    "start_date": null,
-                    "end_date": null,
+                    "season_id": 8766,
+                    "name": "Eliteserien 2026",
+                    "start_date": "2026-03-14",
+                    "end_date": "2026-12-13",
                     "active": null
                 }
             ],
-            "start_date": null,
-            "end_date": null,
+            "start_date": "2026-03-14",
+            "end_date": "2026-12-13",
             "endpoints": {
-                "season_details": "/tournaments/seasons/9186",
-                "schedule": "/tournaments/seasons/9186/schedule",
-                "standings": "/tournaments/seasons/9186/standings",
-                "tournament_details": "/tournaments/3",
-                "tournament_seasons": "/tournaments/3/seasons"
+                "tournament_details": "/tournaments/38",
+                "tournament_seasons": "/tournaments/38/seasons",
+                "season_details": "/tournaments/seasons/8766",
+                "schedule": "/tournaments/seasons/8766/schedule",
+                "standings": "/tournaments/seasons/8766/standings"
             },
             "endpoint_status": {
+                "tournament_details": "confirmed",
+                "tournament_seasons": "confirmed",
                 "season_details": "confirmed",
                 "schedule": "confirmed",
-                "standings": "confirmed",
-                "tournament_details": "confirmed",
-                "tournament_seasons": "confirmed"
+                "standings": "confirmed"
             },
             "capabilities": {
-                "season_details": "confirmed",
                 "schedule": "confirmed",
                 "standings": "confirmed",
+                "season_details": "confirmed",
                 "tournament_details": "confirmed",
                 "tournament_seasons": "confirmed",
                 "matches": true,
@@ -193,7 +298,7 @@
                 "news": null
             },
             "observed_response": {
-                "schedule_event_count": 380,
+                "schedule_event_count": 240,
                 "schedule_top_level_fields": [
                     "events",
                     "participants",
@@ -202,7 +307,7 @@
                     "countries"
                 ],
                 "standings_group_count": 1,
-                "standings_team_count": 20,
+                "standings_team_count": 16,
                 "standings_top_level_fields": [
                     "standings",
                     "tournament",
@@ -210,7 +315,7 @@
                     "participants",
                     "countries"
                 ],
-                "tournament_season_count": 34,
+                "tournament_season_count": 19,
                 "participants_embedded_in": [
                     "schedule",
                     "standings"
@@ -225,9 +330,9 @@
             "verification_status": "confirmed",
             "notes": [
                 "Fem endepunkter returnerte HTTP 200 ved live-verifikasjon fra docker01/containeren 2026-07-14.",
-                "Schedule-responsen inneholder 380 events.",
-                "Standings-responsen inneholder 1 tabell med 20 lag.",
-                "Tournament seasons-responsen inneholder 34 sesonger.",
+                "Schedule-responsen inneholder 240 events.",
+                "Standings-responsen inneholder 1 tabell med 16 lag.",
+                "Tournament seasons-responsen inneholder 19 sesonger.",
                 "Participants-data følger med i schedule og standings."
             ]
         }

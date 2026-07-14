@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\FeedbackAdminController;
 use App\Http\Controllers\Admin\ProfessionalResourceAdminController;
 use App\Http\Controllers\Admin\ResourceCategoryController;
+use App\Http\Controllers\EliteserienController;
 use App\Http\Controllers\FootballController;
 use App\Http\Controllers\FeedbackSubmissionController;
 use App\Http\Controllers\PremierLeagueController;
@@ -237,6 +238,8 @@ Route::get('/test', function () {
 Route::get('/fotball', [FootballController::class, 'index']);
 Route::get('/football', [FootballController::class, 'index']);
 Route::get('/fotball-utskrift', [FootballController::class, 'print']);
+Route::get('/eliteserien', [EliteserienController::class, 'index'])->name('eliteserien.index');
+Route::get('/eliteserien/test', [EliteserienController::class, 'test'])->name('eliteserien.test');
 Route::get('/premier-league', [PremierLeagueController::class, 'index']);
 Route::get('/premier-league/test', [PremierLeagueController::class, 'test']);
 

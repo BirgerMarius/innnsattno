@@ -2,25 +2,25 @@
 
 namespace App\Services;
 
-class PremierLeagueService extends SchibstedCompetitionService
+class EliteserienService extends SchibstedCompetitionService
 {
     protected function tournamentConfigKey(): string
     {
-        return 'services.schibsted_sports.premier_league_tournament_id';
+        return 'services.schibsted_sports.eliteserien_tournament_id';
     }
 
     protected function seasonConfigKey(): string
     {
-        return 'services.schibsted_sports.premier_league_season_id';
+        return 'services.schibsted_sports.eliteserien_season_id';
     }
 
     protected function cachePrefix(): string
     {
-        return 'premier_league';
+        return 'eliteserien';
     }
 
     protected function competitionLogName(): string
     {
-        return 'Premier League';
+        return 'Eliteserien';
     }
 }

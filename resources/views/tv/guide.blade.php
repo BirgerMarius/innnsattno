@@ -11,7 +11,7 @@
         justify-content: center;
     }
 
-    .front-page-date-row > div {
+    .front-page-date-item {
         white-space: nowrap;
     }
 </style>
@@ -131,22 +131,22 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
 <div class="alert alert-light text-center py-2 mb-3">
     <div class="front-page-date-row">
-        <div>
+        <span class="front-page-date-item">
             <strong>📅 Dato:</strong>
             {{ ucfirst(now()->locale('nb')->translatedFormat('l')) }}
             {{ now()->locale('nb')->translatedFormat('j. F Y') }}
-        </div>
+        </span>
 
-        <div>
+        <span class="front-page-date-item">
             <strong>📆 Ukenummer:</strong>
             UKE {{ $weekNumber }}
             <span class="text-muted">({{ $isEvenWeek ? 'Partallsuke' : 'Oddetallsuke' }})</span>
-        </div>
+        </span>
 
-        <div>
+        <span class="front-page-date-item">
             <strong>🇳🇴 Neste flaggdag:</strong>
             {{ $formattedDate }} – {{ $nextFlagDayName }}
-        </div>
+        </span>
     </div>
 
     <small class="text-muted d-block mt-1">
@@ -180,8 +180,11 @@ $isEvenWeek = $weekNumber % 2 === 0;
         </a>
 
         <a href="/premier-league" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
-            <span class="front-page-btn-title">⚽ Premier League 2026/27</span>
-            <small>Under utvikling</small>
+            ⚽ Premier League 2026/27
+        </a>
+
+        <a href="/eliteserien" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
+            ⚽ Eliteserien 2026
         </a>
 
         <a href="/tidsfordriv" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
