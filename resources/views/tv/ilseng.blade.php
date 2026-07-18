@@ -73,10 +73,6 @@
 {{-- <iframe src="https://www.tvkampen.com/widget/638bd1bc1f1c1?heading=Sport&border_color=blue&autoscroll=0" frameborder="0" style="width: 600px; height: 500px; border: none"></iframe> --}}
 
 
-<div class="text-center">
-    <img src="https://www.yr.no/nb/innhold/1-2378693/meteogram.svg" width="100%">
-</div>
-
 <p class="text-center text-muted mt-4">
     Siden er sist oppdatert:
     {{ trim(shell_exec('git log -1 --format="%cd" --date=format:"%d.%m.%Y"')) }}

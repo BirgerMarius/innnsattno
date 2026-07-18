@@ -18,6 +18,7 @@ use App\Http\Controllers\PrayerController;
 use App\Http\Controllers\WordSearchController;
 use App\Http\Controllers\SpinWheelController;
 use App\Http\Controllers\MonthCalendarController;
+use App\Http\Controllers\VisitationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -239,8 +240,10 @@ Route::get('/fotball', [FootballController::class, 'index']);
 Route::get('/football', [FootballController::class, 'index']);
 Route::get('/fotball-utskrift', [FootballController::class, 'print']);
 Route::get('/eliteserien', [EliteserienController::class, 'index'])->name('eliteserien.index');
+Route::get('/eliteserien/utskrift', [EliteserienController::class, 'print'])->name('eliteserien.print');
 Route::get('/eliteserien/test', [EliteserienController::class, 'test'])->name('eliteserien.test');
-Route::get('/premier-league', [PremierLeagueController::class, 'index']);
+Route::get('/premier-league', [PremierLeagueController::class, 'index'])->name('premier-league.index');
+Route::get('/premier-league/utskrift', [PremierLeagueController::class, 'print'])->name('premier-league.print');
 Route::get('/premier-league/test', [PremierLeagueController::class, 'test']);
 
 Route::get('/bonnetider', [PrayerController::class, 'ringerike']);
@@ -263,3 +266,4 @@ Route::get('/manedskalender', [MonthCalendarController::class, 'index'])->name('
 Route::get('/manedskalender/utskrift', [MonthCalendarController::class, 'print'])->name('calendar.print');
 
 Route::get('/oppdrag', [SpinWheelController::class, 'index']);
+Route::get('/visitasjon', [VisitationController::class, 'index'])->name('visitation.index');

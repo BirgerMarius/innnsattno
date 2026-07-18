@@ -140,6 +140,9 @@
                         <p class="pl-muted mb-0">Sist oppdatert: {{ $lastUpdated->format('d.m.Y H:i') }}</p>
                     @endif
                 </div>
+                <a href="{{ route('premier-league.print') }}" class="btn btn-success mt-2 mt-md-0">
+                    <i class="far fa-print" aria-hidden="true"></i> Skriv ut ukeoversikt
+                </a>
             </div>
 
             @if(!$apiConfigured)

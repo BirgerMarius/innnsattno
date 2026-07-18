@@ -47,4 +47,9 @@ class PremierLeagueController extends Controller
             'lastUpdated' => $competition['lastUpdated'],
         ]);
     }
+
+    public function print()
+    {
+        return view('football.competition-print', $this->premierLeagueService->getPrintData('Premier League'));
+    }
 }

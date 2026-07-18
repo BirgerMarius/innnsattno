@@ -47,4 +47,9 @@ class EliteserienController extends Controller
             'lastUpdated' => $competition['lastUpdated'],
         ]);
     }
+
+    public function print()
+    {
+        return view('football.competition-print', $this->eliteserienService->getPrintData('Eliteserien'));
+    }
 }

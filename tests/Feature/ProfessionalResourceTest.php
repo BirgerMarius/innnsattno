@@ -31,9 +31,12 @@ class ProfessionalResourceTest extends TestCase
         $response = $this->get('/tv');
 
         $response->assertStatus(200);
-        $response->assertSee('Dato:');
-        $response->assertSee('Ukenummer:');
-        $response->assertSee('Neste flaggdag:');
+        $response->assertSeeInOrder([
+            'front-page-date-row',
+            'Dato:',
+            'Ukenummer:',
+            'Neste flaggdag:',
+        ], false);
         $response->assertSee('Kommende flaggdager:');
         $response->assertDontSee('https://www.yr.no/nb/innhold/1-2378693/meteogram.svg', false);
         $response->assertSee('Anbefalt fagstoff');
