@@ -8,6 +8,7 @@ const resetButton = document.getElementById("resetButton");
 const statusText = document.getElementById("statusText");
 const commentText = document.getElementById("commentText");
 const soundEnabled = document.getElementById("soundEnabled");
+const wheelContainer = document.querySelector(".wheel-container");
 const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 /*==========================================================
@@ -90,7 +91,7 @@ function confetti(){
 
     }
 
-    for(let i = 0; i < 90; i++){
+    for(let i = 0; i < 48; i++){
 
         const c = document.createElement("div");
 
@@ -103,7 +104,7 @@ function confetti(){
             "#f59e0b",
             "#8b5cf6"
         ][Math.floor(Math.random() * 5)];
-        c.style.animationDelay = Math.random() * 1.2 + "s";
+        c.style.animationDelay = Math.random() * .45 + "s";
         c.style.transform = "rotate(" + Math.random() * 360 + "deg)";
 
         document.body.appendChild(c);
@@ -112,7 +113,7 @@ function confetti(){
 
             c.remove();
 
-        }, 5200);
+        }, 3400);
 
     }
 
@@ -164,7 +165,17 @@ function setRunning(nextRunning){
     running = nextRunning;
     startButton.disabled = nextRunning;
     startButton.classList.toggle("is-spinning", nextRunning);
-    startButton.innerText = nextRunning ? "Spinner..." : "Start trekking";
+    startButton.innerHTML = nextRunning
+        ? "Spinner..."
+        : '<span aria-hidden="true">✦</span> La hjulet bestemme';
+
+    wheelContainer.classList.toggle("is-ready", !nextRunning);
+
+    if(nextRunning){
+
+        wheelContainer.classList.remove("is-winner");
+
+    }
 
 }
 
@@ -342,7 +353,10 @@ function finish(name){
     playSound("winner");
     confetti();
 
-    setStatus("Oppdrag valgt");
+    wheelContainer.classList.remove("is-ready");
+    wheelContainer.classList.add("is-winner");
+    setStatus(name + " er den utvalgte!");
+    commentText.innerText = "Oppdraget er " + task + ".";
 
     winnerName.innerText = name;
     winnerTask.innerHTML = "";
@@ -389,6 +403,8 @@ resetButton.addEventListener("click", () => {
     document.getElementById("participants").value = "";
     wheel.stop();
     wheel.setParticipants([]);
+    wheelContainer.classList.remove("is-winner");
+    wheelContainer.classList.add("is-ready");
     setStatus("Klar for trekning");
     commentText.innerText = "Legg inn deltakere.";
 

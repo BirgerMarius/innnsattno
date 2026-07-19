@@ -1,10 +1,18 @@
 @extends('layouts.app')
 
-@section('title', 'Oppdragshjulet')
+@section('title', 'Hvem tar oppdraget?')
 
 @section('content')
 
-<div class="container-fluid py-5 px-4" id="spinApp">
+<div class="container page-container spin-page" id="spinApp">
+    @include('partials.header')
+
+    <main class="spin-content">
+        <header class="spin-intro text-center">
+            <span class="spin-intro__eyebrow">Oppdragshjulet</span>
+            <h1>Hvem tar oppdraget?</h1>
+            <p>Legg inn navnene, velg oppdraget og la hjulet avgjøre.</p>
+        </header>
 
     <div class="row g-4 align-items-start">
 
@@ -17,7 +25,7 @@
         <div class="card-header py-3">
 
     <h3 class="mb-1 fw-bold">
-        Oppdragshjulet
+        Gjør klart hjulet
     </h3>
 
     <small class="text-muted">
@@ -124,7 +132,8 @@ Anne"></textarea>
 
                             id="startButton">
 
-                           Start trekking
+                           <span aria-hidden="true">✦</span>
+                           La hjulet bestemme
 
                         </button>
 
@@ -178,7 +187,7 @@ Anne"></textarea>
                 <div class="card-body">
 
                     <div
-                        class="wheel-container">
+                        class="wheel-container is-ready">
 
                         <canvas
 
@@ -199,7 +208,7 @@ Anne"></textarea>
 
                     <div class="text-center mt-4">
 
-                        <h2 id="statusText">
+                        <h2 id="statusText" aria-live="polite">
 
                             Klar for trekning
 
@@ -210,7 +219,7 @@ Anne"></textarea>
 
                             id="commentText">
 
-                            Legg inn deltakerne og trykk START.
+                            Legg inn deltakerne og start hjulet.
 
                         </p>
 
@@ -233,7 +242,7 @@ Anne"></textarea>
 
                 <h3 class="modal-title">
 
-                    Resultat
+                    Den utvalgte
 
                 </h3>
 
@@ -276,6 +285,10 @@ Anne"></textarea>
         </div>
 
     </div>
+
+    </main>
+
+    @include('partials.footer')
 
 </div>
 
