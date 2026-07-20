@@ -72,14 +72,18 @@
 
 .front-page-wheel-icon {
     fill: none;
-    flex: 0 0 auto;
-    height: 1.35em;
+    flex: 0 0 20px;
+    height: 20px;
     margin-right: 0.4em;
+    max-height: 20px;
+    max-width: 20px;
+    min-height: 20px;
+    min-width: 20px;
     stroke: currentColor;
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 1.75;
-    width: 1.35em;
+    width: 20px;
 }
 
 .front-page-secondary {

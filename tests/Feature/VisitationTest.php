@@ -34,12 +34,22 @@ class VisitationTest extends TestCase
     public function testFrontPageLinksToVisitationAndKeepsOtherMainChoices()
     {
         $response = $this->get(route('tv'));
+        $content = $response->getContent();
 
         $response
             ->assertStatus(200)
-            ->assertSee('Visitasjonsrullett')
+            ->assertSee('Visitasjonsrullett – Ringerike fengsel')
             ->assertSee('href="'.route('visitation.index').'"', false)
+            ->assertSee(
+                asset('css/custom/app.css').'?v='.filemtime(public_path('css/custom/app.css')),
+                false
+            )
             ->assertDontSee('href="/fotball"', false);
+
+        $this->assertMatchesRegularExpression(
+            '/<svg\s+class="front-page-wheel-icon"\s+width="20"\s+height="20"\s+viewBox="0 0 24 24"\s+aria-hidden="true"/',
+            $content
+        );
 
         foreach ([
             'Skriv ut TV-guide for i dag - Ringerike fengsel',

@@ -18,7 +18,7 @@
           href="https://pro.fontawesome.com/releases/v5.13.0/css/all.css">
 
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/custom/app.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/custom/app.css') }}?v={{ filemtime(public_path('css/custom/app.css')) }}" rel="stylesheet">
 
 @stack('styles')
 
