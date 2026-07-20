@@ -19,6 +19,9 @@ use App\Http\Controllers\WordSearchController;
 use App\Http\Controllers\SpinWheelController;
 use App\Http\Controllers\MonthCalendarController;
 use App\Http\Controllers\VisitationController;
+use App\Http\Controllers\NewsController;
+use App\Http\Controllers\Admin\NewsAdminController;
+use App\Http\Controllers\Admin\NewsSourceAdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -62,6 +65,7 @@ Route::post('/forslag-og-tilbakemeldinger', [FeedbackSubmissionController::class
 
 Route::get('/fagstoff', [ProfessionalResourceController::class, 'index'])
     ->name('professional-resources.index');
+Route::get('/nyheter', [NewsController::class, 'index'])->name('news.index');
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login', [AdminAuthController::class, 'showLogin'])
@@ -118,6 +122,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->name('feedback.index');
         Route::patch('/forslag/{feedbackSubmission}', [FeedbackAdminController::class, 'update'])
             ->name('feedback.update');
+        Route::get('/nyheter', [NewsAdminController::class, 'index'])->name('news.index');
+        Route::patch('/nyheter/{newsArticle}', [NewsAdminController::class, 'update'])->name('news.update');
+        Route::patch('/nyheter/{newsArticle}/status', [NewsAdminController::class, 'status'])->name('news.status');
+        Route::get('/nyheter/kilder', [NewsSourceAdminController::class, 'index'])->name('news-sources.index');
+        Route::patch('/nyheter/kilder/{newsSource}', [NewsSourceAdminController::class, 'toggle'])->name('news-sources.toggle');
+        Route::post('/nyheter/kilder/{newsSource}/hent', [NewsSourceAdminController::class, 'fetch'])->name('news-sources.fetch');
     });
 });
 

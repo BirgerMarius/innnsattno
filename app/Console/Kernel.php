@@ -5,6 +5,7 @@ namespace App\Console;
 use App\Console\Commands\DiscoverSchibstedFootball;
 use App\Console\Commands\ExploreSchibstedFootball;
 use App\Console\Commands\ProbeSchibstedFootball;
+use App\Console\Commands\FetchNews;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -19,6 +20,7 @@ class Kernel extends ConsoleKernel
         DiscoverSchibstedFootball::class,
         ExploreSchibstedFootball::class,
         ProbeSchibstedFootball::class,
+        FetchNews::class,
     ];
 
     /**

@@ -1,5 +1,7 @@
 <?php
 
+namespace Database\Seeders;
+
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -11,6 +13,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $this->call(ResourceCategorySeeder::class);
+        $this->call(NewsSourceSeeder::class);
+        $this->call(\ResourceCategorySeeder::class);
     }
 }

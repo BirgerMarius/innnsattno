@@ -6,6 +6,9 @@
     display:block;
 }
 
+.news-card { overflow: hidden; }
+.news-card-image { height: 220px; object-fit: cover; background: #eee; }
+
 .page-container{
     margin-top:30px;
     margin-bottom:30px;
