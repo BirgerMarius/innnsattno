@@ -208,6 +208,11 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <span class="front-page-btn-title"><i class="far fa-book-open"></i> Anbefalt fagstoff</span>
             <small>Utvalgte ressurser for ansatte og andre interesserte</small>
         </a>
+
+        <a href="{{ route('news.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--professional front-page-btn--wide" role="button">
+            <span class="front-page-btn-title"><i class="far fa-newspaper"></i> Fagnyheter</span>
+            <small>Nyheter fra kriminalomsorgen og beslektede fagområder</small>
+        </a>
     </div>
 </div>
 

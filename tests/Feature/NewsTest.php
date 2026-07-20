@@ -4,6 +4,7 @@ use App\NewsArticle;use App\NewsSource;use Illuminate\Foundation\Testing\Refresh
 class NewsTest extends TestCase
 {
  use RefreshDatabase;
+ public function testNavigationLinksToPublicAndAdminNewsPages(){ $this->get(route('tv'))->assertOk()->assertSee('href="'.route('news.index').'"',false);$this->get(route('news.index'))->assertOk()->assertSee('href="'.route('admin.news.index').'"',false); }
  public function testPublicPageOnlyShowsPublishedAndSupportsCountryFilter(){ $no=$this->source('Norge');$se=$this->source('Sverige','se');$published=$this->article($no,'Publisert',NewsArticle::STATUS_PUBLISHED);foreach(['pending','hidden','archived'] as $status)$this->article($no,ucfirst($status),$status);$this->article($se,'Svensk publisert',NewsArticle::STATUS_PUBLISHED);$this->get('/nyheter?land=norge')->assertOk()->assertSee('Publisert')->assertDontSee('Svensk publisert')->assertDontSee('Pending')->assertDontSee('Hidden')->assertDontSee('Archived'); }
  public function testPaginationWorks(){ $s=$this->source('Norge');foreach(range(1,13) as $i)$this->article($s,'Artikkel '.$i,NewsArticle::STATUS_PUBLISHED,['published_at'=>now()->subMinutes($i)]);$this->get('/nyheter')->assertOk()->assertSee('page=2',false); }
  public function testAdminRequiresAuthentication(){ $this->get('/admin/nyheter')->assertRedirect(route('admin.login'));$this->get('/admin/nyheter/kilder')->assertRedirect(route('admin.login')); }
