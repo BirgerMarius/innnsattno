@@ -175,8 +175,12 @@ $isEvenWeek = $weekNumber % 2 === 0;
             🕌 Bønnetider – Ilseng fengsel
         </a>
 
-        <a href="/fotball" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
-            ⚽ Fotball-VM 2026
+        <a href="{{ route('visitation.index') }}" class="btn btn-primary btn-lg btn-block front-page-btn front-page-btn--ringerike" role="button">
+            <svg class="front-page-wheel-icon" aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <circle cx="12" cy="13" r="8"></circle>
+                <path d="M12 5v16M4 13h16M6.34 7.34l11.32 11.32M17.66 7.34 6.34 18.66M10 2h4l-2 3z"></path>
+            </svg>
+            Visitasjonsrullett – Ringerike fengsel
         </a>
 
         <a href="/premier-league" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">

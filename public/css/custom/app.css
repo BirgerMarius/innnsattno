@@ -70,6 +70,18 @@
     margin: 0;
 }
 
+.front-page-wheel-icon {
+    fill: none;
+    flex: 0 0 auto;
+    height: 1.35em;
+    margin-right: 0.4em;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.75;
+    width: 1.35em;
+}
+
 .front-page-secondary {
     display: grid;
     gap: 8px;

@@ -31,10 +31,28 @@ class VisitationTest extends TestCase
         }
     }
 
-    public function testVisitationIsNotLinkedFromFrontPage()
+    public function testFrontPageLinksToVisitationAndKeepsOtherMainChoices()
     {
-        $this->get(route('tv'))
+        $response = $this->get(route('tv'));
+
+        $response
             ->assertStatus(200)
-            ->assertDontSee('/visitasjon');
+            ->assertSee('Visitasjonsrullett')
+            ->assertSee('href="'.route('visitation.index').'"', false)
+            ->assertDontSee('href="/fotball"', false);
+
+        foreach ([
+            'Skriv ut TV-guide for i dag - Ringerike fengsel',
+            'Skriv ut TV-guide for i dag - Ilseng fengsel',
+            'Bønnetider – Ringerike fengsel',
+            'Bønnetider – Ilseng fengsel',
+            'Premier League 2026/27',
+            'Eliteserien 2026',
+            'Tidsfordriv – Sudoku',
+            'Tidsfordriv – Ordjakt',
+            'Månedskalender – For utskrift',
+        ] as $frontPageChoice) {
+            $response->assertSee($frontPageChoice);
+        }
     }
 }
