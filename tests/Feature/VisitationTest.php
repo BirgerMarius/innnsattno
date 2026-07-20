@@ -6,14 +6,18 @@ use Tests\TestCase;
 
 class VisitationTest extends TestCase
 {
-    public function testVisitationPageIsAvailable()
+    public function testVisitationPageIncludesCellDrawAssetsAndData()
     {
         $response = $this->get(route('visitation.index'));
 
         $response
             ->assertStatus(200)
-            ->assertSee('Visitasjon')
-            ->assertSee('Trekk celle');
+            ->assertSee('Trekk celle')
+            ->assertSee(asset('css/visitation.css'), false)
+            ->assertSee(asset('js/visitation.js'), false)
+            ->assertSee('id="visitationDepartments"', false)
+            ->assertSee('type="application/json"', false)
+            ->assertSee('A-101');
     }
 
     public function testVerifiedDepartmentsAndCellListsAreShown()
