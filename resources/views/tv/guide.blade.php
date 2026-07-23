@@ -175,6 +175,10 @@ $isEvenWeek = $weekNumber % 2 === 0;
             🕌 Bønnetider – Ilseng fengsel
         </a>
 
+        <a href="{{ route('weather.index') }}" class="btn btn-primary btn-lg btn-block front-page-btn front-page-btn--ringerike" role="button">
+            🌦️ Værmelding – Tyristrand/Ringerike Fengsel
+        </a>
+
         <a href="{{ route('visitation.index') }}" class="btn btn-primary btn-lg btn-block front-page-btn front-page-btn--ringerike" role="button">
             <svg class="front-page-wheel-icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <circle cx="12" cy="13" r="8"></circle>

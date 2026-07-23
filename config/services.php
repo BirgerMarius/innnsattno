@@ -58,4 +58,13 @@ return [
         ],
     ],
 
+    'weather' => [
+        'base_url' => env('WEATHER_API_BASE_URL', 'https://api.met.no/weatherapi/locationforecast/2.0/compact'),
+        'latitude' => env('WEATHER_LATITUDE', 60.087),
+        'longitude' => env('WEATHER_LONGITUDE', 10.099),
+        'user_agent' => env('WEATHER_USER_AGENT', 'innsatt.no/1.0 innsatt@innsatt.no'),
+        'cache_ttl' => env('WEATHER_CACHE_TTL', 1800),
+        'timeout' => env('WEATHER_TIMEOUT', 10),
+    ],
+
 ];

@@ -20,6 +20,7 @@ use App\Http\Controllers\SpinWheelController;
 use App\Http\Controllers\MonthCalendarController;
 use App\Http\Controllers\VisitationController;
 use App\Http\Controllers\NewsController;
+use App\Http\Controllers\WeatherController;
 use App\Http\Controllers\Admin\NewsAdminController;
 use App\Http\Controllers\Admin\NewsSourceAdminController;
 
@@ -36,6 +37,8 @@ Route::get('/', function () {
 Route::get('/tv', function () {
     return view('tv.guide');
 })->name('tv');
+
+Route::get('/vaer', [WeatherController::class, 'index'])->name('weather.index');
 
 Route::get('/ilseng', function () {
     return redirect('print-ilseng');
