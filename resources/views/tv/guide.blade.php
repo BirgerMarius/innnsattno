@@ -221,7 +221,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
 </div>
 
 <p class="text-center text-muted mt-3">
-    Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.
+    Hver dag bidrar fengselsbetjenter til trygghet, håp og nye muligheter – med profesjonalitet, menneskelighet og mot gjør dere en uvurderlig forskjell for hele samfunnet.
 </p>
 
 <div class="front-page-secondary">
