@@ -18,6 +18,8 @@ deployment:
 runtime:
   prompt: developer
   review: standard
+  testCommand: "docker compose -f compose.local.yaml exec -T innsatt-local php artisan test tests/Feature/HomepageTextTest.php"
+  testTimeoutSeconds: 600
 
 paths:
   context: context
