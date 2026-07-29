@@ -48,6 +48,14 @@ class Wheel {
         this.spinDuration = 0;
         this.startRotation = 0;
         this.targetRotation = 0;
+        this.selectedIndex = -1;
+        this.surpriseSpin = false;
+        this.lastSpinWasSurprise = false;
+        this.surpriseTurnAt = .82;
+        this.surpriseOvershoot = 0;
+        this.speedVariationPhase = 0;
+        this.speedCurve = [0, 1];
+        this.previousRotation = 0;
 
         requestAnimationFrame((time) => this.animate(time));
 
@@ -353,6 +361,16 @@ class Wheel {
         this.spinDuration = this.prefersReducedMotion ? 650 : this.randomSpinDuration();
         this.startRotation = this.rotation;
         this.targetRotation = target;
+        this.selectedIndex = selectedIndex;
+        this.surpriseSpin = !this.prefersReducedMotion &&
+            !this.lastSpinWasSurprise &&
+            Math.random() < .1;
+        this.lastSpinWasSurprise = this.surpriseSpin;
+        this.surpriseOvershoot = slice * (.58 + Math.random() * .14);
+        this.surpriseTurnAt = .8 + Math.random() * .04;
+        this.speedVariationPhase = Math.random() * Math.PI * 2;
+        this.speedCurve = this.buildSpeedCurve();
+        this.previousRotation = this.rotation;
         this.lastTick = -1;
 
     }
@@ -365,10 +383,9 @@ class Wheel {
 
             const elapsed = time - this.spinStartTime;
             const progress = Math.min(1, elapsed / this.spinDuration);
-            const eased = this.easeInOutCubic(progress);
-
-            this.rotation = this.startRotation + (this.targetRotation - this.startRotation) * eased;
-            this.tick();
+            this.previousRotation = this.rotation;
+            this.rotation = this.rotationAt(progress);
+            this.tick(this.rotation >= this.previousRotation ? 1 : -1);
 
             if(progress >= 1){
 
@@ -399,21 +416,89 @@ class Wheel {
 
     /*===================================*/
 
-    easeInOutCubic(t){
+    rotationAt(progress){
 
-        if(t < .5){
+        if(this.surpriseSpin){
 
-            return 4 * t * t * t;
+            if(progress < this.surpriseTurnAt){
+
+                const approach = progress / this.surpriseTurnAt;
+                const easedApproach = this.variableEaseOut(approach);
+                const overshootTarget = this.targetRotation + this.surpriseOvershoot;
+
+                return this.startRotation +
+                    (overshootTarget - this.startRotation) * easedApproach;
+
+            }
+
+            const returnProgress = (progress - this.surpriseTurnAt) /
+                (1 - this.surpriseTurnAt);
+            const easedReturn = this.easeInOutCubic(returnProgress);
+
+            return this.targetRotation +
+                this.surpriseOvershoot * (1 - easedReturn);
 
         }
 
-        return 1 - Math.pow(-2 * t + 2, 3) / 2;
+        return this.startRotation +
+            (this.targetRotation - this.startRotation) *
+            this.variableEaseOut(progress);
 
     }
 
     /*===================================*/
 
-    tick(){
+    variableEaseOut(t){
+
+        const position = t * (this.speedCurve.length - 1);
+        const lower = Math.floor(position);
+        const upper = Math.min(this.speedCurve.length - 1, lower + 1);
+        const fraction = position - lower;
+
+        return this.speedCurve[lower] +
+            (this.speedCurve[upper] - this.speedCurve[lower]) * fraction;
+
+    }
+
+    /*===================================*/
+
+    buildSpeedCurve(){
+
+        const steps = 180;
+        const curve = [0];
+        let distance = 0;
+
+        for(let step = 1; step <= steps; step++){
+
+            const t = (step - .5) / steps;
+            const slowdown = Math.pow(1 - t, 3) + .008;
+            const variation =
+                1 +
+                Math.sin(t * Math.PI * 5 + this.speedVariationPhase) * .08 +
+                Math.sin(t * Math.PI * 9 + this.speedVariationPhase * .7) * .035;
+
+            distance += slowdown * variation;
+            curve.push(distance);
+
+        }
+
+        return curve.map((value) => value / distance);
+
+    }
+
+    /*===================================*/
+
+    easeInOutCubic(t){
+
+        return t < .5
+            ? 4 * t * t * t
+            : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+    }
+
+    /*===================================*/
+
+    tick(direction){
 
         if(this.names.length === 0){
 
@@ -431,7 +516,7 @@ class Wheel {
 
             if(this.tickCallback){
 
-                this.tickCallback();
+                this.tickCallback(direction);
 
             }
 
@@ -443,8 +528,18 @@ class Wheel {
 
     finishSpin(){
 
-        const slice = (Math.PI * 2) / this.names.length;
-        const index = Math.floor(this.normalizedPointer() / slice);
+        const index = this.selectedIndex;
+
+        // Snap to the exact preselected centre before deriving the visible result.
+        this.rotation = this.targetRotation % (Math.PI * 2);
+        const visibleIndex = Math.floor(this.normalizedPointer() /
+            ((Math.PI * 2) / this.names.length));
+
+        if(visibleIndex !== index){
+
+            throw new Error("Oppdragshjulet landet på feil segment.");
+
+        }
 
         this.winnerIndex = index;
         this.glowUntil = performance.now() + 1500;
@@ -482,6 +577,8 @@ class Wheel {
         this.spinDuration = 0;
         this.startRotation = this.rotation;
         this.targetRotation = this.rotation;
+        this.selectedIndex = -1;
+        this.surpriseSpin = false;
         this.lastTick = -1;
 
     }
