@@ -1,0 +1,34 @@
+services:
+  innsatt-local:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: innsatt-local
+    working_dir: /app
+    ports:
+      - "8086:8080"
+    volumes:
+      - .:/app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: php artisan serve --host=0.0.0.0 --port=8080
+
+  mysql:
+    image: mysql:8.0
+    container_name: innsatt-local-mysql
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravel
+      MYSQL_ROOT_PASSWORD: laravel_root
+    volumes:
+      - innsatt-local-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  innsatt-local-mysql-data:
