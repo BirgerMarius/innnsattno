@@ -94,7 +94,7 @@ class CompetitionPrintTest extends TestCase
 
         $response->assertOk()
             ->assertViewHas('previousWeek', fn (array $week) => $week['number'] === 52 && $week['year'] === 2026)
-            ->assertViewHas('nextWeek', fn (array $week) => $week['number'] === 2 && $week['year'] === 2027);
+            ->assertViewHas('nextWeek', fn (array $week) => $week['number'] === 1 && $week['year'] === 2027);
     }
 
     private function fakeCompetition(int $seasonId): void

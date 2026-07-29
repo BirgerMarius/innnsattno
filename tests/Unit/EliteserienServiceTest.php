@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Services\EliteserienService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
@@ -26,22 +27,28 @@ class EliteserienServiceTest extends TestCase
     /** @test */
     public function it_normalizes_eliteserien_standings_fixtures_results_and_norwegian_dates(): void
     {
-        $data = (new EliteserienService())->normalizeCompetitionData(
-            $this->schedulePayload(240, 16),
-            $this->standingsPayload(16)
-        );
+        Carbon::setTestNow(Carbon::parse('2026-07-01 12:00:00', 'Europe/Oslo'));
 
-        $this->assertCount(16, $data['standings']);
-        $this->assertSame('Eliteserien Team 1', $data['standings'][0]['teamName']);
-        $this->assertSame(1, $data['standings'][0]['goalDifference']);
-        $this->assertCount(12, $data['upcomingFixtures']);
-        $this->assertCount(12, $data['recentResults']);
-        $this->assertSame('14.07.2026', $data['upcomingFixtures'][0]['dateLabel']);
-        $this->assertSame('12:00', $data['upcomingFixtures'][0]['timeLabel']);
-        $this->assertSame('Utsatt', $data['upcomingFixtures'][0]['statusLabel']);
-        $this->assertNull($data['upcomingFixtures'][0]['homeScore']);
-        $this->assertNull($data['recentResults'][0]['homeScore']);
-        $this->assertSame('14.07.2026 12:00', $data['lastUpdated']->format('d.m.Y H:i'));
+        try {
+            $data = (new EliteserienService())->normalizeCompetitionData(
+                $this->schedulePayload(240, 16),
+                $this->standingsPayload(16)
+            );
+
+            $this->assertCount(16, $data['standings']);
+            $this->assertSame('Eliteserien Team 1', $data['standings'][0]['teamName']);
+            $this->assertSame(1, $data['standings'][0]['goalDifference']);
+            $this->assertCount(12, $data['upcomingFixtures']);
+            $this->assertCount(12, $data['recentResults']);
+            $this->assertSame('14.07.2026', $data['upcomingFixtures'][0]['dateLabel']);
+            $this->assertSame('12:00', $data['upcomingFixtures'][0]['timeLabel']);
+            $this->assertSame('Utsatt', $data['upcomingFixtures'][0]['statusLabel']);
+            $this->assertNull($data['upcomingFixtures'][0]['homeScore']);
+            $this->assertNull($data['recentResults'][0]['homeScore']);
+            $this->assertSame('14.07.2026 12:00', $data['lastUpdated']->format('d.m.Y H:i'));
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     /** @test */

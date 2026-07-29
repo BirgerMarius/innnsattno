@@ -114,14 +114,16 @@ class ProfessionalResourceTest extends TestCase
         $response->assertSee('Logg ut');
     }
 
-    public function testAdminLinkOnPublicPageOnlyShowsForAuthenticatedAdmin()
+    public function testPublicPageShowsTheIntendedAdministrationLink()
     {
         $this->get('/fagstoff')
-            ->assertDontSee('Gå til administrasjonspanelet');
+            ->assertSee('Administrator?')
+            ->assertSee('Administrasjon');
 
         $this->adminSession()
             ->get('/fagstoff')
-            ->assertSee('Gå til administrasjonspanelet');
+            ->assertSee('Administrator?')
+            ->assertSee('Administrasjon');
     }
 
     public function testProfessionalResourcesPageDoesNotShowRedundantNavBox()
@@ -376,7 +378,7 @@ class ProfessionalResourceTest extends TestCase
             ->assertRedirect(route('admin.professional-resources.edit', $resource));
 
         $resource->refresh();
-        $this->assertSame(['arbeid', 'familie'], $resource->tags()->orderBy('slug')->pluck('slug')->all());
+        $this->assertEqualsCanonicalizing(['arbeid', 'familie'], $resource->tags()->pluck('slug')->all());
         $this->assertSame(6, Tag::count());
     }
 
@@ -429,8 +431,8 @@ class ProfessionalResourceTest extends TestCase
 
     public function testResourceCategorySeederCanRunMultipleTimesWithoutDuplicates()
     {
-        $this->seed('ResourceCategorySeeder');
-        $this->seed('ResourceCategorySeeder');
+        $this->seed('\\ResourceCategorySeeder');
+        $this->seed('\\ResourceCategorySeeder');
 
         $this->assertSame(10, ResourceCategory::count());
         $this->assertSame(10, ResourceCategory::distinct('slug')->count('slug'));

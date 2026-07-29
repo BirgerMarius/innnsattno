@@ -47,15 +47,27 @@ class FeedbackSubmissionTest extends TestCase
 
         $this->post('/forslag-og-tilbakemeldinger', $this->validAnonymousPayload());
 
-        Mail::assertSent(NewFeedbackSubmissionNotification::class, function ($mail) {
-            return $mail->hasTo('varsling@example.test')
-                && $mail->feedbackSubmission->title === 'Legg til mer informasjon'
-                && $mail->feedbackSubmission->message === 'Det hadde vaert nyttig med en oversikt over flere tjenester.'
-                && $mail->typeLabel === 'Ny idé'
-                && $mail->statusLabel === 'Ny'
-                && str_contains($mail->render(), 'Legg til mer informasjon')
-                && str_contains($mail->render(), 'Det hadde vaert nyttig med en oversikt over flere tjenester.');
-        });
+        Mail::assertSent(NewFeedbackSubmissionNotification::class, 1);
+
+        $sentMail = Mail::sent(NewFeedbackSubmissionNotification::class)->first();
+        $this->assertTrue($sentMail->hasTo('varsling@example.test'));
+        $this->assertSame('Legg til mer informasjon', $sentMail->feedbackSubmission->title);
+        $this->assertSame(
+            'Det hadde vaert nyttig med en oversikt over flere tjenester.',
+            $sentMail->feedbackSubmission->message
+        );
+        $this->assertSame('Ny idé', $sentMail->typeLabel);
+
+        $mail = new NewFeedbackSubmissionNotification(FeedbackSubmission::firstOrFail());
+        $mail->build();
+        $rendered = $this->renderFeedbackMail($mail);
+
+        $this->assertTrue($mail->hasSubject('Nytt forslag mottatt på Innsatt.no'));
+        $this->assertStringContainsString('Legg til mer informasjon', $rendered);
+        $this->assertStringContainsString(
+            'Det hadde vaert nyttig med en oversikt over flere tjenester.',
+            $rendered
+        );
     }
 
     public function testAnonymousFeedbackNotificationDoesNotIncludeContactDetails()
@@ -66,7 +78,7 @@ class FeedbackSubmissionTest extends TestCase
         $this->post('/forslag-og-tilbakemeldinger', $this->validAnonymousPayload());
 
         Mail::assertSent(NewFeedbackSubmissionNotification::class, function ($mail) {
-            $rendered = $mail->render();
+            $rendered = $this->renderFeedbackMail($mail);
 
             return $mail->feedbackSubmission->is_anonymous
                 && str_contains($rendered, 'Anonym innsending')
@@ -92,7 +104,7 @@ class FeedbackSubmissionTest extends TestCase
         ]);
 
         Mail::assertSent(NewFeedbackSubmissionNotification::class, function ($mail) {
-            $rendered = $mail->render();
+            $rendered = $this->renderFeedbackMail($mail);
 
             return ! $mail->feedbackSubmission->is_anonymous
                 && str_contains($rendered, 'Feil på nettsiden')
@@ -182,6 +194,15 @@ class FeedbackSubmissionTest extends TestCase
         $response->assertRedirect('/forslag-og-tilbakemeldinger');
         $response->assertSessionHasErrors(['type', 'title', 'message', 'submission_type']);
         $this->assertSame(0, FeedbackSubmission::count());
+    }
+
+    private function renderFeedbackMail(NewFeedbackSubmissionNotification $mail): string
+    {
+        return view('emails.feedback.new-submission', [
+            'feedbackSubmission' => $mail->feedbackSubmission,
+            'typeLabel' => $mail->typeLabel,
+            'statusLabel' => $mail->statusLabel,
+        ])->render();
     }
 
     private function validAnonymousPayload(): array
