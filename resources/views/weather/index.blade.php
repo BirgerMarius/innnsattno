@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Værmelding – Tyristrand / Ringerike fengsel')
+@section('title', $heading)
 
 @section('content')
 <div class="container page-container weather-page">
@@ -8,8 +8,10 @@
 
     <main>
         <div class="text-center mb-4">
-            <h1>Værmelding</h1>
-            <p class="lead mb-0">Tyristrand / Ringerike fengsel</p>
+            <h1>{{ $heading }}</h1>
+            @if ($forecast)
+                <p class="lead mb-0">{{ $forecast['location'] }}</p>
+            @endif
         </div>
 
         @if ($error)

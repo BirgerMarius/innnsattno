@@ -158,35 +158,52 @@ $isEvenWeek = $weekNumber % 2 === 0;
 @include('partials.header')
 
 <div class="front-page-actions">
-    <div class="front-page-grid">
-        <a href="/print" class="btn btn-primary btn-lg btn-block front-page-btn front-page-btn--ringerike" tabindex="1" role="button">
-            <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ringerike fengsel
-        </a>
+    <section class="prison-actions" aria-label="Tjenester for fengslene">
+        <div class="prison-actions-column prison-actions-column--ringerike">
+            <a href="/print" class="btn btn-primary btn-lg front-page-btn front-page-btn--ringerike" role="button">
+                <i class="far fa-print" aria-hidden="true"></i> Skriv ut TV-guide – Ringerike fengsel
+            </a>
+            <a href="/bonnetider" class="btn btn-primary btn-lg front-page-btn front-page-btn--ringerike" role="button">
+                🕌 Bønnetider – Ringerike fengsel
+            </a>
+            <a href="{{ route('weather.index') }}" class="btn btn-primary btn-lg front-page-btn front-page-btn--ringerike" role="button">
+                🌦️ Værmelding – Tyristrand/Ringerike fengsel
+            </a>
+            <a href="{{ route('visitation.index') }}" class="btn btn-primary btn-lg front-page-btn front-page-btn--ringerike" role="button">
+                <svg class="front-page-wheel-icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="12" cy="13" r="8"></circle>
+                    <path d="M12 5v16M4 13h16M6.34 7.34l11.32 11.32M17.66 7.34 6.34 18.66M10 2h4l-2 3z"></path>
+                </svg>
+                Visitasjonsrullett – Ringerike fengsel
+            </a>
+            <a href="https://www.kriminalomsorgen.no/ringerike-fengsel.5031519-237612.html"
+               target="_blank" rel="noopener"
+               class="btn btn-primary btn-lg front-page-btn front-page-btn--ringerike">
+                ℹ️ Ringerike fengsel
+            </a>
+        </div>
 
-        <a href="/print-ilseng" class="btn btn-danger btn-lg btn-block front-page-btn front-page-btn--ilseng" role="button">
-            <i class="far fa-print"></i> Skriv ut TV-guide for i dag - Ilseng fengsel
-        </a>
+        <div class="prison-actions-column prison-actions-column--ilseng">
+            <a href="/print-ilseng" class="btn btn-danger btn-lg front-page-btn front-page-btn--ilseng" role="button">
+                <i class="far fa-print" aria-hidden="true"></i> Skriv ut TV-guide – Ilseng fengsel
+            </a>
+            <a href="/bonnetider-ilseng" class="btn btn-danger btn-lg front-page-btn front-page-btn--ilseng" role="button">
+                🕌 Bønnetider – Ilseng fengsel
+            </a>
+            <a href="{{ route('weather.ilseng') }}" class="btn btn-danger btn-lg front-page-btn front-page-btn--ilseng" role="button">
+                🌦️ Værmelding – Ilseng fengsel
+            </a>
+            <span class="prison-actions-placeholder" aria-hidden="true"></span>
+            <a href="https://www.kriminalomsorgen.no/fengsel/innlandet-kriminalomsorgen-innlandet-avd-lavere-sikkerhet-ilseng"
+               target="_blank" rel="noopener"
+               class="btn btn-danger btn-lg front-page-btn front-page-btn--ilseng">
+                ℹ️ Ilseng fengsel
+            </a>
+        </div>
+    </section>
 
-        <a href="/bonnetider" class="btn btn-primary btn-lg btn-block front-page-btn front-page-btn--ringerike" role="button">
-            🕌 Bønnetider – Ringerike fengsel
-        </a>
-
-        <a href="/bonnetider-ilseng" class="btn btn-danger btn-lg btn-block front-page-btn front-page-btn--ilseng" role="button">
-            🕌 Bønnetider – Ilseng fengsel
-        </a>
-
-        <a href="{{ route('weather.index') }}" class="btn btn-primary btn-lg btn-block front-page-btn front-page-btn--ringerike" role="button">
-            🌦️ Værmelding – Tyristrand/Ringerike Fengsel
-        </a>
-
-        <a href="{{ route('visitation.index') }}" class="btn btn-primary btn-lg btn-block front-page-btn front-page-btn--ringerike" role="button">
-            <svg class="front-page-wheel-icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <circle cx="12" cy="13" r="8"></circle>
-                <path d="M12 5v16M4 13h16M6.34 7.34l11.32 11.32M17.66 7.34 6.34 18.66M10 2h4l-2 3z"></path>
-            </svg>
-            Visitasjonsrullett – Ringerike fengsel
-        </a>
-
+    <section class="shared-actions" aria-label="Sport, tidsfordriv og utskrift">
+        <div class="front-page-grid">
         <a href="/premier-league" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
             ⚽ Premier League 2026/27
         </a>
@@ -206,12 +223,16 @@ $isEvenWeek = $weekNumber % 2 === 0;
         <a href="{{ route('calendar.index') }}" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--wide" role="button">
             <i class="far fa-calendar-alt"></i> Månedskalender – For utskrift
         </a>
+        </div>
 
-        <a href="{{ route('feedback.create') }}" class="btn btn-success btn-lg btn-block front-page-btn front-page-btn--wide front-page-btn--feedback" role="button">
-            <span class="front-page-btn-title"><i class="far fa-comment-alt"></i> Har du en idé?</span>
-            <small>Har du en idé eller har du oppdaget en feil?</small>
+        <a href="/oppdrag" class="btn btn-lg front-page-btn front-page-btn--task-wheel">
+            <span>🎲</span>
+            <span>Spinn hjulet</span>
+            <small>Hvem får oppdraget?</small>
         </a>
+    </section>
 
+    <section class="front-page-grid front-page-content-actions" aria-label="Faglig innhold">
         <a href="{{ route('professional-resources.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--professional front-page-btn--wide" role="button">
             <span class="front-page-btn-title"><i class="far fa-book-open"></i> Anbefalt fagstoff</span>
             <small>Utvalgte ressurser for ansatte og andre interesserte</small>
@@ -221,28 +242,13 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <span class="front-page-btn-title"><i class="far fa-newspaper"></i> Fagnyheter</span>
             <small>Nyheter fra kriminalomsorgen og beslektede fagområder</small>
         </a>
-    </div>
+    </section>
 </div>
 
-<p class="text-center text-muted mt-3">
-    Hver dag bidrar fengselsbetjenter til trygghet, håp og nye muligheter – med profesjonalitet, menneskelighet og mot gjør dere en uvurderlig forskjell for hele samfunnet.
-</p>
-
-<div class="front-page-secondary">
-    <a href="https://www.kriminalomsorgen.no/ringerike-fengsel.5031519-237612.html"
-       target="_blank"
-       class="btn btn-primary btn-lg front-page-btn front-page-btn--ringerike">
-        ℹ️ Ringerike fengsel
-    </a>
-
-    <a href="https://www.kriminalomsorgen.no/fengsel/innlandet-kriminalomsorgen-innlandet-avd-lavere-sikkerhet-ilseng"
-       target="_blank"
-       class="btn btn-danger btn-lg front-page-btn front-page-btn--ilseng">
-        ℹ️ Ilseng fengsel
-    </a>
-
-    <a href="/oppdrag" class="btn btn-lg front-page-btn front-page-btn--task-wheel front-page-btn--wide">
-        🎲 Spinn hjulet – Hvem får oppdraget?
+<div class="front-page-feedback">
+    <a href="{{ route('feedback.create') }}" class="btn btn-lg front-page-btn front-page-btn--feedback" role="button">
+        <span class="front-page-btn-title"><i class="far fa-comment-alt"></i> Har du en idé?</span>
+        <small>Har du en idé eller har du oppdaget en feil?</small>
     </a>
 </div>
 

@@ -60,11 +60,24 @@ return [
 
     'weather' => [
         'base_url' => env('WEATHER_API_BASE_URL', 'https://api.met.no/weatherapi/locationforecast/2.0/compact'),
-        'latitude' => env('WEATHER_LATITUDE', 60.087),
-        'longitude' => env('WEATHER_LONGITUDE', 10.099),
         'user_agent' => env('WEATHER_USER_AGENT', 'innsatt.no/1.0 innsatt@innsatt.no'),
         'cache_ttl' => env('WEATHER_CACHE_TTL', 1800),
         'timeout' => env('WEATHER_TIMEOUT', 10),
+        'locations' => [
+            'ringerike' => [
+                'name' => 'Tyristrand / Ringerike fengsel',
+                'latitude' => env('WEATHER_RINGERIKE_LATITUDE', 60.087),
+                'longitude' => env('WEATHER_RINGERIKE_LONGITUDE', 10.099),
+                'cache_key' => 'weather.ringerike.forecast',
+            ],
+            'ilseng' => [
+                'name' => 'Ilseng fengsel',
+                // Ilseng fengsel, Linjevegen 50, Stange (60.779295 N, 11.2281577 E).
+                'latitude' => env('WEATHER_ILSENG_LATITUDE', 60.779295),
+                'longitude' => env('WEATHER_ILSENG_LONGITUDE', 11.2281577),
+                'cache_key' => 'weather.ilseng.forecast',
+            ],
+        ],
     ],
 
 ];

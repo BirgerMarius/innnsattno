@@ -59,6 +59,30 @@
     margin-top: 20px;
 }
 
+.prison-actions {
+    align-items: stretch;
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.prison-actions-column {
+    display: grid;
+    gap: 8px;
+    grid-template-rows: repeat(5, minmax(52px, auto));
+    min-width: 0;
+}
+
+.prison-actions-placeholder {
+    display: block;
+    min-height: 52px;
+}
+
+.shared-actions,
+.front-page-content-actions {
+    margin-top: 24px;
+}
+
 .front-page-grid {
     display: grid;
     gap: 8px;
@@ -86,19 +110,6 @@
     width: 20px;
 }
 
-.front-page-secondary {
-    display: grid;
-    gap: 8px;
-    grid-template-columns: repeat(2, minmax(220px, max-content));
-    justify-content: center;
-    margin-top: 24px;
-}
-
-.front-page-secondary .front-page-btn {
-    height: 100%;
-    margin: 0;
-}
-
 .front-page-btn--ringerike {
     --front-page-btn-bg: #007bff;
     --front-page-btn-border: #007bff;
@@ -118,19 +129,76 @@
 }
 
 .front-page-btn--task-wheel {
-    --front-page-btn-bg: #f59e0b;
-    --front-page-btn-border: #b45309;
-    --front-page-btn-color: #1f1300;
+    --front-page-btn-bg: transparent;
+    --front-page-btn-border: #342768;
+    --front-page-btn-color: #fff;
     animation: task-wheel-pulse 2s ease-in-out infinite;
-    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.55);
+    background: conic-gradient(
+        #18c7c8 0deg 45deg,
+        #ff8a21 45deg 90deg,
+        #92d524 90deg 135deg,
+        #2684ff 135deg 180deg,
+        #20ad68 180deg 225deg,
+        #ffd43b 225deg 270deg,
+        #f04472 270deg 315deg,
+        #8d55d9 315deg 360deg
+    );
+    box-shadow: 0 0 0 0 rgba(92, 68, 171, 0.5);
+    border-radius: 50%;
+    flex-direction: column;
     font-weight: 700;
+    gap: 3px;
+    height: 190px;
+    margin: 20px auto 0;
+    overflow: hidden;
+    padding: 24px;
+    position: relative;
+    isolation: isolate;
+    width: 190px;
+}
+
+.front-page-btn--task-wheel::before {
+    background: rgba(28, 26, 48, 0.9);
+    border: 3px solid rgba(255, 255, 255, 0.85);
+    border-radius: 50%;
+    content: "";
+    height: 138px;
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    width: 138px;
+    z-index: -1;
+}
+
+.front-page-btn--task-wheel span:first-child {
+    font-size: 2rem;
+}
+
+.front-page-btn--task-wheel span:nth-child(2),
+.front-page-btn--task-wheel small {
+    transform: translateY(-6px);
+}
+
+.front-page-btn--task-wheel small {
+    font-weight: 500;
+    line-height: 1.15;
+    margin-top: -3px;
 }
 
 .front-page-btn--task-wheel:hover,
 .front-page-btn--task-wheel:focus {
-    --front-page-btn-bg: #d97706;
-    --front-page-btn-border: #92400e;
     --front-page-btn-color: #fff;
+    border-color: #17122d;
+    filter: saturate(1.15);
+    transform: translateY(-2px) rotate(2deg);
+}
+
+.front-page-btn--task-wheel:hover::before,
+.front-page-btn--task-wheel:focus::before {
+    background: rgba(15, 14, 29, 0.94);
+    transform: translate(-50%, -50%) scale(1.04);
 }
 
 .front-page-btn--wide {
@@ -138,17 +206,18 @@
 }
 
 .front-page-btn--feedback {
-    --front-page-btn-bg: #198754;
-    --front-page-btn-border: #198754;
+    --front-page-btn-bg: #6f42c1;
+    --front-page-btn-border: #59359a;
     --front-page-btn-color: #fff;
     flex-direction: column;
     gap: 4px;
+    max-width: 680px;
 }
 
 .front-page-btn--feedback:hover,
 .front-page-btn--feedback:focus {
-    --front-page-btn-bg: #146c43;
-    --front-page-btn-border: #13653f;
+    --front-page-btn-bg: #59359a;
+    --front-page-btn-border: #432874;
     --front-page-btn-color: #fff;
 }
 
@@ -156,6 +225,18 @@
     font-size: 0.9rem;
     font-weight: 400;
     line-height: 1.25;
+}
+
+.front-page-feedback {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+}
+
+.front-page-btn:focus-visible {
+    box-shadow: 0 0 0 0.25rem rgba(33, 37, 41, 0.35);
+    outline: 3px solid #fff;
+    outline-offset: -6px;
 }
 
 .feedback-intro {
@@ -212,12 +293,31 @@
 
 @media (max-width: 767.98px) {
     .front-page-grid,
-    .front-page-secondary {
+    .prison-actions {
         grid-template-columns: 1fr;
+    }
+
+    .prison-actions {
+        gap: 28px;
+    }
+
+    .prison-actions-column {
+        grid-template-rows: none;
+    }
+
+    .prison-actions-placeholder {
+        display: none;
     }
 
     .front-page-btn--wide {
         grid-column: auto;
+    }
+}
+
+@media (max-width: 360px) {
+    .front-page-btn {
+        font-size: 1rem;
+        overflow-wrap: anywhere;
     }
 }
 

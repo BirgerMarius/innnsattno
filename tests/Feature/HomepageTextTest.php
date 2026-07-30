@@ -8,27 +8,40 @@ class HomepageTextTest extends TestCase
 {
     private const OFFICER_TRIBUTE = 'Hver dag bidrar fengselsbetjenter til trygghet, håp og nye muligheter – med profesjonalitet, menneskelighet og mot gjør dere en uvurderlig forskjell for hele samfunnet.';
 
-    private const PAPER_SAVING_NOTICE = 'Husk å velge 2 sider per ark og skrive ut dobbeltsidig for å redusere papirforbruket.';
-
-    /**
-     * @dataProvider frontPageViewProvider
-     */
-    public function testFrontPageViewContainsOfficerTributeAndNotPaperSavingNotice(string $view)
+    public function testHomepageContainsReorganizedActionsAndNoOfficerTribute(): void
     {
-        $response = $this->view($view);
+        $response = $this->get(route('tv'));
 
         $response
-            ->assertSee(self::OFFICER_TRIBUTE)
-            ->assertDontSee(self::PAPER_SAVING_NOTICE);
+            ->assertOk()
+            ->assertSee('Skriv ut TV-guide – Ringerike fengsel')
+            ->assertSee('href="/print"', false)
+            ->assertSee('Bønnetider – Ringerike fengsel')
+            ->assertSee('href="/bonnetider"', false)
+            ->assertSee('Værmelding – Tyristrand/Ringerike fengsel')
+            ->assertSee('href="'.route('weather.index').'"', false)
+            ->assertSee('Skriv ut TV-guide – Ilseng fengsel')
+            ->assertSee('href="/print-ilseng"', false)
+            ->assertSee('Bønnetider – Ilseng fengsel')
+            ->assertSee('href="/bonnetider-ilseng"', false)
+            ->assertSee('href="'.route('weather.ilseng').'"', false)
+            ->assertSee('Værmelding – Ilseng fengsel')
+            ->assertSee('href="'.route('visitation.index').'"', false)
+            ->assertSee('ℹ️ Ringerike fengsel')
+            ->assertSee('ℹ️ Ilseng fengsel')
+            ->assertSee('class="prison-actions-placeholder"', false)
+            ->assertDontSee('prison-actions-heading')
+            ->assertSee('href="/oppdrag"', false)
+            ->assertSee('Spinn hjulet')
+            ->assertSee('href="'.route('feedback.create').'"', false)
+            ->assertSee('Har du en idé?')
+            ->assertDontSee(self::OFFICER_TRIBUTE);
 
-        $this->assertSame(1, substr_count((string) $response, self::OFFICER_TRIBUTE));
-    }
-
-    public function frontPageViewProvider(): array
-    {
-        return [
-            'TV guide' => ['tv.guide'],
-            'Ilseng TV guide' => ['tv.ilseng'],
-        ];
+        $this->assertSame(1, substr_count((string) $response->getContent(), 'Visitasjonsrullett'));
+        $response->assertDontSee('Visitasjonsrullett – Ilseng');
+        $this->assertMatchesRegularExpression(
+            '/Værmelding – Ilseng fengsel.*prison-actions-placeholder.*ℹ️ Ilseng fengsel/s',
+            (string) $response->getContent()
+        );
     }
 }

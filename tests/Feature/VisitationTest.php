@@ -52,10 +52,12 @@ class VisitationTest extends TestCase
         );
 
         foreach ([
-            'Skriv ut TV-guide for i dag - Ringerike fengsel',
-            'Skriv ut TV-guide for i dag - Ilseng fengsel',
+            'Skriv ut TV-guide – Ringerike fengsel',
+            'Skriv ut TV-guide – Ilseng fengsel',
             'Bønnetider – Ringerike fengsel',
             'Bønnetider – Ilseng fengsel',
+            'Værmelding – Tyristrand/Ringerike fengsel',
+            'Værmelding – Ilseng fengsel',
             'Premier League 2026/27',
             'Eliteserien 2026',
             'Tidsfordriv – Sudoku',

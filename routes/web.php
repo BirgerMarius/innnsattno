@@ -39,6 +39,7 @@ Route::get('/tv', function () {
 })->name('tv');
 
 Route::get('/vaer', [WeatherController::class, 'index'])->name('weather.index');
+Route::get('/vaer-ilseng', [WeatherController::class, 'ilseng'])->name('weather.ilseng');
 
 Route::get('/ilseng', function () {
     return redirect('print-ilseng');

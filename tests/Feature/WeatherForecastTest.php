@@ -15,7 +15,7 @@ class WeatherForecastTest extends TestCase
     public function testWeatherPageShowsForecastAndFrontPageLink(): void
     {
         $service = Mockery::mock(WeatherForecastService::class);
-        $service->shouldReceive('forecast')->once()->andReturn([
+        $service->shouldReceive('forecast')->once()->with('ringerike')->andReturn([
             'location' => 'Tyristrand / Ringerike fengsel',
             'updated_at' => Carbon::parse('2026-07-23 08:30', 'Europe/Oslo'),
             'days' => [
@@ -37,14 +37,14 @@ class WeatherForecastTest extends TestCase
 
         $this->get(route('tv'))
             ->assertOk()
-            ->assertSee('Værmelding – Tyristrand/Ringerike Fengsel')
+            ->assertSee('Værmelding – Tyristrand/Ringerike fengsel')
             ->assertSee('href="'.route('weather.index').'"', false);
     }
 
     public function testWeatherProviderFailureShowsFriendlyMessage(): void
     {
         $service = Mockery::mock(WeatherForecastService::class);
-        $service->shouldReceive('forecast')->once()->andThrow(new RuntimeException('API unavailable'));
+        $service->shouldReceive('forecast')->once()->with('ringerike')->andThrow(new RuntimeException('API unavailable'));
         $this->app->instance(WeatherForecastService::class, $service);
 
         $this->get('/vaer')
@@ -58,8 +58,8 @@ class WeatherForecastTest extends TestCase
         Cache::flush();
         config([
             'services.weather.base_url' => 'https://api.met.no/weatherapi/locationforecast/2.0/compact',
-            'services.weather.latitude' => 60.087,
-            'services.weather.longitude' => 10.099,
+            'services.weather.locations.ringerike.latitude' => 60.087,
+            'services.weather.locations.ringerike.longitude' => 10.099,
             'services.weather.user_agent' => 'innsatt.no-test',
         ]);
 
@@ -97,6 +97,60 @@ class WeatherForecastTest extends TestCase
             return $request->url() === 'https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=60.087&lon=10.099'
                 && $request->hasHeader('User-Agent', 'innsatt.no-test');
         });
+    }
+
+    public function testIlsengWeatherPageUsesItsOwnConfigurationAndCoordinates(): void
+    {
+        Cache::flush();
+        config([
+            'services.weather.base_url' => 'https://api.met.no/weatherapi/locationforecast/2.0/compact',
+            'services.weather.user_agent' => 'innsatt.no-test',
+            'services.weather.locations.ilseng.latitude' => 60.779295,
+            'services.weather.locations.ilseng.longitude' => 11.2281577,
+        ]);
+
+        Http::fake([
+            'api.met.no/*' => Http::response([
+                'properties' => [
+                    'meta' => ['updated_at' => '2026-07-23T06:00:00Z'],
+                    'timeseries' => [
+                        $this->metPoint('2026-07-23T08:00:00Z', 18.4, 2.6, 0.0, 0.0),
+                    ],
+                ],
+            ]),
+        ]);
+
+        $this->get(route('weather.ilseng'))
+            ->assertOk()
+            ->assertSee('Værmelding – Ilseng fengsel')
+            ->assertSee('Ilseng fengsel')
+            ->assertDontSee('Tyristrand / Ringerike fengsel');
+
+        Http::assertSent(function ($request) {
+            return $request->url() === 'https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=60.779295&lon=11.2281577'
+                && $request->hasHeader('User-Agent', 'innsatt.no-test');
+        });
+    }
+
+    public function testIlsengWeatherFailureShowsFriendlyMessage(): void
+    {
+        $service = Mockery::mock(WeatherForecastService::class);
+        $service->shouldReceive('forecast')->once()->with('ilseng')->andThrow(new RuntimeException('API unavailable'));
+        $this->app->instance(WeatherForecastService::class, $service);
+
+        $this->get(route('weather.ilseng'))
+            ->assertOk()
+            ->assertSee('Værmelding – Ilseng fengsel')
+            ->assertSee('Vi klarte dessverre ikke å hente værmeldingen akkurat nå.')
+            ->assertDontSee('API unavailable');
+    }
+
+    public function testLocationsUseSeparateWeatherCacheKeys(): void
+    {
+        $this->assertNotSame(
+            config('services.weather.locations.ringerike.cache_key'),
+            config('services.weather.locations.ilseng.cache_key')
+        );
     }
 
     private function day(

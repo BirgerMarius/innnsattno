@@ -9,23 +9,29 @@ use RuntimeException;
 
 class WeatherForecastService
 {
-    public function forecast(): array
+    public function forecast(string $locationKey = 'ringerike'): array
     {
+        $location = config("services.weather.locations.{$locationKey}");
+
+        if (!is_array($location)) {
+            throw new RuntimeException("Ukjent værsted: {$locationKey}");
+        }
+
         return Cache::remember(
-            'weather.tyristrand.forecast',
+            $location['cache_key'],
             (int) config('services.weather.cache_ttl', 1800),
-            fn () => $this->fetchForecast()
+            fn () => $this->fetchForecast($location)
         );
     }
 
-    private function fetchForecast(): array
+    private function fetchForecast(array $location): array
     {
         $response = Http::acceptJson()
             ->withHeaders(['User-Agent' => config('services.weather.user_agent')])
             ->timeout((int) config('services.weather.timeout', 10))
             ->get(config('services.weather.base_url'), [
-                'lat' => config('services.weather.latitude'),
-                'lon' => config('services.weather.longitude'),
+                'lat' => $location['latitude'],
+                'lon' => $location['longitude'],
             ])
             ->throw()
             ->json();
@@ -77,7 +83,7 @@ class WeatherForecastService
             ->all();
 
         return [
-            'location' => 'Tyristrand / Ringerike fengsel',
+            'location' => $location['name'],
             'updated_at' => Carbon::parse(
                 data_get($response, 'properties.meta.updated_at', $timeSeries[0]['time'])
             )->setTimezone('Europe/Oslo'),
