@@ -23,6 +23,7 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\WeatherController;
 use App\Http\Controllers\Admin\NewsAdminController;
 use App\Http\Controllers\Admin\NewsSourceAdminController;
+use App\Services\RingbladNewsService;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,8 +35,10 @@ Route::get('/', function () {
     return redirect('tv');
 });
 
-Route::get('/tv', function () {
-    return view('tv.guide');
+Route::get('/tv', function (RingbladNewsService $ringbladNews) {
+    return view('tv.guide', [
+        'localNews' => $ringbladNews->latest(),
+    ]);
 })->name('tv');
 
 Route::get('/vaer', [WeatherController::class, 'index'])->name('weather.index');

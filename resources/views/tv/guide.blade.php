@@ -157,6 +157,41 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
 @include('partials.header')
 
+<div class="front-page-primary-area">
+@if (!empty($localNews))
+    <aside class="local-news-column" aria-labelledby="local-news-heading">
+        <h2 id="local-news-heading">Lokale nyheter</h2>
+        <p class="local-news-source">Fra Ringerikes Blad</p>
+        <ol class="local-news-list">
+            @foreach ($localNews as $article)
+                <li class="local-news-item">
+                    <a href="{{ $article['url'] }}"
+                       target="_blank"
+                       rel="noopener noreferrer">
+                        {{ $article['title'] }}
+                    </a>
+                    @if (!empty($article['published_at']) || !empty($article['is_subscription']))
+                        <div class="local-news-meta">
+                            @if (!empty($article['published_at']))
+                                <time>{{ $article['published_at'] }}</time>
+                            @endif
+                            @if (!empty($article['is_subscription']))
+                                <span class="local-news-subscription">Abonnement</span>
+                            @endif
+                        </div>
+                    @endif
+                </li>
+            @endforeach
+        </ol>
+        <a class="local-news-more"
+           href="https://www.ringblad.no/ringerike-fengsel/"
+           target="_blank"
+           rel="noopener noreferrer">
+            Se emnesiden hos Ringblad
+        </a>
+    </aside>
+@endif
+
 <div class="front-page-actions">
     <section class="prison-actions" aria-label="Tjenester for fengslene">
         <div class="prison-actions-column prison-actions-column--ringerike">
@@ -250,6 +285,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
         <span class="front-page-btn-title"><i class="far fa-comment-alt"></i> Har du en idé?</span>
         <small>Har du en idé eller har du oppdaget en feil?</small>
     </a>
+</div>
 </div>
 
 {{-- <iframe src="https://www.tvkampen.com/widget/638bd1bc1f1c1?heading=Sport&border_color=blue&autoscroll=0" frameborder="0" style="width: 600px; height: 500px; border: none"></iframe> --}}
