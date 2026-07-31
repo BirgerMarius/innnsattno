@@ -136,7 +136,13 @@
     margin-top: 8px;
 }
 
-@media (min-width: 1500px) {
+/*
+ * Bootstrap's desktop container is 1320px wide. Keep the centered main
+ * content untouched and only show the 260px news column when there is also
+ * room for its 24px gap and a 12px outer gutter:
+ * 1320px + (260px + 24px + 12px) * 2 = 1888px.
+ */
+@media (min-width: 1888px) {
     .local-news-column {
         display: block;
     }
@@ -375,6 +381,12 @@
 }
 
 @media (max-width: 767.98px) {
+    .front-page-date-item {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+
     .front-page-grid,
     .prison-actions {
         grid-template-columns: 1fr;
