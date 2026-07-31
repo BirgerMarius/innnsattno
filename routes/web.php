@@ -24,6 +24,7 @@ use App\Http\Controllers\WeatherController;
 use App\Http\Controllers\Admin\NewsAdminController;
 use App\Http\Controllers\Admin\NewsSourceAdminController;
 use App\Services\RingbladNewsService;
+use App\Services\FlagDayService;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,9 +36,10 @@ Route::get('/', function () {
     return redirect('tv');
 });
 
-Route::get('/tv', function (RingbladNewsService $ringbladNews) {
+Route::get('/tv', function (RingbladNewsService $ringbladNews, FlagDayService $flagDays) {
     return view('tv.guide', [
         'localNews' => $ringbladNews->latest(),
+        'flagDayOverview' => $flagDays->overview(),
     ]);
 })->name('tv');
 

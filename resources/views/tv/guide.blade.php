@@ -14,115 +14,45 @@
     .front-page-date-item {
         white-space: nowrap;
     }
+
+    .front-page-flag-link {
+        color: inherit;
+        text-decoration: underline;
+        text-decoration-color: transparent;
+        text-underline-offset: .15em;
+        transition: text-decoration-color .15s ease;
+    }
+
+    .front-page-flag-link:hover,
+    .front-page-flag-link:focus-visible {
+        color: inherit;
+        text-decoration-color: currentColor;
+    }
+
+    .front-page-flag-link:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
+        border-radius: 2px;
+    }
+
+    .front-page-flag-today {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .35rem;
+        white-space: normal;
+    }
 </style>
 @endpush
 
-@section('content') 
+@section('content')
 
 <div class="container my-5">
-
-@php
-$flagDays = [
-'01-01' => '1. nyttårsdag',
-'21-01' => 'H.K.H. Prinsesse Ingrid Alexandra',
-'06-02' => 'Samenes nasjonaldag',
-'21-02' => 'H.M. Kong Harald V',
-'01-05' => 'Arbeidernes dag',
-'08-05' => 'Frigjørings- og veterandagen',
-'17-05' => 'Grunnlovsdagen',
-'07-06' => 'Unionsoppløsningen 1905',
-'04-07' => 'H.M. Dronning Sonja',
-'20-07' => 'H.K.H. Kronprins Haakon',
-'29-07' => 'Olsokdagen',
-'19-08' => 'H.K.H. Kronprinsesse Mette-Marit',
-'25-12' => '1. juledag',
-];
-
-$easterSunday = \Carbon\Carbon::createFromTimestamp(
-    easter_date(now()->year)
-);
-
-$holyThursday = $easterSunday->copy()->subDays(3);
-$goodFriday = $easterSunday->copy()->subDays(2);
-$easterMonday = $easterSunday->copy()->addDay();
-
-$ascensionDay = $easterSunday->copy()->addDays(39);
-
-$pentecostSunday = $easterSunday->copy()->addDays(49);
-$pentecostMonday = $easterSunday->copy()->addDays(50);
-
-$flagDays[$holyThursday->format('d-m')] = 'Skjærtorsdag';
-$flagDays[$goodFriday->format('d-m')] = 'Langfredag';
-$flagDays[$easterSunday->format('d-m')] = '1. påskedag';
-$flagDays[$easterMonday->format('d-m')] = '2. påskedag';
-
-$flagDays[$ascensionDay->format('d-m')] = 'Kristi himmelfartsdag';
-
-$flagDays[$pentecostSunday->format('d-m')] = '1. pinsedag';
-$flagDays[$pentecostMonday->format('d-m')] = '2. pinsedag';
-
-uksort($flagDays, function ($a, $b) {
-    [$dayA, $monthA] = explode('-', $a);
-    [$dayB, $monthB] = explode('-', $b);
-
-    return sprintf('%02d%02d', $monthA, $dayA)
-         <=> sprintf('%02d%02d', $monthB, $dayB);
-});
-
-$today = now();
-
-$nextFlagDay = null;
-$nextFlagDayName = null;
-
-$upcomingFlagDays = [];
-
-foreach ($flagDays as $date => $name) {
-
-
-[$day, $month] = explode('-', $date);
-
-$flagDate = \Carbon\Carbon::create(now()->year, $month, $day);
-
-if ($flagDate->isToday() || $flagDate->isFuture()) {
-
-    $upcomingFlagDays[] =
-        $flagDate->locale('nb')->translatedFormat('j. F')
-        . ' - '
-        . $name;
-
-    if (!$nextFlagDay) {
-        $nextFlagDay = $flagDate;
-        $nextFlagDayName = $name;
-    }
-}
-
-
-}
-
-if (!$nextFlagDay) {
-$firstDate = array_key_first($flagDays);
-[$day, $month] = explode('-', $firstDate);
-
-
-$nextFlagDay = \Carbon\Carbon::create(
-    now()->year + 1,
-    $month,
-    $day
-);
-
-$nextFlagDayName = reset($flagDays);
-
-
-}
-$tooltipText = implode("\n", array_slice($upcomingFlagDays, 1, 10));
-$formattedDate = $nextFlagDay
-->locale('nb')
-->translatedFormat('j. F');
-@endphp
 
     @php
 $todayText = now()->locale('nb')->translatedFormat('l j. F Y');
 $weekNumber = now()->weekOfYear;
+$nextFlagDay = $flagDayOverview['next'];
 @endphp
 
 @php
@@ -143,15 +73,54 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <span class="text-muted">({{ $isEvenWeek ? 'Partallsuke' : 'Oddetallsuke' }})</span>
         </span>
 
-        <span class="front-page-date-item">
-            <strong>🇳🇴 Neste flaggdag:</strong>
-            {{ $formattedDate }} – {{ $nextFlagDayName }}
-        </span>
+        @if ($flagDayOverview['is_flag_day'])
+            <span class="front-page-date-item front-page-flag-today">
+                <span aria-hidden="true">🇳🇴</span>
+                <strong>I dag:</strong>
+                @if ($nextFlagDay['information_url'])
+                    <a class="front-page-flag-link"
+                       href="{{ $nextFlagDay['information_url'] }}"
+                       target="_blank"
+                       rel="noopener noreferrer">{{ $nextFlagDay['name'] }}</a>
+                @else
+                    <span>{{ $nextFlagDay['name'] }}</span>
+                @endif
+                <span aria-hidden="true">🇳🇴</span>
+            </span>
+        @else
+            <span class="front-page-date-item">
+                <strong><a class="front-page-flag-link"
+                           href="{{ $flagDayOverview['official_overview_url'] }}"
+                           target="_blank"
+                           rel="noopener noreferrer">Neste flaggdag:</a></strong>
+                {{ $nextFlagDay['date']->locale('nb')->translatedFormat('j. F') }} –
+                @if ($nextFlagDay['information_url'])
+                    <a class="front-page-flag-link"
+                       href="{{ $nextFlagDay['information_url'] }}"
+                       target="_blank"
+                       rel="noopener noreferrer">{{ $nextFlagDay['name'] }}</a>
+                @else
+                    <span>{{ $nextFlagDay['name'] }}</span>
+                @endif
+            </span>
+        @endif
     </div>
 
     <small class="text-muted d-block mt-1">
         Kommende flaggdager:
-        {{ $tooltipText }}
+        @foreach ($flagDayOverview['upcoming'] as $upcomingFlagDay)
+            <span class="front-page-upcoming-flag-day">
+                {{ $upcomingFlagDay['date']->locale('nb')->translatedFormat('j. F') }} -
+                @if ($upcomingFlagDay['information_url'])
+                    <a class="front-page-flag-link"
+                       href="{{ $upcomingFlagDay['information_url'] }}"
+                       target="_blank"
+                       rel="noopener noreferrer">{{ $upcomingFlagDay['name'] }}</a>
+                @else
+                    <span>{{ $upcomingFlagDay['name'] }}</span>
+                @endif
+            </span>
+        @endforeach
     </small>
 </div>
 
