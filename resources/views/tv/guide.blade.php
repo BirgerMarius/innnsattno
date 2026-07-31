@@ -42,6 +42,36 @@
         gap: .35rem;
         white-space: normal;
     }
+
+    .front-page-upcoming-flag-days {
+        display: inline-flex;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .front-page-upcoming-flag-day {
+        white-space: nowrap;
+    }
+
+    .front-page-upcoming-flag-day-separator {
+        margin: 0 .45em;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 575.98px) {
+        .front-page-upcoming-flag-days {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .front-page-upcoming-flag-day {
+            white-space: normal;
+        }
+
+        .front-page-upcoming-flag-day-separator {
+            display: none;
+        }
+    }
 </style>
 @endpush
 
@@ -53,6 +83,7 @@
 $todayText = now()->locale('nb')->translatedFormat('l j. F Y');
 $weekNumber = now()->weekOfYear;
 $nextFlagDay = $flagDayOverview['next'];
+$flagDayName = fn (array $flagDay) => $flagDay['name'].(isset($flagDay['age']) ? ' ('.$flagDay['age'].' år)' : '');
 @endphp
 
 @php
@@ -76,14 +107,14 @@ $isEvenWeek = $weekNumber % 2 === 0;
         @if ($flagDayOverview['is_flag_day'])
             <span class="front-page-date-item front-page-flag-today">
                 <span aria-hidden="true">🇳🇴</span>
-                <strong>I dag:</strong>
+                <strong>Det er flaggdag i dag:</strong>
                 @if ($nextFlagDay['information_url'])
                     <a class="front-page-flag-link"
                        href="{{ $nextFlagDay['information_url'] }}"
                        target="_blank"
-                       rel="noopener noreferrer">{{ $nextFlagDay['name'] }}</a>
+                       rel="noopener noreferrer">{{ $flagDayName($nextFlagDay) }}</a>
                 @else
-                    <span>{{ $nextFlagDay['name'] }}</span>
+                    <span>{{ $flagDayName($nextFlagDay) }}</span>
                 @endif
                 <span aria-hidden="true">🇳🇴</span>
             </span>
@@ -98,9 +129,9 @@ $isEvenWeek = $weekNumber % 2 === 0;
                     <a class="front-page-flag-link"
                        href="{{ $nextFlagDay['information_url'] }}"
                        target="_blank"
-                       rel="noopener noreferrer">{{ $nextFlagDay['name'] }}</a>
+                       rel="noopener noreferrer">{{ $flagDayName($nextFlagDay) }}</a>
                 @else
-                    <span>{{ $nextFlagDay['name'] }}</span>
+                    <span>{{ $flagDayName($nextFlagDay) }}</span>
                 @endif
             </span>
         @endif
@@ -108,19 +139,22 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
     <small class="text-muted d-block mt-1">
         Kommende flaggdager:
-        @foreach ($flagDayOverview['upcoming'] as $upcomingFlagDay)
-            <span class="front-page-upcoming-flag-day">
-                {{ $upcomingFlagDay['date']->locale('nb')->translatedFormat('j. F') }} -
-                @if ($upcomingFlagDay['information_url'])
-                    <a class="front-page-flag-link"
-                       href="{{ $upcomingFlagDay['information_url'] }}"
-                       target="_blank"
-                       rel="noopener noreferrer">{{ $upcomingFlagDay['name'] }}</a>
-                @else
-                    <span>{{ $upcomingFlagDay['name'] }}</span>
-                @endif
-            </span>
-        @endforeach
+        <span class="front-page-upcoming-flag-days">
+            @foreach ($flagDayOverview['upcoming'] as $upcomingFlagDay)
+                @if (! $loop->first)<span class="front-page-upcoming-flag-day-separator" aria-hidden="true">|</span>@endif
+                <span class="front-page-upcoming-flag-day">
+                    <strong>{{ $upcomingFlagDay['date']->locale('nb')->translatedFormat('j. M. Y') }}</strong>:
+                    @if ($upcomingFlagDay['information_url'])
+                        <a class="front-page-flag-link"
+                           href="{{ $upcomingFlagDay['information_url'] }}"
+                           target="_blank"
+                           rel="noopener noreferrer">{{ $flagDayName($upcomingFlagDay) }}</a>
+                    @else
+                        <span>{{ $flagDayName($upcomingFlagDay) }}</span>
+                    @endif
+                </span>
+            @endforeach
+        </span>
     </small>
 </div>
 

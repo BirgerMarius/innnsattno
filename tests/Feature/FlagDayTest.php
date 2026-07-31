@@ -47,7 +47,7 @@ class FlagDayTest extends TestCase
         $response->assertSee('rel="noopener noreferrer"', false);
     }
 
-    public function testFlagDayShowsFlagsBeforeAndAfterLinkedName(): void
+    public function testFlagDayShowsTodayMessageWithFlagsAndLinkedName(): void
     {
         Carbon::setTestNow('2026-07-29 12:00:00 Europe/Oslo');
 
@@ -55,7 +55,7 @@ class FlagDayTest extends TestCase
             ->assertOk()
             ->assertSeeInOrder([
                 '🇳🇴',
-                'I dag:',
+                'Det er flaggdag i dag:',
                 'href="https://snl.no/olsok"',
                 'Olsokdagen',
                 '🇳🇴',
@@ -70,7 +70,7 @@ class FlagDayTest extends TestCase
 
             $this->get('/tv')
                 ->assertOk()
-                ->assertDontSee('I dag:')
+                ->assertDontSee('Det er flaggdag i dag:')
                 ->assertDontSee('🇳🇴');
         }
     }
@@ -92,6 +92,59 @@ class FlagDayTest extends TestCase
         }
     }
 
+    public function testRoyalBirthdayAgesAreCalculatedFromBirthYearForEachCalendarYear(): void
+    {
+        $ingridIn2027 = collect(app(FlagDayService::class)->forYear(2027))
+            ->firstWhere('name', 'H.K.H. Prinsesse Ingrid Alexandra');
+        $ingridIn2028 = collect(app(FlagDayService::class)->forYear(2028))
+            ->firstWhere('name', 'H.K.H. Prinsesse Ingrid Alexandra');
+        $newYearsDay = collect(app(FlagDayService::class)->forYear(2027))
+            ->firstWhere('name', '1. nyttårsdag');
+
+        $this->assertSame(2004, $ingridIn2027['birth_year']);
+        $this->assertSame(23, $ingridIn2027['age']);
+        $this->assertSame(24, $ingridIn2028['age']);
+        $this->assertArrayNotHasKey('birth_year', $newYearsDay);
+        $this->assertArrayNotHasKey('age', $newYearsDay);
+    }
+
+    public function testRoyalBirthdayAgeIsShownForNextFlagDay(): void
+    {
+        Carbon::setTestNow('2027-01-20 12:00:00 Europe/Oslo');
+
+        $this->get('/tv')
+            ->assertOk()
+            ->assertSeeInOrder([
+                'Neste flaggdag:',
+                '21. januar',
+                'H.K.H. Prinsesse Ingrid Alexandra (23 år)',
+            ]);
+    }
+
+    public function testRoyalBirthdayAgeIsShownOnTheBirthdayInsideTheInformationLink(): void
+    {
+        Carbon::setTestNow('2027-01-21 12:00:00 Europe/Oslo');
+
+        $this->get('/tv')
+            ->assertOk()
+            ->assertSeeInOrder([
+                'Det er flaggdag i dag:',
+                'href="https://www.kongehuset.no/kongehuset/hennes-kongelige-hoyhet-prinsessen/prinsesse-ingrid-alexandras-biografi"',
+                'H.K.H. Prinsesse Ingrid Alexandra (23 år)',
+                '</a>',
+            ], false);
+    }
+
+    public function testOrdinaryFlagDayDoesNotShowAnAge(): void
+    {
+        Carbon::setTestNow('2027-01-01 12:00:00 Europe/Oslo');
+
+        $this->get('/tv')
+            ->assertOk()
+            ->assertSee('1. nyttårsdag')
+            ->assertDontSee('1. nyttårsdag (');
+    }
+
     public function testMovingFlagDaysAreCalculatedInALaterCalendarYear(): void
     {
         $flagDays = collect(app(FlagDayService::class)->forYear(2030))->keyBy('name');
@@ -106,7 +159,7 @@ class FlagDayTest extends TestCase
 
         $this->get('/tv')
             ->assertOk()
-            ->assertSeeInOrder(['🇳🇴', 'I dag:', 'Olsokdagen', '🇳🇴']);
+            ->assertSeeInOrder(['🇳🇴', 'Det er flaggdag i dag:', 'Olsokdagen', '🇳🇴']);
     }
 
     public function testInformationLinkHasSafeExternalLinkAttributesOnFlagDay(): void
@@ -123,7 +176,7 @@ class FlagDayTest extends TestCase
             ->assertSee('rel="noopener noreferrer"', false);
     }
 
-    public function testExactlyThreeFollowingFlagDaysAndTheirInformationLinksAreShownAcrossNewYear(): void
+    public function testNextFlagDayIsExcludedFromThreeDistinctFollowingFlagDaysAcrossNewYear(): void
     {
         Carbon::setTestNow('2026-12-24 12:00:00 Europe/Oslo');
 
@@ -135,25 +188,73 @@ class FlagDayTest extends TestCase
             '25. desember',
             '1. juledag',
             'Kommende flaggdager:',
-            '1. januar',
+            '<strong>1. jan. 2027</strong>:',
             'href="https://snl.no/nytt%C3%A5rsdag"',
             '1. nyttårsdag',
-            '21. januar',
+            '<strong>21. jan. 2027</strong>:',
             'href="https://www.kongehuset.no/kongehuset/hennes-kongelige-hoyhet-prinsessen/prinsesse-ingrid-alexandras-biografi"',
-            'H.K.H. Prinsesse Ingrid Alexandra',
-            '6. februar',
+            'H.K.H. Prinsesse Ingrid Alexandra (23 år)',
+            '<strong>6. feb. 2027</strong>:',
             'href="https://snl.no/samenes_nasjonaldag"',
             'Samenes nasjonaldag',
         ], false);
 
         $content = $response->getContent();
+        $overview = app(FlagDayService::class)->overview();
+        $upcomingDates = array_map(fn (array $flagDay) => $flagDay['date']->toDateString(), $overview['upcoming']);
+        $upcomingNames = array_column($overview['upcoming'], 'name');
 
+        $this->assertSame('1. juledag', $overview['next']['name']);
+        $this->assertSame(['1. nyttårsdag', 'H.K.H. Prinsesse Ingrid Alexandra', 'Samenes nasjonaldag'], $upcomingNames);
+        $this->assertSame(['2027-01-01', '2027-01-21', '2027-02-06'], $upcomingDates);
+        $this->assertCount(3, array_unique($upcomingDates));
+        $this->assertCount(3, array_unique($upcomingNames));
+        $this->assertNotContains($overview['next']['date']->toDateString(), $upcomingDates);
+        $this->assertNotContains($overview['next']['name'], $upcomingNames);
+        $this->assertSame(1, substr_count($content, '>1. juledag<'));
         $this->assertSame(3, substr_count($content, 'class="front-page-upcoming-flag-day"'));
+        $this->assertSame(2, substr_count($content, 'class="front-page-upcoming-flag-day-separator"'));
+        $this->assertSame(2, substr_count($content, 'aria-hidden="true">|</span>'));
         $this->assertSame(3, preg_match_all(
             '/class="front-page-upcoming-flag-day".*?<a class="front-page-flag-link"\s+href="[^"]+"\s+target="_blank"\s+rel="noopener noreferrer">/s',
             $content
         ));
-        $response->assertDontSee('21. februar');
+        $response->assertDontSee('<strong>25. des. 2026</strong>:', false);
         $response->assertDontSee('H.M. Kong Harald V');
+    }
+
+    public function testCurrentFlagDayIsExcludedFromThreeDistinctFollowingFlagDaysAcrossNewYear(): void
+    {
+        Carbon::setTestNow('2026-12-25 12:00:00 Europe/Oslo');
+
+        $response = $this->get('/tv');
+        $overview = app(FlagDayService::class)->overview();
+        $upcomingDates = array_map(fn (array $flagDay) => $flagDay['date']->toDateString(), $overview['upcoming']);
+        $upcomingNames = array_column($overview['upcoming'], 'name');
+
+        $response->assertOk()
+            ->assertSeeInOrder([
+                'Det er flaggdag i dag:',
+                '1. juledag',
+                'Kommende flaggdager:',
+                '<strong>1. jan. 2027</strong>:',
+                '1. nyttårsdag',
+                '<strong>21. jan. 2027</strong>:',
+                'H.K.H. Prinsesse Ingrid Alexandra (23 år)',
+                '<strong>6. feb. 2027</strong>:',
+                'Samenes nasjonaldag',
+            ], false)
+            ->assertDontSee('<strong>25. des. 2026</strong>:', false);
+
+        $this->assertTrue($overview['is_flag_day']);
+        $this->assertSame('1. juledag', $overview['next']['name']);
+        $this->assertSame(['2027-01-01', '2027-01-21', '2027-02-06'], $upcomingDates);
+        $this->assertSame(['1. nyttårsdag', 'H.K.H. Prinsesse Ingrid Alexandra', 'Samenes nasjonaldag'], $upcomingNames);
+        $this->assertCount(3, array_unique($upcomingDates));
+        $this->assertCount(3, array_unique($upcomingNames));
+        $this->assertNotContains($overview['next']['date']->toDateString(), $upcomingDates);
+        $this->assertNotContains($overview['next']['name'], $upcomingNames);
+        $this->assertSame(1, substr_count($response->getContent(), '>1. juledag<'));
+        $this->assertSame(3, substr_count($response->getContent(), 'class="front-page-upcoming-flag-day"'));
     }
 }
