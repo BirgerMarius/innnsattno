@@ -2,11 +2,19 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class HomepageTextTest extends TestCase
 {
     private const OFFICER_TRIBUTE = 'Hver dag bidrar fengselsbetjenter til trygghet, håp og nye muligheter – med profesjonalitet, menneskelighet og mot gjør dere en uvurderlig forskjell for hele samfunnet.';
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Http::fake();
+    }
 
     public function testHomepageContainsReorganizedActionsAndNoOfficerTribute(): void
     {

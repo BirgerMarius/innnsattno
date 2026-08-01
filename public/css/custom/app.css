@@ -381,7 +381,7 @@
 }
 
 @media (max-width: 767.98px) {
-    .front-page-date-item {
+.front-page-date-item {
         max-width: 100%;
         overflow-wrap: anywhere;
         white-space: normal;
@@ -407,6 +407,62 @@
     .front-page-btn--wide {
         grid-column: auto;
     }
+}
+
+.front-page-date-link {
+    color: inherit;
+    text-decoration: none;
+    border-radius: .25rem;
+}
+
+.front-page-date-link:hover,
+.front-page-date-link:focus-visible {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: .18em;
+}
+
+.front-page-date-link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+}
+
+.front-page-namedays {
+    color: #6c757d;
+}
+
+.today-page { background: #f5f6f8; min-height: 100vh; color: #20252b; }
+.today-navigation { display: flex; justify-content: center; gap: .75rem; margin: 1.5rem 0; flex-wrap: wrap; }
+.today-hero { color: #fff; text-align: center; padding: 2.5rem 1rem; border-radius: 1rem; background: linear-gradient(135deg, #174d78, #2476aa); box-shadow: 0 .5rem 1.5rem rgba(23, 77, 120, .18); }
+.today-kicker { text-transform: uppercase; letter-spacing: .14em; font-weight: 700; margin-bottom: .4rem; opacity: .85; }
+.today-hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); margin-bottom: 1.25rem; }
+.today-facts { display: flex; justify-content: center; flex-wrap: wrap; gap: .75rem; }
+.today-facts span { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: .45rem .85rem; }
+.today-highlight-grid, .today-people-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; margin-top: 1.25rem; }
+.today-card, .today-section, .today-sources { background: #fff; border: 1px solid #e2e6ea; border-radius: .8rem; padding: 1.5rem; box-shadow: 0 .25rem .8rem rgba(25, 45, 65, .06); }
+.today-card h2, .today-section h2, .today-sources h2 { color: #174d78; font-size: 1.3rem; margin-bottom: 1rem; }
+.today-large-text { font-size: 1.2rem; font-weight: 600; margin-bottom: 0; }
+.today-section { margin-top: 1.25rem; }
+.today-people-grid .today-section { margin-top: 0; }
+.today-timeline { list-style: none; padding: 0; margin: 0; }
+.today-timeline li { display: grid; grid-template-columns: 5rem 1fr; gap: 1rem; padding: 1rem 0; border-top: 1px solid #e8ebee; }
+.today-timeline li:first-child { border-top: 0; padding-top: 0; }
+.today-timeline time, .today-person-year { color: #174d78; font-weight: 800; font-variant-numeric: tabular-nums; }
+.today-timeline p { margin: 0 0 .25rem; }
+.today-external-link { font-size: .9rem; }
+.today-people-list { list-style: none; padding: 0; margin: 0; }
+.today-people-list li { display: grid; grid-template-columns: 4.5rem 1fr; gap: .75rem; padding: .75rem 0; border-top: 1px solid #e8ebee; }
+.today-people-list li:first-child { border-top: 0; padding-top: 0; }
+.today-people-list a { font-weight: 700; }
+.today-people-list small { display: block; color: #6c757d; margin-top: .15rem; }
+.today-unavailable { color: #6c757d; margin-bottom: 0; }
+.today-sources { margin-top: 1.25rem; font-size: .9rem; color: #59616a; }
+.today-sources p:last-child { margin-bottom: 0; }
+
+@media (max-width: 767.98px) {
+    .today-highlight-grid, .today-people-grid { grid-template-columns: 1fr; }
+    .today-timeline li { grid-template-columns: 3.75rem 1fr; gap: .65rem; }
+    .today-card, .today-section, .today-sources { padding: 1.1rem; }
 }
 
 @media (max-width: 360px) {

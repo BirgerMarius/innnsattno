@@ -21,10 +21,12 @@ use App\Http\Controllers\MonthCalendarController;
 use App\Http\Controllers\VisitationController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\WeatherController;
+use App\Http\Controllers\TodayController;
 use App\Http\Controllers\Admin\NewsAdminController;
 use App\Http\Controllers\Admin\NewsSourceAdminController;
 use App\Services\RingbladNewsService;
 use App\Services\FlagDayService;
+use App\Services\NamedayService;
 
 /*
 |--------------------------------------------------------------------------
@@ -36,12 +38,19 @@ Route::get('/', function () {
     return redirect('tv');
 });
 
-Route::get('/tv', function (RingbladNewsService $ringbladNews, FlagDayService $flagDays) {
+Route::get('/tv', function (RingbladNewsService $ringbladNews, FlagDayService $flagDays, NamedayService $namedays) {
+    $today = Carbon::now(FlagDayService::TIMEZONE);
+
     return view('tv.guide', [
         'localNews' => $ringbladNews->latest(),
         'flagDayOverview' => $flagDays->overview(),
+        'todayNamedays' => $namedays->forDate($today)['names'] ?? [],
     ]);
 })->name('tv');
+
+Route::get('/dagen-i-dag/{date?}', [TodayController::class, 'show'])
+    ->where('date', '\\d{4}-\\d{2}-\\d{2}')
+    ->name('today.show');
 
 Route::get('/vaer', [WeatherController::class, 'index'])->name('weather.index');
 Route::get('/vaer-ilseng', [WeatherController::class, 'ilseng'])->name('weather.ilseng');

@@ -92,11 +92,14 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
 <div class="alert alert-light text-center py-2 mb-3">
     <div class="front-page-date-row">
-        <span class="front-page-date-item">
+        <a class="front-page-date-item front-page-date-link" href="{{ route('today.show') }}">
             <strong>📅 Dato:</strong>
             {{ ucfirst(now()->locale('nb')->translatedFormat('l')) }}
             {{ now()->locale('nb')->translatedFormat('j. F Y') }}
-        </span>
+            @if (!empty($todayNamedays))
+                <span class="front-page-namedays">– {{ implode(', ', $todayNamedays) }}</span>
+            @endif
+        </a>
 
         <span class="front-page-date-item">
             <strong>📆 Ukenummer:</strong>
