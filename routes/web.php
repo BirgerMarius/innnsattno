@@ -21,11 +21,13 @@ use App\Http\Controllers\VisitationController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\WeatherController;
 use App\Http\Controllers\TodayController;
+use App\Http\Controllers\ChangeHistoryController;
 use App\Http\Controllers\Admin\NewsAdminController;
 use App\Http\Controllers\Admin\NewsSourceAdminController;
 use App\Services\RingbladNewsService;
 use App\Services\FlagDayService;
 use App\Services\NamedayService;
+use App\Services\ChangeHistoryService;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,15 +39,18 @@ Route::get('/', function () {
     return redirect('tv');
 });
 
-Route::get('/tv', function (RingbladNewsService $ringbladNews, FlagDayService $flagDays, NamedayService $namedays) {
+Route::get('/tv', function (RingbladNewsService $ringbladNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory) {
     $today = Carbon::now(FlagDayService::TIMEZONE);
 
     return view('tv.guide', [
         'localNews' => $ringbladNews->latest(),
         'flagDayOverview' => $flagDays->overview(),
         'todayNamedays' => $namedays->forDate($today)['names'] ?? [],
+        'changeHistory' => $changeHistory->get(),
     ]);
 })->name('tv');
+
+Route::get('/endringer', [ChangeHistoryController::class, 'index'])->name('change-history.index');
 
 Route::get('/dagen-i-dag/{date?}', [TodayController::class, 'show'])
     ->where('date', '\\d{4}-\\d{2}-\\d{2}')

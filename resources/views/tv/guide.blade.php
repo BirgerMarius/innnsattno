@@ -297,10 +297,13 @@ $isEvenWeek = $weekNumber % 2 === 0;
 {{-- <iframe src="https://www.tvkampen.com/widget/638bd1bc1f1c1?heading=Sport&border_color=blue&autoscroll=0" frameborder="0" style="width: 600px; height: 500px; border: none"></iframe> --}}
 
 
-<p class="text-center text-muted mt-4">
-    Siden er sist oppdatert:
-    {{ trim(shell_exec('git log -1 --format="%cd" --date=format:"%d.%m.%Y"')) }}
-</p>
+@if ($changeHistory['updated_at'])
+    <p class="text-center text-muted mt-4">
+        <a href="{{ route('change-history.index') }}" class="front-page-change-history-link text-muted">
+            Siden er sist oppdatert: {{ $changeHistory['updated_at']->format('d.m.Y') }}
+        </a>
+    </p>
+@endif
 
 @include('partials.footer')
 
