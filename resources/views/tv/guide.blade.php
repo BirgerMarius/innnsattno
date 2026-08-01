@@ -304,6 +304,10 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
 @include('partials.footer')
 
+<p class="front-page-admin-link text-center small mb-0 mt-3">
+    <a href="{{ route('admin.index') }}" class="text-muted">Administrasjon</a>
+</p>
+
 
     </div>
 

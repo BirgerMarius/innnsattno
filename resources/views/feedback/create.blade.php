@@ -156,9 +156,6 @@
 
             <p class="text-muted mt-4">Innsatt.no utvikles kontinuerlig, og mange av de beste idéene kommer fra brukerne av siden. Takk for at du bidrar!</p>
 
-            <p class="text-muted small mt-4 mb-0">
-                Administrator? <a href="{{ route('admin.login') }}" class="text-muted">Logg inn</a>
-            </p>
         </div>
     </div>
 

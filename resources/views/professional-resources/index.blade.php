@@ -141,9 +141,6 @@
             @endif
         @endforelse
 
-        <p class="text-muted small mt-4 mb-0">
-            Administrator? <a href="{{ route('admin.index') }}" class="text-muted">Administrasjon</a>
-        </p>
     </main>
 
     @include('partials.footer')

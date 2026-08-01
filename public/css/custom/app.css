@@ -971,11 +971,25 @@
     border-color: #d6e3e0;
 }
 
+.admin-dashboard-section {
+    border-color: #d6e3e0;
+    box-shadow: 0 0.125rem 0.35rem rgba(36, 59, 56, 0.08);
+}
+
 .admin-dashboard-number {
     color: #243b38;
     font-size: 2rem;
     font-weight: 700;
     line-height: 1.2;
+}
+
+.front-page-admin-link a {
+    text-decoration: none;
+}
+
+.front-page-admin-link a:hover,
+.front-page-admin-link a:focus-visible {
+    text-decoration: underline;
 }
 
 .site-nav-link:hover,

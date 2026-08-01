@@ -5,6 +5,9 @@ namespace Tests\Feature;
 use App\ProfessionalResource;
 use App\ResourceCategory;
 use App\Tag;
+use App\FeedbackSubmission;
+use App\NewsArticle;
+use App\NewsSource;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -44,6 +47,8 @@ class ProfessionalResourceTest extends TestCase
         $response->assertSee('href="' . route('professional-resources.index') . '"', false);
         $response->assertDontSee('Kuratert');
         $response->assertDontSee('kuratert');
+        $response->assertSee('href="' . route('admin.index') . '"', false);
+        $response->assertSee('Administrasjon');
     }
 
     public function testOnlyPublishedResourcesInActiveCategoriesAreShownPublicly()
@@ -91,7 +96,7 @@ class ProfessionalResourceTest extends TestCase
 
     public function testAdminRoutesRequireLogin()
     {
-        $this->get('/admin')->assertRedirect(route('admin.login'));
+        $this->get('/adm')->assertRedirect(route('admin.login'));
         $this->get('/admin/fagstoff')->assertRedirect(route('admin.login'));
         $this->get('/admin/fagstoff/kategorier')->assertRedirect(route('admin.login'));
     }
@@ -101,29 +106,52 @@ class ProfessionalResourceTest extends TestCase
         $category = $this->createCategory(['is_active' => true]);
         $this->createResource($category, ['status' => ProfessionalResource::STATUS_PUBLISHED]);
         $this->createResource($category, ['status' => ProfessionalResource::STATUS_DRAFT]);
+        FeedbackSubmission::create([
+            'type' => 'suggestion', 'title' => 'Nytt forslag', 'message' => 'En melding',
+            'is_anonymous' => true, 'status' => 'new',
+        ]);
+        $source = NewsSource::create([
+            'name' => 'Testkilde', 'slug' => 'testkilde', 'country' => 'Norge',
+            'website_url' => 'https://example.test', 'feed_url' => 'https://example.test/feed',
+            'source_type' => 'rss', 'is_active' => true,
+        ]);
+        NewsArticle::create([
+            'news_source_id' => $source->id, 'external_id' => 'article-1',
+            'original_url' => 'https://example.test/article-1',
+            'normalized_url' => 'https://example.test/article-1', 'original_title' => 'Ny artikkel',
+            'fetched_at' => now(), 'status' => NewsArticle::STATUS_PENDING,
+        ]);
 
-        $response = $this->adminSession()->get('/admin');
+        $response = $this->adminSession()->get('/adm');
 
         $response->assertStatus(200);
-        $response->assertSee('Anbefalt fagstoff');
+        $response->assertSee('Administrasjon');
         $response->assertSee('Publisert');
         $response->assertSee('Kladd');
         $response->assertSee('Aktive kategorier');
-        $response->assertSee('Ressurser');
-        $response->assertSee('Kategorier');
+        $response->assertSee('Se ressurser');
+        $response->assertSee('aktive kategorier');
+        $response->assertSee('Nyheter');
+        $response->assertSee('1 nye artikler venter på vurdering');
+        $response->assertSee('1 nye forslag eller tilbakemeldinger');
+        $response->assertSee('href="' . route('admin.professional-resources.index') . '"', false);
+        $response->assertSee('href="' . route('admin.news.index', ['status' => 'pending']) . '"', false);
+        $response->assertSee('href="' . route('admin.feedback.index', ['status' => 'new']) . '"', false);
+        $response->assertSee('Statistikk og serverlogg');
+        $response->assertSee('href="https://innsatt.no/statistikk/"', false);
         $response->assertSee('Logg ut');
     }
 
-    public function testPublicPageShowsTheIntendedAdministrationLink()
+    public function testProfessionalResourcesPageDoesNotShowAdministrationLink()
     {
         $this->get('/fagstoff')
-            ->assertSee('Administrator?')
-            ->assertSee('Administrasjon');
+            ->assertDontSee('Administrator?')
+            ->assertDontSee('href="' . route('admin.index') . '"', false);
 
         $this->adminSession()
             ->get('/fagstoff')
-            ->assertSee('Administrator?')
-            ->assertSee('Administrasjon');
+            ->assertDontSee('Administrator?')
+            ->assertDontSee('href="' . route('admin.index') . '"', false);
     }
 
     public function testProfessionalResourcesPageDoesNotShowRedundantNavBox()

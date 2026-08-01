@@ -29,16 +29,14 @@
 @endphp
 
 <div class="container page-container py-4">
+    @include('admin.partials.nav')
+
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
             <h1 class="h3 mb-1">Forslag og tilbakemeldinger</h1>
             <p class="text-muted mb-0">Nyeste innspill vises først.</p>
         </div>
 
-        <form method="POST" action="{{ route('admin.logout') }}">
-            @csrf
-            <button type="submit" class="btn btn-outline-secondary">Logg ut</button>
-        </form>
     </div>
 
     @if (session('success'))

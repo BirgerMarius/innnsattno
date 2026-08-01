@@ -1,17 +1,16 @@
 @extends('layouts.app')
 
-@section('title', 'Administrasjon - Anbefalt fagstoff')
+@section('title', 'Administrasjon')
 
 @section('content')
 <div class="container page-container admin-area py-4">
-    @include('admin.professional-resources.partials.nav')
+    @include('admin.partials.nav')
 
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
-            <h1 class="h3 mb-1">Anbefalt fagstoff</h1>
-            <p class="text-muted mb-0">Oversikt over ressurser og kategorier.</p>
+            <h1 class="h3 mb-1">Administrasjon</h1>
+            <p class="text-muted mb-0">Oversikt over innhold som trenger oppfølging.</p>
         </div>
-        <a href="{{ route('professional-resources.index') }}" class="btn btn-outline-primary">Offentlig side</a>
     </div>
 
     <div class="row g-3 mb-4">
@@ -41,11 +40,52 @@
         </div>
     </div>
 
-    <div class="d-flex flex-wrap gap-2">
-        <a href="{{ route('admin.professional-resources.index') }}" class="btn btn-primary">Ressurser</a>
-        <a href="{{ route('admin.resource-categories.index') }}" class="btn btn-primary">Kategorier</a>
-        <a href="{{ route('admin.professional-resources.create') }}" class="btn btn-success">Ny ressurs</a>
-        <a href="{{ route('admin.resource-categories.create') }}" class="btn btn-success">Ny kategori</a>
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <section class="card admin-dashboard-section h-100">
+                <div class="card-body d-flex flex-column">
+                    <h2 class="h5">Fagstoff</h2>
+                    <p class="text-muted">{{ $draftCount }} kladder og {{ $activeCategoryCount }} aktive kategorier.</p>
+                    <div class="d-flex flex-wrap gap-2 mt-auto">
+                        <a href="{{ route('admin.professional-resources.index') }}" class="btn btn-primary">Se ressurser</a>
+                        <a href="{{ route('admin.professional-resources.create') }}" class="btn btn-outline-primary">Ny ressurs</a>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="col-lg-4">
+            <section class="card admin-dashboard-section h-100">
+                <div class="card-body d-flex flex-column">
+                    <h2 class="h5">Nyheter</h2>
+                    <p class="text-muted">{{ $pendingNewsCount }} nye artikler venter på vurdering. {{ $activeNewsSourceCount }} kilder er aktive.</p>
+                    <div class="d-flex flex-wrap gap-2 mt-auto">
+                        <a href="{{ route('admin.news.index', ['status' => 'pending']) }}" class="btn btn-primary">Vurder artikler</a>
+                        <a href="{{ route('admin.news-sources.index') }}" class="btn btn-outline-primary">Se kilder</a>
+                    </div>
+                </div>
+            </section>
+        </div>
+        <div class="col-lg-4">
+            <section class="card admin-dashboard-section h-100">
+                <div class="card-body d-flex flex-column">
+                    <h2 class="h5">Forslag</h2>
+                    <p class="text-muted">{{ $newFeedbackCount }} nye forslag eller tilbakemeldinger.</p>
+                    <div class="mt-auto">
+                        <a href="{{ route('admin.feedback.index', ['status' => 'new']) }}" class="btn btn-primary">Se nye forslag</a>
+                    </div>
+                </div>
+            </section>
+        </div>
     </div>
+
+    <section class="card admin-dashboard-section mt-3">
+        <div class="card-body d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <h2 class="h5 mb-1">Statistikk og serverlogg</h2>
+                <p class="text-muted mb-0">Åpne serverens rapport for trafikk og besøksstatistikk.</p>
+            </div>
+            <a href="https://innsatt.no/statistikk/" class="btn btn-outline-primary">Åpne rapport</a>
+        </div>
+    </section>
 </div>
 @endsection

@@ -3,9 +3,8 @@
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
-use App\ProfessionalResource;
-use App\ResourceCategory;
 use App\Http\Controllers\Admin\AdminAuthController;
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\FeedbackAdminController;
 use App\Http\Controllers\Admin\ProfessionalResourceAdminController;
 use App\Http\Controllers\Admin\ResourceCategoryController;
@@ -85,6 +84,10 @@ Route::get('/fagstoff', [ProfessionalResourceController::class, 'index'])
     ->name('professional-resources.index');
 Route::get('/nyheter', [NewsController::class, 'index'])->name('news.index');
 
+Route::get('/adm', [AdminDashboardController::class, 'index'])
+    ->middleware('admin.auth')
+    ->name('admin.index');
+
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login', [AdminAuthController::class, 'showLogin'])
         ->name('login');
@@ -92,18 +95,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->middleware('throttle:5,1')
         ->name('login.store');
     Route::middleware('admin.auth')->group(function () {
-        Route::get('/', function () {
-            $statusCounts = ProfessionalResource::query()
-                ->selectRaw('status, count(*) as aggregate')
-                ->groupBy('status')
-                ->pluck('aggregate', 'status');
-
-            return view('admin.dashboard', [
-                'publishedCount' => (int) ($statusCounts[ProfessionalResource::STATUS_PUBLISHED] ?? 0),
-                'draftCount' => (int) ($statusCounts[ProfessionalResource::STATUS_DRAFT] ?? 0),
-                'activeCategoryCount' => ResourceCategory::where('is_active', true)->count(),
-            ]);
-        })->name('index');
         Route::post('/logout', [AdminAuthController::class, 'logout'])
             ->name('logout');
         Route::get('/fagstoff', [ProfessionalResourceAdminController::class, 'index'])

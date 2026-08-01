@@ -15,6 +15,14 @@ class FeedbackSubmissionTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function testPublicFeedbackPageDoesNotExposeAdminLogin()
+    {
+        $this->get(route('feedback.create'))
+            ->assertOk()
+            ->assertDontSee('href="' . route('admin.login') . '"', false)
+            ->assertDontSee('Administrator?');
+    }
+
     public function testFeedbackPageCanBeOpened()
     {
         $response = $this->get('/forslag-og-tilbakemeldinger');
