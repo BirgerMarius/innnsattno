@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\FlagDayService;
 use App\Services\NamedayService;
-use App\Services\OnThisDayService;
+use App\Services\TodayContentService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 
@@ -13,7 +13,7 @@ class TodayController extends Controller
     public function show(
         Request $request,
         NamedayService $namedays,
-        OnThisDayService $onThisDay,
+        TodayContentService $todayContent,
         FlagDayService $flagDays,
         ?string $date = null
     ) {
@@ -32,7 +32,7 @@ class TodayController extends Controller
             'date' => $selectedDate,
             'today' => CarbonImmutable::now(FlagDayService::TIMEZONE)->startOfDay(),
             'namedays' => $namedays->forDate($selectedDate)['names'] ?? [],
-            'history' => $onThisDay->forDate($selectedDate),
+            'history' => $todayContent->forDate($selectedDate),
             'flagDay' => $flagDay,
         ]);
     }

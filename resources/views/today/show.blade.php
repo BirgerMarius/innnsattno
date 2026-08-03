@@ -46,34 +46,55 @@
                     <p class="text-muted mb-0">Dette er ikke en offisiell norsk flaggdag.</p>
                 @endif
             </section>
+
+            @if ($history['observance'])
+                <section class="today-card today-observance">
+                    <p class="today-card-label">Dagens merkedag</p>
+                    <h2>{{ $history['observance']['title'] }}</h2>
+                    <p>{{ $history['observance']['description'] }}</p>
+                    <a class="today-external-link" href="{{ $history['observance']['url'] }}" target="_blank" rel="noopener noreferrer">Kilde: {{ $history['observance']['source_name'] }} <span aria-hidden="true">↗</span><span class="visually-hidden"> (åpnes i ny fane)</span></a>
+                </section>
+            @endif
         </div>
 
-        <section class="today-section" aria-labelledby="events-heading">
-            <h2 id="events-heading">Historiske hendelser</h2>
-            @if ($history['events'])
+        @if ($history['norway_events'])
+        <section class="today-section today-section-primary" aria-labelledby="norway-events-heading">
+            <p class="today-section-label">Norsk historie</p>
+            <h2 id="norway-events-heading">Denne dagen i Norge</h2>
                 <ol class="today-timeline">
-                    @foreach ($history['events'] as $item)
+                    @foreach ($history['norway_events'] as $item)
                         <li>
                             <time>{{ $item['year'] }}</time>
                             <div>
-                                <p>{{ $item['text'] }}</p>
+                                <h3>{{ $item['title'] }}</h3>
+                                <p>{{ $item['description'] }}</p>
                                 @if ($item['url'])
-                                    <a class="today-external-link" href="{{ $item['url'] }}" target="_blank" rel="noopener noreferrer">{{ $item['has_norwegian_page'] ? 'Norsk Wikipedia' : 'Wikipedia (engelsk)' }} <span aria-hidden="true">↗</span><span class="visually-hidden"> (åpnes i ny fane)</span></a>
+                                    <a class="today-external-link" href="{{ $item['url'] }}" target="_blank" rel="noopener noreferrer">Kilde: {{ $item['source_name'] }} <span aria-hidden="true">↗</span><span class="visually-hidden"> (åpnes i ny fane)</span></a>
                                 @endif
                             </div>
                         </li>
                     @endforeach
                 </ol>
-            @else
-                <p class="today-unavailable">Historiske hendelser er ikke tilgjengelige akkurat nå.</p>
-            @endif
         </section>
+        @endif
+
+        @if ($history['world_events'])
+            <section class="today-section today-section-world" aria-labelledby="world-events-heading">
+                <p class="today-section-label">Store hendelser</p>
+                <h2 id="world-events-heading">Denne dagen i verden</h2>
+                <ol class="today-timeline">
+                    @foreach ($history['world_events'] as $item)
+                        <li><time>{{ $item['year'] }}</time><div><h3>{{ $item['title'] }}</h3><p>{{ $item['description'] }}</p>@if ($item['url'])<a class="today-external-link" href="{{ $item['url'] }}" target="_blank" rel="noopener noreferrer">Kilde: {{ $item['source_name'] }} <span aria-hidden="true">↗</span><span class="visually-hidden"> (åpnes i ny fane)</span></a>@endif</div></li>
+                    @endforeach
+                </ol>
+            </section>
+        @endif
 
         <div class="today-people-grid">
             @foreach (['births' => 'Født denne dagen', 'deaths' => 'Døde denne dagen'] as $type => $heading)
+                @if ($history[$type])
                 <section class="today-section">
                     <h2>{{ $heading }}</h2>
-                    @if ($history[$type])
                         <ul class="today-people-list">
                             @foreach ($history[$type] as $item)
                                 <li>
@@ -85,20 +106,32 @@
                                             <strong>{{ $item['title'] }}</strong>
                                         @endif
                                         @if ($item['description'])<small>{{ $item['description'] }}</small>@endif
+                                        <small>Kilde: {{ $item['source_name'] }}</small>
                                     </div>
                                 </li>
                             @endforeach
                         </ul>
-                    @else
-                        <p class="today-unavailable">Opplysninger er ikke tilgjengelige akkurat nå.</p>
-                    @endif
                 </section>
+                @endif
             @endforeach
         </div>
 
+        @if (!$history['norway_events'] && !$history['world_events'] && !$history['births'] && !$history['deaths'])
+            <p class="today-history-empty">Vi fant ingen historiske oppføringer med god nok norsk tekst for denne datoen.</p>
+        @endif
+
+        @if ($history['fact'])
+            <aside class="today-fact" aria-labelledby="today-fact-heading">
+                <p class="today-card-label">Visste du at?</p>
+                <h2 id="today-fact-heading">{{ $history['fact']['title'] }}</h2>
+                <p>{{ $history['fact']['description'] }}</p>
+                <a class="today-external-link" href="{{ $history['fact']['url'] }}" target="_blank" rel="noopener noreferrer">Kilde: {{ $history['fact']['source_name'] }} <span aria-hidden="true">↗</span><span class="visually-hidden"> (åpnes i ny fane)</span></a>
+            </aside>
+        @endif
+
         <aside class="today-sources" aria-labelledby="sources-heading">
             <h2 id="sources-heading">Kilder og lisens</h2>
-            <p>Navnedager hentes fra <a href="https://webapi.no/" target="_blank" rel="noopener noreferrer">Webapi.no ↗</a>. Historiske hendelser, fødsler og dødsfall hentes fra Wikimedia sin «On this day»-tjeneste og lenker til Wikipedia.</p>
+            <p>Navnedager hentes fra <a href="https://webapi.no/" target="_blank" rel="noopener noreferrer">Webapi.no ↗</a>. Historiske hendelser, fødsler og dødsfall hentes automatisk fra Wikimedia og kvalitetssjekkes mot Wikidata. Norske beskrivelser og norske artikler prioriteres.</p>
             <p>Tekst fra Wikipedia er tilgjengelig under <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.no" target="_blank" rel="noopener noreferrer">Creative Commons Navngivelse-DelPåSammeVilkår 4.0 ↗</a>. Wikipedia er et registrert varemerke for Wikimedia Foundation. Opplysningene kan inneholde feil og bør kontrolleres mot lenkede artikler.</p>
         </aside>
 

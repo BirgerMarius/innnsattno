@@ -26,8 +26,8 @@ class TodayPageTest extends TestCase
             ->assertSee('Lørdag 1. august 2026')
             ->assertSeeInOrder(['Uke', '31', 'Dag', '213 av 365', 'Igjen av året', '152'])
             ->assertSee('Peder og Petra')
-            ->assertSee('Historiske hendelser')
-            ->assertSee('Testhendelse')
+            ->assertSee('Denne dagen i Norge')
+            ->assertSee('Testartikkel')
             ->assertSee('Født denne dagen')
             ->assertSee('Testperson')
             ->assertSee('Døde denne dagen')
@@ -56,6 +56,21 @@ class TodayPageTest extends TestCase
         $this->get('/dagen-i-dag/2026-02-30')->assertNotFound();
     }
 
+    public function testNavigationHandlesYearBoundaryAndLeapDay(): void
+    {
+        $this->fakeSources();
+
+        $this->get('/dagen-i-dag/2024-02-29')
+            ->assertOk()
+            ->assertSee('Torsdag 29. februar 2024')
+            ->assertSee('href="'.route('today.show', ['date' => '2024-03-01']).'"', false)
+            ->assertSee('Skuddagen');
+
+        $this->get('/dagen-i-dag/2026-12-31')
+            ->assertOk()
+            ->assertSee('href="'.route('today.show', ['date' => '2027-01-01']).'"', false);
+    }
+
     public function testHomepageDateLinksToTodayPageAndShowsNamedays(): void
     {
         Carbon::setTestNow('2026-08-01 12:00:00 Europe/Oslo');
@@ -74,36 +89,41 @@ class TodayPageTest extends TestCase
         $this->get('/dagen-i-dag/2026-08-01')->assertOk();
         $this->get('/dagen-i-dag/2026-08-01')->assertOk();
 
-        Http::assertSentCount(3);
+        Http::assertSentCount(4);
     }
 
     public function testLastSuccessfulDataIsUsedWhenSourcesFail(): void
     {
         $this->fakeSources();
-        $this->get('/dagen-i-dag/2026-08-01')->assertSee('Testhendelse');
+        $this->get('/dagen-i-dag/2026-08-01')->assertSee('Testartikkel');
 
         Cache::forget('today.fresh.namedays.08-01');
-        Cache::forget('today.fresh.wikimedia.08-01');
+        Cache::forget('today.fresh.curated.v3.08-01');
         Http::fake(fn () => throw new ConnectionException('Kilden er utilgjengelig'));
 
         $this->get('/dagen-i-dag/2026-08-01')
             ->assertOk()
             ->assertSee('Peder og Petra')
-            ->assertSee('Testhendelse');
+            ->assertSee('Testartikkel');
     }
 
     public function testEmptyOrUnavailableSourcesStillRenderLocalInformation(): void
     {
+        Cache::forget('today.fresh.curated.v3.08-02');
+        Cache::forget('today.stale.curated.v3.08-02');
+        Cache::forget('today.fresh.namedays.08-02');
+        Cache::forget('today.stale.namedays.08-02');
         Http::fake([
             'webapi.no/*' => Http::response(['data' => []]),
+            'no.wikipedia.org/*' => Http::response([]),
             'en.wikipedia.org/*' => Http::response(['events' => [], 'births' => [], 'deaths' => []]),
         ]);
 
-        $this->get('/dagen-i-dag/2026-08-01')
+        $this->get('/dagen-i-dag/2026-08-02')
             ->assertOk()
-            ->assertSee('Lørdag 1. august 2026')
+            ->assertSee('Søndag 2. august 2026')
             ->assertSee('Navnedager er ikke tilgjengelige akkurat nå.')
-            ->assertSee('Historiske hendelser er ikke tilgjengelige akkurat nå.');
+            ->assertSee('Vi fant ingen historiske oppføringer med god nok norsk tekst for denne datoen.');
     }
 
     private function fakeSources(): void
@@ -115,15 +135,16 @@ class TodayPageTest extends TestCase
                     ['month' => 5, 'day' => 17, 'names' => ['Harald', 'Ragnhild']],
                 ],
             ]),
-            'en.wikipedia.org/*' => Http::response([
-                'events' => [$this->entry(1901, 'Testhendelse', 'Testartikkel', 'Q1')],
-                'births' => [$this->entry(1950, 'Testperson, norsk forfatter', 'Testperson', 'Q2')],
-                'deaths' => [$this->entry(2000, 'Avdød person, norsk artist', 'Avdød person', 'Q3')],
+            'no.wikipedia.org/*' => Http::response([
+                'events' => [$this->entry(1901, 'Testhendelse ble markert i Norge', 'Testartikkel', 'Q1')],
+                'births' => [$this->entry(1950, 'Testperson er en norsk forfatter', 'Testperson', 'Q2')],
+                'deaths' => [$this->entry(2000, 'Avdød person var en norsk artist', 'Avdød person', 'Q3')],
             ]),
             'www.wikidata.org/*' => Http::response([
                 'entities' => [
-                    ['id' => 'Q1', 'sitelinks' => ['nowiki' => ['title' => 'Testartikkel']]],
-                    ['id' => 'Q2', 'sitelinks' => ['nowiki' => ['title' => 'Testperson']]],
+                    $this->entity('Q1', 'Testartikkel', 'En norsk testhendelse'),
+                    $this->entity('Q2', 'Testperson', 'Norsk forfatter', true),
+                    $this->entity('Q3', 'Avdød person', 'Norsk artist', true),
                 ],
             ]),
         ]);
@@ -140,6 +161,17 @@ class TodayPageTest extends TestCase
                 'description' => 'Kort beskrivelse',
                 'content_urls' => ['desktop' => ['page' => 'https://en.wikipedia.org/wiki/Test']],
             ]],
+        ];
+    }
+
+    private function entity(string $id, string $title, string $description, bool $norwegian = false): array
+    {
+        return [
+            'id' => $id,
+            'labels' => ['nb' => ['value' => $title]],
+            'descriptions' => ['nb' => ['value' => $description]],
+            'sitelinks' => ['nowiki' => ['title' => $title]],
+            'claims' => $norwegian ? ['P27' => [['mainsnak' => ['datavalue' => ['value' => ['id' => 'Q20']]]]]] : [],
         ];
     }
 }

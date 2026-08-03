@@ -82,7 +82,9 @@ return [
 
     'today' => [
         'namedays_url' => env('NAMEDAYS_API_URL', 'https://webapi.no/api/v1/namedays'),
-        'wikimedia_url' => env('WIKIMEDIA_ON_THIS_DAY_URL', 'https://en.wikipedia.org/api/rest_v1/feed/onthisday/all'),
+        'wikimedia_url' => env('WIKIMEDIA_ON_THIS_DAY_URL', 'https://no.wikipedia.org/api/rest_v1/feed/onthisday/all'),
+        'wikimedia_fallback_url' => env('WIKIMEDIA_ON_THIS_DAY_FALLBACK_URL', 'https://en.wikipedia.org/api/rest_v1/feed/onthisday/all'),
+        'wikipedia_api_url' => env('NORWEGIAN_WIKIPEDIA_API_URL', 'https://no.wikipedia.org/w/api.php'),
         'wikidata_url' => env('WIKIDATA_API_URL', 'https://www.wikidata.org/w/api.php'),
         'user_agent' => env('TODAY_API_USER_AGENT', 'innsatt.no/1.0 innsatt@innsatt.no'),
         'cache_ttl' => env('TODAY_API_CACHE_TTL', 86400),
