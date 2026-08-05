@@ -68,6 +68,40 @@ class GenerateAdminStatisticsTest(unittest.TestCase):
             data = GENERATOR.generate(database)
             self.assertIsNone(data["top_pages"])
 
+    def test_all_pages_are_sorted_by_views_visitors_and_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / "history.sqlite3"
+            connection = sqlite3.connect(database)
+            connection.executescript("""
+                CREATE TABLE daily_stats (date TEXT, pageviews INTEGER, requests INTEGER);
+                CREATE TABLE daily_page_stats (date TEXT, path TEXT, pageviews INTEGER);
+                CREATE TABLE daily_ip_stats (date TEXT, ip TEXT);
+                CREATE TABLE daily_page_ip_stats (date TEXT, path TEXT, ip TEXT, pageviews INTEGER);
+                INSERT INTO daily_stats VALUES ('2026-08-04', 100, 200);
+                INSERT INTO daily_page_stats VALUES ('2026-08-04', '/tv', 100);
+                INSERT INTO daily_ip_stats VALUES ('2026-08-04', '203.0.113.1');
+            """)
+            for number in range(12):
+                connection.execute("INSERT INTO daily_page_ip_stats VALUES (?,?,?,?)", (
+                    "2026-08-04", f"/side-{number:02d}", f"203.0.113.{number + 1}", 20 - number,
+                ))
+            connection.executemany("INSERT INTO daily_page_ip_stats VALUES (?,?,?,?)", [
+                ("2026-08-04", "/alpha", "203.0.113.20", 5),
+                ("2026-08-04", "/beta", "203.0.113.21", 3),
+                ("2026-08-04", "/beta", "203.0.113.22", 2),
+                ("2026-08-04", "/gamma", "203.0.113.23", 3),
+                ("2026-08-04", "/gamma", "203.0.113.24", 2),
+            ])
+            connection.commit(); connection.close()
+
+            pages = GENERATOR.generate(database)["top_pages"]["1"]["pages"]
+            self.assertGreater(len(pages), 10)
+            self.assertEqual(["/beta", "/gamma", "/alpha"], [page["path"] for page in pages[-3:]])
+            self.assertEqual("Spin the wheel – oppdrag", GENERATOR.page_name("/oppdrag"))
+            self.assertEqual("Visitasjonsrullett", GENERATOR.page_name("/visitasjon"))
+            self.assertEqual("Bønnetider Ringerike – utskrift", GENERATOR.page_name("/bonnetider/utskrift"))
+            self.assertEqual("Min ukjente side", GENERATOR.page_name("/min-ukjente-side"))
+
 
 if __name__ == "__main__":
     unittest.main()

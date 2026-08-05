@@ -16,9 +16,9 @@ Bruk samme systembruker som statistikkjobben. Katalogen må kunne skrives av job
 
 Databasen må ha `daily_stats`, `daily_page_stats` og `daily_ip_stats`. Skriptet oppdager støttede kolonnenavn og avslutter med en tydelig feil ved ukjent skjema. Kjør kommandoen manuelt én gang før jobbskriptet endres. Ikke bruk `--test-data` i produksjon.
 
-## Topp 10 og sidefordelte besøkende
+## Alle sider og sidefordelte besøkende
 
-Topp 10 krever tabellen `daily_page_ip_stats`, fordi dagsaggregatet `daily_page_stats` ikke kan telle samme IP bare én gang over en periode. `scripts/collect_page_visitors.py` bygger denne tabellen idempotent fra komplette aktive og roterte Nginx access-logger. Rå IP-er blir kun liggende i SQLite i maksimalt 60 dager og eksporteres aldri til JSON.
+Listen over alle ordinære sider krever tabellen `daily_page_ip_stats`, fordi dagsaggregatet `daily_page_stats` ikke kan telle samme IP bare én gang over en periode. `scripts/collect_page_visitors.py` bygger denne tabellen idempotent fra komplette aktive og roterte Nginx access-logger. Rå IP-er blir kun liggende i SQLite i maksimalt 60 dager og eksporteres aldri til JSON.
 
 Innsamleren skal kjøres etter at de ordinære historikktabellene er oppdatert, men før `generate_admin_statistics.py`:
 

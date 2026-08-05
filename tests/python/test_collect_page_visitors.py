@@ -30,11 +30,26 @@ class CollectPageVisitorsTest(unittest.TestCase):
                 + line("203.0.113.99", "04/Aug/2026", "/tv")
                 + line("203.0.113.12", "04/Aug/2026", "/api/data")
                 + line("203.0.113.12", "04/Aug/2026", "/eliteserien/test")
+                + line("203.0.113.12", "04/Aug/2026", "/index.php")
+                + line("203.0.113.12", "04/Aug/2026", "/index.php/tv")
             )
             counts, _, _ = COLLECTOR.collect([log], "203.0.113.99", date(2026, 8, 4))
             self.assertEqual(2, counts[("2026-08-04", "/tv", "203.0.113.10")])
             self.assertEqual(1, counts[("2026-08-04", "/bonnetider-ilseng", "203.0.113.11")])
             self.assertEqual(2, len(counts))
+
+    def test_keeps_dated_today_pages_and_print_routes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / "access.log"
+            log.write_text(
+                line("203.0.113.10", "04/Aug/2026", "/dagen-i-dag/2026-08-04?source=test")
+                + line("203.0.113.10", "04/Aug/2026", "/bonnetider/utskrift")
+                + line("203.0.113.10", "04/Aug/2026", "/bonnetider-ilseng/utskrift")
+            )
+            counts, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertIn(("2026-08-04", "/dagen-i-dag/2026-08-04", "203.0.113.10"), counts)
+            self.assertIn(("2026-08-04", "/bonnetider/utskrift", "203.0.113.10"), counts)
+            self.assertIn(("2026-08-04", "/bonnetider-ilseng/utskrift", "203.0.113.10"), counts)
 
     def test_rebuild_is_idempotent_and_removes_rows_older_than_retention(self):
         with tempfile.TemporaryDirectory() as directory:

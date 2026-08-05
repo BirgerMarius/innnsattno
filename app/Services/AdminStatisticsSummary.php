@@ -128,12 +128,11 @@ class AdminStatisticsSummary
         foreach (['1', '7', '30'] as $days) {
             $period = $periods[$days] ?? null;
             if (! is_array($period) || ! $this->validDate($period['from'] ?? null)
-                || ! $this->validDate($period['to'] ?? null) || ! is_array($period['pages'] ?? null)
-                || count($period['pages']) > 10) {
+                || ! $this->validDate($period['to'] ?? null) || ! is_array($period['pages'] ?? null)) {
                 return null;
             }
             $pages = [];
-            $previousViews = null;
+            $previousPage = null;
             foreach ($period['pages'] as $page) {
                 if (! is_array($page) || ! is_string($page['name'] ?? null) || trim($page['name']) === ''
                     || mb_strlen($page['name']) > 120 || ! is_string($page['path'] ?? null)
@@ -142,15 +141,26 @@ class AdminStatisticsSummary
                     || $this->containsIpAddress($page['name']) || $this->containsIpAddress($page['path'])
                     || ! $this->validCount($page['pageviews'] ?? null)
                     || ! $this->validCount($page['unique_visitors'] ?? null)
-                    || ($previousViews !== null && $page['pageviews'] > $previousViews)) {
+                    || ($previousPage !== null && ! $this->correctlySortedAfter($page, $previousPage))) {
                     return null;
                 }
-                $previousViews = $page['pageviews'];
+                $previousPage = $page;
                 $pages[] = $page;
             }
             $validated[$days] = ['from' => Carbon::createFromFormat('!Y-m-d', $period['from']),
                 'to' => Carbon::createFromFormat('!Y-m-d', $period['to']), 'pages' => $pages];
         }
         return $validated;
+    }
+
+    private function correctlySortedAfter(array $page, array $previous): bool
+    {
+        if ($page['pageviews'] !== $previous['pageviews']) {
+            return $page['pageviews'] < $previous['pageviews'];
+        }
+        if ($page['unique_visitors'] !== $previous['unique_visitors']) {
+            return $page['unique_visitors'] < $previous['unique_visitors'];
+        }
+        return strcmp($page['path'], $previous['path']) >= 0;
     }
 }

@@ -43,6 +43,8 @@ def canonical_public_path(target):
         return None
     path = re.sub(r'/+', '/', path).rstrip('/') or '/'
     lower = path.lower()
+    if lower == '/index.php' or lower.startswith('/index.php/'):
+        return None
     if any(lower == prefix or lower.startswith(prefix + '/') for prefix in TECHNICAL_PREFIXES):
         return None
     if lower == '/test' or lower.endswith('/test'):

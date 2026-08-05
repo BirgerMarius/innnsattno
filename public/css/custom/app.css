@@ -1025,6 +1025,8 @@
 .admin-ranking-table td { border-color: #e1ebe9; }
 .admin-ranking-table code { color: #34524e; font-size: .85rem; white-space: nowrap; }
 .admin-ranking-table a { color: #0b625a; font-weight: 700; }
+.admin-ranking-scroll { max-height: 38rem; }
+.admin-ranking-table thead th { background: #fff; position: sticky; top: 0; z-index: 1; }
 .admin-tools-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .admin-tools-grid a { border: 1px solid #d6e3e0; border-radius: 10px; color: #1f3633; padding: 16px; text-decoration: none; }
 .admin-tools-grid a:hover, .admin-tools-grid a:focus-visible { background: #f3f8f7; border-color: #0f766e; }

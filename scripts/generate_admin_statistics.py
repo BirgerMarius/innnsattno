@@ -18,11 +18,15 @@ PAGE_COLUMNS = ("page", "path", "url", "request")
 IP_COLUMNS = ("ip", "ip_address", "visitor_ip")
 COUNT_COLUMNS = ("pageviews", "page_views", "requests", "hits", "count")
 PAGE_NAMES = {
+    "/oppdrag": "Spin the wheel – oppdrag",
+    "/visitasjon": "Visitasjonsrullett",
     "/tv": "TV-guide",
     "/print": "TV-guide – utskrift Ringerike",
     "/print-ilseng": "TV-guide – utskrift Ilseng",
     "/bonnetider": "Bønnetider Ringerike",
     "/bonnetider-ilseng": "Bønnetider Ilseng",
+    "/bonnetider/utskrift": "Bønnetider Ringerike – utskrift",
+    "/bonnetider-ilseng/utskrift": "Bønnetider Ilseng – utskrift",
     "/nyheter": "Nyheter",
     "/fagstoff": "Fagstoff",
     "/dagen-i-dag": "Dagen i dag",
@@ -68,7 +72,10 @@ def scalar(connection, sql, parameters=()):
 def page_name(path):
     if path.startswith("/dagen-i-dag/"):
         return "Dagen i dag"
-    return PAGE_NAMES.get(path, path)
+    if path in PAGE_NAMES:
+        return PAGE_NAMES[path]
+    words = path.strip("/").replace("-", " ").replace("_", " ")
+    return words.capitalize() if words else "Forside"
 
 
 def top_pages(connection, latest_date):
@@ -83,7 +90,7 @@ def top_pages(connection, latest_date):
         rows = connection.execute(
             "SELECT path, SUM(pageviews) views, COUNT(DISTINCT ip) visitors "
             "FROM daily_page_ip_stats WHERE date BETWEEN ? AND ? "
-            "GROUP BY path ORDER BY views DESC, path ASC LIMIT 10",
+            "GROUP BY path ORDER BY views DESC, visitors DESC, path ASC",
             (first.isoformat(), latest_date.isoformat()),
         ).fetchall()
         result[str(days)] = {
