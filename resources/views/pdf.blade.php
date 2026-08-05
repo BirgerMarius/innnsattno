@@ -57,7 +57,18 @@
 </div>
 
 <script>
+    let hasReturnedToTvGuide = false;
+
+    window.addEventListener('afterprint', function () {
+        if (hasReturnedToTvGuide) {
+            return;
+        }
+
+        hasReturnedToTvGuide = true;
+        window.location.replace(@json(route('tv', [], false)));
+    });
+
     window.addEventListener('load', function () {
         window.print();
-    });
+    }, { once: true });
 </script>
