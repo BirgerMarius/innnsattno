@@ -73,6 +73,38 @@
                     <div class="admin-stat-wide"><span>Mest besøkte side siste 7 dager</span><strong class="admin-stat-page">{{ $statistics['last_7_days']['top_page']['path'] }}</strong><small>{{ number_format($statistics['last_7_days']['top_page']['pageviews'], 0, ',', ' ') }} sidevisninger</small></div>
                 </div>
                 <p class="small text-muted mt-3 mb-0">Periode {{ $statistics['last_7_days']['from']->format('d.m.Y') }}–{{ $statistics['last_7_days']['to']->format('d.m.Y') }} · Sist oppdatert {{ $statistics['generated_at']->format('d.m.Y H:i') }}</p>
+
+                <div class="admin-ranking mt-4 pt-4 border-top">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-3">
+                        <div><h3 class="h5 mb-1">Mest brukte offentlige sider</h3><p class="text-muted small mb-0">Bare reelle visninger av offentlige HTML-sider.</p></div>
+                        <nav class="admin-period-nav" aria-label="Periode for mest brukte sider">
+                            @foreach (['1' => 'I dag', '7' => 'Siste 7 dager', '30' => 'Siste 30 dager'] as $days => $label)
+                                <a href="{{ route('admin.index', ['traffic_period' => $days]) }}#mest-brukte-sider" class="btn btn-sm {{ $trafficPeriod === $days ? 'btn-primary' : 'btn-outline-secondary' }}" @if($trafficPeriod === $days) aria-current="true" @endif>{{ $label }}</a>
+                            @endforeach
+                        </nav>
+                    </div>
+                    <div id="mest-brukte-sider">
+                    @if ($statistics['top_pages'] !== null)
+                        @php($ranking = $statistics['top_pages'][$trafficPeriod])
+                        @if (count($ranking['pages']))
+                            <div class="table-responsive"><table class="table admin-ranking-table align-middle mb-2">
+                                <thead><tr><th scope="col">Side</th><th scope="col">URL</th><th scope="col" class="text-end">Sidevisninger</th><th scope="col" class="text-end">Unike IP-er</th></tr></thead>
+                                <tbody>@foreach ($ranking['pages'] as $page)<tr>
+                                    <td><a href="{{ url($page['path']) }}" target="_blank" rel="noopener noreferrer">{{ $page['name'] }}</a></td>
+                                    <td><code>{{ $page['path'] }}</code></td>
+                                    <td class="text-end">{{ number_format($page['pageviews'], 0, ',', ' ') }}</td>
+                                    <td class="text-end">{{ number_format($page['unique_visitors'], 0, ',', ' ') }}</td>
+                                </tr>@endforeach</tbody>
+                            </table></div>
+                            <p class="small text-muted mb-0">Periode {{ $ranking['from']->format('d.m.Y') }}–{{ $ranking['to']->format('d.m.Y') }}. Unike IP-er er et anslag på besøkende; flere brukere kan dele samme offentlige IP.</p>
+                        @else
+                            <p class="text-muted mb-0">Ingen offentlige sidevisninger er registrert i denne perioden.</p>
+                        @endif
+                    @else
+                        <div class="alert alert-light border mb-0" role="status">Topp 10 er ikke tilgjengelig ennå. Sidefordelt besøksstatistikk må først samles inn.</div>
+                    @endif
+                    </div>
+                </div>
             @else
                 <div class="alert alert-light border mb-0" role="status"><strong>Statistikk er ikke tilgjengelig akkurat nå.</strong><br><span class="text-muted">Oppsummeringsfilen mangler eller kunne ikke leses. Prøv igjen etter neste statistikkoppdatering.</span></div>
             @endif

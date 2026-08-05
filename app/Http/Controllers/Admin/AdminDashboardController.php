@@ -9,15 +9,19 @@ use App\NewsSource;
 use App\ProfessionalResource;
 use App\ResourceCategory;
 use App\Services\AdminStatisticsSummary;
+use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
-    public function index(AdminStatisticsSummary $statistics)
+    public function index(Request $request, AdminStatisticsSummary $statistics)
     {
         $statusCounts = ProfessionalResource::query()
             ->selectRaw('status, count(*) as aggregate')
             ->groupBy('status')
             ->pluck('aggregate', 'status');
+
+        $period = in_array($request->query('traffic_period'), ['1', '7', '30'], true)
+            ? $request->query('traffic_period') : '7';
 
         return view('admin.dashboard', [
             'publishedCount' => (int) ($statusCounts[ProfessionalResource::STATUS_PUBLISHED] ?? 0),
@@ -33,6 +37,7 @@ class AdminDashboardController extends Controller
                 $query->where('status', 'new')->orWhereNull('status');
             })->count(),
             'statistics' => $statistics->read(),
+            'trafficPeriod' => $period,
         ]);
     }
 }

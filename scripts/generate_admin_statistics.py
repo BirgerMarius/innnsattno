@@ -17,6 +17,22 @@ REQUEST_COLUMNS = ("external_requests", "requests", "total_requests", "hits")
 PAGE_COLUMNS = ("page", "path", "url", "request")
 IP_COLUMNS = ("ip", "ip_address", "visitor_ip")
 COUNT_COLUMNS = ("pageviews", "page_views", "requests", "hits", "count")
+PAGE_NAMES = {
+    "/tv": "TV-guide",
+    "/print": "TV-guide – utskrift Ringerike",
+    "/print-ilseng": "TV-guide – utskrift Ilseng",
+    "/bonnetider": "Bønnetider Ringerike",
+    "/bonnetider-ilseng": "Bønnetider Ilseng",
+    "/nyheter": "Nyheter",
+    "/fagstoff": "Fagstoff",
+    "/dagen-i-dag": "Dagen i dag",
+    "/vaer": "Vær Ringerike",
+    "/vaer-ilseng": "Vær Ilseng",
+    "/fotball": "Fotball",
+    "/eliteserien": "Eliteserien",
+    "/premier-league": "Premier League",
+    "/forslag-og-tilbakemeldinger": "Forslag og tilbakemeldinger",
+}
 
 
 def column(columns, candidates, table):
@@ -47,6 +63,36 @@ def contains_ip(value):
 def scalar(connection, sql, parameters=()):
     value = connection.execute(sql, parameters).fetchone()[0]
     return max(0, int(value or 0))
+
+
+def page_name(path):
+    if path.startswith("/dagen-i-dag/"):
+        return "Dagen i dag"
+    return PAGE_NAMES.get(path, path)
+
+
+def top_pages(connection, latest_date):
+    if not connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='daily_page_ip_stats'").fetchone():
+        return None
+    required = {"date", "path", "ip", "pageviews"}
+    if not required.issubset(columns(connection, "daily_page_ip_stats")):
+        return None
+    result = {}
+    for days in (1, 7, 30):
+        first = latest_date - dt.timedelta(days=days - 1)
+        rows = connection.execute(
+            "SELECT path, SUM(pageviews) views, COUNT(DISTINCT ip) visitors "
+            "FROM daily_page_ip_stats WHERE date BETWEEN ? AND ? "
+            "GROUP BY path ORDER BY views DESC, path ASC LIMIT 10",
+            (first.isoformat(), latest_date.isoformat()),
+        ).fetchall()
+        result[str(days)] = {
+            "from": first.isoformat(), "to": latest_date.isoformat(),
+            "pages": [{"name": page_name(row["path"]), "path": row["path"],
+                       "pageviews": max(0, int(row["views"] or 0)),
+                       "unique_visitors": max(0, int(row["visitors"] or 0))} for row in rows],
+        }
+    return result
 
 
 def generate(database, test_data=False):
@@ -86,8 +132,8 @@ def generate(database, test_data=False):
         if top is None:
             raise RuntimeError("Fant ingen side uten IP-adresse for perioden")
 
-        return {
-            "schema_version": 1,
+        payload = {
+            "schema_version": 2,
             "generated_at": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat(),
             "test_data": bool(test_data),
             "latest_day": {"date": latest_date.isoformat(), "pageviews": latest_views, "unique_visitors": unique_visitors},
@@ -97,6 +143,8 @@ def generate(database, test_data=False):
                 "top_page": {"path": str(top["path"]), "pageviews": max(0, int(top["views"] or 0))},
             },
         }
+        payload["top_pages"] = top_pages(connection, latest_date)
+        return payload
     finally:
         connection.close()
 

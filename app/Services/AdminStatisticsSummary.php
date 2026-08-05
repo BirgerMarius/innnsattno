@@ -21,7 +21,7 @@ class AdminStatisticsSummary
             return null;
         }
 
-        if (! is_array($data) || ($data['schema_version'] ?? null) !== 1) {
+        if (! is_array($data) || ! in_array($data['schema_version'] ?? null, [1, 2], true)) {
             return null;
         }
 
@@ -47,7 +47,7 @@ class AdminStatisticsSummary
             return null;
         }
 
-        return [
+        $summary = [
             'generated_at' => Carbon::parse($data['generated_at']),
             'test_data' => $data['test_data'],
             'latest_day' => [
@@ -66,6 +66,10 @@ class AdminStatisticsSummary
                 ],
             ],
         ];
+
+        $summary['top_pages'] = $this->validTopPages($data['top_pages'] ?? null);
+
+        return $summary;
     }
 
     private function validCount($value): bool
@@ -110,5 +114,43 @@ class AdminStatisticsSummary
         }
 
         return false;
+    }
+
+    private function validTopPages($periods): ?array
+    {
+        if ($periods === null) {
+            return null;
+        }
+        if (! is_array($periods)) {
+            return null;
+        }
+        $validated = [];
+        foreach (['1', '7', '30'] as $days) {
+            $period = $periods[$days] ?? null;
+            if (! is_array($period) || ! $this->validDate($period['from'] ?? null)
+                || ! $this->validDate($period['to'] ?? null) || ! is_array($period['pages'] ?? null)
+                || count($period['pages']) > 10) {
+                return null;
+            }
+            $pages = [];
+            $previousViews = null;
+            foreach ($period['pages'] as $page) {
+                if (! is_array($page) || ! is_string($page['name'] ?? null) || trim($page['name']) === ''
+                    || mb_strlen($page['name']) > 120 || ! is_string($page['path'] ?? null)
+                    || ! preg_match('#^/[A-Za-z0-9/_~.%+\-]*$#', $page['path']) || str_starts_with($page['path'], '//')
+                    || mb_strlen($page['path']) > 2048
+                    || $this->containsIpAddress($page['name']) || $this->containsIpAddress($page['path'])
+                    || ! $this->validCount($page['pageviews'] ?? null)
+                    || ! $this->validCount($page['unique_visitors'] ?? null)
+                    || ($previousViews !== null && $page['pageviews'] > $previousViews)) {
+                    return null;
+                }
+                $previousViews = $page['pageviews'];
+                $pages[] = $page;
+            }
+            $validated[$days] = ['from' => Carbon::createFromFormat('!Y-m-d', $period['from']),
+                'to' => Carbon::createFromFormat('!Y-m-d', $period['to']), 'pages' => $pages];
+        }
+        return $validated;
     }
 }

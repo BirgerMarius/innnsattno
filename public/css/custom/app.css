@@ -1020,6 +1020,11 @@
 .admin-stat-grid strong { display: block; font-size: 1.7rem; line-height: 1.25; margin-top: 5px; }
 .admin-stat-grid .admin-stat-wide { grid-column: span 2; }
 .admin-stat-grid .admin-stat-page { font-size: 1rem; overflow-wrap: anywhere; }
+.admin-period-nav { display: flex; flex-wrap: wrap; gap: 6px; }
+.admin-ranking-table th { color: #60736f; font-size: .78rem; letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; }
+.admin-ranking-table td { border-color: #e1ebe9; }
+.admin-ranking-table code { color: #34524e; font-size: .85rem; white-space: nowrap; }
+.admin-ranking-table a { color: #0b625a; font-weight: 700; }
 .admin-tools-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .admin-tools-grid a { border: 1px solid #d6e3e0; border-radius: 10px; color: #1f3633; padding: 16px; text-decoration: none; }
 .admin-tools-grid a:hover, .admin-tools-grid a:focus-visible { background: #f3f8f7; border-color: #0f766e; }
@@ -1115,4 +1120,5 @@
     .admin-follow-up-grid, .admin-stat-grid { grid-template-columns: 1fr; }
     .admin-stat-grid .admin-stat-wide { grid-column: auto; }
     .admin-area .btn { width: 100%; }
+    .admin-period-nav { display: grid; grid-template-columns: 1fr; width: 100%; }
 }

@@ -69,6 +69,35 @@ class AdminDashboardStatisticsTest extends TestCase
         $response->assertDontSee('203.0.113.42');
     }
 
+    public function testDashboardShowsTopPagesForSelectedPeriod()
+    {
+        $this->writeSummary([
+            'schema_version' => 2,
+            'top_pages' => $this->topPages(),
+        ]);
+
+        $response = $this->withSession(['admin_authenticated' => true])->get('/adm?traffic_period=30');
+
+        $response->assertOk();
+        $response->assertSee('Mest brukte offentlige sider');
+        $response->assertSee('Bønnetider Ilseng');
+        $response->assertSee('href="' . url('/bonnetider-ilseng') . '"', false);
+        $response->assertSee('3 000');
+        $response->assertSee('42');
+        $response->assertSee('flere brukere kan dele samme offentlige IP');
+        $response->assertSee('traffic_period=30', false);
+    }
+
+    public function testDashboardRejectsUnsortedOrIpContainingRankings()
+    {
+        $periods = $this->topPages();
+        $periods['7']['pages'][] = ['name' => 'Ugyldig', 'path' => '/server/203.0.113.5', 'pageviews' => 4000, 'unique_visitors' => 1];
+        $this->writeSummary(['schema_version' => 2, 'top_pages' => $periods]);
+
+        $response = $this->withSession(['admin_authenticated' => true])->get('/adm');
+        $response->assertOk()->assertSee('Topp 10 er ikke tilgjengelig ennå')->assertDontSee('203.0.113.5');
+    }
+
     private function writeSummary(array $overrides = []): void
     {
         $summary = [
@@ -84,5 +113,21 @@ class AdminDashboardStatisticsTest extends TestCase
         ];
         $summary = array_replace($summary, $overrides);
         file_put_contents($this->summaryPath, json_encode($summary));
+    }
+
+    private function topPages(): array
+    {
+        $periods = [];
+        foreach ([1, 7, 30] as $days) {
+            $periods[(string) $days] = [
+                'from' => $days === 1 ? '2026-08-04' : ($days === 7 ? '2026-07-29' : '2026-07-06'),
+                'to' => '2026-08-04',
+                'pages' => [[
+                    'name' => 'Bønnetider Ilseng', 'path' => '/bonnetider-ilseng',
+                    'pageviews' => $days === 30 ? 3000 : 700, 'unique_visitors' => 42,
+                ]],
+            ];
+        }
+        return $periods;
     }
 }
