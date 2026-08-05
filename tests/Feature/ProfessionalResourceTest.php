@@ -103,6 +103,8 @@ class ProfessionalResourceTest extends TestCase
 
     public function testAdminDashboardIsAvailableForAuthenticatedAdmin()
     {
+        config()->set('admin.statistics_summary_path', storage_path('framework/testing/missing-admin-summary.json'));
+
         $category = $this->createCategory(['is_active' => true]);
         $this->createResource($category, ['status' => ProfessionalResource::STATUS_PUBLISHED]);
         $this->createResource($category, ['status' => ProfessionalResource::STATUS_DRAFT]);
@@ -126,19 +128,21 @@ class ProfessionalResourceTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Administrasjon');
-        $response->assertSee('Publisert');
-        $response->assertSee('Kladd');
-        $response->assertSee('Aktive kategorier');
-        $response->assertSee('Se ressurser');
-        $response->assertSee('aktive kategorier');
+        $response->assertSee('Trenger oppfølging');
+        $response->assertSee('1</span>', false);
+        $response->assertSee('Se fagstoff');
+        $response->assertSee('1</strong> kategorier', false);
         $response->assertSee('Nyheter');
-        $response->assertSee('1 nye artikler venter på vurdering');
-        $response->assertSee('1 nye forslag eller tilbakemeldinger');
+        $response->assertSee('Nye artikler');
+        $response->assertSee('Nye henvendelser');
         $response->assertSee('href="' . route('admin.professional-resources.index') . '"', false);
         $response->assertSee('href="' . route('admin.news.index', ['status' => 'pending']) . '"', false);
         $response->assertSee('href="' . route('admin.feedback.index', ['status' => 'new']) . '"', false);
-        $response->assertSee('Statistikk og serverlogg');
-        $response->assertSee('href="https://innsatt.no/statistikk/"', false);
+        $response->assertSee('Statistikk');
+        $response->assertSee('Statistikk er ikke tilgjengelig akkurat nå');
+        $response->assertSee('href="/statistikk/"', false);
+        $response->assertSee('Offentlig forside');
+        $response->assertSee('Endringshistorikk');
         $response->assertSee('Logg ut');
     }
 
