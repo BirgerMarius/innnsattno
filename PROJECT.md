@@ -1,12 +1,12 @@
-# Project
+# Prosjekt
 
-Version: 1.0
+Versjon: 2.0
 
 ---
 
-# Project Information
+# Prosjektinformasjon
 
-## Name
+## Navn
 
 innsatt.no
 
@@ -14,91 +14,107 @@ innsatt.no
 
 git@github.com:BirgerMarius/innnsattno.git
 
-## Technology
+## Teknologi
 
 - Laravel
 - PHP 8
 - Livewire
 - Blade
-- MySQL-compatible Laravel database configuration
+- MySQL-kompatibel Laravel-databasekonfigurasjon
 - Laravel Mix
 
 ---
 
-# Purpose
+# Formål
 
-innsatt.no is a Laravel web application. AI Software Factory should support small, reviewable improvements while preserving the existing application architecture.
-
----
-
-# Scope
-
-Included:
-
-- Incremental Laravel application maintenance.
-- Blade view, shared layout, partial, CSS, route, controller, and service changes when explicitly requested by a Work Package.
-- Documentation updates when they support the requested Work Package.
-
-Outside scope unless separately approved:
-
-- Deployment.
-- Large rewrites or framework migrations.
-- Migration of older standalone modules.
-- Unrelated cleanup.
+innsatt.no er en Laravel-nettside. AI Factory skal støtte enkel, trygg og praktisk videreutvikling uten unødvendige prosesstrinn.
 
 ---
 
-# Architecture
+# Normal arbeidsflyt
 
-The project is a Laravel application with Blade views under `resources/views`, routes under `routes`, public assets under `public`, and application services under `app`.
+1. Brukeren og ChatGPT avklarer ønsket resultat, viktige begrensninger og hva som ikke skal endres.
+2. Codex får normalt én samlet oppgave om å undersøke løsningen, implementere endringen, oppdatere tester, kjøre nødvendige kontroller og rapportere resultatet.
+3. Codex skal ikke committe, pushe eller deploye i første fase med mindre dette er uttrykkelig bestilt.
+4. Etter godkjenning får Codex en kort beskjed om å committe og pushe kun relevante filer.
+5. Produksjonsdeploy utføres separat og bare etter uttrykkelig beskjed.
 
-Shared layout:
-
-- `resources/views/layouts/app.blade.php`
-
-Shared partials:
-
-- `resources/views/partials/header.blade.php`
-- `resources/views/partials/footer.blade.php`
-
-Global custom CSS:
-
-- `public/css/custom/app.css`
+Work packages er valgfrie og brukes bare for store, risikofylte eller langvarige oppgaver som trenger et varig stoppunkt.
 
 ---
 
-# Coding Standards
+# Omfang
 
-Preserve the existing architecture and style. Make small incremental changes, one logical task at a time.
+Inkludert:
 
----
+- Løpende vedlikehold og videreutvikling av Laravel-applikasjonen.
+- Endringer i Blade, CSS, ruter, kontrollere, tjenester, tester og dokumentasjon når dette er nødvendig for den avtalte oppgaven.
+- Små og avgrensede forbedringer direkte i eksisterende arkitektur.
 
-# Deployment
+Utenfor omfang uten særskilt godkjenning:
 
-No deployment may be performed without explicit user approval.
-
----
-
-# Testing
-
-Use the smallest relevant verification for each Work Package. Prefer project-native Laravel, PHP, or frontend checks when available and applicable.
-
----
-
-# AI Instructions
-
-- Preserve existing architecture.
-- Use `resources/views/layouts/app.blade.php` for shared layout work.
-- Use shared header and footer partials where applicable.
-- Use `public/css/custom/app.css` for global custom CSS.
-- Make small incremental changes.
-- Complete one logical task at a time.
-- Do not deploy without user approval.
-- Do not migrate older standalone modules except in separate Work Packages.
+- Produksjonsdeploy.
+- Destruktive databaseoperasjoner eller endring av produksjonsdata.
+- Større omskrivinger, rammeverksmigreringer eller vesentlige endringer i avhengigheter.
+- Urelatert opprydding eller refaktorering.
+- Reversering eller inkludering av urelaterte lokale endringer.
 
 ---
 
-# References
+# Kodestandard
+
+Bevar eksisterende arkitektur og stil. Gjør minste nødvendige endring og fullfør én logisk oppgave om gangen.
+
+---
+
+# Testing og lokale tjenester
+
+Codex har generell tillatelse til å:
+
+- lese og søke i repositoryet
+- kjøre målrettede tester og hele testpakken
+- kjøre linting, bygging, kompilering og formatteringskontroller
+- kjøre `git diff --check`, `git status` og andre lesende Git-kommandoer
+- tømme lokale cacher
+- starte eller restarte lokale utviklingstjenester og containere når dette er nødvendig for testing
+- opprette midlertidige testdata som ikke påvirker produksjon eller ekte data
+
+Codex skal velge relevante tester ut fra endringen og rapportere tydelig hva som er kjørt og resultatet.
+
+---
+
+# Git
+
+- Commit og push er separate fra implementering og utføres bare når dette er uttrykkelig bestilt.
+- Alle Git-commitmeldinger skal være på norsk.
+- Commitmeldingen skal være kort, tydelig og beskrive den faktiske endringen.
+- Committen skal bare inneholde filer som tilhører den avtalte oppgaven.
+- Urelaterte lokale endringer skal bevares og rapporteres.
+
+---
+
+# Deploy
+
+Ingen produksjonsdeploy skal utføres uten uttrykkelig beskjed om deploy eller produksjon. Commit og push innebærer aldri automatisk deploy.
+
+---
+
+# AI-instruksjoner
+
+- Bevar eksisterende arkitektur.
+- Bruk `resources/views/layouts/app.blade.php` for felles layoutarbeid.
+- Bruk delte header- og footer-partials når det er relevant.
+- Bruk `public/css/custom/app.css` for global egendefinert CSS.
+- Gjør minste nødvendige endring.
+- Fullfør én logisk oppgave om gangen.
+- Kjør nødvendige tester og lokale restarter uten å be om ny tillatelse for hver kommando.
+- Ikke commit, push eller deploy uten uttrykkelig beskjed.
+- Skriv alltid Git-commitmeldinger på norsk.
+- Ikke endre produksjonsdata, hemmeligheter eller urelaterte filer uten særskilt godkjenning.
+
+---
+
+# Referanser
 
 - `project.yaml`
 - `context/project-rules.md`
