@@ -1,4 +1,8 @@
-# Project Analysis
+# Prosjektanalyse – historisk øyeblikksbilde
+
+> **Viktig:** Dette dokumentet er et historisk øyeblikksbilde og kan inneholde utdaterte opplysninger om kode, tester, konfigurasjon, avhengigheter og prosjektstatus. Det skal ikke brukes som autoritativ instruksjon for videre arbeid.
+>
+> Gjeldende arbeidsregler finnes i `PROJECT.md` og `context/project-rules.md`. Kontroller alltid nåværende kode, tester, konfigurasjon og Git-status før endringer utføres.
 
 ## 1. Short Summary of the Application
 

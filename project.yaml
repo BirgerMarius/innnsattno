@@ -1,6 +1,9 @@
 project:
   name: innsatt.no
   shortName: innsatt-no
+  instructions:
+    primary: PROJECT.md
+    rules: context/project-rules.md
 
 type:
   application: web
@@ -14,10 +17,18 @@ repository:
 
 deployment:
   strategy: git-pull
+  requiresExplicitApproval: true
+
+workflow:
+  mode: simple
+  workPackages: optional
+  commitLanguage: norwegian
+  commitAndPushRequireExplicitInstruction: true
+  productionDeploySeparate: true
 
 runtime:
   prompt: developer
-  review: standard
+  testing: autonomous
 
 paths:
   context: context
