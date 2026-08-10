@@ -52,4 +52,13 @@ class HomepageTextTest extends TestCase
             (string) $response->getContent()
         );
     }
+
+    public function testHomepageMarksQuizAsNewTestFeature(): void
+    {
+        $this->get(route('tv'))
+            ->assertOk()
+            ->assertSee('Lag en quiz')
+            ->assertSee('NYHET')
+            ->assertSee('TEST');
+    }
 }

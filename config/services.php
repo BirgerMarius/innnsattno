@@ -24,6 +24,20 @@ return [
         'token' => env('POSTMARK_TOKEN'),
     ],
 
+    'openai' => [
+        'api_key' => env('OPENAI_API_KEY'),
+        'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
+        'quiz_model' => env('OPENAI_QUIZ_MODEL', 'gpt-5.6-terra'),
+        'timeout' => env('OPENAI_TIMEOUT', 60),
+    ],
+
+    'wikidata' => [
+        'sparql_url' => env('WIKIDATA_SPARQL_URL', 'https://query.wikidata.org/sparql'),
+        'user_agent' => env('WIKIDATA_USER_AGENT', 'innsatt.no/1.0 innsatt@innsatt.no'),
+        'timeout' => env('WIKIDATA_TIMEOUT', 20),
+        'cache_ttl' => env('WIKIDATA_QUIZ_CACHE_TTL', 86400),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

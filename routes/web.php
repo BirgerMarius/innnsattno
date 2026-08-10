@@ -17,6 +17,7 @@ use App\Http\Controllers\PrayerController;
 use App\Http\Controllers\WordSearchController;
 use App\Http\Controllers\SpinWheelController;
 use App\Http\Controllers\MonthCalendarController;
+use App\Http\Controllers\QuizController;
 use App\Http\Controllers\VisitationController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\WeatherController;
@@ -285,6 +286,12 @@ Route::get('/wordsearch', [WordSearchController::class, 'index']);
 Route::get('/wordsearch/print', [WordSearchController::class, 'print']);
 Route::get('/ordjakt', [WordSearchController::class, 'index']);
 Route::get('/ordjakt/utskrift', [WordSearchController::class, 'print']);
+
+Route::get('/quiz', [QuizController::class, 'create'])->name('quiz.create');
+Route::post('/quiz', [QuizController::class, 'store'])->name('quiz.store');
+Route::get('/quiz/resultat', [QuizController::class, 'show'])->name('quiz.show');
+Route::get('/quiz/utskrift', [QuizController::class, 'printQuiz'])->name('quiz.print');
+Route::get('/quiz/fasit', [QuizController::class, 'printAnswerKey'])->name('quiz.answer-key');
 
 Route::get('/manedskalender', [MonthCalendarController::class, 'index'])->name('calendar.index');
 Route::get('/manedskalender/utskrift', [MonthCalendarController::class, 'print'])->name('calendar.print');
