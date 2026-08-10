@@ -73,37 +73,34 @@ abstract class SchibstedCompetitionService
     {
         $competition = $this->getCompetitionData();
         $now = ($now ?: now(self::TIMEZONE))->copy()->timezone(self::TIMEZONE);
-        $currentWeekStart = $now->copy()->startOfWeek(Carbon::MONDAY)->startOfDay();
-        $previousWeekStart = $currentWeekStart->copy()->subWeek();
-        $previousWeekEnd = $previousWeekStart->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
-        $nextWeekStart = $currentWeekStart->copy()->addWeek();
-        $nextWeekEnd = $nextWeekStart->copy()->endOfWeek(Carbon::SUNDAY)->endOfDay();
+        $resultsStart = $now->copy()->subDays(7);
+        $fixturesEnd = $now->copy()->addDays(7);
         $matches = $competition['matches'] ?? [];
 
-        $previousResults = array_values(array_filter($matches, function (array $match) use ($previousWeekStart, $previousWeekEnd) {
+        $results = array_values(array_filter($matches, function (array $match) use ($resultsStart, $now) {
             return $match['isFinished']
                 && $match['startsAt']
-                && $match['startsAt']->betweenIncluded($previousWeekStart, $previousWeekEnd);
+                && $match['startsAt']->betweenIncluded($resultsStart, $now);
         }));
-        $nextFixtures = array_values(array_filter($matches, function (array $match) use ($nextWeekStart, $nextWeekEnd) {
+        $fixtures = array_values(array_filter($matches, function (array $match) use ($now, $fixturesEnd) {
             return !$match['isFinished']
                 && $match['startsAt']
-                && $match['startsAt']->betweenIncluded($nextWeekStart, $nextWeekEnd);
+                && $match['startsAt']->betweenIncluded($now, $fixturesEnd);
         }));
 
         $sortChronologically = function (array $a, array $b) {
             return $a['startsAt']->getTimestamp() <=> $b['startsAt']->getTimestamp();
         };
-        usort($previousResults, $sortChronologically);
-        usort($nextFixtures, $sortChronologically);
+        usort($results, $sortChronologically);
+        usort($fixtures, $sortChronologically);
 
         return array_merge($competition, [
             'leagueName' => $leagueName,
             'generatedAt' => $now,
-            'previousWeek' => $this->weekDetails($previousWeekStart, $previousWeekEnd),
-            'nextWeek' => $this->weekDetails($nextWeekStart, $nextWeekEnd),
-            'previousWeekResults' => $previousResults,
-            'nextWeekFixtures' => $nextFixtures,
+            'resultsPeriod' => ['start' => $resultsStart, 'end' => $now->copy()],
+            'fixturesPeriod' => ['start' => $now->copy(), 'end' => $fixturesEnd],
+            'printResults' => $results,
+            'printFixtures' => $fixtures,
         ]);
     }
 
@@ -504,16 +501,6 @@ abstract class SchibstedCompetitionService
             'apiConfigured' => (bool) $this->seasonId(),
             'apiError' => $apiError,
             'usingStaleData' => $usingStaleData,
-        ];
-    }
-
-    private function weekDetails(Carbon $start, Carbon $end): array
-    {
-        return [
-            'number' => $start->isoWeek(),
-            'year' => $start->isoWeekYear(),
-            'start' => $start,
-            'end' => $end,
         ];
     }
 

@@ -12,7 +12,7 @@ class CompetitionPrintTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Carbon::setTestNow(Carbon::parse('2026-07-15 12:00:00', 'Europe/Oslo'));
+        Carbon::setTestNow(Carbon::parse('2026-08-10 09:45:00', 'Europe/Oslo'));
         Cache::flush();
     }
 
@@ -23,36 +23,43 @@ class CompetitionPrintTest extends TestCase
     }
 
     /** @test */
-    public function eliteserien_print_contains_only_the_requested_weeks_and_the_table(): void
+    public function eliteserien_print_uses_exact_rolling_seven_day_windows(): void
     {
-        $this->fakeCompetition(8766);
+        $this->fakeRollingWindowCompetition(8766);
 
         $response = $this->get('/eliteserien/utskrift');
 
         $response->assertOk()
-            ->assertSee('Resultater – uke 28')
-            ->assertSee('Forrige Hjem')
-            ->assertSee('Neste Hjem')
+            ->assertViewHas('printResults', fn (array $matches) => array_column($matches, 'id') === [1, 5])
+            ->assertViewHas('printFixtures', fn (array $matches) => array_column($matches, 'id') === [6, 3])
+            ->assertViewHas('resultsPeriod', fn (array $period) => $period['start']->format('Y-m-d H:i:s') === '2026-08-03 09:45:00')
+            ->assertViewHas('fixturesPeriod', fn (array $period) => $period['end']->format('Y-m-d H:i:s') === '2026-08-17 09:45:00')
+            ->assertSee('Innenfor resultat')
+            ->assertSee('Tidligere i dag')
+            ->assertSee('Senere i dag')
+            ->assertSee('Innenfor kommende')
+            ->assertDontSee('For gammelt')
+            ->assertDontSee('For langt frem')
             ->assertSee('Tabell')
             ->assertSee('Tabellag')
-            ->assertDontSee('Utenfor Hjem')
             ->assertSee('window.print()');
     }
 
     /** @test */
-    public function premier_league_print_contains_only_the_requested_weeks_and_the_table(): void
+    public function premier_league_print_uses_the_same_exact_rolling_seven_day_windows(): void
     {
-        $this->fakeCompetition(9186);
+        $this->fakeRollingWindowCompetition(9186);
 
         $response = $this->get('/premier-league/utskrift');
 
         $response->assertOk()
             ->assertSee('Premier League')
-            ->assertSee('Resultater – uke 28')
-            ->assertSee('Kamper – uke 30')
-            ->assertSee('Forrige Hjem')
-            ->assertSee('Neste Hjem')
-            ->assertDontSee('Utenfor Hjem');
+            ->assertViewHas('printResults', fn (array $matches) => array_column($matches, 'id') === [1, 5])
+            ->assertViewHas('printFixtures', fn (array $matches) => array_column($matches, 'id') === [6, 3])
+            ->assertSee('Tidligere i dag')
+            ->assertSee('Senere i dag')
+            ->assertDontSee('For gammelt')
+            ->assertDontSee('For langt frem');
     }
 
     /** @test */
@@ -79,22 +86,9 @@ class CompetitionPrintTest extends TestCase
         ]);
 
         $this->get('/eliteserien/utskrift')->assertOk()
-            ->assertSee('Ingen ferdigspilte kamper forrige uke.')
-            ->assertSee('Ingen kamper er satt opp kommende uke.')
+            ->assertSee('Ingen ferdigspilte kamper de siste 7 døgnene.')
+            ->assertSee('Ingen kamper er satt opp de neste 7 døgnene.')
             ->assertSee('Tabellen kunne ikke lastes akkurat nå.');
-    }
-
-    /** @test */
-    public function iso_weeks_are_correct_across_new_year(): void
-    {
-        Carbon::setTestNow(Carbon::parse('2026-12-30 12:00:00', 'Europe/Oslo'));
-        $this->fakeCompetition(8766);
-
-        $response = $this->get('/eliteserien/utskrift');
-
-        $response->assertOk()
-            ->assertViewHas('previousWeek', fn (array $week) => $week['number'] === 52 && $week['year'] === 2026)
-            ->assertViewHas('nextWeek', fn (array $week) => $week['number'] === 1 && $week['year'] === 2027);
     }
 
     private function fakeCompetition(int $seasonId): void
@@ -116,6 +110,39 @@ class CompetitionPrintTest extends TestCase
             'participants' => $participants,
             'standings' => [['teamStandings' => [[
                 'teamId' => 7, 'rank' => 1, 'played' => 10,
+                'goalsFor' => 20, 'goalsAgainst' => 10, 'points' => 25,
+            ]]]],
+        ];
+
+        Http::fake([
+            "*/tournaments/seasons/{$seasonId}/schedule" => Http::response(['participants' => $participants, 'events' => $events]),
+            "*/tournaments/seasons/{$seasonId}/standings" => Http::response($standings),
+        ]);
+    }
+
+    private function fakeRollingWindowCompetition(int $seasonId): void
+    {
+        $participants = [
+            1 => ['name' => 'Innenfor resultat'], 2 => ['name' => 'Motstander 1'],
+            3 => ['name' => 'For gammelt'], 4 => ['name' => 'Motstander 2'],
+            5 => ['name' => 'Innenfor kommende'], 6 => ['name' => 'Motstander 3'],
+            7 => ['name' => 'For langt frem'], 8 => ['name' => 'Motstander 4'],
+            9 => ['name' => 'Tidligere i dag'], 10 => ['name' => 'Motstander 5'],
+            11 => ['name' => 'Senere i dag'], 12 => ['name' => 'Motstander 6'],
+            13 => ['name' => 'Tabellag'],
+        ];
+        $events = [
+            $this->event(1, '2026-08-03T07:45:01Z', [1, 2], true),
+            $this->event(2, '2026-08-03T07:44:59Z', [3, 4], true),
+            $this->event(3, '2026-08-17T07:44:59Z', [5, 6], false),
+            $this->event(4, '2026-08-17T07:45:01Z', [7, 8], false),
+            $this->event(5, '2026-08-10T06:00:00Z', [9, 10], true),
+            $this->event(6, '2026-08-10T16:00:00Z', [11, 12], false),
+        ];
+        $standings = [
+            'participants' => $participants,
+            'standings' => [['teamStandings' => [[
+                'teamId' => 13, 'rank' => 1, 'played' => 10,
                 'goalsFor' => 20, 'goalsAgainst' => 10, 'points' => 25,
             ]]]],
         ];

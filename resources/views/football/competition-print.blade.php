@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $leagueName }} – ukeoversikt | Innsatt.no</title>
+    <title>{{ $leagueName }} – kampoversikt | Innsatt.no</title>
     <style>
         @page { size: A4 portrait; margin: 8mm; }
         * { box-sizing: border-box; }
@@ -42,7 +42,7 @@
         <div><strong>Innsatt.no</strong><h1>{{ $leagueName }}</h1></div>
         <div class="meta">
             Generert {{ $generatedAt->locale('nb')->translatedFormat('j. F Y \k\l. H.i') }}<br>
-            Uke {{ $previousWeek['number'] }} og {{ $nextWeek['number'] }}
+            Siste og neste 7 døgn
         </div>
     </header>
 
@@ -51,25 +51,25 @@
     @endif
 
     <section>
-        <h2>Resultater – uke {{ $previousWeek['number'] }} ({{ $previousWeek['start']->format('d.m') }}–{{ $previousWeek['end']->format('d.m.Y') }})</h2>
-        @if(count($previousWeekResults))
+        <h2>Resultater ({{ $resultsPeriod['start']->format('d.m.Y H.i') }}–{{ $resultsPeriod['end']->format('d.m.Y H.i') }})</h2>
+        @if(count($printResults))
             <table><thead><tr><th class="date">Dato</th><th>Hjemmelag</th><th class="score">Resultat</th><th>Bortelag</th></tr></thead><tbody>
-            @foreach($previousWeekResults as $match)
+            @foreach($printResults as $match)
                 <tr><td>{{ $match['startsAt']->locale('nb')->translatedFormat('D j. M') }}</td><td>{{ $match['homeTeam'] }}</td><td class="score">{{ $match['homeScore'] ?? '–' }}–{{ $match['awayScore'] ?? '–' }}</td><td>{{ $match['awayTeam'] }}</td></tr>
             @endforeach
             </tbody></table>
-        @else <p class="empty">Ingen ferdigspilte kamper forrige uke.</p> @endif
+        @else <p class="empty">Ingen ferdigspilte kamper de siste 7 døgnene.</p> @endif
     </section>
 
     <section>
-        <h2>Kamper – uke {{ $nextWeek['number'] }} ({{ $nextWeek['start']->format('d.m') }}–{{ $nextWeek['end']->format('d.m.Y') }})</h2>
-        @if(count($nextWeekFixtures))
+        <h2>Kamper ({{ $fixturesPeriod['start']->format('d.m.Y H.i') }}–{{ $fixturesPeriod['end']->format('d.m.Y H.i') }})</h2>
+        @if(count($printFixtures))
             <table><thead><tr><th class="date">Dato og tid</th><th>Hjemmelag</th><th>Bortelag</th></tr></thead><tbody>
-            @foreach($nextWeekFixtures as $match)
+            @foreach($printFixtures as $match)
                 <tr><td>{{ $match['startsAt']->locale('nb')->translatedFormat('D j. M \k\l. H.i') }}</td><td>{{ $match['homeTeam'] }}</td><td>{{ $match['awayTeam'] }}</td></tr>
             @endforeach
             </tbody></table>
-        @else <p class="empty">Ingen kamper er satt opp kommende uke.</p> @endif
+        @else <p class="empty">Ingen kamper er satt opp de neste 7 døgnene.</p> @endif
     </section>
 
     <section>
