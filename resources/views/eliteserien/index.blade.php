@@ -61,6 +61,10 @@
         white-space: normal;
     }
 
+    .es-team-link { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+    .es-team-link:hover, .es-team-link:focus { color: #0056b3; }
+    .es-team-help { background: #eef6ff; border-left: 4px solid #173f72; color: #334155; margin-bottom: 1rem; padding: .75rem 1rem; }
+
     .es-emblem {
         height: 24px;
         object-fit: contain;
@@ -162,6 +166,7 @@
 
         <section class="es-section p-3 p-md-4 mb-3">
             <h2 class="h4 mb-3">Tabell</h2>
+            <p class="es-team-help mb-3"><strong>Se alle kampene til et lag:</strong> Trykk på lagnavnet for å se hele sesongens kamper, resultater og kommende oppgjør. Kampoversikten kan også skrives ut på én A4-side.</p>
 
             @if(count($standings) > 0)
                 <div class="table-responsive">
@@ -187,7 +192,7 @@
                                             @if(!empty($team['emblemUrl']))
                                                 <img class="es-emblem" src="{{ $team['emblemUrl'] }}" alt="">
                                             @endif
-                                            <span>{{ $team['teamName'] }}</span>
+                                            <a class="es-team-link" href="{{ route('eliteserien.team', $team['teamId']) }}">{{ $team['teamName'] }}</a>
                                         </span>
                                     </td>
                                     <td class="text-center">{{ $team['played'] ?? '-' }}</td>
@@ -225,8 +230,8 @@
                                                 @endif
                                             </div>
                                             <div class="es-match-teams">
-                                                <span>{{ $match['homeTeam'] }}</span>
-                                                <span>{{ $match['awayTeam'] }}</span>
+                                                <a class="es-team-link" href="{{ route('eliteserien.team', $match['homeTeamId']) }}">{{ $match['homeTeam'] }}</a>
+                                                <a class="es-team-link" href="{{ route('eliteserien.team', $match['awayTeamId']) }}">{{ $match['awayTeam'] }}</a>
                                             </div>
                                         </div>
                                         <div class="es-status text-right">{{ $match['statusLabel'] }}</div>
@@ -259,8 +264,8 @@
                                                 @endif
                                             </div>
                                             <div class="es-match-teams">
-                                                <span>{{ $match['homeTeam'] }}</span>
-                                                <span>{{ $match['awayTeam'] }}</span>
+                                                <a class="es-team-link" href="{{ route('eliteserien.team', $match['homeTeamId']) }}">{{ $match['homeTeam'] }}</a>
+                                                <a class="es-team-link" href="{{ route('eliteserien.team', $match['awayTeamId']) }}">{{ $match['awayTeam'] }}</a>
                                             </div>
                                         </div>
                                         <div class="es-score">

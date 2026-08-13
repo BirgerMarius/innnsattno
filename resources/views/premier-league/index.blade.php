@@ -61,6 +61,10 @@
         white-space: normal;
     }
 
+    .pl-team-link { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
+    .pl-team-link:hover, .pl-team-link:focus { color: #0056b3; }
+    .pl-team-help { background: #eef6ff; border-left: 4px solid #173f72; color: #334155; margin-bottom: 1rem; padding: .75rem 1rem; }
+
     .pl-emblem {
         height: 24px;
         object-fit: contain;
@@ -162,6 +166,7 @@
 
         <section class="pl-section p-3 p-md-4 mb-3">
             <h2 class="h4 mb-3">Tabell</h2>
+            <p class="pl-team-help mb-3"><strong>Se alle kampene til et lag:</strong> Trykk på lagnavnet for å se hele sesongens kamper, resultater og kommende oppgjør. Kampoversikten kan også skrives ut på én A4-side.</p>
 
             @if(count($standings) > 0)
                 <div class="table-responsive">
@@ -187,7 +192,7 @@
                                             @if(!empty($team['emblemUrl']))
                                                 <img class="pl-emblem" src="{{ $team['emblemUrl'] }}" alt="">
                                             @endif
-                                            <span>{{ $team['teamName'] }}</span>
+                                            <a class="pl-team-link" href="{{ route('premier-league.team', $team['teamId']) }}">{{ $team['teamName'] }}</a>
                                         </span>
                                     </td>
                                     <td class="text-center">{{ $team['played'] ?? '-' }}</td>
@@ -225,8 +230,8 @@
                                                 @endif
                                             </div>
                                             <div class="pl-match-teams">
-                                                <span>{{ $match['homeTeam'] }}</span>
-                                                <span>{{ $match['awayTeam'] }}</span>
+                                                <a class="pl-team-link" href="{{ route('premier-league.team', $match['homeTeamId']) }}">{{ $match['homeTeam'] }}</a>
+                                                <a class="pl-team-link" href="{{ route('premier-league.team', $match['awayTeamId']) }}">{{ $match['awayTeam'] }}</a>
                                             </div>
                                         </div>
                                         <div class="pl-status text-right">{{ $match['statusLabel'] }}</div>
@@ -259,8 +264,8 @@
                                                 @endif
                                             </div>
                                             <div class="pl-match-teams">
-                                                <span>{{ $match['homeTeam'] }}</span>
-                                                <span>{{ $match['awayTeam'] }}</span>
+                                                <a class="pl-team-link" href="{{ route('premier-league.team', $match['homeTeamId']) }}">{{ $match['homeTeam'] }}</a>
+                                                <a class="pl-team-link" href="{{ route('premier-league.team', $match['awayTeamId']) }}">{{ $match['awayTeam'] }}</a>
                                             </div>
                                         </div>
                                         <div class="pl-score">

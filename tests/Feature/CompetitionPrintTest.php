@@ -42,6 +42,7 @@ class CompetitionPrintTest extends TestCase
             ->assertDontSee('For langt frem')
             ->assertSee('Tabell')
             ->assertSee('Tabellag')
+            ->assertSee('fixture-sections', false)
             ->assertSee('window.print()');
     }
 
@@ -58,6 +59,7 @@ class CompetitionPrintTest extends TestCase
             ->assertViewHas('printFixtures', fn (array $matches) => array_column($matches, 'id') === [6, 3])
             ->assertSee('Tidligere i dag')
             ->assertSee('Senere i dag')
+            ->assertSee('fixture-sections', false)
             ->assertDontSee('For gammelt')
             ->assertDontSee('For langt frem');
     }

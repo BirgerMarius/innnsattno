@@ -104,6 +104,55 @@ abstract class SchibstedCompetitionService
         ]);
     }
 
+    /**
+     * Return one team's complete league season from the already normalised
+     * competition data. Team IDs, never names, are used for matching.
+     */
+    public function getTeamSeasonData(int $teamId, string $leagueName): ?array
+    {
+        $competition = $this->getCompetitionData();
+        $team = $competition['teams'][$teamId] ?? null;
+
+        if (!$team) {
+            return null;
+        }
+
+        $matches = array_values(array_filter($competition['matches'], function (array $match) use ($teamId) {
+            return $match['homeTeamId'] === $teamId || $match['awayTeamId'] === $teamId;
+        }));
+
+        usort($matches, function (array $a, array $b) {
+            if (!$a['startsAt'] && !$b['startsAt']) {
+                return 0;
+            }
+
+            if (!$a['startsAt']) {
+                return 1;
+            }
+
+            if (!$b['startsAt']) {
+                return -1;
+            }
+
+            return $a['startsAt']->getTimestamp() <=> $b['startsAt']->getTimestamp();
+        });
+
+        foreach ($matches as &$match) {
+            $match['isHome'] = $match['homeTeamId'] === $teamId;
+            $match['opponent'] = $match['isHome'] ? $match['awayTeam'] : $match['homeTeam'];
+            $match['teamScore'] = $match['isHome'] ? $match['homeScore'] : $match['awayScore'];
+            $match['opponentScore'] = $match['isHome'] ? $match['awayScore'] : $match['homeScore'];
+        }
+        unset($match);
+
+        return array_merge($competition, [
+            'leagueName' => $leagueName,
+            'seasonName' => $competition['seasonName'] ?? null,
+            'team' => $team,
+            'teamMatches' => $matches,
+        ]);
+    }
+
     public function seasonId(): ?int
     {
         $seasonId = config($this->seasonConfigKey());
@@ -166,10 +215,12 @@ abstract class SchibstedCompetitionService
 
         return [
             'standings' => $this->normalizeStandings($standings, $participants),
+            'teams' => $this->normalizeTeams($participants),
             'matches' => $matches,
             'upcomingFixtures' => array_slice($upcoming, 0, self::UPCOMING_LIMIT),
             'recentResults' => array_slice($results, 0, self::RESULTS_LIMIT),
             'lastUpdated' => $this->findLastUpdated($schedule, $standings),
+            'seasonName' => $this->seasonName($schedule, $standings),
             'apiConfigured' => true,
             'apiError' => false,
             'usingStaleData' => false,
@@ -296,6 +347,8 @@ abstract class SchibstedCompetitionService
                 'dateKey' => $startsAt ? $startsAt->format('Y-m-d') : 'ukjent',
                 'dateLabel' => $startsAt ? $startsAt->format('d.m.Y') : 'Dato ikke satt',
                 'timeLabel' => $startsAt ? $startsAt->format('H:i') : '',
+                'homeTeamId' => $this->nullableInt($homeId),
+                'awayTeamId' => $this->nullableInt($awayId),
                 'homeTeam' => $this->teamName($participants, $homeId),
                 'awayTeam' => $this->teamName($participants, $awayId),
                 'homeEmblemUrl' => $this->teamEmblem($participants, $homeId),
@@ -311,6 +364,39 @@ abstract class SchibstedCompetitionService
         }
 
         return $matches;
+    }
+
+    private function normalizeTeams(array $participants): array
+    {
+        $teams = [];
+
+        foreach ($participants as $teamId => $participant) {
+            if (!is_array($participant) || !is_numeric($teamId)) {
+                continue;
+            }
+
+            $teams[(int) $teamId] = [
+                'teamId' => (int) $teamId,
+                'teamName' => $participant['name'] ?? 'Ukjent lag',
+                'shortName' => $participant['shortName'] ?? $participant['abbreviation'] ?? null,
+                'emblemUrl' => $this->extractImageUrl($participant),
+            ];
+        }
+
+        return $teams;
+    }
+
+    private function seasonName(array ...$responses): ?string
+    {
+        foreach ($responses as $response) {
+            $name = $response['tournamentSeason']['name'] ?? null;
+
+            if (is_string($name) && trim($name) !== '') {
+                return $name;
+            }
+        }
+
+        return null;
     }
 
     private function participantsFrom(array $schedule, array $standings): array
@@ -494,10 +580,12 @@ abstract class SchibstedCompetitionService
     {
         return [
             'standings' => [],
+            'teams' => [],
             'matches' => [],
             'upcomingFixtures' => [],
             'recentResults' => [],
             'lastUpdated' => null,
+            'seasonName' => null,
             'apiConfigured' => (bool) $this->seasonId(),
             'apiError' => $apiError,
             'usingStaleData' => $usingStaleData,

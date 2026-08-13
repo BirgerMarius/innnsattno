@@ -270,9 +270,13 @@ Route::get('/football', [FootballController::class, 'index']);
 Route::get('/fotball-utskrift', [FootballController::class, 'print']);
 Route::get('/eliteserien', [EliteserienController::class, 'index'])->name('eliteserien.index');
 Route::get('/eliteserien/utskrift', [EliteserienController::class, 'print'])->name('eliteserien.print');
+Route::get('/eliteserien/lag/{teamId}', [EliteserienController::class, 'team'])->whereNumber('teamId')->name('eliteserien.team');
+Route::get('/eliteserien/lag/{teamId}/utskrift', [EliteserienController::class, 'teamPrint'])->whereNumber('teamId')->name('eliteserien.team.print');
 Route::get('/eliteserien/test', [EliteserienController::class, 'test'])->name('eliteserien.test');
 Route::get('/premier-league', [PremierLeagueController::class, 'index'])->name('premier-league.index');
 Route::get('/premier-league/utskrift', [PremierLeagueController::class, 'print'])->name('premier-league.print');
+Route::get('/premier-league/lag/{teamId}', [PremierLeagueController::class, 'team'])->whereNumber('teamId')->name('premier-league.team');
+Route::get('/premier-league/lag/{teamId}/utskrift', [PremierLeagueController::class, 'teamPrint'])->whereNumber('teamId')->name('premier-league.team.print');
 Route::get('/premier-league/test', [PremierLeagueController::class, 'test']);
 
 Route::get('/bonnetider', [PrayerController::class, 'ringerike']);

@@ -52,4 +52,26 @@ class EliteserienController extends Controller
     {
         return view('football.competition-print', $this->eliteserienService->getPrintData('Eliteserien'));
     }
+
+    public function team(int $teamId)
+    {
+        $teamSeason = $this->eliteserienService->getTeamSeasonData($teamId, 'Eliteserien');
+        abort_unless($teamSeason, 404);
+
+        return view('football.team', array_merge($teamSeason, [
+            'backRoute' => 'eliteserien.index',
+            'printRoute' => 'eliteserien.team.print',
+        ]));
+    }
+
+    public function teamPrint(int $teamId)
+    {
+        $teamSeason = $this->eliteserienService->getTeamSeasonData($teamId, 'Eliteserien');
+        abort_unless($teamSeason, 404);
+
+        return view('football.team-print', array_merge($teamSeason, [
+            'backRoute' => 'eliteserien.index',
+            'teamRoute' => 'eliteserien.team',
+        ]));
+    }
 }

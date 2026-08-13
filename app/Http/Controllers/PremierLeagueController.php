@@ -52,4 +52,26 @@ class PremierLeagueController extends Controller
     {
         return view('football.competition-print', $this->premierLeagueService->getPrintData('Premier League'));
     }
+
+    public function team(int $teamId)
+    {
+        $teamSeason = $this->premierLeagueService->getTeamSeasonData($teamId, 'Premier League');
+        abort_unless($teamSeason, 404);
+
+        return view('football.team', array_merge($teamSeason, [
+            'backRoute' => 'premier-league.index',
+            'printRoute' => 'premier-league.team.print',
+        ]));
+    }
+
+    public function teamPrint(int $teamId)
+    {
+        $teamSeason = $this->premierLeagueService->getTeamSeasonData($teamId, 'Premier League');
+        abort_unless($teamSeason, 404);
+
+        return view('football.team-print', array_merge($teamSeason, [
+            'backRoute' => 'premier-league.index',
+            'teamRoute' => 'premier-league.team',
+        ]));
+    }
 }
