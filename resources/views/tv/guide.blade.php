@@ -266,6 +266,11 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <span class="front-page-quiz-badges" aria-label="Ny testfunksjon"><span>NYHET</span><span>TEST</span></span>
         </a>
 
+        <a href="{{ route('learning.index') }}" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
+            <i class="far fa-lightbulb" aria-hidden="true"></i> Lær noe nytt
+            <span class="front-page-quiz-badges" aria-label="Ny testfunksjon"><span>NYHET</span><span>TEST</span></span>
+        </a>
+
         <a href="{{ route('calendar.index') }}" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--wide" role="button">
             <i class="far fa-calendar-alt"></i> Månedskalender – For utskrift
         </a>
