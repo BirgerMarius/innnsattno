@@ -26,4 +26,16 @@ class ChangeHistoryServiceTest extends TestCase
         $this->assertArrayNotHasKey('commit_id', $changes->first());
         $this->assertArrayNotHasKey('author_email', $changes->first());
     }
+
+    public function testItShowsHistoricalEnglishCommitMessagesInNorwegian(): void
+    {
+        config(['change-history.repository_path' => base_path()]);
+        Cache::flush();
+
+        $history = $this->app->make(ChangeHistoryService::class)->get();
+        $messages = collect($history['groups'])->flatten(1)->pluck('message');
+
+        $this->assertContains('Rett tidsperioder for fotballutskrift', $messages);
+        $this->assertNotContains('Fix rolling football print windows', $messages);
+    }
 }
