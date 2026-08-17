@@ -1,44 +1,93 @@
 # Statistikksammendrag for adminportalen
 
-Laravel åpner ikke SQLite-databasen. `scripts/generate_admin_statistics.py` leser historikken skrivebeskyttet og skriver et begrenset JSON-sammendrag atomisk til `storage/app/statistikk/admin-summary.json`. JSON-filen inneholder ingen IP-adresser; IP-tabellen brukes bare til å telle unike besøkende. Schema 3 skiller antatt menneskelig trafikk fra bot-, overvåkings-, skanner- og øvrig trafikk. Rå forespørsler beholdes som tekniske aggregater i SQLite, men er ikke hovedtallene på `/adm`.
+Adminportalen leser bare det begrensede JSON-sammendraget; Laravel åpner aldri historikkdatabasen eller Nginx-loggene. Produksjon bruker schema 3, som skiller antatt menneskelig bruk fra kjent automatisert/teknisk og uklassifisert trafikk. JSON-filen inneholder ingen IP-adresser.
 
-## Produksjonskobling (skal utføres senere)
+## Produksjonsarkitektur
 
-Kjør generatoren i `/root/innsatt-statistikk/oppdater-rapport.sh` etter at historikkdatabasen er oppdatert, med prosjektets faktiske rotkatalog:
+| Del | Produksjonsplassering |
+| --- | --- |
+| Applikasjonsrepo | `/home/forge/innsatt.no/innnsattno` |
+| Statistikkjobb | `/root/innsatt-statistikk/oppdater-rapport.sh` |
+| Jobbkonfigurasjon | `/root/innsatt-statistikk/statistikk.conf` |
+| Historikkdatabase | `/root/innsatt-statistikk/historikk.sqlite3` |
+| Admin-sammendrag | `/home/forge/innsatt.no/innnsattno/storage/app/statistikk/admin-summary.json` |
+| Nginx-logg | `/var/log/nginx/innsatt.no-access.log`, `.1` og roterte `.gz`-filer |
 
-```sh
-/usr/bin/python3 /STI/TIL/INNSATT/scripts/generate_admin_statistics.py \
-  /root/innsatt-statistikk/historikk.sqlite3 \
-  /STI/TIL/INNSATT/storage/app/statistikk/admin-summary.json
-```
+`innsatt-statistikk.service` kjører jobben som `root`. Etter vellykket generering skal JSON-filen eies av `forge:www-data` og ha modus `0640`, slik at PHP kan lese den. Generatoren skriver først en komplett midlertidig fil og erstatter deretter den gamle atomisk; ved feil beholdes sist gyldige JSON-fil.
 
-Bruk samme systembruker som statistikkjobben. Katalogen må kunne skrives av jobben og JSON-filen må kunne leses av PHP-brukeren. Generatoren lager katalogen ved behov, setter filmodus `0640` og erstatter først eksisterende fil etter at en komplett ny fil er synkronisert. Dersom validering eller databasespørring feiler, beholdes forrige gyldige fil.
+`innsatt-statistikk.timer` starter tjenesten hvert 15. minutt, på `:00`, `:15`, `:30` og `:45`, med `Persistent=true`. Timeren skal være aktiv etter endringer. Jobben er manuelt og via systemd verifisert med `0/SUCCESS`.
 
-Databasen må ha `daily_stats`, `daily_page_stats` og `daily_ip_stats`. Skriptet oppdager støttede kolonnenavn og avslutter med en tydelig feil ved ukjent skjema. Kjør kommandoen manuelt én gang før jobbskriptet endres. Ikke bruk `--test-data` i produksjon.
+## Kjørerekkefølge
 
-## Alle sider og sidefordelte besøkende
+`oppdater-rapport.sh` laster `/root/innsatt-statistikk/statistikk.conf` og kjører i denne rekkefølgen:
 
-Listen over alle ordinære sider krever tabellen `daily_page_ip_stats`, fordi dagsaggregatet `daily_page_stats` ikke kan telle samme IP bare én gang over en periode. `scripts/collect_page_visitors.py` bygger denne tabellen idempotent fra komplette aktive og roterte Nginx access-logger. Rå IP-er blir kun liggende i SQLite i maksimalt 60 dager og eksporteres aldri til JSON.
+1. `/root/innsatt-statistikk/lagre-historikk.py` oppdaterer eksisterende råhistorikk i `daily_stats`, `daily_page_stats` og `daily_ip_stats`.
+2. Jobben bygger en liste med aktiv logg, `.1` og relevante roterte `.gz`-logger som dekker minst 60 dager. Listen dedupliseres før den sendes til innsamleren; dette er nødvendig fordi `.1` ellers også kan matches av et mønster som `.[0-9]`.
+3. `scripts/collect_page_visitors.py` kjøres med historikkdatabasen, de unike loggfilene og `--retention-days 60`.
+4. `scripts/generate_admin_statistics.py` leser databasen skrivebeskyttet og skriver `admin-summary.json`.
+5. Jobben setter eier `forge:www-data` og modus `0640` på den nye JSON-filen.
 
-Innsamleren skal kjøres etter at de ordinære historikktabellene er oppdatert, men før `generate_admin_statistics.py`:
+Innsamleren må alltid få hele loggsettet som dekker vinduet, ikke bare dagens aktive logg. Den erstatter aggregerte rader innenfor det glidende 60-dagersvinduet og fjerner eldre rader fra sine egne tabeller. Generatoren eksporterer deretter nøyaktig 60 kalenderdager i JSON-feltet `daily`, inkludert null-dager.
 
-```sh
-/usr/bin/python3 /STI/TIL/INNSATT/scripts/collect_page_visitors.py \
-  /root/innsatt-statistikk/historikk.sqlite3 \
-  /STI/TIL/AKTIV/access.log /STI/TIL/ROTERTE/access.log.1 \
-  --retention-days 60
+Hvis eldre Nginx-logger mangler, betyr nuller tidlig i 60-dagersvinduet ikke nødvendigvis at det var null trafikk; de kan være resultat av ufullstendig logghistorikk. Dette må vurderes ved feilsøking og før tall sammenlignes over tid.
 
-/usr/bin/python3 /STI/TIL/INNSATT/scripts/generate_admin_statistics.py \
-  /root/innsatt-statistikk/historikk.sqlite3 \
-  /STI/TIL/INNSATT/storage/app/statistikk/admin-summary.json
-```
+## Konfigurasjon og ekskluderinger
 
-Alle logger som dekker de siste 60 dagene, inkludert relevante `.gz`-filer, må oppgis hver gang fordi perioden gjenoppbygges. Eksporter jobbens eksisterende `ADMIN_IP` som miljøvariabel dersom administratortrafikk skal utelates. Flere eksplisitte ekskluderinger kan settes som kommaseparerte IP-er i `STATISTICS_EXCLUDED_IPS`, eller med gjentatt `--exclude-ip`; ikke skriv verdier i repositoryet eller kommandolinjelogger. Kontroller de faktiske loggstiene og at loggformatet er Nginx combined-format før produksjonsjobben endres.
+`ADMIN_IP` brukes i produksjonsjobben for å holde administratorens hjemme- og testtrafikk utenfor statistikken. `STATISTICS_EXCLUDED_IPS` brukes for ekstra eksplisitte ekskluderinger og inneholder den kjente automatiserte kilden `85.25.43.170`.
 
-Innsamleren klassifiserer først kjente User-Agents (bot/crawler og Uptime Kuma/overvåking), velkjente skannerstier og mislykkede tekniske forespørsler. En sidevisning krever vellykket `GET` mot en offentlig HTML-side. Kandidater blir bare antatt menneskelige når samme IP og User-Agent i en 30-minutters økt også har en annen innholdsside eller laster en statisk ressurs; en enslig `/tv` teller derfor ikke automatisk. Et legitimt enkeltstående treff kan dermed havne i `other`/uklassifisert trafikk, blant annet når nettleseren har ressurser i cache; det merkes aldri som bot eller skanner bare av den grunn. `single_page_candidates` viser hvor stor del av den uklassifiserte trafikken dette gjelder. En rask bønnetid-enumerering med mange ulike mål i samme økt klassifiseres som skanning. Statiske ressurser brukes kun som øktbevis og teller aldri som sidevisninger. Kjente rutealiaser samles, mens `/tv`, `/print` og `/print-ilseng` forblir separate. Ukjente, vellykkede offentlige HTML-stier beholder URL-en som navn.
+Ikke skriv administratorens faktiske IP, andre private verdier, hemmeligheter eller tokenverdier i repositoryet. De hører bare hjemme i `/root/innsatt-statistikk/statistikk.conf` eller tjenestens sikre driftsmiljø.
 
-I schema 3 holdes `traffic_quality.known_automated_technical_requests` adskilt fra `traffic_quality.other`. Det første er nøyaktig summen av `known_bot`, `monitoring`, `scanner` og `excluded`; det andre er uklassifisert trafikk og må ikke omtales som kjent teknisk trafikk.
+Uptime Kuma klassifiseres normalt som `monitoring`. Hvis den kommer fra samme IP som `ADMIN_IP`, får eksplisitt IP-ekskludering prioritet og trafikken vises som `excluded`. Det er ønsket: administrator-, test- og overvåkingstrafikk skal ikke inngå i brukerstatistikken.
 
-Schema 3 eksporterer også `daily`, et oppslag med personverntrygge nøkkeltall og siderangering for hver av de siste 60 kalenderdagene, inkludert null-dager. `/adm?traffic_date=YYYY-MM-DD` bruker dette oppslaget med Europe/Oslo som datogrunnlag og har prioritet over `traffic_period`. Ugyldige datoer avvises i grensesnittet; en gyldig fremtidig eller ikke-innsamlet dato viser en tydelig ingen-data-tilstand. Ved hver kjøring gjenoppbygges hele 60-dagersvinduet fra alle aktive og roterte logger som oppgis til innsamleren, og erstatter de samme datoradene atomisk i SQLite før JSON-filen genereres. Eldre dager beholdes ikke i `daily`-eksporten; de faller ut når vinduet flyttes frem.
+## Schema 3 og adminvisningen
 
-Standardplasseringen kan overstyres med `ADMIN_STATISTICS_SUMMARY_PATH`. Lenken til detaljrapporten kan overstyres med `ADMIN_GOACCESS_REPORT_URL`; standard er `/statistikk/`.
+Schema 3 har tre hoveddeler:
+
+- `periods`: ferdiggenererte aggregater for `1`, `7` og `30` dager.
+- `daily`: 60 ferdiggenererte daglige aggregater med nøkkeltall og siderangering.
+- `top_pages`: siderangering for periodene `1`, `7` og `30` dager.
+
+Hver daglig oppføring inneholder antatte reelle sidevisninger, antatte besøkende, estimerte økter, utskriftssider, mest brukte sider/funksjoner, kjent automatisert/teknisk trafikk og uklassifisert trafikk. Ingen IP-adresser eksporteres.
+
+`/adm` støtter **I dag**, **Siste 7 dager**, **Siste 30 dager** og **Velg dato**. En datoforespørsel (`traffic_date=YYYY-MM-DD`) leser bare den allerede genererte `daily`-oppføringen; den analyserer aldri Nginx-logger under en webrequest. Datoer håndteres med Europe/Oslo som grunnlag.
+
+## Klassifisering
+
+- `human`: vellykket GET mot offentlig HTML-side med nok øktbevis til å være antatt menneskelig.
+- `bot`: kjente crawler- og bot-User-Agents, blant annet ClaudeBot, Googlebot, bingbot, Amazonbot, Applebot og AhrefsBot.
+- `monitoring`: Uptime Kuma og andre monitor-User-Agents.
+- `scanner`: kjente sikkerhetsskannerstier, mislykkede tekniske forespørsler og raske bønnetid-enumereringer.
+- `excluded`: trafikk fra eksplisitt konfigurerte IP-er, inkludert administratortrafikk.
+- `other`: uklassifisert trafikk. Dette er ikke automatisk kjent teknisk trafikk.
+
+Kjent automatisert/teknisk trafikk er nøyaktig summen av `bot`, `monitoring`, `scanner` og `excluded`. `other` holdes separat fordi den kan inneholde legitime enkeltstående sidevisninger, for eksempel fra en nettleser som allerede har CSS og bilder i cache. `single_page_candidates` viser hvor mange slike enkeltstående sidekandidater som finnes i uklassifisert trafikk.
+
+En økt er foreløpig samme IP + User-Agent med maksimalt 30 minutters inaktivitet. Besøkende og økter er derfor estimater fra anonymisert logganalyse; flere brukere kan dele offentlig IP.
+
+## Første kontrollerte produksjonskjøring
+
+For 17.08.2026 viste schema 3-sammendraget:
+
+| Måling | Antall |
+| --- | ---: |
+| Antatte reelle sidevisninger | 41 |
+| Antatte besøkende | 10 |
+| Estimerte økter | 12 |
+| Utskriftssider brukt | 4 |
+| Kjent automatisert/teknisk trafikk | 1 088 |
+| Uklassifiserte forespørsler | 1 318 |
+| Enkeltstående sidekandidater | 15 |
+| Råforespørsler | 2 447 |
+
+## Driftssjekk
+
+Ved kontroll av en ny generering skal minst følgende være sant:
+
+- `schema_version` er `3`.
+- `daily` inneholder 60 oppføringer.
+- `periods` inneholder `1`, `7` og `30`.
+- `admin-summary.json` inneholder ingen IP-adresser.
+- `daily_page_ip_stats` har ingen menneskelige siderader for eksplisitt ekskluderte IP-er.
+- `innsatt-statistikk.service` har `0/SUCCESS`, og `innsatt-statistikk.timer` er aktiv og planlagt hvert 15. minutt.
+
+Standardplasseringen kan overstyres i utvikling med `ADMIN_STATISTICS_SUMMARY_PATH`. Lenken til detaljrapporten kan overstyres med `ADMIN_GOACCESS_REPORT_URL`; standard er `/statistikk/`.
