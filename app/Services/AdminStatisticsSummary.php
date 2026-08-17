@@ -21,8 +21,35 @@ class AdminStatisticsSummary
             return null;
         }
 
-        if (! is_array($data) || ! in_array($data['schema_version'] ?? null, [1, 2], true)) {
+        if (! is_array($data) || ! in_array($data['schema_version'] ?? null, [1, 2, 3], true)) {
             return null;
+        }
+
+        if ($data['schema_version'] === 3) {
+            if (! $this->validTimestamp($data['generated_at'] ?? null) || ! is_bool($data['test_data'] ?? null)) {
+                return null;
+            }
+            $periods = $this->validHumanPeriods($data['periods'] ?? null);
+            if ($periods === null) {
+                return null;
+            }
+            $topPages = $this->validTopPages($data['top_pages'] ?? null);
+            if (($data['top_pages'] ?? null) !== null && $topPages === null) {
+                return null;
+            }
+            $daily = $this->validDailyHumanStatistics($data['daily'] ?? null);
+            if (($data['daily'] ?? null) !== null && $daily === null) {
+                return null;
+            }
+
+            return [
+                'human_traffic' => true,
+                'generated_at' => Carbon::parse($data['generated_at']),
+                'test_data' => $data['test_data'],
+                'periods' => $periods,
+                'top_pages' => $topPages,
+                'daily' => $daily,
+            ];
         }
 
         $latest = $data['latest_day'] ?? null;
@@ -48,6 +75,7 @@ class AdminStatisticsSummary
         }
 
         $summary = [
+            'human_traffic' => false,
             'generated_at' => Carbon::parse($data['generated_at']),
             'test_data' => $data['test_data'],
             'latest_day' => [
@@ -149,6 +177,83 @@ class AdminStatisticsSummary
             }
             $validated[$days] = ['from' => Carbon::createFromFormat('!Y-m-d', $period['from']),
                 'to' => Carbon::createFromFormat('!Y-m-d', $period['to']), 'pages' => $pages];
+        }
+        return $validated;
+    }
+
+    private function validHumanPeriods($periods): ?array
+    {
+        if (! is_array($periods)) {
+            return null;
+        }
+        $validated = [];
+        foreach (['1', '7', '30'] as $days) {
+            $period = $periods[$days] ?? null;
+            $validatedPeriod = $this->validHumanPeriod($period);
+            if ($validatedPeriod === null) {
+                return null;
+            }
+            $validated[$days] = $validatedPeriod;
+        }
+        return $validated;
+    }
+
+    private function validHumanPeriod($period): ?array
+    {
+        $quality = is_array($period) ? ($period['traffic_quality'] ?? null) : null;
+        if (! is_array($period) || ! is_array($quality)
+            || ! $this->validDate($period['from'] ?? null) || ! $this->validDate($period['to'] ?? null)
+            || ! $this->validCount($period['suspected_human_pageviews'] ?? null)
+            || ! $this->validCount($period['suspected_visitors'] ?? null)
+            || ! $this->validCount($period['sessions'] ?? null)
+            || ! $this->validCount($period['print_pageviews'] ?? null)) {
+            return null;
+        }
+        foreach (['raw_requests', 'known_automated_technical_requests', 'known_bot', 'monitoring', 'scanner', 'other', 'excluded', 'single_page_candidates'] as $key) {
+            if (! $this->validCount($quality[$key] ?? null)) {
+                return null;
+            }
+        }
+        if ($quality['known_automated_technical_requests'] !== $quality['known_bot'] + $quality['monitoring'] + $quality['scanner'] + $quality['excluded']
+            || $quality['known_automated_technical_requests'] > $quality['raw_requests']
+            || $quality['other'] > $quality['raw_requests']
+            || $quality['single_page_candidates'] > $quality['other']
+            || $period['suspected_human_pageviews'] > $quality['raw_requests']) {
+            return null;
+        }
+        return [
+            'from' => Carbon::createFromFormat('!Y-m-d', $period['from']),
+            'to' => Carbon::createFromFormat('!Y-m-d', $period['to']),
+            'suspected_human_pageviews' => $period['suspected_human_pageviews'],
+            'suspected_visitors' => $period['suspected_visitors'], 'sessions' => $period['sessions'],
+            'print_pageviews' => $period['print_pageviews'], 'traffic_quality' => $quality,
+        ];
+    }
+
+    private function validDailyHumanStatistics($daily): ?array
+    {
+        if ($daily === null) {
+            return null;
+        }
+        if (! is_array($daily)) {
+            return null;
+        }
+        $validated = [];
+        foreach ($daily as $date => $entry) {
+            if (! is_string($date) || ! $this->validDate($date) || ! is_array($entry)) {
+                return null;
+            }
+            $period = $this->validHumanPeriod($entry);
+            $rankings = $this->validTopPages([
+                '1' => ['from' => $date, 'to' => $date, 'pages' => $entry['pages'] ?? null],
+                '7' => ['from' => $date, 'to' => $date, 'pages' => $entry['pages'] ?? null],
+                '30' => ['from' => $date, 'to' => $date, 'pages' => $entry['pages'] ?? null],
+            ]);
+            if ($period === null || $rankings === null || ! $period['from']->isSameDay($period['to']) || ! $period['from']->isSameDay(Carbon::createFromFormat('!Y-m-d', $date))) {
+                return null;
+            }
+            $period['pages'] = $rankings['1']['pages'];
+            $validated[$date] = $period;
         }
         return $validated;
     }

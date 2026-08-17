@@ -65,30 +65,64 @@
                 @if ($statistics && $statistics['test_data'])<span class="badge bg-warning text-dark">TESTDATA – ikke produksjonstall</span>@endif
             </div>
             @if ($statistics)
-                <div class="admin-stat-grid">
-                    <div><span>Sidevisninger {{ $statistics['latest_day']['date']->format('d.m.Y') }}</span><strong>{{ number_format($statistics['latest_day']['pageviews'], 0, ',', ' ') }}</strong></div>
-                    <div><span>Unike besøkende {{ $statistics['latest_day']['date']->format('d.m.Y') }}</span><strong>{{ number_format($statistics['latest_day']['unique_visitors'], 0, ',', ' ') }}</strong></div>
-                    <div><span>Sidevisninger siste 7 dager</span><strong>{{ number_format($statistics['last_7_days']['pageviews'], 0, ',', ' ') }}</strong></div>
-                    <div><span>Forespørsler siste 7 dager</span><strong>{{ number_format($statistics['last_7_days']['requests'], 0, ',', ' ') }}</strong></div>
-                    <div class="admin-stat-wide"><span>Mest besøkte side siste 7 dager</span><strong class="admin-stat-page">{{ $statistics['last_7_days']['top_page']['path'] }}</strong><small>{{ number_format($statistics['last_7_days']['top_page']['pageviews'], 0, ',', ' ') }} sidevisninger</small></div>
-                </div>
-                <p class="small text-muted mt-3 mb-0">Periode {{ $statistics['last_7_days']['from']->format('d.m.Y') }}–{{ $statistics['last_7_days']['to']->format('d.m.Y') }} · Sist oppdatert {{ $statistics['generated_at']->format('d.m.Y H:i') }}</p>
+                @if ($statistics['human_traffic'])
+                    @php($selectedPeriod = $trafficDate ? (($statistics['daily'] ?? [])[$trafficDate] ?? null) : $statistics['periods'][$trafficPeriod])
+                    <nav class="admin-period-nav mb-3" aria-label="Periode for trafikkstatistikk">
+                        @foreach (['1' => 'I dag', '7' => 'Siste 7 dager', '30' => 'Siste 30 dager'] as $days => $label)
+                            <a href="{{ route('admin.index', ['traffic_period' => $days]) }}#statistics-title" class="btn btn-sm {{ $trafficPeriod === (string) $days ? 'btn-primary' : 'btn-outline-secondary' }}" @if($trafficPeriod === (string) $days) aria-current="true" @endif>{{ $label }}</a>
+                        @endforeach
+                    </nav>
+                    <form method="get" action="{{ route('admin.index') }}" class="d-flex flex-wrap align-items-end gap-2 mb-3">
+                        <div><label for="traffic_date" class="form-label small mb-1">Velg spesifikk dato</label><input type="date" id="traffic_date" name="traffic_date" value="{{ $trafficDate }}" class="form-control form-control-sm"></div>
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">Velg dato</button>
+                        @if ($trafficDate)<a href="{{ route('admin.index', ['traffic_period' => '1']) }}#statistics-title" class="btn btn-sm btn-link">Vis i dag</a>@endif
+                    </form>
+                    @if ($trafficDateInvalid)
+                        <div class="alert alert-warning" role="alert">Ugyldig dato. Velg en gyldig kalenderdato.</div>
+                    @endif
+                    @if ($trafficDate && $selectedPeriod === null)
+                        <div class="alert alert-light border mb-0" role="status"><strong>Ingen data for {{ \Illuminate\Support\Carbon::createFromFormat('!Y-m-d', $trafficDate)->format('d.m.Y') }}.</strong><br><span class="text-muted">Datoen er gyldig, men finnes ikke i det lagrede statistikksammendraget.</span></div>
+                    @else
+                    <div class="admin-stat-grid">
+                        <div><span>Antatte reelle sidevisninger</span><strong>{{ number_format($selectedPeriod['suspected_human_pageviews'], 0, ',', ' ') }}</strong></div>
+                        <div><span>Antatte besøkende</span><strong>{{ number_format($selectedPeriod['suspected_visitors'], 0, ',', ' ') }}</strong></div>
+                        <div><span>Estimerte økter</span><strong>{{ number_format($selectedPeriod['sessions'], 0, ',', ' ') }}</strong></div>
+                        <div><span>Utskriftssider brukt</span><strong>{{ number_format($selectedPeriod['print_pageviews'], 0, ',', ' ') }}</strong></div>
+                        <div class="admin-stat-wide"><span>Kjent automatisert/teknisk trafikk</span><strong>{{ number_format($selectedPeriod['traffic_quality']['known_automated_technical_requests'], 0, ',', ' ') }}</strong><small>Boter {{ number_format($selectedPeriod['traffic_quality']['known_bot'], 0, ',', ' ') }} · overvåking {{ number_format($selectedPeriod['traffic_quality']['monitoring'], 0, ',', ' ') }} · skanning {{ number_format($selectedPeriod['traffic_quality']['scanner'], 0, ',', ' ') }} · eksplisitt ekskludert {{ number_format($selectedPeriod['traffic_quality']['excluded'], 0, ',', ' ') }}</small></div>
+                        <div class="admin-stat-wide"><span>Uklassifisert trafikk</span><strong>{{ number_format($selectedPeriod['traffic_quality']['other'], 0, ',', ' ') }}</strong><small>{{ number_format($selectedPeriod['traffic_quality']['single_page_candidates'], 0, ',', ' ') }} enkeltstående sidekandidater kan være legitime besøk.</small></div>
+                    </div>
+                    <p class="small text-muted mt-3 mb-0"><strong>Datakvalitet: under innkjøring</strong> · Besøkende og økter er estimater fra anonymisert logganalyse; flere brukere kan dele offentlig IP. · @if($trafficDate)Dato {{ $selectedPeriod['from']->format('d.m.Y') }}@else Periode {{ $selectedPeriod['from']->format('d.m.Y') }}–{{ $selectedPeriod['to']->format('d.m.Y') }}@endif · {{ number_format($selectedPeriod['traffic_quality']['raw_requests'], 0, ',', ' ') }} rå forespørsler · Sist oppdatert {{ $statistics['generated_at']->copy()->timezone('Europe/Oslo')->format('d.m.Y H:i') }}</p>
+                    @endif
+                @else
+                    <div class="admin-stat-grid">
+                        <div><span>Sidevisninger {{ $statistics['latest_day']['date']->format('d.m.Y') }}</span><strong>{{ number_format($statistics['latest_day']['pageviews'], 0, ',', ' ') }}</strong></div>
+                        <div><span>Unike besøkende {{ $statistics['latest_day']['date']->format('d.m.Y') }}</span><strong>{{ number_format($statistics['latest_day']['unique_visitors'], 0, ',', ' ') }}</strong></div>
+                        <div><span>Sidevisninger siste 7 dager</span><strong>{{ number_format($statistics['last_7_days']['pageviews'], 0, ',', ' ') }}</strong></div>
+                        <div><span>Forespørsler siste 7 dager</span><strong>{{ number_format($statistics['last_7_days']['requests'], 0, ',', ' ') }}</strong></div>
+                        <div class="admin-stat-wide"><span>Mest besøkte side siste 7 dager</span><strong class="admin-stat-page">{{ $statistics['last_7_days']['top_page']['path'] }}</strong><small>{{ number_format($statistics['last_7_days']['top_page']['pageviews'], 0, ',', ' ') }} sidevisninger</small></div>
+                    </div>
+                    <p class="small text-muted mt-3 mb-0">Periode {{ $statistics['last_7_days']['from']->format('d.m.Y') }}–{{ $statistics['last_7_days']['to']->format('d.m.Y') }} · Sist oppdatert {{ $statistics['generated_at']->format('d.m.Y H:i') }}</p>
+                @endif
 
                 <div class="admin-ranking mt-4 pt-4 border-top">
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-3">
-                        <div><h3 class="h5 mb-1">Alle offentlige sider</h3><p class="text-muted small mb-0">Registrerte ordinære HTML-sider, sortert etter bruk.</p></div>
-                        <nav class="admin-period-nav" aria-label="Periode for mest brukte sider">
+                        <div><h3 class="h5 mb-1">Mest brukte faktiske sider og funksjoner</h3><p class="text-muted small mb-0">Registrerte ordinære HTML-sider, sortert etter antatt menneskelig bruk.</p></div>
+                        @if (! $trafficDate)<nav class="admin-period-nav" aria-label="Periode for mest brukte sider">
                             @foreach (['1' => 'I dag', '7' => 'Siste 7 dager', '30' => 'Siste 30 dager'] as $days => $label)
                                 <a href="{{ route('admin.index', ['traffic_period' => $days]) }}#mest-brukte-sider" class="btn btn-sm {{ $trafficPeriod === (string) $days ? 'btn-primary' : 'btn-outline-secondary' }}" @if($trafficPeriod === (string) $days) aria-current="true" @endif>{{ $label }}</a>
                             @endforeach
-                        </nav>
+                        </nav>@endif
                     </div>
                     <div id="mest-brukte-sider">
-                    @if ($statistics['top_pages'] !== null)
+                    @if ($trafficDate && $selectedPeriod !== null)
+                        @php($ranking = ['from' => $selectedPeriod['from'], 'to' => $selectedPeriod['to'], 'pages' => $selectedPeriod['pages']])
+                    @elseif (! $trafficDate && $statistics['top_pages'] !== null)
                         @php($ranking = $statistics['top_pages'][$trafficPeriod])
+                    @endif
+                    @if (($trafficDate && $selectedPeriod !== null) || (! $trafficDate && $statistics['top_pages'] !== null))
                         @if (count($ranking['pages']))
                             <div class="table-responsive admin-ranking-scroll"><table class="table admin-ranking-table align-middle mb-2">
-                                <thead><tr><th scope="col">Side</th><th scope="col">URL</th><th scope="col" class="text-end">Sidevisninger</th><th scope="col" class="text-end">Unike IP-er</th></tr></thead>
+                                <thead><tr><th scope="col">Side</th><th scope="col">URL</th><th scope="col" class="text-end">Sidevisninger</th><th scope="col" class="text-end">Antatte besøkende</th></tr></thead>
                                 <tbody>@foreach ($ranking['pages'] as $page)<tr>
                                     <td><a href="{{ url($page['path']) }}" target="_blank" rel="noopener noreferrer">{{ $page['name'] }}</a></td>
                                     <td><code>{{ $page['path'] }}</code></td>
@@ -96,7 +130,7 @@
                                     <td class="text-end">{{ number_format($page['unique_visitors'], 0, ',', ' ') }}</td>
                                 </tr>@endforeach</tbody>
                             </table></div>
-                            <p class="small text-muted mb-0">Periode {{ $ranking['from']->format('d.m.Y') }}–{{ $ranking['to']->format('d.m.Y') }}. Unike IP-er er et anslag på besøkende; flere brukere kan dele samme offentlige IP.</p>
+                            <p class="small text-muted mb-0">Periode {{ $ranking['from']->format('d.m.Y') }}–{{ $ranking['to']->format('d.m.Y') }}. Antatte besøkende måles som unike IP-er; flere brukere kan dele samme offentlige IP.</p>
                         @else
                             <p class="text-muted mb-0">Ingen offentlige sidevisninger er registrert i denne perioden.</p>
                         @endif

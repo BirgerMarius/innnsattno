@@ -9,6 +9,7 @@ use App\NewsSource;
 use App\ProfessionalResource;
 use App\ResourceCategory;
 use App\Services\AdminStatisticsSummary;
+use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
@@ -22,6 +23,8 @@ class AdminDashboardController extends Controller
 
         $period = in_array($request->query('traffic_period'), ['1', '7', '30'], true)
             ? $request->query('traffic_period') : '7';
+        $requestedDate = $request->query('traffic_date');
+        $trafficDate = $this->validTrafficDate($requestedDate);
 
         return view('admin.dashboard', [
             'publishedCount' => (int) ($statusCounts[ProfessionalResource::STATUS_PUBLISHED] ?? 0),
@@ -38,6 +41,23 @@ class AdminDashboardController extends Controller
             })->count(),
             'statistics' => $statistics->read(),
             'trafficPeriod' => $period,
+            'trafficDate' => $trafficDate,
+            'trafficDateInvalid' => $requestedDate !== null && $trafficDate === null,
         ]);
+    }
+
+    private function validTrafficDate($value): ?string
+    {
+        if (! is_string($value) || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            return null;
+        }
+
+        try {
+            $date = Carbon::createFromFormat('!Y-m-d', $value, 'Europe/Oslo');
+
+            return $date->format('Y-m-d') === $value ? $value : null;
+        } catch (\Throwable $exception) {
+            return null;
+        }
     }
 }

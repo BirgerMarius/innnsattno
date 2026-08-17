@@ -51,6 +51,61 @@ class AdminDashboardStatisticsTest extends TestCase
         $admin->get('/adm')->assertOk()->assertSee('Statistikk er ikke tilgjengelig akkurat nå');
     }
 
+    public function testDashboardShowsHumanTrafficSchemaVersionThree()
+    {
+        $this->writeSummary([
+            'schema_version' => 3,
+            'periods' => $this->humanPeriods(),
+            'top_pages' => $this->topPages(),
+        ]);
+
+        $response = $this->withSession(['admin_authenticated' => true])->get('/adm?traffic_period=30');
+
+        $response->assertOk();
+        $response->assertSee('Antatte reelle sidevisninger');
+        $response->assertSee('3 000');
+        $response->assertSee('Estimerte økter');
+        $response->assertSee('Datakvalitet: under innkjøring');
+        $response->assertSee('Kjent automatisert/teknisk trafikk');
+        $response->assertSee('Uklassifisert trafikk');
+        $response->assertSee('Mest brukte faktiske sider og funksjoner');
+        $response->assertSee('Antatte besøkende');
+    }
+
+    public function testDashboardRejectsInvalidHumanTrafficSchemaVersionThree()
+    {
+        $periods = $this->humanPeriods();
+        $periods['7']['traffic_quality']['raw_requests'] = 1;
+        $this->writeSummary(['schema_version' => 3, 'periods' => $periods]);
+
+        $this->withSession(['admin_authenticated' => true])->get('/adm')
+            ->assertOk()->assertSee('Statistikk er ikke tilgjengelig akkurat nå');
+    }
+
+    public function testDashboardShowsSelectedValidDateBeforePeriod()
+    {
+        $this->writeSummary(['schema_version' => 3, 'periods' => $this->humanPeriods(), 'top_pages' => $this->topPages(), 'daily' => $this->dailyStatistics()]);
+
+        $this->withSession(['admin_authenticated' => true])->get('/adm?traffic_date=2026-08-03&traffic_period=30')
+            ->assertOk()->assertSee('Dato 03.08.2026')->assertSee('42')->assertSee('Bønnetider Ilseng');
+    }
+
+    public function testDashboardRejectsInvalidSelectedDate()
+    {
+        $this->writeSummary(['schema_version' => 3, 'periods' => $this->humanPeriods(), 'daily' => $this->dailyStatistics()]);
+
+        $this->withSession(['admin_authenticated' => true])->get('/adm?traffic_date=2026-02-30')
+            ->assertOk()->assertSee('Ugyldig dato. Velg en gyldig kalenderdato.');
+    }
+
+    public function testDashboardShowsNoDataForValidDateOutsideSummary()
+    {
+        $this->writeSummary(['schema_version' => 3, 'periods' => $this->humanPeriods(), 'daily' => $this->dailyStatistics()]);
+
+        $this->withSession(['admin_authenticated' => true])->get('/adm?traffic_date=2030-01-01')
+            ->assertOk()->assertSee('Ingen data for 01.01.2030.');
+    }
+
     public function testDashboardNeverExposesIpAddressesFromSummary()
     {
         $this->writeSummary([
@@ -79,7 +134,7 @@ class AdminDashboardStatisticsTest extends TestCase
         $response = $this->withSession(['admin_authenticated' => true])->get('/adm?traffic_period=30');
 
         $response->assertOk();
-        $response->assertSee('Alle offentlige sider');
+        $response->assertSee('Mest brukte faktiske sider og funksjoner');
         $response->assertSee('Bønnetider Ilseng');
         $response->assertSee('href="' . url('/bonnetider-ilseng') . '"', false);
         $response->assertSee('3 000');
@@ -143,5 +198,35 @@ class AdminDashboardStatisticsTest extends TestCase
             ];
         }
         return $periods;
+    }
+
+    private function humanPeriods(): array
+    {
+        $periods = [];
+        foreach ([1, 7, 30] as $days) {
+            $periods[(string) $days] = [
+                'from' => $days === 1 ? '2026-08-04' : ($days === 7 ? '2026-07-29' : '2026-07-06'),
+                'to' => '2026-08-04', 'suspected_human_pageviews' => $days * 100,
+                'suspected_visitors' => $days * 10, 'sessions' => $days * 12,
+                'print_pageviews' => $days, 'traffic_quality' => [
+                    'raw_requests' => $days * 200, 'known_automated_technical_requests' => $days * 60,
+                    'known_bot' => $days * 20, 'monitoring' => $days * 10,
+                    'scanner' => $days * 30, 'other' => $days * 40, 'excluded' => 0, 'single_page_candidates' => $days * 5,
+                ],
+            ];
+        }
+        return $periods;
+    }
+
+    private function dailyStatistics(): array
+    {
+        $periods = $this->humanPeriods();
+        $entry = $periods['1'];
+        $entry['from'] = '2026-08-03';
+        $entry['to'] = '2026-08-03';
+        $entry['suspected_human_pageviews'] = 42;
+        $entry['pages'] = $this->topPages()['1']['pages'];
+
+        return ['2026-08-03' => $entry];
     }
 }

@@ -102,6 +102,67 @@ def top_pages(connection, latest_date):
     return result
 
 
+def table_exists(connection, table):
+    return connection.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (table,)).fetchone() is not None
+
+
+def human_periods(connection, latest_date):
+    """Read the collector's privacy-limited, classified log aggregates."""
+    required = {'date', 'category', 'metric', 'count'}
+    if not table_exists(connection, 'daily_traffic_classification_stats') or not required.issubset(columns(connection, 'daily_traffic_classification_stats')):
+        return None
+    if not table_exists(connection, 'daily_page_ip_stats'):
+        return None
+    return {str(days): human_periods_for_days(connection, latest_date, days) for days in (1, 7, 30)}
+
+
+def daily_human_statistics(connection, latest_date):
+    """Export all 60 retained calendar days, including days without traffic."""
+    dates = [latest_date - dt.timedelta(days=offset) for offset in range(59, -1, -1)]
+    result = {}
+    for day in dates:
+        value = day.isoformat()
+        period = human_periods_for_days(connection, day, 1)
+        pages = connection.execute(
+            "SELECT path, SUM(pageviews) views, COUNT(DISTINCT ip) visitors FROM daily_page_ip_stats "
+            "WHERE date = ? GROUP BY path ORDER BY views DESC, visitors DESC, path ASC", (value,)).fetchall()
+        result[value] = {
+            **period,
+            'pages': [{'name': page_name(row['path']), 'path': row['path'],
+                       'pageviews': max(0, int(row['views'] or 0)),
+                       'unique_visitors': max(0, int(row['visitors'] or 0))} for row in pages],
+        }
+    return result
+
+
+def human_periods_for_days(connection, latest_date, days):
+    first = latest_date - dt.timedelta(days=days - 1)
+    bounds = (first.isoformat(), latest_date.isoformat())
+    classified = {row['category']: max(0, int(row['count'] or 0)) for row in connection.execute(
+        "SELECT category, SUM(count) count FROM daily_traffic_classification_stats "
+        "WHERE date BETWEEN ? AND ? AND metric = 'requests' GROUP BY category", bounds)}
+    pageviews = scalar(connection, "SELECT SUM(pageviews) FROM daily_page_ip_stats WHERE date BETWEEN ? AND ?", bounds)
+    visitors = scalar(connection, "SELECT COUNT(DISTINCT ip) FROM daily_page_ip_stats WHERE date BETWEEN ? AND ?", bounds)
+    sessions = scalar(connection, "SELECT SUM(count) FROM daily_traffic_classification_stats "
+                      "WHERE date BETWEEN ? AND ? AND category = 'human' AND metric = 'sessions'", bounds)
+    single_page_candidates = scalar(connection, "SELECT SUM(count) FROM daily_traffic_classification_stats "
+                                    "WHERE date BETWEEN ? AND ? AND category = 'other' AND metric = 'single_page_candidates'", bounds)
+    prints = scalar(connection, "SELECT SUM(pageviews) FROM daily_page_ip_stats WHERE date BETWEEN ? AND ? "
+                     "AND (path = '/print' OR path = '/print-ilseng' OR path LIKE '%/utskrift')", bounds)
+    raw_requests = sum(classified.values())
+    known_automated = sum(classified.get(category, 0) for category in ('bot', 'monitoring', 'scanner', 'excluded'))
+    return {
+        'from': bounds[0], 'to': bounds[1], 'suspected_human_pageviews': pageviews,
+        'suspected_visitors': visitors, 'sessions': sessions, 'print_pageviews': prints,
+        'traffic_quality': {
+            'raw_requests': raw_requests, 'known_automated_technical_requests': known_automated,
+            'known_bot': classified.get('bot', 0), 'monitoring': classified.get('monitoring', 0),
+            'scanner': classified.get('scanner', 0), 'other': classified.get('other', 0),
+            'excluded': classified.get('excluded', 0), 'single_page_candidates': single_page_candidates,
+        },
+    }
+
+
 def generate(database, test_data=False):
     connection = sqlite3.connect(f"file:{Path(database).resolve()}?mode=ro", uri=True)
     connection.row_factory = sqlite3.Row
@@ -151,6 +212,16 @@ def generate(database, test_data=False):
             },
         }
         payload["top_pages"] = top_pages(connection, latest_date)
+        periods = human_periods(connection, latest_date)
+        if periods is not None:
+            payload = {
+                'schema_version': 3,
+                'generated_at': payload['generated_at'],
+                'test_data': payload['test_data'],
+                'periods': periods,
+                'top_pages': payload['top_pages'],
+                'daily': daily_human_statistics(connection, latest_date),
+            }
         return payload
     finally:
         connection.close()
