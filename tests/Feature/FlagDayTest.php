@@ -34,7 +34,8 @@ class FlagDayTest extends TestCase
         $response->assertSee('29. juli');
         $response->assertSee('Olsokdagen');
         $response->assertDontSee('I dag:');
-        $response->assertDontSee('🇳🇴');
+        $response->assertDontSee('<span class="front-page-date-item front-page-flag-today">', false);
+        $response->assertDontSee('norwegian-flag.svg');
         $response->assertSee(
             'href="'.FlagDayService::OFFICIAL_OVERVIEW_URL.'"',
             false
@@ -47,20 +48,24 @@ class FlagDayTest extends TestCase
         $response->assertSee('rel="noopener noreferrer"', false);
     }
 
-    public function testFlagDayShowsTodayMessageWithFlagsAndLinkedName(): void
+    public function testFlagDayShowsTodayMessageWithLocalFlagsAndLinkedName(): void
     {
         Carbon::setTestNow('2026-07-29 12:00:00 Europe/Oslo');
 
-        $this->get('/tv')
+        $response = $this->get('/tv');
+
+        $response
             ->assertOk()
             ->assertSeeInOrder([
-                '🇳🇴',
+                'class="front-page-flag-icon"',
                 'Det er flaggdag i dag:',
                 'href="https://snl.no/olsok"',
                 'Olsokdagen',
-                '🇳🇴',
+                'class="front-page-flag-icon"',
             ], false)
             ->assertDontSee('Neste flaggdag:');
+
+        $this->assertSame(2, substr_count($response->getContent(), 'src="'.asset('img/norwegian-flag.svg').'"'));
     }
 
     public function testTodayMarkingIsAbsentDayBeforeAndDayAfterFlagDay(): void
@@ -71,7 +76,8 @@ class FlagDayTest extends TestCase
             $this->get('/tv')
                 ->assertOk()
                 ->assertDontSee('Det er flaggdag i dag:')
-                ->assertDontSee('🇳🇴');
+                ->assertDontSee('<span class="front-page-date-item front-page-flag-today">', false)
+                ->assertDontSee('norwegian-flag.svg');
         }
     }
 
@@ -159,7 +165,7 @@ class FlagDayTest extends TestCase
 
         $this->get('/tv')
             ->assertOk()
-            ->assertSeeInOrder(['🇳🇴', 'Det er flaggdag i dag:', 'Olsokdagen', '🇳🇴']);
+            ->assertSeeInOrder(['class="front-page-flag-icon"', 'Det er flaggdag i dag:', 'Olsokdagen', 'class="front-page-flag-icon"'], false);
     }
 
     public function testInformationLinkHasSafeExternalLinkAttributesOnFlagDay(): void

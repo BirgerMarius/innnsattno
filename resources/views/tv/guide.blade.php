@@ -40,7 +40,29 @@
         align-items: center;
         justify-content: center;
         gap: .35rem;
+        padding: .2rem .45rem;
+        border-radius: .3rem;
         white-space: normal;
+        animation: front-page-flag-today-highlight 1.2s ease-in-out 3;
+    }
+
+    .front-page-flag-icon {
+        width: 1.5em;
+        height: auto;
+        flex: 0 0 auto;
+    }
+
+    @keyframes front-page-flag-today-highlight {
+        50% {
+            background-color: rgba(0, 32, 91, .08);
+            box-shadow: 0 0 .6rem rgba(186, 12, 47, .18);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .front-page-flag-today {
+            animation: none;
+        }
     }
 
     .front-page-upcoming-flag-days {
@@ -109,7 +131,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
         @if ($flagDayOverview['is_flag_day'])
             <span class="front-page-date-item front-page-flag-today">
-                <span aria-hidden="true">🇳🇴</span>
+                <img class="front-page-flag-icon" src="{{ asset('img/norwegian-flag.svg') }}" alt="" aria-hidden="true">
                 <strong>Det er flaggdag i dag:</strong>
                 @if ($nextFlagDay['information_url'])
                     <a class="front-page-flag-link"
@@ -119,7 +141,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
                 @else
                     <span>{{ $flagDayName($nextFlagDay) }}</span>
                 @endif
-                <span aria-hidden="true">🇳🇴</span>
+                <img class="front-page-flag-icon" src="{{ asset('img/norwegian-flag.svg') }}" alt="" aria-hidden="true">
             </span>
         @else
             <span class="front-page-date-item">
