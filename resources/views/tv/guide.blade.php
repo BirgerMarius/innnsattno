@@ -279,22 +279,22 @@ $isEvenWeek = $weekNumber % 2 === 0;
             🧩 Tidsfordriv – Sudoku
         </a>
 
-        <a href="/ordjakt" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--wide" role="button">
+        <a href="/ordjakt" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
             <i class="fas fa-puzzle-piece"></i> 🧩 Tidsfordriv – Ordjakt
-        </a>
-
-        <a href="{{ route('quiz.create') }}" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
-            ❓ Lag en quiz
-            <span class="front-page-quiz-badges" aria-label="Ny testfunksjon"><span>NYHET</span><span>TEST</span></span>
-        </a>
-
-        <a href="{{ route('learning.index') }}" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
-            <i class="far fa-lightbulb" aria-hidden="true"></i> Lær noe nytt
-            <span class="front-page-quiz-badges" aria-label="Ny testfunksjon"><span>NYHET</span><span>TEST</span></span>
         </a>
 
         <a href="{{ route('calendar.index') }}" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--wide" role="button">
             <i class="far fa-calendar-alt"></i> Månedskalender – For utskrift
+        </a>
+
+        <a href="{{ route('quiz.create') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--test" role="button">
+            ❓ Lag en quiz
+            <span class="front-page-quiz-badges" aria-label="Ny testfunksjon"><span>NYHET</span><span>TEST</span></span>
+        </a>
+
+        <a href="{{ route('learning.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--test" role="button">
+            <i class="far fa-lightbulb" aria-hidden="true"></i> Lær noe nytt
+            <span class="front-page-quiz-badges" aria-label="Ny testfunksjon"><span>NYHET</span><span>TEST</span></span>
         </a>
         </div>
 

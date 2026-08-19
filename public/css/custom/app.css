@@ -193,7 +193,7 @@
 }
 
 .front-page-primary-area {
-    position: relative;
+    min-width: 0;
 }
 
 .local-news-column {
@@ -201,12 +201,11 @@
     border: 1px solid #d9e2ec;
     border-radius: 10px;
     box-shadow: 0 3px 12px rgba(27, 54, 93, 0.08);
-    display: none;
+    display: block;
+    max-width: 100%;
     padding: 18px;
-    position: absolute;
-    right: calc(100% + 24px);
-    top: 20px;
-    width: 260px;
+    position: static;
+    width: 100%;
 }
 
 .local-news-column h2 {
@@ -270,14 +269,19 @@
 }
 
 /*
- * Bootstrap's desktop container is 1320px wide. Keep the centered main
- * content untouched and only show the 260px news column when there is also
- * room for its 24px gap and a 12px outer gutter:
- * 1320px + (260px + 24px + 12px) * 2 = 1888px.
+ * Keep the news in normal document flow at every width. At desktop widths it
+ * gets its own column; below that it becomes a full-width block above the
+ * actions, rather than being hidden or positioned outside the viewport.
  */
-@media (min-width: 1888px) {
+@media (min-width: 1200px) {
+    .front-page-primary-area {
+        column-gap: 24px;
+        display: grid;
+        grid-template-columns: 260px minmax(0, 1fr);
+    }
+
     .local-news-column {
-        display: block;
+        margin-top: 20px;
     }
 }
 
@@ -348,6 +352,19 @@
     --front-page-btn-bg: #ffc107;
     --front-page-btn-border: #ffc107;
     --front-page-btn-color: #212529;
+}
+
+.front-page-btn--test {
+    --front-page-btn-bg: #5b6f35;
+    --front-page-btn-border: #5b6f35;
+    --front-page-btn-color: #fff;
+}
+
+.front-page-btn--test:hover,
+.front-page-btn--test:focus {
+    --front-page-btn-bg: #495a2c;
+    --front-page-btn-border: #3b4923;
+    --front-page-btn-color: #fff;
 }
 
 .front-page-btn--task-wheel {

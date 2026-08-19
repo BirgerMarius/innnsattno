@@ -55,10 +55,28 @@ class HomepageTextTest extends TestCase
 
     public function testHomepageMarksQuizAsNewTestFeature(): void
     {
-        $this->get(route('tv'))
+        $response = $this->get(route('tv'));
+
+        $response
             ->assertOk()
             ->assertSee('Lag en quiz')
             ->assertSee('NYHET')
-            ->assertSee('TEST');
+            ->assertSee('TEST')
+            ->assertSee('front-page-btn--test', false)
+            ->assertSeeInOrder([
+                'Premier League',
+                'Eliteserien',
+                'Tidsfordriv – Sudoku',
+                'Tidsfordriv – Ordjakt',
+                'Månedskalender – For utskrift',
+                'Lag en quiz',
+                'Lær noe nytt',
+                'Spinn hjulet',
+            ]);
+
+        $content = (string) $response->getContent();
+        $this->assertSame(2, substr_count($content, 'front-page-btn--test'));
+        $this->assertSame(0, preg_match('/href="\/ordjakt"[^>]*front-page-btn--wide/', $content));
+        $this->assertSame(1, preg_match('/front-page-btn--wide" role="button">\s*<i class="far fa-calendar-alt">/s', $content));
     }
 }
