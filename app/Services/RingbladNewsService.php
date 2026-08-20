@@ -22,7 +22,7 @@ class RingbladNewsService
     {
         $cached = Cache::get(self::CACHE_KEY);
 
-        if (is_array($cached)) {
+        if (is_array($cached) && $this->hasImageFields($cached)) {
             return $cached;
         }
 
@@ -112,6 +112,7 @@ class RingbladNewsService
                 './/time[@datetime] | .//*[@itemprop="datePublished"][@datetime]',
                 $teaser
             )->item(0);
+            $imageUrl = $this->imageUrl($xpath, $teaser);
 
             $articles[] = [
                 'title' => $title,
@@ -119,10 +120,11 @@ class RingbladNewsService
                 'published_at' => $this->parseDate($dateNode?->getAttribute('datetime')),
                 'is_subscription' => $teaser->getAttribute('data-premium') === 'true'
                     || strtolower($contentModel?->getAttribute('content') ?? '') === 'paywall',
+                'image_url' => $imageUrl,
             ];
             $seenUrls[$url] = true;
 
-            if (count($articles) === 5) {
+            if (count($articles) === 6) {
                 break;
             }
         }
@@ -160,6 +162,77 @@ class RingbladNewsService
         $path = '/'.ltrim($parts['path'] ?? '/', '/');
 
         return 'https://www.ringblad.no'.$path;
+    }
+
+    private function imageUrl(\DOMXPath $xpath, \DOMElement $teaser): ?string
+    {
+        $imageNode = $xpath->query(
+            './/*[@itemprop="teaser_image"]//*[@data-src or @data-srcset or @data-original or @src or @srcset]'
+            .' | .//img | .//source[@srcset]',
+            $teaser
+        )->item(0);
+
+        if (! $imageNode) {
+            return null;
+        }
+
+        foreach (['data-src', 'data-srcset', 'data-original', 'src', 'srcset'] as $attribute) {
+            $value = trim($imageNode->getAttribute($attribute));
+
+            if ($value === '') {
+                continue;
+            }
+
+            if (in_array($attribute, ['data-srcset', 'srcset'], true)) {
+                $value = trim(explode(',', $value)[0]);
+                $value = trim(preg_split('/\s+/', $value)[0] ?? '');
+            }
+
+            $url = $this->normalizeImageUrl($value);
+
+            if ($url !== null) {
+                return $url;
+            }
+        }
+
+        return null;
+    }
+
+    private function hasImageFields(array $articles): bool
+    {
+        foreach ($articles as $article) {
+            if (! is_array($article) || ! array_key_exists('image_url', $article)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function normalizeImageUrl(string $url): ?string
+    {
+        $url = trim(html_entity_decode($url, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+
+        if (str_starts_with($url, '//')) {
+            $url = 'https:'.$url;
+        } elseif (str_starts_with($url, '/')) {
+            $url = 'https://www.ringblad.no'.$url;
+        }
+
+        $parts = parse_url($url);
+
+        if (
+            ! is_array($parts)
+            || strtolower($parts['scheme'] ?? '') !== 'https'
+            || empty($parts['host'])
+            || isset($parts['user'])
+            || isset($parts['pass'])
+            || isset($parts['port'])
+        ) {
+            return null;
+        }
+
+        return $url;
     }
 
     private function parseDate(?string $date): ?string

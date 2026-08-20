@@ -21,7 +21,7 @@ class RingbladNewsServiceTest extends TestCase
     {
         Http::fake([
             RingbladNewsService::SOURCE_URL => Http::response($this->html([
-                $this->teaser('/sak-en/s/5-45-100', 'Første sak', true, '2026-07-29T12:00:00+02:00'),
+                $this->teaser('/sak-en/s/5-45-100', 'Første sak', true, '2026-07-29T12:00:00+02:00', 'https://images.ringblad.no/first.jpg'),
                 $this->teaser('/sak-to/s/5-45-101', 'Andre sak'),
             ]), 200),
         ]);
@@ -33,7 +33,9 @@ class RingbladNewsServiceTest extends TestCase
         $this->assertSame('https://www.ringblad.no/sak-en/s/5-45-100', $articles[0]['url']);
         $this->assertSame('29. jul 2026', $articles[0]['published_at']);
         $this->assertTrue($articles[0]['is_subscription']);
+        $this->assertSame('https://images.ringblad.no/first.jpg', $articles[0]['image_url']);
         $this->assertFalse($articles[1]['is_subscription']);
+        $this->assertNull($articles[1]['image_url']);
         Http::assertSentCount(1);
 
         app(RingbladNewsService::class)->latest();
@@ -83,6 +85,49 @@ class RingbladNewsServiceTest extends TestCase
         $this->assertSame($stale, app(RingbladNewsService::class)->latest());
     }
 
+    public function testItUsesAnImageFromTheExistingTeaserMarkupWhenAvailable(): void
+    {
+        $articles = app(RingbladNewsService::class)->parse($this->html([
+            $this->ringbladTeaserWithImage(
+                '/bilde/s/5-45-500',
+                'Sak med bilde',
+                '//g.acdn.no/obscura/API/dynamic/r1/ece5/article.jpg?chk=ABC123'
+            ),
+            $this->teaser('/uten-bilde/s/5-45-501', 'Sak uten bilde'),
+        ]));
+
+        $this->assertSame(
+            'https://g.acdn.no/obscura/API/dynamic/r1/ece5/article.jpg?chk=ABC123',
+            $articles[0]['image_url']
+        );
+        $this->assertNull($articles[1]['image_url']);
+    }
+
+    public function testItRefreshesCachedArticlesCreatedBeforeImageUrlsWereAdded(): void
+    {
+        Cache::put(RingbladNewsService::CACHE_KEY, [[
+            'title' => 'Gammel cachet sak',
+            'url' => 'https://www.ringblad.no/gammel/s/5-45-502',
+            'published_at' => null,
+            'is_subscription' => false,
+        ]], 60);
+        Http::fake([
+            RingbladNewsService::SOURCE_URL => Http::response($this->html([
+                $this->ringbladTeaserWithImage(
+                    '/oppdatert/s/5-45-503',
+                    'Oppdatert sak',
+                    'https://g.acdn.no/obscura/API/dynamic/r1/ece5/updated.jpg'
+                ),
+            ]), 200),
+        ]);
+
+        $articles = app(RingbladNewsService::class)->latest();
+
+        $this->assertSame('Oppdatert sak', $articles[0]['title']);
+        $this->assertSame('https://g.acdn.no/obscura/API/dynamic/r1/ece5/updated.jpg', $articles[0]['image_url']);
+        Http::assertSentCount(1);
+    }
+
     private function html(array $teasers): string
     {
         return '<html><body><section class="tag-page"><div class="tag-pages--article-list">'
@@ -94,12 +139,14 @@ class RingbladNewsServiceTest extends TestCase
         string $url,
         string $title,
         bool $premium = false,
-        ?string $publishedAt = null
+        ?string $publishedAt = null,
+        ?string $imageUrl = null
     ): string {
         return sprintf(
             '<brick-teaser-v23 data-teaser-type="story" data-premium="%s">'
             .'<meta itemprop="contentModel" content="%s">'
             .'<a itemprop="url" href="%s"><span itemprop="titleText">%s</span>%s</a>'
+            .'%s'
             .'</brick-teaser-v23>',
             $premium ? 'true' : 'false',
             $premium ? 'paywall' : 'open',
@@ -107,7 +154,26 @@ class RingbladNewsServiceTest extends TestCase
             htmlspecialchars($title, ENT_QUOTES),
             $publishedAt
                 ? '<time datetime="'.htmlspecialchars($publishedAt, ENT_QUOTES).'"></time>'
+                : '',
+            $imageUrl
+                ? '<img data-src="'.htmlspecialchars($imageUrl, ENT_QUOTES).'" alt="">'
                 : ''
+        );
+    }
+
+    private function ringbladTeaserWithImage(string $url, string $title, string $imageUrl): string
+    {
+        return sprintf(
+            '<brick-teaser-v23 data-teaser-type="story" data-premium="false">'
+            .'<a itemprop="url" href="%s"><span itemprop="titleText">%s</span></a>'
+            .'<div itemprop="teaser_image"><brick-image-v6 data-src="%s" '
+            .'data-srcset="%s 180w, %s 480w"></brick-image-v6></div>'
+            .'</brick-teaser-v23>',
+            htmlspecialchars($url, ENT_QUOTES),
+            htmlspecialchars($title, ENT_QUOTES),
+            htmlspecialchars($imageUrl, ENT_QUOTES),
+            htmlspecialchars($imageUrl, ENT_QUOTES),
+            htmlspecialchars($imageUrl, ENT_QUOTES)
         );
     }
 }

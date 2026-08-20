@@ -185,41 +185,6 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
 @include('partials.header')
 
-<div class="front-page-primary-area">
-@if (!empty($localNews))
-    <aside class="local-news-column" aria-labelledby="local-news-heading">
-        <h2 id="local-news-heading">Lokale nyheter</h2>
-        <p class="local-news-source">Fra Ringerikes Blad</p>
-        <ol class="local-news-list">
-            @foreach ($localNews as $article)
-                <li class="local-news-item">
-                    <a href="{{ $article['url'] }}"
-                       target="_blank"
-                       rel="noopener noreferrer">
-                        {{ $article['title'] }}
-                    </a>
-                    @if (!empty($article['published_at']) || !empty($article['is_subscription']))
-                        <div class="local-news-meta">
-                            @if (!empty($article['published_at']))
-                                <time>{{ $article['published_at'] }}</time>
-                            @endif
-                            @if (!empty($article['is_subscription']))
-                                <span class="local-news-subscription">Abonnement</span>
-                            @endif
-                        </div>
-                    @endif
-                </li>
-            @endforeach
-        </ol>
-        <a class="local-news-more"
-           href="https://www.ringblad.no/ringerike-fengsel/"
-           target="_blank"
-           rel="noopener noreferrer">
-            Se emnesiden hos Ringblad
-        </a>
-    </aside>
-@endif
-
 <div class="front-page-actions">
     <section class="prison-actions" aria-label="Tjenester for fengslene">
         <div class="prison-actions-column prison-actions-column--ringerike">
@@ -305,6 +270,80 @@ $isEvenWeek = $weekNumber % 2 === 0;
         </a>
     </section>
 
+    @if (!empty($localNews))
+        <section class="local-news-section" aria-labelledby="local-news-heading">
+            <header class="local-news-section-header">
+                <h2 id="local-news-heading">Lokale nyheter</h2>
+                <p>Fra Ringerikes Blad</p>
+            </header>
+            @php
+                $newsWithImages = array_filter($localNews, fn (array $article) => !empty($article['image_url']));
+                $newsWithoutImages = array_filter($localNews, fn (array $article) => empty($article['image_url']));
+            @endphp
+            @if (!empty($newsWithImages))
+                <div class="local-news-grid">
+                    @foreach ($newsWithImages as $article)
+                        <article class="local-news-card local-news-card--image">
+                            <img class="local-news-card-image"
+                                 src="{{ $article['image_url'] }}"
+                                 alt=""
+                                 loading="lazy"
+                                 decoding="async">
+                            <div class="local-news-card-content">
+                                @if (!empty($article['published_at']) || !empty($article['is_subscription']))
+                                    <div class="local-news-meta">
+                                        @if (!empty($article['published_at']))
+                                            <time>{{ $article['published_at'] }}</time>
+                                        @endif
+                                        @if (!empty($article['is_subscription']))
+                                            <span class="local-news-subscription">Abonnement</span>
+                                        @endif
+                                    </div>
+                                @endif
+                                <h3>
+                                    <a href="{{ $article['url'] }}"
+                                       target="_blank"
+                                       rel="noopener noreferrer">{{ $article['title'] }}</a>
+                                </h3>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            @endif
+            @if (!empty($newsWithoutImages))
+                <div class="local-news-grid local-news-grid--text">
+                    @foreach ($newsWithoutImages as $article)
+                        <article class="local-news-card local-news-card--text">
+                            <div class="local-news-card-content">
+                                @if (!empty($article['published_at']) || !empty($article['is_subscription']))
+                                    <div class="local-news-meta">
+                                        @if (!empty($article['published_at']))
+                                            <time>{{ $article['published_at'] }}</time>
+                                        @endif
+                                        @if (!empty($article['is_subscription']))
+                                            <span class="local-news-subscription">Abonnement</span>
+                                        @endif
+                                    </div>
+                                @endif
+                                <h3>
+                                    <a href="{{ $article['url'] }}"
+                                       target="_blank"
+                                       rel="noopener noreferrer">{{ $article['title'] }}</a>
+                                </h3>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+            @endif
+            <a class="local-news-more"
+               href="https://www.ringblad.no/ringerike-fengsel/"
+               target="_blank"
+               rel="noopener noreferrer">
+                Se flere lokale nyheter hos Ringerikes Blad
+            </a>
+        </section>
+    @endif
+
     <section class="front-page-grid front-page-content-actions" aria-label="Faglig innhold">
         <a href="{{ route('professional-resources.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--professional front-page-btn--wide" role="button">
             <span class="front-page-btn-title"><i class="far fa-book-open"></i> Anbefalt fagstoff</span>
@@ -316,8 +355,6 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <small>Nyheter fra kriminalomsorgen og beslektede fagområder</small>
         </a>
     </section>
-</div>
-
 <div class="front-page-feedback">
     <a href="{{ route('feedback.create') }}" class="btn btn-lg front-page-btn front-page-btn--feedback" role="button">
         <span class="front-page-btn-title"><i class="far fa-comment-alt"></i> Har du en idé?</span>

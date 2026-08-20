@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Services\RingbladNewsService;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -55,6 +57,14 @@ class HomepageTextTest extends TestCase
 
     public function testHomepageMarksQuizAsNewTestFeature(): void
     {
+        Cache::put(RingbladNewsService::CACHE_KEY, [[
+            'title' => 'Lokal sak for rekkefølgetest',
+            'url' => 'https://www.ringblad.no/lokal-sak/s/5-45-600',
+            'published_at' => null,
+            'is_subscription' => false,
+            'image_url' => null,
+        ]], 60);
+
         $response = $this->get(route('tv'));
 
         $response
@@ -73,6 +83,14 @@ class HomepageTextTest extends TestCase
                 'Lær noe nytt',
                 'Spinn hjulet',
             ]);
+
+        $response->assertSeeInOrder([
+            'Spinn hjulet',
+            'Lokale nyheter',
+            'Anbefalt fagstoff',
+            'Fagnyheter',
+            'Har du en idé?',
+        ]);
 
         $content = (string) $response->getContent();
         $this->assertSame(2, substr_count($content, 'front-page-btn--test'));

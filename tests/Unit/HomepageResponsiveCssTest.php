@@ -15,17 +15,31 @@ class HomepageResponsiveCssTest extends TestCase
         $this->css = file_get_contents(__DIR__.'/../../public/css/custom/app.css');
     }
 
-    public function testLocalNewsRemainsVisibleAndMovesIntoDocumentFlowWhenNeeded(): void
+    public function testLocalNewsUsesAResponsiveCardGridWithoutTheOldSidebar(): void
     {
         $this->assertMatchesRegularExpression(
-            '/\.local-news-column\s*\{[^}]*display:\s*block;[^}]*max-width:\s*100%;[^}]*position:\s*static;[^}]*width:\s*100%;/s',
+            '/\.local-news-grid\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\);/s',
             $this->css
         );
         $this->assertMatchesRegularExpression(
-            '/@media\s*\(min-width:\s*1200px\)\s*\{\s*\.front-page-primary-area\s*\{[^}]*display:\s*grid;[^}]*grid-template-columns:\s*260px minmax\(0, 1fr\);/s',
+            '/@media\s*\(max-width:\s*1199\.98px\)\s*\{\s*\.local-news-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/s',
             $this->css
         );
-        $this->assertStringNotContainsString('@media (min-width: 1888px)', $this->css);
+        $this->assertMatchesRegularExpression(
+            '/@media\s*\(max-width:\s*767\.98px\).*?\.local-news-grid\s*\{\s*grid-template-columns:\s*1fr;/s',
+            $this->css
+        );
+        $this->assertStringNotContainsString('local-news-column', $this->css);
+        $this->assertStringNotContainsString('front-page-primary-area', $this->css);
+        $this->assertMatchesRegularExpression(
+            '/\.local-news-grid--text\s*\{[^}]*margin-top:\s*16px;/s',
+            $this->css
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.local-news-card--text\s*\{[^}]*box-shadow:\s*none;/s',
+            $this->css
+        );
+        $this->assertStringNotContainsString('local-news-card-image--missing', $this->css);
     }
 
     public function testTestActionsHaveTheirOwnSemanticColour(): void
@@ -43,7 +57,7 @@ class HomepageResponsiveCssTest extends TestCase
             $this->css
         );
         $this->assertMatchesRegularExpression(
-            '/@media\s*\(max-width:\s*767\.98px\).*?\.front-page-grid,\s*\.prison-actions\s*\{\s*grid-template-columns:\s*1fr;/s',
+            '/@media\s*\(max-width:\s*767\.98px\).*?\.front-page-grid,\s*\.prison-actions,\s*\.local-news-grid\s*\{\s*grid-template-columns:\s*1fr;/s',
             $this->css
         );
     }
