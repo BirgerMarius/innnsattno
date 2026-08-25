@@ -26,6 +26,7 @@
         .score { text-align: center; width: 12%; }
         .rank, .number { text-align: center; width: 9%; }
         .team { width: 55%; }
+        .emblem { height: 4mm; margin-right: 1mm; object-fit: contain; vertical-align: middle; width: 4mm; }
         .empty, .warning { border: 1px solid #aaa; padding: 2.5mm; }
         .warning { margin-bottom: 3mm; }
         .standings-section { margin-top: 3.5mm; }
@@ -73,7 +74,7 @@
             @if(count($printResults))
                 <table><thead><tr><th class="date">Dato</th><th>Hjemmelag</th><th class="score">Resultat</th><th>Bortelag</th></tr></thead><tbody>
                 @foreach($printResults as $match)
-                    <tr><td>{{ $match['startsAt']->locale('nb')->translatedFormat('D j. M') }}</td><td>{{ $match['homeTeam'] }}</td><td class="score">{{ $match['homeScore'] ?? '–' }}–{{ $match['awayScore'] ?? '–' }}</td><td>{{ $match['awayTeam'] }}</td></tr>
+                    <tr><td>{{ $match['startsAt']->locale('nb')->translatedFormat('D j. M') }}</td><td>@if($match['homeEmblemUrl'])<img class="emblem" src="{{ $match['homeEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['homeTeam'] }}</td><td class="score">{{ $match['homeScore'] ?? '–' }}–{{ $match['awayScore'] ?? '–' }}</td><td>@if($match['awayEmblemUrl'])<img class="emblem" src="{{ $match['awayEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['awayTeam'] }}</td></tr>
                 @endforeach
                 </tbody></table>
             @else <p class="empty">Ingen ferdigspilte kamper de siste 7 døgnene.</p> @endif
@@ -84,7 +85,7 @@
             @if(count($printFixtures))
                 <table><thead><tr><th class="date">Dato og tid</th><th>Hjemmelag</th><th>Bortelag</th></tr></thead><tbody>
                 @foreach($printFixtures as $match)
-                    <tr><td>{{ $match['startsAt']->locale('nb')->translatedFormat('D j. M \k\l. H.i') }}</td><td>{{ $match['homeTeam'] }}</td><td>{{ $match['awayTeam'] }}</td></tr>
+                    <tr><td>{{ $match['startsAt']->locale('nb')->translatedFormat('D j. M \k\l. H.i') }}</td><td>@if($match['homeEmblemUrl'])<img class="emblem" src="{{ $match['homeEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['homeTeam'] }}</td><td>@if($match['awayEmblemUrl'])<img class="emblem" src="{{ $match['awayEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['awayTeam'] }}</td></tr>
                 @endforeach
                 </tbody></table>
             @else <p class="empty">Ingen kamper er satt opp de neste 7 døgnene.</p> @endif
@@ -96,7 +97,7 @@
         @if(count($standings))
             <table><thead><tr><th class="rank">Pl.</th><th class="team">Lag</th><th class="number">K</th><th class="number">MF</th><th class="number">P</th></tr></thead><tbody>
             @foreach($standings as $row)
-                <tr><td class="rank">{{ $row['rank'] ?? '–' }}</td><td>{{ $row['teamName'] }}</td><td class="number">{{ $row['played'] ?? '–' }}</td><td class="number">{{ $row['goalDifference'] ?? '–' }}</td><td class="number"><strong>{{ $row['points'] ?? '–' }}</strong></td></tr>
+                <tr><td class="rank">{{ $row['rank'] ?? '–' }}</td><td>@if($row['emblemUrl'])<img class="emblem" src="{{ $row['emblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $row['teamName'] }}</td><td class="number">{{ $row['played'] ?? '–' }}</td><td class="number">{{ $row['goalDifference'] ?? '–' }}</td><td class="number"><strong>{{ $row['points'] ?? '–' }}</strong></td></tr>
             @endforeach
             </tbody></table>
         @else <p class="empty">Tabellen kunne ikke lastes akkurat nå.</p> @endif

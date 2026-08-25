@@ -140,6 +140,9 @@ abstract class SchibstedCompetitionService
         foreach ($matches as &$match) {
             $match['isHome'] = $match['homeTeamId'] === $teamId;
             $match['opponent'] = $match['isHome'] ? $match['awayTeam'] : $match['homeTeam'];
+            $match['opponentEmblemUrl'] = $match['isHome']
+                ? ($match['awayEmblemUrl'] ?? null)
+                : ($match['homeEmblemUrl'] ?? null);
             $match['teamScore'] = $match['isHome'] ? $match['homeScore'] : $match['awayScore'];
             $match['opponentScore'] = $match['isHome'] ? $match['awayScore'] : $match['homeScore'];
         }
@@ -590,6 +593,15 @@ abstract class SchibstedCompetitionService
 
     private function extractImageUrl(array $participant): ?string
     {
+        // SportsNext supplies club crests as participants.{id}.images.clubLogo.url.
+        // VG Live's image component turns that resource URL into
+        // ?rule=clip-{size}x{size}; the bare resource URL is not an image.
+        $clubLogoUrl = $participant['images']['clubLogo']['url'] ?? null;
+
+        if (is_string($clubLogoUrl) && filter_var($clubLogoUrl, FILTER_VALIDATE_URL)) {
+            return $this->sportsNextClubLogoVariantUrl($clubLogoUrl, 64);
+        }
+
         foreach ($participant as $key => $value) {
             if (is_array($value)) {
                 $nested = $this->extractImageUrl($value);
@@ -611,6 +623,13 @@ abstract class SchibstedCompetitionService
         }
 
         return null;
+    }
+
+    private function sportsNextClubLogoVariantUrl(string $url, int $size): string
+    {
+        $separator = str_contains($url, '?') ? '&' : '?';
+
+        return $url.$separator.'rule=clip-'.$size.'x'.$size;
     }
 
     private function goalDifference(array $teamStanding, ?int $goalsFor, ?int $goalsAgainst): ?int

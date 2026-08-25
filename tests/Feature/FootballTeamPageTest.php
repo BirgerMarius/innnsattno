@@ -27,9 +27,19 @@ class FootballTeamPageTest extends TestCase
             ->assertSee('2–1')
             ->assertSee('Utsatt')
             ->assertSee('Sesongen så langt')
+            ->assertSee('https://example.test/motstander-a.png', false)
+            ->assertSee('https://example.test/motstander-b.png', false)
             ->assertSee('Form siste 1')
             ->assertDontSee('Utenfor ligaen')
             ->assertSeeInOrder(['01.08.2026', '08.08.2026', '15.08.2026']);
+
+        $response->assertViewHas('teamMatches', function (array $matches) {
+            $this->assertSame('https://example.test/motstander-a.png', $matches[0]['opponentEmblemUrl']);
+            $this->assertSame('https://example.test/motstander-b.png', $matches[1]['opponentEmblemUrl']);
+            $this->assertNull($matches[2]['opponentEmblemUrl']);
+
+            return true;
+        });
     }
 
     /** @dataProvider leagues */
@@ -41,6 +51,9 @@ class FootballTeamPageTest extends TestCase
         $this->get($path.'/lag/1/utskrift')
             ->assertOk()
             ->assertSee('football-team-print-list', false)
+            ->assertSee('football-team-print-opponent', false)
+            ->assertSee('https://example.test/motstander-a.png', false)
+            ->assertSee('https://example.test/motstander-b.png', false)
             ->assertSee('football-team-print-stats', false)
             ->assertSee('Sesongen så langt')
             ->assertSee('Tabellplass:')
@@ -68,8 +81,8 @@ class FootballTeamPageTest extends TestCase
     {
         $this->fakeCompetition($seasonId);
 
-        $this->get($path.'/lag/2')->assertOk()
-            ->assertSee('Motstander A')
+        $this->get($path.'/lag/4')->assertOk()
+            ->assertSee('Motstander C')
             ->assertDontSee('football-team-emblem', false);
         $this->get($path.'/lag/999')->assertNotFound();
     }
@@ -164,8 +177,8 @@ class FootballTeamPageTest extends TestCase
         Cache::flush();
         $participants = [
             1 => ['name' => 'Test FC', 'shortName' => 'TFC', 'logoUrl' => 'https://example.test/test-fc.png'],
-            2 => ['name' => 'Motstander A'],
-            3 => ['name' => 'Motstander B'],
+            2 => ['name' => 'Motstander A', 'logoUrl' => 'https://example.test/motstander-a.png'],
+            3 => ['name' => 'Motstander B', 'logoUrl' => 'https://example.test/motstander-b.png'],
             4 => ['name' => 'Motstander C'],
             5 => ['name' => 'Utenfor ligaen'],
         ];

@@ -52,6 +52,23 @@ class EliteserienServiceTest extends TestCase
     }
 
     /** @test */
+    public function it_extracts_eliteserien_club_logos_from_the_sportsnext_participant_images_shape(): void
+    {
+        $participants = [
+            '23358' => ['id' => '23358', 'name' => 'Bodø/Glimt', 'images' => ['clubLogo' => ['id' => '89/8976c421-68fa-4366-b7b1-cf2828d5187f', 'source' => 'imgproxy', 'url' => 'https://cdn.sportsnext.schibsted.io/api/v1/sports-pro/images/89/8976c421-68fa-4366-b7b1-cf2828d5187f']]],
+            '23344' => ['id' => '23344', 'name' => 'Start', 'images' => ['clubLogo' => ['id' => '21/21edd21f-1a6d-4729-9803-85cebd4acf95', 'source' => 'imgproxy', 'url' => 'https://cdn.sportsnext.schibsted.io/api/v1/sports-pro/images/21/21edd21f-1a6d-4729-9803-85cebd4acf95']]],
+        ];
+
+        $data = (new EliteserienService())->normalizeCompetitionData(
+            ['participants' => $participants, 'events' => [['participantIds' => ['23358', '23344'], 'status' => ['type' => 'notStarted']]]],
+            ['participants' => $participants, 'standings' => [['teamStandings' => [['teamId' => '23358', 'rank' => 1], ['teamId' => '23344', 'rank' => 2]]]]]
+        );
+
+        $this->assertSame('https://cdn.sportsnext.schibsted.io/api/v1/sports-pro/images/89/8976c421-68fa-4366-b7b1-cf2828d5187f?rule=clip-64x64', $data['standings'][0]['emblemUrl']);
+        $this->assertSame('https://cdn.sportsnext.schibsted.io/api/v1/sports-pro/images/21/21edd21f-1a6d-4729-9803-85cebd4acf95?rule=clip-64x64', $data['matches'][0]['awayEmblemUrl']);
+    }
+
+    /** @test */
     public function it_handles_empty_api_responses_without_throwing_to_the_controller(): void
     {
         Cache::flush();

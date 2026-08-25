@@ -123,6 +123,9 @@
 .football-team-date span { display: block; font-size: .9rem; font-weight: 400; }
 .football-team-opponents { align-items: baseline; display: grid; gap: 9px; grid-template-columns: minmax(0, 1fr) 42px minmax(0, 1fr); }
 .football-team-opponents strong:last-child { text-align: right; }
+.football-team-opponent { align-items: center; display: inline-flex; gap: 7px; min-width: 0; }
+.football-team-opponent--away { justify-content: flex-end; }
+.football-team-opponent img { flex: 0 0 auto; height: 20px; object-fit: contain; width: 20px; }
 .football-team-score { font-weight: 700; text-align: center; white-space: nowrap; }
 .football-team-meta { color: #667085; font-size: .9rem; text-align: right; }
 .football-team-warning { background: #f8fafc; border: 1px dashed #aebcca; border-radius: 6px; padding: 12px; }
@@ -982,7 +985,9 @@
     .football-team-print-stats p { margin: .7mm 0 0; }
     .football-team-print-list { column-count: 2; column-gap: 8mm; }
     .football-team-print-match { break-inside: avoid; border-bottom: .5px solid #999; display: grid; gap: 1.5mm; grid-template-columns: 27mm 5mm minmax(0, 1fr) 15mm; padding: 1.4mm 0; }
-    .football-team-print-match span:last-of-type { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .football-team-print-opponent { align-items: center; display: flex; gap: 1.5mm; min-width: 0; overflow: hidden; }
+    .football-team-print-opponent img { flex: 0 0 auto; height: 4mm; object-fit: contain; width: 4mm; }
+    .football-team-print-opponent span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .football-team-print-match b { text-align: right; white-space: nowrap; }
     .football-team-print-note { border-top: .5px solid #777; font-size: 8.5pt; line-height: 1.25; margin: 3.5mm 0 0; padding-top: 2mm; }
 

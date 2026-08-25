@@ -29,7 +29,19 @@
                 @foreach($teamMatches as $match)
                     <article class="football-team-match">
                         <div class="football-team-date">{{ $match['startsAt'] ? $match['startsAt']->format('d.m.Y') : 'Dato ikke satt' }}@if($match['timeLabel'])<span>{{ $match['timeLabel'] }}</span>@endif</div>
-                        <div class="football-team-opponents"><strong>{{ $match['homeTeam'] }}</strong><span class="football-team-score">@if($match['isFinished']){{ $match['homeScore'] ?? '–' }}–{{ $match['awayScore'] ?? '–' }}@else – @endif</span><strong>{{ $match['awayTeam'] }}</strong></div>
+                        <div class="football-team-opponents">
+                            @if($match['isHome'])
+                                <strong>{{ $match['homeTeam'] }}</strong>
+                            @else
+                                <strong class="football-team-opponent">@if($match['opponentEmblemUrl'])<img src="{{ $match['opponentEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['homeTeam'] }}</strong>
+                            @endif
+                            <span class="football-team-score">@if($match['isFinished']){{ $match['homeScore'] ?? '–' }}–{{ $match['awayScore'] ?? '–' }}@else – @endif</span>
+                            @if($match['isHome'])
+                                <strong class="football-team-opponent football-team-opponent--away">@if($match['opponentEmblemUrl'])<img src="{{ $match['opponentEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['awayTeam'] }}</strong>
+                            @else
+                                <strong>{{ $match['awayTeam'] }}</strong>
+                            @endif
+                        </div>
                         <div class="football-team-meta">{{ $match['isHome'] ? 'Hjemme' : 'Borte' }} · {{ $match['statusLabel'] }}@if($match['round']) · {{ $match['round'] }}@endif</div>
                     </article>
                 @endforeach

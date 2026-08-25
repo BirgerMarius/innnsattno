@@ -27,7 +27,7 @@
     </section>
     <div class="football-team-print-list">
         @foreach($teamMatches as $match)
-            <div class="football-team-print-match"><span>{{ $match['startsAt'] ? $match['startsAt']->format('d.m.') : 'Ikke satt' }} {{ $match['timeLabel'] }}</span><strong>{{ $match['isHome'] ? 'H' : 'B' }}</strong><span>{{ $match['opponent'] }}</span><b>@if($match['isFinished']){{ $match['teamScore'] ?? '–' }}–{{ $match['opponentScore'] ?? '–' }}@else{{ $match['statusLabel'] === 'Ikke startet' ? '–' : $match['statusLabel'] }}@endif</b></div>
+            <div class="football-team-print-match"><span>{{ $match['startsAt'] ? $match['startsAt']->format('d.m.') : 'Ikke satt' }} {{ $match['timeLabel'] }}</span><strong>{{ $match['isHome'] ? 'H' : 'B' }}</strong><span class="football-team-print-opponent">@if($match['opponentEmblemUrl'])<img src="{{ $match['opponentEmblemUrl'] }}" alt="" onerror="this.remove()">@endif<span>{{ $match['opponent'] }}</span></span><b>@if($match['isFinished']){{ $match['teamScore'] ?? '–' }}–{{ $match['opponentScore'] ?? '–' }}@else{{ $match['statusLabel'] === 'Ikke startet' ? '–' : $match['statusLabel'] }}@endif</b></div>
         @endforeach
     </div>
     <p class="football-team-print-note"><strong>Merk:</strong> Dato og tidspunkt for kommende kamper kan endres. Kampoversikten oppdateres når nye opplysninger blir tilgjengelige.</p>

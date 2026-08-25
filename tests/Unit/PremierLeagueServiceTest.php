@@ -17,9 +17,9 @@ class PremierLeagueServiceTest extends TestCase
         $schedule = [
             'updatedAt' => '2026-07-14T10:00:00Z',
             'participants' => [
-                1 => ['name' => 'Arsenal', 'logoUrl' => 'https://example.test/arsenal.png'],
+                1 => ['id' => '1752', 'name' => 'Arsenal', 'images' => ['clubLogo' => ['id' => '7d/7dca22f2-f666-4d73-8ea2-e725db004a3b', 'source' => 'imgproxy', 'url' => 'https://cdn.sportsnext.schibsted.io/api/v1/sports-pro/images/7d/7dca22f2-f666-4d73-8ea2-e725db004a3b']]],
                 2 => ['name' => 'Coventry City'],
-                3 => ['name' => 'Liverpool'],
+                3 => ['id' => '1753', 'name' => 'Liverpool', 'images' => ['clubLogo' => ['id' => '4b/4b82a3b5-5238-489c-9d83-3d23fc4bc9a5', 'source' => 'imgproxy', 'url' => 'https://cdn.sportsnext.schibsted.io/api/v1/sports-pro/images/4b/4b82a3b5-5238-489c-9d83-3d23fc4bc9a5']]],
                 4 => ['name' => 'Bournemouth'],
             ],
             'events' => [
@@ -71,12 +71,14 @@ class PremierLeagueServiceTest extends TestCase
         $this->assertCount(1, $data['standings']);
         $this->assertSame('Arsenal', $data['standings'][0]['teamName']);
         $this->assertSame(2, $data['standings'][0]['goalDifference']);
-        $this->assertSame('https://example.test/arsenal.png', $data['standings'][0]['emblemUrl']);
+        $this->assertSame('https://cdn.sportsnext.schibsted.io/api/v1/sports-pro/images/7d/7dca22f2-f666-4d73-8ea2-e725db004a3b?rule=clip-64x64', $data['standings'][0]['emblemUrl']);
         $this->assertCount(1, $data['upcomingFixtures']);
         $this->assertSame('Arsenal', $data['upcomingFixtures'][0]['homeTeam']);
+        $this->assertSame('https://cdn.sportsnext.schibsted.io/api/v1/sports-pro/images/7d/7dca22f2-f666-4d73-8ea2-e725db004a3b?rule=clip-64x64', $data['upcomingFixtures'][0]['homeEmblemUrl']);
         $this->assertSame('Runde 1', $data['upcomingFixtures'][0]['round']);
         $this->assertCount(1, $data['recentResults']);
         $this->assertSame(2, $data['recentResults'][0]['homeScore']);
+        $this->assertSame('https://cdn.sportsnext.schibsted.io/api/v1/sports-pro/images/4b/4b82a3b5-5238-489c-9d83-3d23fc4bc9a5?rule=clip-64x64', $data['recentResults'][0]['homeEmblemUrl']);
         $this->assertSame('14.07.2026 12:00', $data['lastUpdated']->format('d.m.Y H:i'));
     }
 
