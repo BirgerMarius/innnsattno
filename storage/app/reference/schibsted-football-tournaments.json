@@ -1,9 +1,11 @@
 {
     "provider": "Schibsted SportsNext",
     "sport": "football",
-    "last_verified_at": "2026-07-14T00:00:00+00:00",
+    "last_verified_at": "2026-08-25T00:00:00+00:00",
     "source": {
         "base_url": "https://api.sportsnext.schibsted.io/v1/vg",
+        "football_tournament_catalog_endpoint": "/tournaments?sport=football",
+        "football_tournament_catalog_status": "confirmed",
         "discovery_strategy": "Manuell live-verifikasjon fra docker01/containeren for World Cup 2026, og videre discovery bare mot små eksplisitte kandidatsett.",
         "network_notes": [
             {
@@ -43,14 +45,34 @@
                 "schedule": "/tournaments/seasons/9186/schedule",
                 "standings": "/tournaments/seasons/9186/standings",
                 "tournament_details": "/tournaments/3",
-                "tournament_seasons": "/tournaments/3/seasons"
+                "tournament_seasons": "/tournaments/3/seasons",
+                "event_details": "/events/751597",
+                "event_lineups": "/events/751597/lineups",
+                "event_statistics": "/events/751597/statistics",
+                "event_report": "/events/751597/report",
+                "participant_details": "/participants/1736",
+                "participant_matches": "/participants/1736/matches",
+                "participant_statistics": "/participants/1736/statistics",
+                "team_details": "/teams/1736",
+                "team_players": "/teams/1736/players",
+                "team_fixtures": "/teams/1736/fixtures"
             },
             "endpoint_status": {
                 "season_details": "confirmed",
                 "schedule": "confirmed",
                 "standings": "confirmed",
                 "tournament_details": "confirmed",
-                "tournament_seasons": "confirmed"
+                "tournament_seasons": "confirmed",
+                "event_details": "confirmed",
+                "event_lineups": "confirmed",
+                "event_statistics": "confirmed",
+                "event_report": "confirmed",
+                "participant_details": "rejected_404",
+                "participant_matches": "rejected_404",
+                "participant_statistics": "rejected_404",
+                "team_details": "rejected_404",
+                "team_players": "rejected_404",
+                "team_fixtures": "rejected_404"
             },
             "capabilities": {
                 "season_details": "confirmed",
@@ -64,20 +86,21 @@
                 "live_matches": null,
                 "match_status": true,
                 "teams": true,
-                "team_details": null,
-                "team_logos": null,
-                "venue": null,
-                "referee": null,
-                "match_details": null,
-                "events": null,
-                "goalscorers": null,
-                "cards": null,
-                "substitutions": null,
-                "lineups": null,
-                "match_statistics": null,
-                "players": null,
-                "player_profiles": null,
-                "top_scorers": null,
+                "team_details": "rejected_404",
+                "team_logos": true,
+                "venue": "confirmed_per_event",
+                "referee": "confirmed_per_event",
+                "match_details": "confirmed_per_event",
+                "events": "confirmed_per_event_report",
+                "goalscorers": "confirmed_per_event_report",
+                "assists": "confirmed_per_event_report_when_present",
+                "cards": "confirmed_per_event_report",
+                "substitutions": "confirmed_per_event_report",
+                "lineups": "confirmed_per_event",
+                "match_statistics": "confirmed_per_event",
+                "players": "confirmed_per_event_lineups",
+                "player_profiles": "partial_per_event_lineups",
+                "top_scorers": "derivable_from_event_reports",
                 "news": null
             },
             "observed_response": {
@@ -104,10 +127,15 @@
                     "standings"
                 ]
             },
-            "sample_team_ids": [],
-            "sample_match_ids": [],
-            "last_verified_at": "2026-07-14T00:00:00+00:00",
-            "verified_at": "2026-07-14",
+            "sample_team_ids": [
+                {
+                    "id": 1736,
+                    "name": "Hull City"
+                }
+            ],
+            "sample_match_ids": [751597],
+            "last_verified_at": "2026-08-25T00:00:00+00:00",
+            "verified_at": "2026-08-25",
             "verification_method": "live_api_from_docker01",
             "source": "live_verification",
             "verification_status": "confirmed",
@@ -116,7 +144,10 @@
                 "Schedule-responsen inneholder 380 events.",
                 "Standings-responsen inneholder 1 tabell med 20 lag.",
                 "Tournament seasons-responsen inneholder 34 sesonger.",
-                "Participants-data følger med i schedule og standings."
+                "Participants-data følger med i schedule og standings.",
+                "Event, event lineups, event statistics og event report returnerte HTTP 200 for kamp 751597.",
+                "Event report har strukturerte scoreChange-, card- og substitution-hendelser med spiller-ID-er; scoreChange hadde goalScorerId og assistantId når assist var registrert.",
+                "Seks eksplisitte participant/team-kandidater for Hull City (1736) returnerte HTTP 404, inkludert participant matches og team players."
             ]
         },
         {
@@ -260,14 +291,34 @@
                 "tournament_seasons": "/tournaments/38/seasons",
                 "season_details": "/tournaments/seasons/8766",
                 "schedule": "/tournaments/seasons/8766/schedule",
-                "standings": "/tournaments/seasons/8766/standings"
+                "standings": "/tournaments/seasons/8766/standings",
+                "event_details": "/events/737987",
+                "event_lineups": "/events/737987/lineups",
+                "event_statistics": "/events/737987/statistics",
+                "event_report": "/events/737987/report",
+                "participant_details": "/participants/37",
+                "participant_matches": "/participants/37/matches",
+                "participant_statistics": "/participants/37/statistics",
+                "team_details": "/teams/37",
+                "team_players": "/teams/37/players",
+                "team_fixtures": "/teams/37/fixtures"
             },
             "endpoint_status": {
                 "tournament_details": "confirmed",
                 "tournament_seasons": "confirmed",
                 "season_details": "confirmed",
                 "schedule": "confirmed",
-                "standings": "confirmed"
+                "standings": "confirmed",
+                "event_details": "confirmed",
+                "event_lineups": "confirmed",
+                "event_statistics": "confirmed",
+                "event_report": "confirmed",
+                "participant_details": "rejected_404",
+                "participant_matches": "rejected_404",
+                "participant_statistics": "rejected_404",
+                "team_details": "rejected_404",
+                "team_players": "rejected_404",
+                "team_fixtures": "rejected_404"
             },
             "capabilities": {
                 "schedule": "confirmed",
@@ -281,20 +332,21 @@
                 "live_matches": null,
                 "match_status": true,
                 "teams": true,
-                "team_details": null,
-                "team_logos": null,
-                "venue": null,
-                "referee": null,
-                "match_details": null,
-                "events": null,
-                "goalscorers": null,
-                "cards": null,
-                "substitutions": null,
-                "lineups": null,
-                "match_statistics": null,
-                "players": null,
-                "player_profiles": null,
-                "top_scorers": null,
+                "team_details": "rejected_404",
+                "team_logos": true,
+                "venue": "confirmed_per_event",
+                "referee": "confirmed_per_event",
+                "match_details": "confirmed_per_event",
+                "events": "confirmed_per_event_report",
+                "goalscorers": "confirmed_per_event_report",
+                "assists": "confirmed_per_event_report_when_present",
+                "cards": "confirmed_per_event_report",
+                "substitutions": "confirmed_per_event_report",
+                "lineups": "confirmed_per_event",
+                "match_statistics": "confirmed_per_event",
+                "players": "confirmed_per_event_lineups",
+                "player_profiles": "partial_per_event_lineups",
+                "top_scorers": "derivable_from_event_reports",
                 "news": null
             },
             "observed_response": {
@@ -321,10 +373,15 @@
                     "standings"
                 ]
             },
-            "sample_team_ids": [],
-            "sample_match_ids": [],
-            "last_verified_at": "2026-07-14T00:00:00+00:00",
-            "verified_at": "2026-07-14",
+            "sample_team_ids": [
+                {
+                    "id": 37,
+                    "name": "Rosenborg"
+                }
+            ],
+            "sample_match_ids": [737987],
+            "last_verified_at": "2026-08-25T00:00:00+00:00",
+            "verified_at": "2026-08-25",
             "verification_method": "live_api_from_docker01",
             "source": "live_verification",
             "verification_status": "confirmed",
@@ -333,7 +390,10 @@
                 "Schedule-responsen inneholder 240 events.",
                 "Standings-responsen inneholder 1 tabell med 16 lag.",
                 "Tournament seasons-responsen inneholder 19 sesonger.",
-                "Participants-data følger med i schedule og standings."
+                "Participants-data følger med i schedule og standings.",
+                "Event, event lineups, event statistics og event report returnerte HTTP 200 for kamp 737987.",
+                "Event report har strukturerte scoreChange-, card- og substitution-hendelser med spiller-ID-er; scoreChange hadde goalScorerId og assistantId når assist var registrert.",
+                "Seks eksplisitte participant/team-kandidater for Rosenborg (37) returnerte HTTP 404, inkludert participant matches og team players."
             ]
         }
     ]
