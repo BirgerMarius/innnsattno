@@ -26,6 +26,8 @@ class FootballTeamPageTest extends TestCase
             ->assertSee('Borte')
             ->assertSee('2–1')
             ->assertSee('Utsatt')
+            ->assertSee('Sesongen så langt')
+            ->assertSee('Form siste 1')
             ->assertDontSee('Utenfor ligaen')
             ->assertSeeInOrder(['01.08.2026', '08.08.2026', '15.08.2026']);
     }
@@ -39,6 +41,8 @@ class FootballTeamPageTest extends TestCase
         $this->get($path.'/lag/1/utskrift')
             ->assertOk()
             ->assertSee('football-team-print-list', false)
+            ->assertSee('football-team-print-stats', false)
+            ->assertSee('Sesongen så langt')
             ->assertSee("window.addEventListener('afterprint'", false)
             ->assertSee('if (hasReturnedToTeamPage)', false)
             ->assertSee('window.location.replace(teamPageUrl)', false)
@@ -52,6 +56,8 @@ class FootballTeamPageTest extends TestCase
         $this->assertStringContainsString('@page { size: A4 portrait; margin: 12mm; }', $css);
         $this->assertStringContainsString('font-size: 10pt', $css);
         $this->assertStringContainsString('column-gap: 8mm', $css);
+        $this->assertStringContainsString('.football-team-print-stats { break-inside: avoid;', $css);
+        $this->assertStringContainsString('font-size: 8.25pt', $css);
     }
 
     /** @dataProvider leagues */
@@ -85,6 +91,53 @@ class FootballTeamPageTest extends TestCase
             ->assertSee('Se alle kampene til et lag:')
             ->assertSee($path.'/lag/1', false)
             ->assertSee($path.'/lag/2', false);
+    }
+
+    /** @dataProvider leagues */
+    public function test_team_page_calculates_shared_season_statistics_from_finished_matches(string $path, int $seasonId): void
+    {
+        $this->fakeStatisticsCompetition($seasonId);
+
+        $response = $this->get($path.'/lag/1')->assertOk()
+            ->assertSee('Sesongen så langt')
+            ->assertSee('Form siste 5')
+            ->assertSee('Hjemme:')
+            ->assertSee('Borte:')
+            ->assertSee('Største seier')
+            ->assertSee('Største tap')
+            ->assertSee('Mest målrike kamp')
+            ->assertSee('Clean sheets');
+
+        $response->assertViewHas('seasonStats', function (array $stats) {
+            $this->assertTrue($stats['hasFinishedMatches']);
+            $this->assertSame(['T', 'U', 'V', 'T', 'V'], array_column($stats['form'], 'result'));
+            $this->assertSame(['wins' => 1, 'draws' => 1, 'losses' => 1], $stats['home']);
+            $this->assertSame(['wins' => 2, 'draws' => 0, 'losses' => 1], $stats['away']);
+            $this->assertSame('Motstander A', $stats['records']['largestWin']['opponent']);
+            $this->assertSame([3, 0], [$stats['records']['largestWin']['teamScore'], $stats['records']['largestWin']['opponentScore']]);
+            $this->assertSame('Motstander B', $stats['records']['largestLoss']['opponent']);
+            $this->assertSame([1, 4], [$stats['records']['largestLoss']['teamScore'], $stats['records']['largestLoss']['opponentScore']]);
+            $this->assertSame('Motstander F', $stats['records']['highestScoringMatch']['opponent']);
+            $this->assertSame([4, 2], [$stats['records']['highestScoringMatch']['teamScore'], $stats['records']['highestScoringMatch']['opponentScore']]);
+            $this->assertSame(1, $stats['records']['cleanSheets']);
+            $this->assertSame(4, $stats['keyFigures'][0]['value']);
+            $this->assertSame(12, $stats['keyFigures'][5]['value']);
+
+            return true;
+        });
+    }
+
+    /** @dataProvider leagues */
+    public function test_team_page_shows_a_message_when_there_are_no_finished_matches(string $path, int $seasonId): void
+    {
+        $this->fakeNoFinishedCompetition($seasonId);
+
+        $response = $this->get($path.'/lag/1')->assertOk()
+            ->assertSee('Sesongen så langt')
+            ->assertSee('Det finnes ingen ferdigspilte seriekamper å beregne sesongstatistikk fra ennå.')
+            ->assertDontSee('Form siste', false);
+
+        $response->assertViewHas('seasonStats', fn (array $stats) => $stats['hasFinishedMatches'] === false);
     }
 
     public function leagues(): array
@@ -139,5 +192,59 @@ class FootballTeamPageTest extends TestCase
             "*/tournaments/seasons/{$seasonId}/schedule" => Http::response(['participants' => $participants, 'events' => $events], 200),
             "*/tournaments/seasons/{$seasonId}/standings" => Http::response(['participants' => $participants, 'standings' => [['teamStandings' => [['teamId' => 1, 'rank' => 1]]]]], 200),
         ]);
+    }
+
+    private function fakeStatisticsCompetition(int $seasonId): void
+    {
+        Cache::flush();
+        $participants = [1 => ['name' => 'Test FC']];
+        foreach (range(2, 9) as $teamId) {
+            $participants[$teamId] = ['name' => 'Motstander '.chr(64 + $teamId - 1)];
+        }
+        $events = [
+            $this->finishedEvent(1, '2026-03-01T16:00:00Z', [1, 2], 3, 0),
+            $this->finishedEvent(2, '2026-03-08T16:00:00Z', [3, 1], 4, 1),
+            $this->finishedEvent(3, '2026-03-15T16:00:00Z', [1, 4], 2, 2),
+            $this->finishedEvent(4, '2026-03-22T16:00:00Z', [5, 1], 1, 2),
+            $this->finishedEvent(5, '2026-03-29T16:00:00Z', [1, 6], 0, 1),
+            $this->finishedEvent(6, '2026-04-05T16:00:00Z', [7, 1], 2, 4),
+            ['id' => 7, 'startDate' => '2026-04-12T16:00:00Z', 'participantIds' => [1, 8], 'status' => ['type' => 'finished'], 'results' => [1 => ['runningScore' => 2]]],
+            ['id' => 8, 'startDate' => '2026-04-19T16:00:00Z', 'participantIds' => [9, 1], 'status' => ['type' => 'notstarted']],
+        ];
+        $standing = ['teamId' => '1', 'rank' => 4, 'played' => 6, 'wins' => 3, 'draws' => 1, 'losses' => 2, 'goalsFor' => 12, 'goalsAgainst' => 10, 'points' => 10];
+
+        Http::fake([
+            "*/tournaments/seasons/{$seasonId}/schedule" => Http::response(['participants' => $participants, 'events' => $events], 200),
+            "*/tournaments/seasons/{$seasonId}/standings" => Http::response(['participants' => $participants, 'standings' => [['teamStandings' => [$standing]]]], 200),
+        ]);
+    }
+
+    private function fakeNoFinishedCompetition(int $seasonId): void
+    {
+        Cache::flush();
+        $participants = [1 => ['name' => 'Test FC'], 2 => ['name' => 'Motstander A']];
+        $events = [
+            ['id' => 1, 'startDate' => '2026-08-01T16:30:00Z', 'participantIds' => [1, 2], 'status' => ['type' => 'notstarted']],
+            ['id' => 2, 'startDate' => '2026-08-08T16:30:00Z', 'participantIds' => [1, 2], 'status' => ['type' => 'finished'], 'results' => [1 => ['runningScore' => 1]]],
+        ];
+
+        Http::fake([
+            "*/tournaments/seasons/{$seasonId}/schedule" => Http::response(['participants' => $participants, 'events' => $events], 200),
+            "*/tournaments/seasons/{$seasonId}/standings" => Http::response(['participants' => $participants, 'standings' => [['teamStandings' => [['teamId' => 1, 'rank' => 1]]]]], 200),
+        ]);
+    }
+
+    private function finishedEvent(int $id, string $startDate, array $teamIds, int $homeScore, int $awayScore): array
+    {
+        return [
+            'id' => $id,
+            'startDate' => $startDate,
+            'participantIds' => $teamIds,
+            'status' => ['type' => 'finished'],
+            'results' => [
+                $teamIds[0] => ['runningScore' => $homeScore],
+                $teamIds[1] => ['runningScore' => $awayScore],
+            ],
+        ];
     }
 }

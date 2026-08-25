@@ -150,6 +150,7 @@ abstract class SchibstedCompetitionService
             'seasonName' => $competition['seasonName'] ?? null,
             'team' => $team,
             'teamMatches' => $matches,
+            'seasonStats' => $this->teamSeasonStats($matches, $competition['standings'], $teamId),
         ]);
     }
 
@@ -384,6 +385,112 @@ abstract class SchibstedCompetitionService
         }
 
         return $teams;
+    }
+
+    /**
+     * Build team-page season statistics from the existing normalised league
+     * schedule. Only completed matches with both final scores are included.
+     */
+    private function teamSeasonStats(array $matches, array $standings, int $teamId): array
+    {
+        $standing = null;
+
+        foreach ($standings as $row) {
+            if ($this->nullableInt($row['teamId'] ?? null) === $teamId) {
+                $standing = $row;
+                break;
+            }
+        }
+
+        $finishedMatches = array_values(array_filter($matches, function (array $match) {
+            return $match['isFinished']
+                && $match['teamScore'] !== null
+                && $match['opponentScore'] !== null;
+        }));
+
+        $home = ['wins' => 0, 'draws' => 0, 'losses' => 0];
+        $away = ['wins' => 0, 'draws' => 0, 'losses' => 0];
+        $form = [];
+        $largestWin = null;
+        $largestLoss = null;
+        $highestScoringMatch = null;
+        $cleanSheets = 0;
+
+        foreach ($finishedMatches as $match) {
+            $teamScore = $match['teamScore'];
+            $opponentScore = $match['opponentScore'];
+            $result = $teamScore > $opponentScore ? 'V' : ($teamScore === $opponentScore ? 'U' : 'T');
+
+            if ($result === 'V') {
+                if ($match['isHome']) {
+                    $home['wins']++;
+                } else {
+                    $away['wins']++;
+                }
+            } elseif ($result === 'U') {
+                if ($match['isHome']) {
+                    $home['draws']++;
+                } else {
+                    $away['draws']++;
+                }
+            } else {
+                if ($match['isHome']) {
+                    $home['losses']++;
+                } else {
+                    $away['losses']++;
+                }
+            }
+
+            if ($opponentScore === 0) {
+                $cleanSheets++;
+            }
+
+            $form[] = ['result' => $result];
+            $record = [
+                'opponent' => $match['opponent'],
+                'teamScore' => $teamScore,
+                'opponentScore' => $opponentScore,
+                'isHome' => $match['isHome'],
+            ];
+            $margin = $teamScore - $opponentScore;
+            $totalGoals = $teamScore + $opponentScore;
+
+            if ($margin > 0 && ($largestWin === null || $margin > $largestWin['margin'])) {
+                $largestWin = $record + ['margin' => $margin];
+            }
+
+            if ($margin < 0 && ($largestLoss === null || $margin < $largestLoss['margin'])) {
+                $largestLoss = $record + ['margin' => $margin];
+            }
+
+            if ($highestScoringMatch === null || $totalGoals > $highestScoringMatch['totalGoals']) {
+                $highestScoringMatch = $record + ['totalGoals' => $totalGoals];
+            }
+        }
+
+        return [
+            'hasFinishedMatches' => count($finishedMatches) > 0,
+            'keyFigures' => [
+                ['label' => 'Tabellplass', 'value' => $standing['rank'] ?? null],
+                ['label' => 'Kamper spilt', 'value' => $standing['played'] ?? null],
+                ['label' => 'Seire', 'value' => $standing['wins'] ?? null],
+                ['label' => 'Uavgjort', 'value' => $standing['draws'] ?? null],
+                ['label' => 'Tap', 'value' => $standing['losses'] ?? null],
+                ['label' => 'Mål for', 'value' => $standing['goalsFor'] ?? null],
+                ['label' => 'Mål mot', 'value' => $standing['goalsAgainst'] ?? null],
+                ['label' => 'Målforskjell', 'value' => $standing['goalDifference'] ?? null],
+                ['label' => 'Poeng', 'value' => $standing['points'] ?? null],
+            ],
+            'form' => array_slice($form, -5),
+            'home' => $home,
+            'away' => $away,
+            'records' => [
+                'largestWin' => $largestWin,
+                'largestLoss' => $largestLoss,
+                'highestScoringMatch' => $highestScoringMatch,
+                'cleanSheets' => $cleanSheets,
+            ],
+        ];
     }
 
     private function seasonName(array ...$responses): ?string

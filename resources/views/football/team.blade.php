@@ -38,6 +38,45 @@
             <p class="football-team-warning">Ingen seriekamper for dette laget finnes i datagrunnlaget ennå.</p>
         @endif
 
+        <section class="football-team-season-stats" aria-labelledby="season-stats-heading">
+            <h2 id="season-stats-heading">Sesongen så langt</h2>
+            @if($seasonStats['hasFinishedMatches'])
+                <div class="football-team-stat-grid">
+                    @foreach($seasonStats['keyFigures'] as $stat)
+                        <div class="football-team-stat-card"><span>{{ $stat['label'] }}</span><strong>{{ $stat['value'] ?? '–' }}</strong></div>
+                    @endforeach
+                </div>
+
+                <div class="football-team-season-details">
+                    <div>
+                        <h3>Form siste {{ count($seasonStats['form']) }}</h3>
+                        <div class="football-team-form" aria-label="Form: {{ implode(', ', array_column($seasonStats['form'], 'result')) }}">
+                            @foreach($seasonStats['form'] as $formMatch)
+                                <span class="football-team-form-marker football-team-form-marker--{{ strtolower($formMatch['result']) }}">{{ $formMatch['result'] }}</span>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="football-team-home-away">
+                        <h3>Hjemme og borte</h3>
+                        <p><strong>Hjemme:</strong> {{ $seasonStats['home']['wins'] }}–{{ $seasonStats['home']['draws'] }}–{{ $seasonStats['home']['losses'] }}</p>
+                        <p><strong>Borte:</strong> {{ $seasonStats['away']['wins'] }}–{{ $seasonStats['away']['draws'] }}–{{ $seasonStats['away']['losses'] }}</p>
+                    </div>
+                </div>
+
+                <div class="football-team-records">
+                    <h3>Sesongrekorder</h3>
+                    <dl>
+                        <div><dt>Største seier</dt><dd>@if($seasonStats['records']['largestWin']){{ $seasonStats['records']['largestWin']['teamScore'] }}–{{ $seasonStats['records']['largestWin']['opponentScore'] }} mot {{ $seasonStats['records']['largestWin']['opponent'] }}@else–@endif</dd></div>
+                        <div><dt>Største tap</dt><dd>@if($seasonStats['records']['largestLoss']){{ $seasonStats['records']['largestLoss']['teamScore'] }}–{{ $seasonStats['records']['largestLoss']['opponentScore'] }} mot {{ $seasonStats['records']['largestLoss']['opponent'] }}@else–@endif</dd></div>
+                        <div><dt>Mest målrike kamp</dt><dd>@if($seasonStats['records']['highestScoringMatch']){{ $seasonStats['records']['highestScoringMatch']['teamScore'] }}–{{ $seasonStats['records']['highestScoringMatch']['opponentScore'] }} mot {{ $seasonStats['records']['highestScoringMatch']['opponent'] }}@else–@endif</dd></div>
+                        <div><dt>Clean sheets</dt><dd>{{ $seasonStats['records']['cleanSheets'] }}</dd></div>
+                    </dl>
+                </div>
+            @else
+                <p class="football-team-warning">Det finnes ingen ferdigspilte seriekamper å beregne sesongstatistikk fra ennå.</p>
+            @endif
+        </section>
+
         <p class="football-team-note"><strong>Merk:</strong> Dato og tidspunkt for kommende kamper kan endres. Kampoversikten oppdateres når nye opplysninger blir tilgjengelige.</p>
     </main>
 
