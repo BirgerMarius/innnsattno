@@ -1311,6 +1311,189 @@
     text-decoration: underline;
 }
 
+/* ========================================
+   Forside – sesongtemaer (kun forhåndsvisning foreløpig)
+======================================== */
+.front-page-theme {
+    --theme-accent: #173f72;
+    --theme-accent-soft: #eaf1f8;
+    --theme-border: #c9d8e6;
+    --theme-surface: #ffffff;
+    --theme-page: #f7fafc;
+    --theme-shadow: rgba(27, 54, 93, .12);
+    background: var(--theme-page);
+}
+
+.front-page-theme { min-height: 100vh; overflow-x: hidden; position: relative; }
+.front-page-theme .container { position: relative; z-index: 1; }
+.front-page-theme .alert-light { background: var(--theme-surface); border: 1px solid var(--theme-border); box-shadow: 0 2px 9px var(--theme-shadow); }
+.front-page-theme .front-page-date-link, .front-page-theme .front-page-flag-link { color: var(--theme-accent); }
+.front-page-theme .local-news-section, .front-page-theme .local-news-card { border-color: var(--theme-border); box-shadow: 0 3px 12px var(--theme-shadow); }
+.front-page-theme .local-news-section { background: var(--theme-surface); }
+.front-page-theme .local-news-section-header h2, .front-page-theme .local-news-card h3 a { color: var(--theme-accent); }
+.front-page-theme .local-news-card--text { border-left-color: var(--theme-accent); }
+.front-page-theme .front-page-btn--professional { --front-page-btn-bg: var(--theme-accent); --front-page-btn-border: var(--theme-accent); --front-page-btn-color: #fff; }
+.front-page-theme .front-page-btn--professional:hover, .front-page-theme .front-page-btn--professional:focus { filter: brightness(.9); }
+.front-page-theme-preview { align-items: center; background: var(--theme-accent); border-radius: 999px; box-shadow: 0 3px 10px var(--theme-shadow); color: #fff; display: flex; flex-wrap: wrap; font-size: .82rem; gap: .4rem; justify-content: center; margin: 0 auto 1rem; max-width: max-content; padding: .35rem .75rem; position: relative; z-index: 1; }
+.front-page-theme-preview span { font-size: .7rem; letter-spacing: .06em; text-transform: uppercase; }
+.front-page-theme-preview a { color: #fff; margin-left: .35rem; text-decoration: underline; }
+.front-page-theme-art { bottom: 0; left: 0; overflow: hidden; pointer-events: none; position: fixed; right: 0; top: 0; z-index: 0; }
+.front-page-theme-art svg { display: block; height: 100%; min-height: 720px; width: 100%; }
+.front-page-theme-art path, .front-page-theme-art circle { vector-effect: non-scaling-stroke; }
+.theme-art-branch, .theme-art-wire, .theme-art-waves, .theme-art-frost { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+.front-page-theme-art--host .theme-art-branch { stroke: #765130; stroke-width: 9; opacity: .42; }
+.front-page-theme-art--host .theme-art-leaves path { fill: #bc6a32; opacity: .68; }
+.front-page-theme-art--host .theme-art-leaves path:nth-child(3n) { fill: #c9982e; }
+.front-page-theme-art--host .theme-art-leaves path:nth-child(4n) { fill: #6d7d45; }
+
+.front-page-theme-art--advent .theme-art-wire { stroke: #5b4a8f; stroke-width: 3; opacity: .75; }
+.front-page-theme-art--advent .theme-art-lights circle { fill: #f5ca5c; filter: drop-shadow(0 0 8px rgba(245, 202, 92, .82)); opacity: .9; }
+.front-page-theme-art--advent .theme-art-stars { fill: #f8d777; opacity: .72; }
+
+.front-page-theme-art--jul .theme-art-pine { fill: #1f6046; opacity: .8; }
+.front-page-theme-art--jul .theme-art-ornaments circle { fill: #b52f3e; stroke: #d9af52; stroke-width: 5; }
+.front-page-theme-art--jul .theme-art-ornaments circle:nth-child(2n) { fill: #d8ad4e; stroke: #8f2633; }
+.front-page-theme-art--jul .theme-art-stars { fill: #e7c66f; opacity: .9; }
+
+.front-page-theme-art--vinter .theme-art-snowflakes { fill: none; opacity: .48; stroke: #75adca; stroke-linecap: round; stroke-width: 5; }
+.front-page-theme-art--vinter .theme-art-frost { opacity: .36; stroke: #9ed0e6; stroke-width: 9; }
+
+.front-page-theme-art--var .theme-art-branch { fill: none; opacity: .44; stroke: #64935a; stroke-linecap: round; stroke-width: 8; }
+.front-page-theme-art--var .theme-art-sprouts { fill: #78ac68; opacity: .72; }
+.front-page-theme-art--var .theme-art-sprouts path:nth-child(2n) { fill: #9dc66d; }
+.front-page-theme-art--var .theme-art-flowers { fill: #e897b6; opacity: .72; }
+.front-page-theme-art--var .theme-art-flowers circle:nth-child(3n) { fill: #f3ca58; }
+
+.front-page-theme-art--sommer .theme-art-sun { fill: #f6c638; opacity: .83; stroke: #d79820; stroke-linecap: round; stroke-width: 7; }
+.front-page-theme-art--sommer .theme-art-clouds { fill: #fff; opacity: .64; }
+.front-page-theme-art--sommer .theme-art-waves { fill: none; opacity: .5; stroke: #55a9b6; stroke-width: 7; }
+.front-page-theme-art--sommer .theme-art-summer-leaves { fill: #6cac6b; opacity: .72; }
+
+.front-page-theme-art--sensommer .theme-art-grass, .front-page-theme-art--sensommer .theme-art-grain { fill: none; stroke: #b38a2b; stroke-linecap: round; stroke-width: 7; opacity: .62; }
+.front-page-theme-art--sensommer .theme-art-grain { stroke: #c9a342; stroke-width: 5; }
+.front-page-theme-art--sensommer .theme-art-leaves path { fill: #879c4d; opacity: .72; }
+.front-page-theme-art--sensommer .theme-art-leaves path:last-child { fill: #c77c38; }
+
+.front-page-theme-art--tidlig-host .theme-art-early-branch { fill: none; opacity: .42; stroke: #72945d; stroke-linecap: round; stroke-width: 7; }
+.front-page-theme-art--tidlig-host .theme-art-early-leaves path { fill: #a3b854; opacity: .75; }
+.front-page-theme-art--tidlig-host .theme-art-early-leaves path:nth-child(3n) { fill: #d5ad43; }
+
+.front-page-theme-art--senhost .theme-art-bare-branch { fill: none; opacity: .6; stroke: #62554e; stroke-linecap: round; stroke-width: 9; }
+.front-page-theme-art--senhost .theme-art-late-leaves path { fill: #a7613f; opacity: .68; }
+
+.front-page-theme-art--forjul .theme-art-pine--soft { fill: #1d5943; opacity: .72; }
+.front-page-theme-art--forjul .theme-art-wire { stroke: #8b783e; stroke-width: 3; }
+.front-page-theme-art--forjul .theme-art-lights circle { fill: #e2c66e; filter: drop-shadow(0 0 7px rgba(226, 198, 110, .75)); }
+
+.front-page-theme-art--nyttar .theme-art-fireworks { fill: none; opacity: .78; stroke: #e5c365; stroke-linecap: round; stroke-width: 6; }
+.front-page-theme-art--nyttar .theme-art-confetti { fill: #809ec6; opacity: .72; }
+.front-page-theme-art--nyttar .theme-art-confetti circle:nth-child(2n) { fill: #d6ae5a; }
+.front-page-theme-art--nyttar .theme-art-stars { fill: #f0d37a; }
+
+.front-page-theme-art--mork-vinter .theme-art-night-stars { fill: #d8e8f3; opacity: .7; }
+.front-page-theme-art--mork-vinter .theme-art-snowflakes { fill: none; opacity: .53; stroke: #9fc6df; stroke-linecap: round; stroke-width: 5; }
+.front-page-theme-art--mork-vinter .theme-art-frost { opacity: .4; stroke: #7da8c7; stroke-width: 8; }
+
+.front-page-theme-art--tidlig-var .theme-art-thaw { fill: none; opacity: .44; stroke: #9ac8d5; stroke-width: 8; }
+.front-page-theme-art--tidlig-var .theme-art-early-sprouts { fill: none; opacity: .66; stroke: #7ba260; stroke-linecap: round; stroke-width: 7; }
+.front-page-theme-art--tidlig-var .theme-art-early-sprouts path:nth-child(2n) { fill: #9ac76e; stroke: none; }
+.front-page-theme-art--tidlig-var .theme-art-snowflakes { fill: none; opacity: .35; stroke: #91bdd4; stroke-linecap: round; stroke-width: 4; }
+
+.front-page-theme-art--paske .theme-art-easter-branch { fill: none; opacity: .45; stroke: #6e9b55; stroke-linecap: round; stroke-width: 7; }
+.front-page-theme-art--paske .theme-art-easter-leaves { fill: #83ae64; opacity: .7; }
+.front-page-theme-art--paske .theme-art-eggs { fill: #efd050; opacity: .78; stroke: #d4a62f; stroke-width: 4; }
+.front-page-theme-art--paske .theme-art-eggs ellipse:nth-child(2n) { fill: #f4e8bd; }
+.front-page-theme-art--paske .theme-art-egg-pattern { fill: none; opacity: .72; stroke: #d98e48; stroke-linecap: round; stroke-width: 5; }
+.front-page-theme-art--paske .theme-art-bunny { fill: #fffdf4; opacity: .8; stroke: #b79b73; stroke-width: 4; }
+.front-page-theme-art--paske .theme-art-bunny-eye { fill: #4e4138; stroke: none; }
+.front-page-theme-art--paske .theme-art-bunny-nose { fill: #d98998; stroke: none; }
+.front-page-theme-art--paske .theme-art-chick { fill: #f3ca3d; opacity: .8; stroke: #c99824; stroke-width: 3; }
+.front-page-theme-art--paske .theme-art-chick path { fill: #e58c35; stroke: none; }
+.front-page-theme-art--paske .theme-art-chick-eye { fill: #4e4138; stroke: none; }
+
+.front-page-theme-art--17-mai .theme-art-ribbons { fill: none; opacity: .75; stroke: #ba253a; stroke-width: 14; }
+.front-page-theme-art--17-mai .theme-art-norwegian-flags { opacity: .84; }
+.front-page-theme-art--17-mai .theme-art-flagpole { fill: none; stroke: #69534a; stroke-linecap: round; stroke-width: 6; }
+.front-page-theme-art--17-mai .theme-art-flag-red { fill: #ba0c2f; }
+.front-page-theme-art--17-mai .theme-art-flag-white { fill: #fff; }
+.front-page-theme-art--17-mai .theme-art-flag-blue { fill: #00205b; }
+.front-page-theme-art--17-mai .theme-art-birch { fill: none; opacity: .65; stroke: #6fa05a; stroke-linecap: round; stroke-width: 7; }
+.front-page-theme-art--17-mai .theme-art-birch path:nth-child(n+3) { fill: #82ae67; stroke: none; }
+
+.front-page-theme-art--forsommer .theme-art-early-summer-clouds { fill: #fff; opacity: .65; }
+.front-page-theme-art--forsommer .theme-art-forsommer-leaves { fill: #79ad6f; opacity: .72; }
+.front-page-theme-art--forsommer .theme-art-flowers { fill: #e89db8; opacity: .7; }
+.front-page-theme-art--forsommer .theme-art-flowers circle:nth-child(3n) { fill: #f1cf62; }
+
+.front-page-theme-art--midtsommer .theme-art-evening-sun { fill: #f2b83f; opacity: .8; stroke: #d68334; stroke-linecap: round; stroke-width: 7; }
+.front-page-theme-art--midtsommer .theme-art-evening-sun path { fill: none; }
+.front-page-theme-art--midtsommer .theme-art-meadow { fill: none; opacity: .64; stroke: #5b9a55; stroke-linecap: round; stroke-width: 8; }
+.front-page-theme-art--midtsommer .theme-art-flowers { fill: #f0a0b5; opacity: .76; }
+.front-page-theme-art--midtsommer .theme-art-flowers circle:nth-child(3n) { fill: #f2cc47; }
+
+.front-page-theme--host { --theme-accent: #8a481d; --theme-accent-soft: #f5e3c4; --theme-border: #d9b57b; --theme-surface: #fffdf8; --theme-page: #fbf4e9; --theme-shadow: rgba(103, 57, 25, .14); }
+
+.front-page-theme--advent { --theme-accent: #41316f; --theme-accent-soft: #eee6c7; --theme-border: #b9aed4; --theme-surface: #fcfbff; --theme-page: #f0eef7; --theme-shadow: rgba(51, 38, 90, .15); }
+
+.front-page-theme--jul { --theme-accent: #9a2430; --theme-accent-soft: #e7f0e8; --theme-border: #cfa3a0; --theme-surface: #fffdfb; --theme-page: #f8f1ee; --theme-shadow: rgba(97, 34, 35, .15); }
+.front-page-theme--jul .front-page-theme-preview { background: linear-gradient(90deg, #8d2630, #245b42); }
+
+.front-page-theme--vinter { --theme-accent: #245b86; --theme-accent-soft: #e5f3fb; --theme-border: #a8c9dd; --theme-surface: #ffffff; --theme-page: #f1f7fa; --theme-shadow: rgba(34, 83, 118, .12); }
+
+.front-page-theme--var { --theme-accent: #337144; --theme-accent-soft: #e2f1d9; --theme-border: #abd19c; --theme-surface: #fdfffa; --theme-page: #f3f9ee; --theme-shadow: rgba(42, 101, 52, .12); }
+
+.front-page-theme--sommer { --theme-accent: #147088; --theme-accent-soft: #fff0a8; --theme-border: #9cced2; --theme-surface: #fffef8; --theme-page: #eff9f5; --theme-shadow: rgba(18, 105, 119, .13); }
+.front-page-theme--sommer .front-page-theme-preview { background: linear-gradient(90deg, #147088, #d69a16); }
+
+.front-page-theme--sensommer { --theme-accent: #6d783b; --theme-accent-soft: #f3e1a6; --theme-border: #c9bb76; --theme-surface: #fffef6; --theme-page: #f7f5df; --theme-shadow: rgba(101, 106, 49, .13); }
+.front-page-theme--tidlig-host { --theme-accent: #647b3e; --theme-accent-soft: #edf1be; --theme-border: #bdc978; --theme-surface: #fffffa; --theme-page: #f6f7e8; --theme-shadow: rgba(81, 105, 42, .12); }
+.front-page-theme--senhost { --theme-accent: #675149; --theme-accent-soft: #e9d9c9; --theme-border: #bda79a; --theme-surface: #fdfcfb; --theme-page: #f0eeec; --theme-shadow: rgba(71, 57, 51, .15); }
+.front-page-theme--forjul { --theme-accent: #285c47; --theme-accent-soft: #e3dfb7; --theme-border: #9cac81; --theme-surface: #fdfdf8; --theme-page: #eef2ea; --theme-shadow: rgba(27, 73, 53, .15); }
+.front-page-theme--forjul .front-page-theme-preview { background: linear-gradient(90deg, #285c47, #927a36); }
+.front-page-theme--nyttar { --theme-accent: #203f69; --theme-accent-soft: #e4d498; --theme-border: #95a8c7; --theme-surface: #fbfcff; --theme-page: #e9eef7; --theme-shadow: rgba(25, 51, 89, .16); }
+.front-page-theme--nyttar .front-page-theme-preview { background: linear-gradient(90deg, #203f69, #b68c35); }
+.front-page-theme--mork-vinter { --theme-accent: #1c426d; --theme-accent-soft: #c8ddea; --theme-border: #789cb8; --theme-surface: #f9fcff; --theme-page: #e4edf5; --theme-shadow: rgba(18, 54, 91, .17); }
+.front-page-theme--mork-vinter .front-page-theme-preview { background: linear-gradient(90deg, #17375d, #4f789c); }
+.front-page-theme--tidlig-var { --theme-accent: #527f69; --theme-accent-soft: #dbeedc; --theme-border: #a9c9b4; --theme-surface: #fcfffb; --theme-page: #eff7f2; --theme-shadow: rgba(60, 105, 83, .12); }
+.front-page-theme--paske { --theme-accent: #8a7021; --theme-accent-soft: #faedab; --theme-border: #d8c66d; --theme-surface: #fffef8; --theme-page: #f8f7e8; --theme-shadow: rgba(117, 91, 22, .12); }
+.front-page-theme--paske .front-page-theme-preview { background: linear-gradient(90deg, #7d9a4e, #cfad32); }
+.front-page-theme--17-mai { --theme-accent: #9c2639; --theme-accent-soft: #e7edf8; --theme-border: #bd9dac; --theme-surface: #fffdfd; --theme-page: #f7f3f4; --theme-shadow: rgba(105, 37, 49, .13); }
+.front-page-theme--17-mai .front-page-theme-preview { background: linear-gradient(90deg, #a3273c, #fff 49%, #254a86 51%); color: #172d59; }
+.front-page-theme--17-mai .front-page-theme-preview a { color: #172d59; }
+.front-page-theme--forsommer { --theme-accent: #367d76; --theme-accent-soft: #d9eef0; --theme-border: #9ecbc4; --theme-surface: #fcfffe; --theme-page: #eff8f6; --theme-shadow: rgba(41, 112, 100, .12); }
+.front-page-theme--midtsommer { --theme-accent: #9a6721; --theme-accent-soft: #f8d985; --theme-border: #d5ae63; --theme-surface: #fffdf7; --theme-page: #fbf3d9; --theme-shadow: rgba(126, 81, 23, .14); }
+.front-page-theme--midtsommer .front-page-theme-preview { background: linear-gradient(90deg, #5d9653, #de9f2e); }
+
+.design-test-overview { background: #f4f7fa; color: #263644; }
+.design-test-shell { margin-bottom: 4rem; margin-top: 3rem; max-width: 1040px; }
+.design-test-back { color: #173f72; font-weight: 600; text-decoration: none; }
+.design-test-back:hover, .design-test-back:focus-visible { text-decoration: underline; }
+.design-test-heading { border-bottom: 1px solid #cad7e2; margin: 1.5rem 0 2rem; max-width: 48rem; padding-bottom: 1.5rem; }
+.design-test-heading p { color: #527084; font-size: .75rem; font-weight: 800; letter-spacing: .08em; margin: 0 0 .3rem; }
+.design-test-heading h1 { color: #173f72; font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 750; margin-bottom: .5rem; }
+.design-test-grid { display: grid; gap: 1rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.design-test-card { --theme-accent: #173f72; --theme-accent-soft: #eaf1f8; background: #fff; border: 1px solid #d4e0e9; border-radius: 12px; box-shadow: 0 2px 8px rgba(27, 54, 93, .08); color: #263644; display: block; min-height: 13rem; padding: 1.25rem; text-decoration: none; }
+.design-test-card:hover, .design-test-card:focus-visible { border-color: var(--theme-accent); box-shadow: 0 6px 18px rgba(27, 54, 93, .16); color: #263644; transform: translateY(-2px); }
+.design-test-card-swatch { background: linear-gradient(135deg, var(--theme-accent), var(--theme-accent-soft)); border-radius: 99px; display: block; height: .6rem; margin-bottom: 1.25rem; width: 3.8rem; }
+.design-test-card h2 { color: var(--theme-accent); font-size: 1.35rem; margin-bottom: .5rem; }
+.design-test-card p { line-height: 1.45; min-height: 3rem; }
+.design-test-card > span:last-child { color: var(--theme-accent); font-size: .9rem; font-weight: 700; }
+
+@media (max-width: 767.98px) {
+    .design-test-grid { grid-template-columns: 1fr; }
+    .front-page-theme-art { display: none; }
+}
+
+@media (max-width: 1199.98px) {
+    .front-page-theme-art { opacity: .48; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .design-test-card { transition: none; }
+    .design-test-card:hover, .design-test-card:focus-visible { transform: none; }
+}
+
 .site-nav-link:hover,
 .site-nav-link:focus {
     color: #fff;

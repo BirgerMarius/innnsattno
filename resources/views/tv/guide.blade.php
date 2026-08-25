@@ -1,5 +1,6 @@
 @extends('layouts.app') 
 @section('title', 'Innsatt.no') 
+@section('body-class', !empty($theme) ? 'front-page-theme front-page-theme--'.$theme['id'] : '')
 
 @push('styles')
 <style>
@@ -99,7 +100,11 @@
 
 @section('content')
 
+@include('tv.partials.theme-art')
+
 <div class="container my-5">
+
+    @include('tv.partials.theme-preview')
 
     @php
 $todayText = now()->locale('nb')->translatedFormat('l j. F Y');

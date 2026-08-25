@@ -24,12 +24,9 @@ use App\Http\Controllers\WeatherController;
 use App\Http\Controllers\TodayController;
 use App\Http\Controllers\ChangeHistoryController;
 use App\Http\Controllers\LearningController;
+use App\Http\Controllers\FrontPageController;
 use App\Http\Controllers\Admin\NewsAdminController;
 use App\Http\Controllers\Admin\NewsSourceAdminController;
-use App\Services\RingbladNewsService;
-use App\Services\FlagDayService;
-use App\Services\NamedayService;
-use App\Services\ChangeHistoryService;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,16 +38,9 @@ Route::get('/', function () {
     return redirect('tv');
 });
 
-Route::get('/tv', function (RingbladNewsService $ringbladNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory) {
-    $today = Carbon::now(FlagDayService::TIMEZONE);
-
-    return view('tv.guide', [
-        'localNews' => $ringbladNews->latest(),
-        'flagDayOverview' => $flagDays->overview(),
-        'todayNamedays' => $namedays->forDate($today)['names'] ?? [],
-        'changeHistory' => $changeHistory->get(),
-    ]);
-})->name('tv');
+Route::get('/tv', [FrontPageController::class, 'index'])->name('tv');
+Route::get('/design-test', [FrontPageController::class, 'overview'])->name('design-test.index');
+Route::get('/design-test/{theme}', [FrontPageController::class, 'preview'])->name('design-test.preview');
 
 Route::get('/endringer', [ChangeHistoryController::class, 'index'])->name('change-history.index');
 

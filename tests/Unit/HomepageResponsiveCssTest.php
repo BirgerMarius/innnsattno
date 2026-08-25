@@ -69,4 +69,20 @@ class HomepageResponsiveCssTest extends TestCase
             $this->css
         );
     }
+
+    public function testSeasonalArtStaysBehindContentAndIsHiddenOnSmallScreens(): void
+    {
+        $this->assertMatchesRegularExpression(
+            '/\.front-page-theme-art\s*\{[^}]*pointer-events:\s*none;[^}]*position:\s*fixed;[^}]*z-index:\s*0;/s',
+            $this->css
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.front-page-theme\s+\.container\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*1;/s',
+            $this->css
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media\s*\(max-width:\s*767\.98px\).*?\.front-page-theme-art\s*\{\s*display:\s*none;/s',
+            $this->css
+        );
+    }
 }
