@@ -83,15 +83,28 @@
                     @if ($trafficDate && $selectedPeriod === null)
                         <div class="alert alert-light border mb-0" role="status"><strong>Ingen data for {{ \Illuminate\Support\Carbon::createFromFormat('!Y-m-d', $trafficDate)->format('d.m.Y') }}.</strong><br><span class="text-muted">Datoen er gyldig, men finnes ikke i det lagrede statistikksammendraget.</span></div>
                     @else
+                    @php($frontPage = collect($selectedPeriod['features'] ?? [])->firstWhere('name', 'Forside'))
                     <div class="admin-stat-grid">
-                        <div><span>Antatte reelle sidevisninger</span><strong>{{ number_format($selectedPeriod['suspected_human_pageviews'], 0, ',', ' ') }}</strong></div>
-                        <div><span>Antatte besøkende</span><strong>{{ number_format($selectedPeriod['suspected_visitors'], 0, ',', ' ') }}</strong></div>
-                        <div><span>Estimerte økter</span><strong>{{ number_format($selectedPeriod['sessions'], 0, ',', ' ') }}</strong></div>
-                        <div><span>Utskriftssider brukt</span><strong>{{ number_format($selectedPeriod['print_pageviews'], 0, ',', ' ') }}</strong></div>
+                        @if ($statistics['current_methodology'])<div><span>Forsidevisninger</span><strong>{{ number_format($frontPage['pageviews'] ?? 0, 0, ',', ' ') }}</strong></div>@endif
+                        <div><span>Sidevisninger etter filtrering</span><strong>{{ number_format($selectedPeriod['suspected_human_pageviews'], 0, ',', ' ') }}</strong></div>
+                        <div><span>Anslåtte menneskelige besøksøkter</span><strong>{{ number_format($selectedPeriod['sessions'], 0, ',', ' ') }}</strong></div>
+                        <div><span>Unike besøksnettverk</span><strong>{{ number_format($selectedPeriod['suspected_visitors'], 0, ',', ' ') }}</strong></div>
+                        <div><span>Utskriftsvisninger</span><strong>{{ number_format($selectedPeriod['print_pageviews'], 0, ',', ' ') }}</strong></div>
                         <div class="admin-stat-wide"><span>Kjent automatisert/teknisk trafikk</span><strong>{{ number_format($selectedPeriod['traffic_quality']['known_automated_technical_requests'], 0, ',', ' ') }}</strong><small>Boter {{ number_format($selectedPeriod['traffic_quality']['known_bot'], 0, ',', ' ') }} · overvåking {{ number_format($selectedPeriod['traffic_quality']['monitoring'], 0, ',', ' ') }} · skanning {{ number_format($selectedPeriod['traffic_quality']['scanner'], 0, ',', ' ') }} · eksplisitt ekskludert {{ number_format($selectedPeriod['traffic_quality']['excluded'], 0, ',', ' ') }}</small></div>
                         <div class="admin-stat-wide"><span>Uklassifisert trafikk</span><strong>{{ number_format($selectedPeriod['traffic_quality']['other'], 0, ',', ' ') }}</strong><small>{{ number_format($selectedPeriod['traffic_quality']['single_page_candidates'], 0, ',', ' ') }} enkeltstående sidekandidater kan være legitime besøk.</small></div>
                     </div>
-                    <p class="small text-muted mt-3 mb-0"><strong>Datakvalitet: under innkjøring</strong> · Besøkende og økter er estimater fra anonymisert logganalyse; flere brukere kan dele offentlig IP. · @if($trafficDate)Dato {{ $selectedPeriod['from']->format('d.m.Y') }}@else Periode {{ $selectedPeriod['from']->format('d.m.Y') }}–{{ $selectedPeriod['to']->format('d.m.Y') }}@endif · {{ number_format($selectedPeriod['traffic_quality']['raw_requests'], 0, ',', ' ') }} rå forespørsler · Sist oppdatert {{ $statistics['generated_at']->copy()->timezone('Europe/Oslo')->format('d.m.Y H:i') }}</p>
+                    @if ($statistics['current_methodology'])
+                        <div class="admin-ranking mt-4 pt-3 border-top">
+                            <h3 class="h5 mb-2">Funksjoner og utskrifter</h3>
+                            <div class="table-responsive"><table class="table admin-ranking-table align-middle mb-2"><thead><tr><th>Funksjon</th><th class="text-end">Sidevisninger</th><th class="text-end">Unike nettverk</th><th class="text-end">Utskriftsvisninger</th></tr></thead><tbody>
+                            @foreach ($selectedPeriod['features'] as $feature)<tr><td>{{ $feature['name'] }}</td><td class="text-end">{{ number_format($feature['pageviews'], 0, ',', ' ') }}</td><td class="text-end">{{ number_format($feature['unique_networks'], 0, ',', ' ') }}</td><td class="text-end">{{ number_format($feature['print_pageviews'], 0, ',', ' ') }}</td></tr>@endforeach
+                            </tbody></table></div>
+                            <p class="small text-muted mb-0">En utskriftsvisning betyr at utskriftssiden ble åpnet; den garanterer ikke at en fysisk utskrift ble gjennomført.</p>
+                        </div>
+                        @if ($selectedPeriod['comparison'])<p class="small text-muted mt-3 mb-0">Sammenlignet med {{ $selectedPeriod['comparison']['from']->format('d.m.Y') }}–{{ $selectedPeriod['comparison']['to']->format('d.m.Y') }}: {{ number_format($selectedPeriod['comparison']['pageviews'], 0, ',', ' ') }} filtrerte sidevisninger og {{ number_format($selectedPeriod['comparison']['sessions'], 0, ',', ' ') }} økter.</p>@endif
+                        <div class="admin-ranking mt-3"><h3 class="h5 mb-2">Trafikkutvikling per dag</h3><div class="table-responsive"><table class="table admin-ranking-table mb-0"><thead><tr><th>Dato</th><th class="text-end">Sidevisninger</th><th class="text-end">Økter</th></tr></thead><tbody>@foreach (array_slice($statistics['daily'] ?? [], -7, null, true) as $date => $day)<tr><td>{{ \Illuminate\Support\Carbon::createFromFormat('!Y-m-d', $date)->format('d.m.Y') }}</td><td class="text-end">{{ number_format($day['suspected_human_pageviews'], 0, ',', ' ') }}</td><td class="text-end">{{ number_format($day['sessions'], 0, ',', ' ') }}</td></tr>@endforeach</tbody></table></div></div>
+                    @endif
+                    <p class="small text-muted mt-3 mb-0"><strong>Datakvalitet{{ $statistics['current_methodology'] ? '' : ': under innkjøring' }}</strong> · Besøksøkter og unike nettverk er estimater fra anonymisert logganalyse; flere brukere kan dele offentlig IP. · @if($trafficDate)Dato {{ $selectedPeriod['from']->format('d.m.Y') }}@else Periode {{ $selectedPeriod['from']->format('d.m.Y') }}–{{ $selectedPeriod['to']->format('d.m.Y') }}@endif · @if($statistics['current_methodology']){{ $selectedPeriod['coverage']['covered_days'] }} av {{ $selectedPeriod['coverage']['expected_days'] }} dager med faktisk logggrunnlag{{ $selectedPeriod['coverage']['complete'] ? ' (fullstendig)' : ' (delvis)' }} · @endif{{ number_format($selectedPeriod['traffic_quality']['raw_requests'], 0, ',', ' ') }} rå forespørsler · Sist oppdatert {{ $statistics['generated_at']->copy()->timezone('Europe/Oslo')->format('d.m.Y H:i') }}</p>
                     @endif
                 @else
                     <div class="admin-stat-grid">
@@ -122,7 +135,7 @@
                     @if (($trafficDate && $selectedPeriod !== null) || (! $trafficDate && $statistics['top_pages'] !== null))
                         @if (count($ranking['pages']))
                             <div class="table-responsive admin-ranking-scroll"><table class="table admin-ranking-table align-middle mb-2">
-                                <thead><tr><th scope="col">Side</th><th scope="col">URL</th><th scope="col" class="text-end">Sidevisninger</th><th scope="col" class="text-end">Antatte besøkende</th></tr></thead>
+                                <thead><tr><th scope="col">Side</th><th scope="col">URL</th><th scope="col" class="text-end">Sidevisninger</th><th scope="col" class="text-end">Unike besøksnettverk</th></tr></thead>
                                 <tbody>@foreach ($ranking['pages'] as $page)<tr>
                                     <td><a href="{{ url($page['path']) }}" target="_blank" rel="noopener noreferrer">{{ $page['name'] }}</a></td>
                                     <td><code>{{ $page['path'] }}</code></td>
@@ -130,7 +143,7 @@
                                     <td class="text-end">{{ number_format($page['unique_visitors'], 0, ',', ' ') }}</td>
                                 </tr>@endforeach</tbody>
                             </table></div>
-                            <p class="small text-muted mb-0">Periode {{ $ranking['from']->format('d.m.Y') }}–{{ $ranking['to']->format('d.m.Y') }}. Antatte besøkende måles som unike IP-er; flere brukere kan dele samme offentlige IP.</p>
+                            <p class="small text-muted mb-0">Periode {{ $ranking['from']->format('d.m.Y') }}–{{ $ranking['to']->format('d.m.Y') }}. Unike besøksnettverk måles som unike IP-er; flere brukere kan dele samme offentlige IP.</p>
                         @else
                             <p class="text-muted mb-0">Ingen offentlige sidevisninger er registrert i denne perioden.</p>
                         @endif

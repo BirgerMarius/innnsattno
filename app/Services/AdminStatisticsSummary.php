@@ -21,15 +21,16 @@ class AdminStatisticsSummary
             return null;
         }
 
-        if (! is_array($data) || ! in_array($data['schema_version'] ?? null, [1, 2, 3], true)) {
+        if (! is_array($data) || ! in_array($data['schema_version'] ?? null, [1, 2, 3, 4], true)) {
             return null;
         }
 
-        if ($data['schema_version'] === 3) {
+        if (in_array($data['schema_version'], [3, 4], true)) {
             if (! $this->validTimestamp($data['generated_at'] ?? null) || ! is_bool($data['test_data'] ?? null)) {
                 return null;
             }
-            $periods = $this->validHumanPeriods($data['periods'] ?? null);
+            $currentMethodology = $data['schema_version'] === 4;
+            $periods = $this->validHumanPeriods($data['periods'] ?? null, $currentMethodology);
             if ($periods === null) {
                 return null;
             }
@@ -37,13 +38,14 @@ class AdminStatisticsSummary
             if (($data['top_pages'] ?? null) !== null && $topPages === null) {
                 return null;
             }
-            $daily = $this->validDailyHumanStatistics($data['daily'] ?? null);
+            $daily = $this->validDailyHumanStatistics($data['daily'] ?? null, $currentMethodology);
             if (($data['daily'] ?? null) !== null && $daily === null) {
                 return null;
             }
 
             return [
                 'human_traffic' => true,
+                'current_methodology' => $currentMethodology,
                 'generated_at' => Carbon::parse($data['generated_at']),
                 'test_data' => $data['test_data'],
                 'periods' => $periods,
@@ -181,7 +183,7 @@ class AdminStatisticsSummary
         return $validated;
     }
 
-    private function validHumanPeriods($periods): ?array
+    private function validHumanPeriods($periods, bool $currentMethodology = false): ?array
     {
         if (! is_array($periods)) {
             return null;
@@ -189,7 +191,7 @@ class AdminStatisticsSummary
         $validated = [];
         foreach (['1', '7', '30'] as $days) {
             $period = $periods[$days] ?? null;
-            $validatedPeriod = $this->validHumanPeriod($period);
+            $validatedPeriod = $this->validHumanPeriod($period, $currentMethodology);
             if ($validatedPeriod === null) {
                 return null;
             }
@@ -198,7 +200,7 @@ class AdminStatisticsSummary
         return $validated;
     }
 
-    private function validHumanPeriod($period): ?array
+    private function validHumanPeriod($period, bool $currentMethodology = false): ?array
     {
         $quality = is_array($period) ? ($period['traffic_quality'] ?? null) : null;
         if (! is_array($period) || ! is_array($quality)
@@ -221,16 +223,25 @@ class AdminStatisticsSummary
             || $period['suspected_human_pageviews'] > $quality['raw_requests']) {
             return null;
         }
+        $coverage = $currentMethodology ? $this->validCoverage($period['coverage'] ?? null, $period['from'], $period['to']) : null;
+        $features = $currentMethodology ? $this->validFeatures($period['features'] ?? null) : null;
+        $comparison = $currentMethodology ? $this->validComparison($period['comparison'] ?? null) : null;
+        $featurePrints = is_array($features) ? array_sum(array_column($features, 'print_pageviews')) : null;
+        if ($currentMethodology && ($coverage === null || $features === null || $featurePrints !== $period['print_pageviews']
+            || ($period['comparison'] ?? null) !== null && $comparison === null)) {
+            return null;
+        }
         return [
             'from' => Carbon::createFromFormat('!Y-m-d', $period['from']),
             'to' => Carbon::createFromFormat('!Y-m-d', $period['to']),
             'suspected_human_pageviews' => $period['suspected_human_pageviews'],
             'suspected_visitors' => $period['suspected_visitors'], 'sessions' => $period['sessions'],
             'print_pageviews' => $period['print_pageviews'], 'traffic_quality' => $quality,
+            'coverage' => $coverage, 'features' => $features, 'comparison' => $comparison,
         ];
     }
 
-    private function validDailyHumanStatistics($daily): ?array
+    private function validDailyHumanStatistics($daily, bool $currentMethodology = false): ?array
     {
         if ($daily === null) {
             return null;
@@ -243,7 +254,7 @@ class AdminStatisticsSummary
             if (! is_string($date) || ! $this->validDate($date) || ! is_array($entry)) {
                 return null;
             }
-            $period = $this->validHumanPeriod($entry);
+            $period = $this->validHumanPeriod($entry, $currentMethodology);
             $rankings = $this->validTopPages([
                 '1' => ['from' => $date, 'to' => $date, 'pages' => $entry['pages'] ?? null],
                 '7' => ['from' => $date, 'to' => $date, 'pages' => $entry['pages'] ?? null],
@@ -256,6 +267,68 @@ class AdminStatisticsSummary
             $validated[$date] = $period;
         }
         return $validated;
+    }
+
+    private function validCoverage($coverage, string $from, string $to): ?array
+    {
+        if (! is_array($coverage) || ! is_array($coverage['available_dates'] ?? null)
+            || ! $this->validCount($coverage['covered_days'] ?? null) || ! $this->validCount($coverage['expected_days'] ?? null)
+            || ! is_bool($coverage['complete'] ?? null) || ! is_array($coverage['classifier_versions'] ?? null)) {
+            return null;
+        }
+        $expected = Carbon::createFromFormat('!Y-m-d', $from)->diffInDays(Carbon::createFromFormat('!Y-m-d', $to)) + 1;
+        if ($coverage['expected_days'] !== $expected || $coverage['covered_days'] !== count($coverage['available_dates'])
+            || $coverage['complete'] !== ($coverage['covered_days'] === $expected)) {
+            return null;
+        }
+        $previous = null;
+        foreach ($coverage['available_dates'] as $date) {
+            if (! $this->validDate($date) || $date < $from || $date > $to || ($previous !== null && $date <= $previous)) {
+                return null;
+            }
+            $previous = $date;
+        }
+        foreach ($coverage['classifier_versions'] as $version) {
+            if (! is_int($version) || $version !== 4) {
+                return null;
+            }
+        }
+        return $coverage;
+    }
+
+    private function validFeatures($features): ?array
+    {
+        if (! is_array($features)) {
+            return null;
+        }
+        $previous = null;
+        foreach ($features as $feature) {
+            if (! is_array($feature) || ! is_string($feature['name'] ?? null) || trim($feature['name']) === ''
+                || mb_strlen($feature['name']) > 120 || ! $this->validCount($feature['pageviews'] ?? null)
+                || ! $this->validCount($feature['unique_networks'] ?? null) || ! $this->validCount($feature['print_pageviews'] ?? null)
+                || $feature['print_pageviews'] > $feature['pageviews']
+                || ($previous !== null && ($feature['pageviews'] > $previous['pageviews']
+                    || ($feature['pageviews'] === $previous['pageviews'] && strcmp($feature['name'], $previous['name']) < 0)))) {
+                return null;
+            }
+            $previous = $feature;
+        }
+        return $features;
+    }
+
+    private function validComparison($comparison): ?array
+    {
+        if ($comparison === null) {
+            return null;
+        }
+        if (! is_array($comparison) || ! $this->validDate($comparison['from'] ?? null)
+            || ! $this->validDate($comparison['to'] ?? null) || ! $this->validCount($comparison['pageviews'] ?? null)
+            || ! $this->validCount($comparison['sessions'] ?? null)) {
+            return null;
+        }
+        return ['from' => Carbon::createFromFormat('!Y-m-d', $comparison['from']),
+            'to' => Carbon::createFromFormat('!Y-m-d', $comparison['to']),
+            'pageviews' => $comparison['pageviews'], 'sessions' => $comparison['sessions']];
     }
 
     private function correctlySortedAfter(array $page, array $previous): bool

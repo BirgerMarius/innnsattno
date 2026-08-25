@@ -115,6 +115,33 @@ class GenerateAdminStatisticsTest(unittest.TestCase):
             self.assertEqual("Bønnetider Ringerike – utskrift", GENERATOR.page_name("/bonnetider/utskrift"))
             self.assertEqual("Min ukjente side", GENERATOR.page_name("/min-ukjente-side"))
 
+    def test_current_methodology_exports_coverage_features_and_front_page_name(self):
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / "history.sqlite3"
+            connection = sqlite3.connect(database)
+            connection.executescript("""
+                CREATE TABLE daily_stats (date TEXT, pageviews INTEGER, requests INTEGER);
+                CREATE TABLE daily_page_stats (date TEXT, path TEXT, pageviews INTEGER);
+                CREATE TABLE daily_ip_stats (date TEXT, ip TEXT);
+                CREATE TABLE daily_page_ip_stats (date TEXT, path TEXT, ip TEXT, pageviews INTEGER);
+                CREATE TABLE daily_traffic_classification_stats (date TEXT, category TEXT, metric TEXT, count INTEGER);
+                CREATE TABLE daily_statistics_coverage (date TEXT PRIMARY KEY, classifier_version INTEGER, updated_at TEXT);
+                INSERT INTO daily_stats VALUES ('2026-08-04', 5, 5);
+                INSERT INTO daily_page_stats VALUES ('2026-08-04', '/tv', 5);
+                INSERT INTO daily_ip_stats VALUES ('2026-08-04', '203.0.113.10');
+                INSERT INTO daily_page_ip_stats VALUES ('2026-08-04', '/tv', '203.0.113.10', 3), ('2026-08-04', '/print', '203.0.113.10', 2);
+                INSERT INTO daily_traffic_classification_stats VALUES ('2026-08-04', 'human', 'requests', 5), ('2026-08-04', 'human', 'pageviews', 5), ('2026-08-04', 'human', 'sessions', 1), ('2026-08-04', 'scanner', 'requests', 2);
+                INSERT INTO daily_statistics_coverage VALUES ('2026-08-04', 4, '2026-08-04T12:00:00+00:00');
+            """)
+            connection.commit(); connection.close()
+            data = GENERATOR.generate(database)
+            self.assertEqual(4, data['schema_version'])
+            self.assertEqual('Forside', data['top_pages']['1']['pages'][0]['name'])
+            self.assertFalse(data['periods']['7']['coverage']['complete'])
+            self.assertEqual(2, data['periods']['1']['features'][1]['print_pageviews'])
+            self.assertEqual('TV-utskrifter', data['periods']['1']['features'][1]['name'])
+            self.assertEqual(data['periods']['1']['print_pageviews'], sum(feature['print_pageviews'] for feature in data['periods']['1']['features']))
+
 
 if __name__ == "__main__":
     unittest.main()

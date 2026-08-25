@@ -71,6 +71,50 @@ class CollectPageVisitorsTest(unittest.TestCase):
             self.assertEqual([('/print', 1), ('/print-ilseng', 1)], rows)
             self.assertIn(('human', 'sessions', 1), categories)
 
+    def test_redirects_and_head_requests_are_not_pageviews(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(
+                line('203.0.113.10', '04/Aug/2026', '/', status=302, time='12:00:00')
+                + line('203.0.113.10', '04/Aug/2026', '/tv', status=200, time='12:00:01')
+                + line('203.0.113.10', '04/Aug/2026', '/quiz', status=200, time='12:00:02')
+                + line('203.0.113.11', '04/Aug/2026', '/tv', method='HEAD', time='12:01:00')
+            )
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertEqual(1, pages[('2026-08-04', '/tv', '203.0.113.10')])
+            self.assertEqual(1, pages[('2026-08-04', '/quiz', '203.0.113.10')])
+            self.assertEqual(2, traffic[('2026-08-04', 'human', 'pageviews')])
+            self.assertEqual(2, traffic[('2026-08-04', 'other', 'requests')])
+
+    def test_wordpress_query_scanner_and_immediate_front_page_followup_are_filtered(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(
+                line('103.168.67.159', '04/Aug/2026', '/?rest_route=/batch/v1', status=302, time='12:00:00')
+                + line('103.168.67.159', '04/Aug/2026', '/tv', agent='Mozilla/5.0 (different identity)', status=200, time='12:00:01')
+                + line('203.0.113.10', '04/Aug/2026', '/tv', time='12:10:00')
+                + line('203.0.113.10', '04/Aug/2026', '/quiz', time='12:10:01')
+            )
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertNotIn(('2026-08-04', '/tv', '103.168.67.159'), pages)
+            self.assertEqual(2, traffic[('2026-08-04', 'scanner', 'requests')])
+            self.assertEqual(2, traffic[('2026-08-04', 'human', 'pageviews')])
+
+    def test_rebuild_preserves_uncovered_days_inside_retention(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory); log = root / 'access.log'; database = root / 'history.sqlite3'
+            log.write_text(line('203.0.113.10', '04/Aug/2026', '/tv') + line('203.0.113.10', '04/Aug/2026', '/quiz'))
+            pages, traffic, first, latest = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            connection = sqlite3.connect(database)
+            connection.execute('CREATE TABLE daily_page_ip_stats (date TEXT, path TEXT, ip TEXT, pageviews INTEGER, PRIMARY KEY(date,path,ip))')
+            connection.execute("INSERT INTO daily_page_ip_stats VALUES ('2026-08-02','/tv','203.0.113.20',7)")
+            connection.commit(); connection.close()
+            COLLECTOR.replace_database_rows(database, pages, traffic, first, latest)
+            connection = sqlite3.connect(database)
+            self.assertEqual(7, connection.execute("SELECT pageviews FROM daily_page_ip_stats WHERE date = '2026-08-02'").fetchone()[0])
+            self.assertEqual([('2026-08-04', 4)], connection.execute('SELECT date,classifier_version FROM daily_statistics_coverage').fetchall())
+            connection.close()
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -30,8 +30,12 @@ TECHNICAL_PREFIXES = (
     '/login', '/logout', '/telescope', '/horizon', '/.env', '/wp-', '/xmlrpc',
 )
 SCANNER_PATH_PATTERN = re.compile(
-    r'/(?:wp-(?:admin|content|includes)|admin\.php|wso\.php|phpmyadmin|\.git|cgi-bin|'
-    r'boaform|shell|vendor/phpunit|eval-stdin\.php)', re.I,
+    r'/(?:wp-(?:admin|content|includes)|wp-json(?:/|$)|wordpress(?:/|$)|blog/wp-json(?:/|$)|'
+    r'admin\.php|index\.php(?:/|$)|wso\.php|phpmyadmin|\.git|cgi-bin|boaform|shell|'
+    r'vendor/phpunit|eval-stdin\.php|xmlrpc\.php|[^/]+\.php(?:/|$))', re.I,
+)
+SCANNER_QUERY_PATTERN = re.compile(
+    r'(?:^|[?&])(?:rest_route=/?(?:batch|wp|v\d)|[^=]*wp[^=]*=|.*(?:wp-json|xmlrpc|phpunit|eval-stdin))', re.I,
 )
 STATIC_EXTENSIONS = {
     '.css', '.js', '.map', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico',
@@ -55,6 +59,7 @@ class Event:
     path: str | None
     status: int
     kind: str
+    method: str
 
 
 def target_path(target):
@@ -98,17 +103,21 @@ def parse_event(line):
         return None
     target, agent = match['target'], match['agent'].strip()
     raw_path = (target_path(target) or '').lower()
+    raw_query = urlsplit(target).query.lower()
     if MONITOR_PATTERN.search(agent):
         kind = 'monitoring'
     elif BOT_PATTERN.search(agent):
         kind = 'bot'
-    elif SCANNER_PATH_PATTERN.search(raw_path) or (status >= 400 and any(raw_path.startswith(prefix) for prefix in TECHNICAL_PREFIXES)):
+    elif (SCANNER_PATH_PATTERN.search(raw_path) or SCANNER_QUERY_PATTERN.search(raw_query)
+          or (status >= 400 and any(raw_path.startswith(prefix) for prefix in TECHNICAL_PREFIXES))):
         kind = 'scanner'
-    elif match['method'] == 'GET' and 200 <= status < 400 and canonical_public_path(target) and agent:
+    # Redirects and HEAD probes remain technical requests.  Only a successful
+    # content response can become a pageview.
+    elif match['method'] == 'GET' and 200 <= status < 300 and canonical_public_path(target) and agent:
         kind = 'candidate'
     else:
         kind = 'other'
-    return Event(when, when.date().isoformat(), address, agent, target, canonical_public_path(target), status, kind)
+    return Event(when, when.date().isoformat(), address, agent, target, canonical_public_path(target), status, kind, match['method'])
 
 
 def configured_ips(admin_ip=None, excluded_ips=None):
@@ -127,9 +136,12 @@ def configured_ips(admin_ip=None, excluded_ips=None):
 def sessionize(events, excluded=None):
     """Return candidate event ids confirmed as human and one session start per session."""
     groups = defaultdict(list)
+    scanner_times_by_ip = defaultdict(list)
     for index, event in enumerate(events):
-        if event.ip not in (excluded or set()) and event.kind in ('candidate', 'other') and event.agent:
+        if event.ip not in (excluded or set()) and event.agent:
             groups[(event.ip, event.agent)].append((index, event))
+            if event.kind == 'scanner':
+                scanner_times_by_ip[event.ip].append(event.when)
     human_ids, sessions, scanner_ids = set(), [], set()
     for group in groups.values():
         group.sort(key=lambda item: item[1].when)
@@ -143,6 +155,17 @@ def sessionize(events, excluded=None):
             chunks.append(current)
         for chunk in chunks:
             candidates = [(index, event) for index, event in chunk if event.kind == 'candidate']
+            # A WordPress/PHP scan may be redirected to /tv.  Treat only an
+            # immediate /tv follow-up from the same IP as scanner residue; this
+            # limits the rule so a shared institutional IP is not broadly
+            # penalised for ordinary browsing later in the session.
+            for index, event in candidates:
+                if event.path == '/tv' and any(
+                    dt.timedelta(0) <= event.when - scanner_when <= dt.timedelta(minutes=2)
+                    for scanner_when in scanner_times_by_ip[event.ip]
+                ):
+                    scanner_ids.add(index)
+            candidates = [(index, event) for index, event in candidates if index not in scanner_ids]
             # Month/year enumeration at machine speed is treated as automation even with a browser UA.
             raw_targets = {event.target for _, event in candidates if (event.path or '').startswith('/bonnetider')}
             duration = chunk[-1][1].when - chunk[0][1].when
@@ -159,7 +182,7 @@ def sessionize(events, excluded=None):
 
 def collect(log_paths, admin_ip=None, today=None, retention_days=60, excluded_ips=None):
     excluded = configured_ips(admin_ip, excluded_ips)
-    latest = today or dt.date.today()
+    latest = today or dt.datetime.now(OSLO_TIMEZONE).date()
     first = latest - dt.timedelta(days=retention_days - 1)
     events = []
     for path in log_paths:
@@ -205,15 +228,25 @@ def replace_database_rows(database, pages, traffic, first, latest):
             connection.execute('''CREATE TABLE IF NOT EXISTS daily_traffic_classification_stats (
                 date TEXT NOT NULL, category TEXT NOT NULL, metric TEXT NOT NULL, count INTEGER NOT NULL,
                 PRIMARY KEY (date, category, metric))''')
+            connection.execute('''CREATE TABLE IF NOT EXISTS daily_statistics_coverage (
+                date TEXT NOT NULL PRIMARY KEY, classifier_version INTEGER NOT NULL,
+                updated_at TEXT NOT NULL)''')
             connection.execute('CREATE INDEX IF NOT EXISTS daily_page_ip_stats_date_idx ON daily_page_ip_stats(date)')
             connection.execute('CREATE INDEX IF NOT EXISTS daily_traffic_classification_stats_date_idx ON daily_traffic_classification_stats(date)')
-            bounds = (first.isoformat(), latest.isoformat())
-            connection.execute('DELETE FROM daily_page_ip_stats WHERE date BETWEEN ? AND ?', bounds)
-            connection.execute('DELETE FROM daily_traffic_classification_stats WHERE date BETWEEN ? AND ?', bounds)
+            # Replace only days actually represented in the supplied logs.
+            # Rotated logs eventually disappear, so deleting the complete
+            # retention window would otherwise erase valid older history.
+            covered_days = sorted({day for day, *_ in pages} | {day for day, *_ in traffic})
+            for day in covered_days:
+                connection.execute('DELETE FROM daily_page_ip_stats WHERE date = ?', (day,))
+                connection.execute('DELETE FROM daily_traffic_classification_stats WHERE date = ?', (day,))
+                connection.execute('DELETE FROM daily_statistics_coverage WHERE date = ?', (day,))
             connection.executemany('INSERT INTO daily_page_ip_stats(date,path,ip,pageviews) VALUES (?,?,?,?)',
                                    [(day, path, ip, count) for (day, path, ip), count in pages.items()])
             connection.executemany('INSERT INTO daily_traffic_classification_stats(date,category,metric,count) VALUES (?,?,?,?)',
                                    [(day, category, metric, count) for (day, category, metric), count in traffic.items()])
+            connection.executemany('INSERT INTO daily_statistics_coverage(date,classifier_version,updated_at) VALUES (?,?,?)',
+                                   [(day, 4, dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()) for day in covered_days])
             connection.execute('DELETE FROM daily_page_ip_stats WHERE date < ?', (first.isoformat(),))
             connection.execute('DELETE FROM daily_traffic_classification_stats WHERE date < ?', (first.isoformat(),))
     finally:

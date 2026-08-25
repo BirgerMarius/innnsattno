@@ -62,14 +62,31 @@ class AdminDashboardStatisticsTest extends TestCase
         $response = $this->withSession(['admin_authenticated' => true])->get('/adm?traffic_period=30');
 
         $response->assertOk();
-        $response->assertSee('Antatte reelle sidevisninger');
+        $response->assertSee('Sidevisninger etter filtrering');
         $response->assertSee('3 000');
-        $response->assertSee('Estimerte økter');
+        $response->assertSee('Anslåtte menneskelige besøksøkter');
         $response->assertSee('Datakvalitet: under innkjøring');
         $response->assertSee('Kjent automatisert/teknisk trafikk');
         $response->assertSee('Uklassifisert trafikk');
         $response->assertSee('Mest brukte faktiske sider og funksjoner');
-        $response->assertSee('Antatte besøkende');
+        $response->assertSee('Unike besøksnettverk');
+    }
+
+    public function testDashboardShowsCurrentMethodologyDetailsWithoutIpAddresses()
+    {
+        $this->writeSummary([
+            'schema_version' => 4,
+            'periods' => $this->currentPeriods(),
+            'top_pages' => $this->topPages(),
+            'daily' => [],
+        ]);
+
+        $response = $this->withSession(['admin_authenticated' => true])->get('/adm?traffic_period=1');
+
+        $response->assertOk()->assertSee('Forsidevisninger')->assertSee('Funksjoner og utskrifter')
+            ->assertSee('TV-utskrifter')->assertSee('Unike besøksnettverk')
+            ->assertSee('En utskriftsvisning betyr')->assertSee('1 av 1 dager med faktisk logggrunnlag')
+            ->assertDontSee('203.0.113.42');
     }
 
     public function testDashboardRejectsInvalidHumanTrafficSchemaVersionThree()
@@ -77,6 +94,16 @@ class AdminDashboardStatisticsTest extends TestCase
         $periods = $this->humanPeriods();
         $periods['7']['traffic_quality']['raw_requests'] = 1;
         $this->writeSummary(['schema_version' => 3, 'periods' => $periods]);
+
+        $this->withSession(['admin_authenticated' => true])->get('/adm')
+            ->assertOk()->assertSee('Statistikk er ikke tilgjengelig akkurat nå');
+    }
+
+    public function testDashboardRejectsCurrentMethodologyWhenPrintTotalsDoNotMatchFeatures()
+    {
+        $periods = $this->currentPeriods();
+        $periods['7']['print_pageviews']++;
+        $this->writeSummary(['schema_version' => 4, 'periods' => $periods, 'top_pages' => $this->topPages()]);
 
         $this->withSession(['admin_authenticated' => true])->get('/adm')
             ->assertOk()->assertSee('Statistikk er ikke tilgjengelig akkurat nå');
@@ -208,7 +235,7 @@ class AdminDashboardStatisticsTest extends TestCase
                 'from' => $days === 1 ? '2026-08-04' : ($days === 7 ? '2026-07-29' : '2026-07-06'),
                 'to' => '2026-08-04', 'suspected_human_pageviews' => $days * 100,
                 'suspected_visitors' => $days * 10, 'sessions' => $days * 12,
-                'print_pageviews' => $days, 'traffic_quality' => [
+                'print_pageviews' => 3, 'traffic_quality' => [
                     'raw_requests' => $days * 200, 'known_automated_technical_requests' => $days * 60,
                     'known_bot' => $days * 20, 'monitoring' => $days * 10,
                     'scanner' => $days * 30, 'other' => $days * 40, 'excluded' => 0, 'single_page_candidates' => $days * 5,
@@ -228,5 +255,28 @@ class AdminDashboardStatisticsTest extends TestCase
         $entry['pages'] = $this->topPages()['1']['pages'];
 
         return ['2026-08-03' => $entry];
+    }
+
+    private function currentPeriods(): array
+    {
+        $periods = $this->humanPeriods();
+        foreach ($periods as $days => &$period) {
+            $from = \Illuminate\Support\Carbon::createFromFormat('!Y-m-d', $period['from']);
+            $to = \Illuminate\Support\Carbon::createFromFormat('!Y-m-d', $period['to']);
+            $dates = [];
+            for ($date = $from->copy(); $date->lte($to); $date->addDay()) {
+                $dates[] = $date->format('Y-m-d');
+            }
+            $period['coverage'] = ['available_dates' => $dates, 'covered_days' => count($dates),
+                'expected_days' => count($dates), 'complete' => true, 'classifier_versions' => [4]];
+            $period['features'] = [
+                ['name' => 'Forside', 'pageviews' => 12, 'unique_networks' => 4, 'print_pageviews' => 0],
+                ['name' => 'TV-utskrifter', 'pageviews' => 3, 'unique_networks' => 2, 'print_pageviews' => 3],
+            ];
+            $period['comparison'] = null;
+        }
+        unset($period);
+
+        return $periods;
     }
 }
