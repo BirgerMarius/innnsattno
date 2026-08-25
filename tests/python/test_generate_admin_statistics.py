@@ -3,6 +3,7 @@ import json
 import sqlite3
 import tempfile
 import unittest
+from datetime import date
 from pathlib import Path
 
 
@@ -141,6 +142,26 @@ class GenerateAdminStatisticsTest(unittest.TestCase):
             self.assertEqual(2, data['periods']['1']['features'][1]['print_pageviews'])
             self.assertEqual('TV-utskrifter', data['periods']['1']['features'][1]['name'])
             self.assertEqual(data['periods']['1']['print_pageviews'], sum(feature['print_pageviews'] for feature in data['periods']['1']['features']))
+
+    def test_feature_networks_are_deduplicated_across_pages_in_the_same_function(self):
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / "history.sqlite3"
+            connection = sqlite3.connect(database)
+            connection.executescript("""
+                CREATE TABLE daily_page_ip_stats (date TEXT, path TEXT, ip TEXT, pageviews INTEGER);
+                INSERT INTO daily_page_ip_stats VALUES
+                    ('2026-08-04', '/quiz', '203.0.113.10', 2),
+                    ('2026-08-04', '/quiz/resultat', '203.0.113.10', 1),
+                    ('2026-08-04', '/quiz', '203.0.113.11', 1),
+                    ('2026-08-04', '/tv', '203.0.113.10', 1);
+            """)
+            connection.row_factory = sqlite3.Row
+            features = GENERATOR.feature_statistics(connection, date(2026, 8, 4), date(2026, 8, 4))
+            connection.close()
+            quiz = next(feature for feature in features if feature['name'] == 'Quiz')
+            self.assertEqual(4, quiz['pageviews'])
+            self.assertEqual(2, quiz['unique_networks'])
+            self.assertNotIn('ip', quiz)
 
 
 if __name__ == "__main__":

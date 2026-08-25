@@ -228,6 +228,7 @@ class AdminStatisticsSummary
         $comparison = $currentMethodology ? $this->validComparison($period['comparison'] ?? null) : null;
         $featurePrints = is_array($features) ? array_sum(array_column($features, 'print_pageviews')) : null;
         if ($currentMethodology && ($coverage === null || $features === null || $featurePrints !== $period['print_pageviews']
+            || max([0, ...array_column($features ?? [], 'unique_networks')]) > $period['suspected_visitors']
             || ($period['comparison'] ?? null) !== null && $comparison === null)) {
             return null;
         }

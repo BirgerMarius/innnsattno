@@ -109,6 +109,16 @@ class AdminDashboardStatisticsTest extends TestCase
             ->assertOk()->assertSee('Statistikk er ikke tilgjengelig akkurat nå');
     }
 
+    public function testDashboardRejectsCurrentMethodologyWhenCategoryNetworksExceedPeriodTotal()
+    {
+        $periods = $this->currentPeriods();
+        $periods['7']['features'][0]['unique_networks'] = $periods['7']['suspected_visitors'] + 1;
+        $this->writeSummary(['schema_version' => 4, 'periods' => $periods, 'top_pages' => $this->topPages()]);
+
+        $this->withSession(['admin_authenticated' => true])->get('/adm')
+            ->assertOk()->assertSee('Statistikk er ikke tilgjengelig akkurat nå');
+    }
+
     public function testDashboardShowsSelectedValidDateBeforePeriod()
     {
         $this->writeSummary(['schema_version' => 3, 'periods' => $this->humanPeriods(), 'top_pages' => $this->topPages(), 'daily' => $this->dailyStatistics()]);

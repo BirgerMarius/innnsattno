@@ -161,18 +161,25 @@ def coverage_for_period(connection, first, latest):
 
 def feature_statistics(connection, first, latest):
     rows = connection.execute(
-        "SELECT path, SUM(pageviews) views, COUNT(DISTINCT ip) networks FROM daily_page_ip_stats "
-        "WHERE date BETWEEN ? AND ? GROUP BY path", (first.isoformat(), latest.isoformat())
+        "SELECT path, ip, SUM(pageviews) views FROM daily_page_ip_stats "
+        "WHERE date BETWEEN ? AND ? GROUP BY path, ip", (first.isoformat(), latest.isoformat())
     ).fetchall()
     features = {}
     for row in rows:
         name = function_name(row['path'])
-        item = features.setdefault(name, {'name': name, 'pageviews': 0, 'unique_networks': 0, 'print_pageviews': 0})
+        item = features.setdefault(name, {'name': name, 'pageviews': 0, 'print_pageviews': 0, '_networks': set()})
         item['pageviews'] += max(0, int(row['views'] or 0))
-        item['unique_networks'] += max(0, int(row['networks'] or 0))
+        item['_networks'].add(row['ip'])
         if is_print_path(row['path']):
             item['print_pageviews'] += max(0, int(row['views'] or 0))
-    return sorted(features.values(), key=lambda item: (-item['pageviews'], item['name']))
+    result = []
+    for item in features.values():
+        # IPs are used only while aggregating.  They never leave this process.
+        result.append({
+            'name': item['name'], 'pageviews': item['pageviews'],
+            'unique_networks': len(item['_networks']), 'print_pageviews': item['print_pageviews'],
+        })
+    return sorted(result, key=lambda item: (-item['pageviews'], item['name']))
 
 
 def daily_human_statistics(connection, latest_date):
