@@ -50,7 +50,10 @@ class EliteserienController extends Controller
 
     public function print()
     {
-        return view('football.competition-print', $this->eliteserienService->getPrintData('Eliteserien'));
+        return view('football.competition-print', array_merge(
+            $this->eliteserienService->getPrintData('Eliteserien'),
+            ['returnUrl' => route('eliteserien.index')],
+        ));
     }
 
     public function team(int $teamId)

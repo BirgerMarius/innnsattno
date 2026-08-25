@@ -50,7 +50,10 @@ class PremierLeagueController extends Controller
 
     public function print()
     {
-        return view('football.competition-print', $this->premierLeagueService->getPrintData('Premier League'));
+        return view('football.competition-print', array_merge(
+            $this->premierLeagueService->getPrintData('Premier League'),
+            ['returnUrl' => route('premier-league.index')],
+        ));
     }
 
     public function team(int $teamId)

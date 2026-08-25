@@ -65,6 +65,49 @@ class CompetitionPrintTest extends TestCase
     }
 
     /** @test */
+    public function premier_league_print_uses_the_compact_a4_layout_variant(): void
+    {
+        $this->fakeRollingWindowCompetition(9186);
+
+        $this->get('/premier-league/utskrift')->assertOk()
+            ->assertSee('size: A4 portrait; margin: 10mm;', false)
+            ->assertSee('competition-print competition-print--compact', false)
+            ->assertSee('.competition-print--compact th,', false)
+            ->assertSee('padding: .6mm 1mm;', false)
+            ->assertSee('.competition-print--compact .fixture-sections { gap: 3mm; }', false)
+            ->assertSee('.competition-print--compact .standings-section { margin-top: 2mm; }', false);
+    }
+
+    /** @test */
+    public function eliteserien_print_keeps_the_standard_print_layout_variant(): void
+    {
+        $this->fakeRollingWindowCompetition(8766);
+
+        $this->get('/eliteserien/utskrift')->assertOk()
+            ->assertSee('class="competition-print"', false)
+            ->assertDontSee('class="competition-print competition-print--compact"', false)
+            ->assertSee('.fixture-sections { display: grid;', false)
+            ->assertSee('grid-template-columns: repeat(2, minmax(0, 1fr));', false);
+    }
+
+    /** @test */
+    public function competition_print_returns_to_the_correct_league_after_the_print_dialog_closes(): void
+    {
+        $this->fakeRollingWindowCompetition(8766);
+        $this->get('/eliteserien/utskrift')->assertOk()
+            ->assertSee('const returnUrl = '.json_encode(route('eliteserien.index'), JSON_UNESCAPED_SLASHES).';', false)
+            ->assertSee("window.addEventListener('afterprint', returnFromPrint, { once: true });", false)
+            ->assertSee('window.location.replace(returnUrl);', false);
+
+        Cache::flush();
+        $this->fakeRollingWindowCompetition(9186);
+        $this->get('/premier-league/utskrift')->assertOk()
+            ->assertSee('const returnUrl = '.json_encode(route('premier-league.index'), JSON_UNESCAPED_SLASHES).';', false)
+            ->assertSee("window.addEventListener('afterprint', returnFromPrint, { once: true });", false)
+            ->assertSee('window.location.replace(returnUrl);', false);
+    }
+
+    /** @test */
     public function league_pages_link_to_their_named_print_routes(): void
     {
         $this->fakeCompetition(8766);

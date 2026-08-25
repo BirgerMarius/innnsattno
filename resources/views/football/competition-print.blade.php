@@ -6,7 +6,7 @@
     <title>{{ $leagueName }} – kampoversikt | Innsatt.no</title>
     <style>
         /* Keeps a safe area for Chrome's optional header and footer. */
-        @page { size: A4 portrait; margin: 12mm; }
+        @page { size: A4 portrait; margin: 10mm; }
         * { box-sizing: border-box; }
         body { color: #111; font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.2; margin: 0 auto; max-width: 186mm; }
         header { align-items: flex-end; border-bottom: 1.5px solid #111; display: flex; justify-content: space-between; margin-bottom: 3.5mm; padding-bottom: 2.5mm; }
@@ -32,14 +32,28 @@
         h2 { break-after: avoid; page-break-after: avoid; }
         @media print {
             .no-print { display: none !important; }
-            body { font-size: 10pt; }
-            h1 { font-size: 17pt; }
-            h2 { font-size: 12pt; }
-            th, td { padding-bottom: 1.15mm; padding-top: 1.15mm; }
+            body { font-size: 9.5pt; max-width: 190mm; }
+            header { margin-bottom: 3mm; padding-bottom: 2mm; }
+            h1 { font-size: 16pt; }
+            h2 { font-size: 11pt; margin-bottom: 1mm; padding-bottom: .75mm; }
+            th, td { padding: .9mm 1.25mm; }
+            .fixture-sections { gap: 4mm; }
+            .standings-section { margin-top: 3mm; }
+
+            /* Premier League has 20 table rows, so it needs a little more vertical room. */
+            .competition-print--compact { font-size: 8.5pt; line-height: 1.1; }
+            .competition-print--compact header { margin-bottom: 2mm; padding-bottom: 1.5mm; }
+            .competition-print--compact h1 { font-size: 15pt; }
+            .competition-print--compact h2 { font-size: 10pt; margin-bottom: .75mm; padding-bottom: .5mm; }
+            .competition-print--compact th { font-size: 7.75pt; }
+            .competition-print--compact th,
+            .competition-print--compact td { padding: .6mm 1mm; }
+            .competition-print--compact .fixture-sections { gap: 3mm; }
+            .competition-print--compact .standings-section { margin-top: 2mm; }
         }
     </style>
 </head>
-<body>
+<body class="competition-print{{ $leagueName === 'Premier League' ? ' competition-print--compact' : '' }}">
     <div class="actions no-print"><button type="button" onclick="window.print()">Skriv ut</button></div>
     <header>
         <div><strong>Innsatt.no</strong><h1>{{ $leagueName }}</h1></div>
@@ -89,9 +103,22 @@
     </section>
 
     <script>
+        const returnUrl = @json($returnUrl, JSON_UNESCAPED_SLASHES);
+        let hasReturnedFromPrint = false;
+
+        function returnFromPrint() {
+            if (hasReturnedFromPrint) {
+                return;
+            }
+
+            hasReturnedFromPrint = true;
+            window.location.replace(returnUrl);
+        }
+
         window.addEventListener('load', function () {
             if (!window.__innsattPrintStarted) {
                 window.__innsattPrintStarted = true;
+                window.addEventListener('afterprint', returnFromPrint, { once: true });
                 window.print();
             }
         }, { once: true });
