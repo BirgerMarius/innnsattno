@@ -451,6 +451,7 @@ abstract class SchibstedCompetitionService
                 'teamScore' => $teamScore,
                 'opponentScore' => $opponentScore,
                 'isHome' => $match['isHome'],
+                'startsAt' => $match['startsAt'],
             ];
             $margin = $teamScore - $opponentScore;
             $totalGoals = $teamScore + $opponentScore;

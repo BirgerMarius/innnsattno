@@ -977,7 +977,7 @@
     .football-team-print-header img { height: 14mm; object-fit: contain; width: 14mm; }
     .football-team-print-header h1 { font-size: 17pt; line-height: 1.1; margin: 0; }
     .football-team-print-header p { margin: .6mm 0 0; }
-    .football-team-print-stats { break-inside: avoid; border-bottom: .5px solid #777; font-size: 8.25pt; line-height: 1.2; margin-bottom: 3mm; padding-bottom: 2mm; }
+    .football-team-print-stats { break-inside: avoid; border-bottom: .5px solid #777; font-size: 8.5pt; line-height: 1.2; margin-bottom: 3mm; padding-bottom: 2mm; }
     .football-team-print-stats strong { font-size: 9pt; }
     .football-team-print-stats p { margin: .7mm 0 0; }
     .football-team-print-list { column-count: 2; column-gap: 8mm; }

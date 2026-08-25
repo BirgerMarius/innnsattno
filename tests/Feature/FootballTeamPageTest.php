@@ -43,6 +43,9 @@ class FootballTeamPageTest extends TestCase
             ->assertSee('football-team-print-list', false)
             ->assertSee('football-team-print-stats', false)
             ->assertSee('Sesongen så langt')
+            ->assertSee('Tabellplass:')
+            ->assertSee('Hjemme: 1 seier, 0 uavgjort, 0 tap')
+            ->assertSee('Største seier: 2–1 mot Motstander A (01.08.2026)')
             ->assertSee("window.addEventListener('afterprint'", false)
             ->assertSee('if (hasReturnedToTeamPage)', false)
             ->assertSee('window.location.replace(teamPageUrl)', false)
@@ -57,7 +60,7 @@ class FootballTeamPageTest extends TestCase
         $this->assertStringContainsString('font-size: 10pt', $css);
         $this->assertStringContainsString('column-gap: 8mm', $css);
         $this->assertStringContainsString('.football-team-print-stats { break-inside: avoid;', $css);
-        $this->assertStringContainsString('font-size: 8.25pt', $css);
+        $this->assertStringContainsString('font-size: 8.5pt', $css);
     }
 
     /** @dataProvider leagues */
@@ -115,10 +118,13 @@ class FootballTeamPageTest extends TestCase
             $this->assertSame(['wins' => 2, 'draws' => 0, 'losses' => 1], $stats['away']);
             $this->assertSame('Motstander A', $stats['records']['largestWin']['opponent']);
             $this->assertSame([3, 0], [$stats['records']['largestWin']['teamScore'], $stats['records']['largestWin']['opponentScore']]);
+            $this->assertSame('01.03.2026', $stats['records']['largestWin']['startsAt']->format('d.m.Y'));
             $this->assertSame('Motstander B', $stats['records']['largestLoss']['opponent']);
             $this->assertSame([1, 4], [$stats['records']['largestLoss']['teamScore'], $stats['records']['largestLoss']['opponentScore']]);
+            $this->assertSame('08.03.2026', $stats['records']['largestLoss']['startsAt']->format('d.m.Y'));
             $this->assertSame('Motstander F', $stats['records']['highestScoringMatch']['opponent']);
             $this->assertSame([4, 2], [$stats['records']['highestScoringMatch']['teamScore'], $stats['records']['highestScoringMatch']['opponentScore']]);
+            $this->assertSame('05.04.2026', $stats['records']['highestScoringMatch']['startsAt']->format('d.m.Y'));
             $this->assertSame(1, $stats['records']['cleanSheets']);
             $this->assertSame(4, $stats['keyFigures'][0]['value']);
             $this->assertSame(12, $stats['keyFigures'][5]['value']);
