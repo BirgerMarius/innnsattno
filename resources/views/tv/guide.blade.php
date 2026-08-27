@@ -53,6 +53,55 @@
         flex: 0 0 auto;
     }
 
+    .front-page-mourning-flagging {
+        max-width: 52rem;
+        margin: 0 auto 1.25rem;
+        padding: 1.35rem 1.5rem;
+        color: #fff;
+        text-align: left;
+        background: #171717;
+        border: 1px solid #3d3d3d;
+        border-left: .4rem solid #a6a6a6;
+        border-radius: .3rem;
+        box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .24);
+        animation: front-page-mourning-attention 2s ease-in-out 4;
+    }
+
+    .front-page-mourning-heading {
+        display: block;
+        font-size: clamp(1.3rem, 3vw, 1.5rem);
+        line-height: 1.25;
+        letter-spacing: .01em;
+    }
+
+    .front-page-mourning-flagging p {
+        margin: .65rem 0 0;
+        font-size: 1.05rem;
+        line-height: 1.6;
+    }
+
+    .front-page-mourning-source {
+        display: inline-block;
+        margin-top: .8rem;
+        color: #fff;
+        font-size: .9rem;
+        opacity: .82;
+        text-underline-offset: .18em;
+    }
+
+    .front-page-mourning-source:hover,
+    .front-page-mourning-source:focus-visible {
+        color: #fff;
+        opacity: 1;
+    }
+
+    @keyframes front-page-mourning-attention {
+        50% {
+            background-color: #252525;
+            box-shadow: 0 .25rem 1.1rem rgba(0, 0, 0, .42);
+        }
+    }
+
     @keyframes front-page-flag-today-highlight {
         50% {
             background-color: rgba(0, 32, 91, .08);
@@ -61,7 +110,8 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .front-page-flag-today {
+        .front-page-flag-today,
+        .front-page-mourning-flagging {
             animation: none;
         }
     }
@@ -82,6 +132,14 @@
     }
 
     @media (max-width: 575.98px) {
+        .front-page-mourning-flagging {
+            padding: 1.1rem;
+        }
+
+        .front-page-mourning-flagging p {
+            font-size: 1rem;
+        }
+
         .front-page-upcoming-flag-days {
             display: flex;
             flex-direction: column;
@@ -118,6 +176,22 @@ $isEvenWeek = $weekNumber % 2 === 0;
 @endphp
 
 <div class="alert alert-light text-center py-2 mb-3">
+    @if ($flagDayOverview['mourning_flagging'])
+        @php
+            $mourningFlagging = $flagDayOverview['mourning_flagging'];
+        @endphp
+        <section class="front-page-mourning-flagging" aria-label="{{ $mourningFlagging['title'] }}">
+            <strong class="front-page-mourning-heading">{{ $mourningFlagging['title'] }}</strong>
+            <p>{{ $mourningFlagging['message'] }}</p>
+            @if ($mourningFlagging['source_url'])
+                <a class="front-page-mourning-source"
+                   href="{{ $mourningFlagging['source_url'] }}"
+                   target="_blank"
+                   rel="noopener noreferrer">Offisiell informasjon: {{ $mourningFlagging['source_name'] }}</a>
+            @endif
+        </section>
+    @endif
+
     <div class="front-page-date-row">
         <a class="front-page-date-item front-page-date-link" href="{{ route('today.show') }}">
             <strong>📅 Dato:</strong>

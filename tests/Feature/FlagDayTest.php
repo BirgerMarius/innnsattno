@@ -14,6 +14,7 @@ class FlagDayTest extends TestCase
         parent::setUp();
 
         Http::fake();
+        config(['mourning_flag.enabled' => false]);
     }
 
     protected function tearDown(): void
@@ -262,5 +263,158 @@ class FlagDayTest extends TestCase
         $this->assertNotContains($overview['next']['name'], $upcomingNames);
         $this->assertSame(1, substr_count($response->getContent(), '>1. juledag<'));
         $this->assertSame(3, substr_count($response->getContent(), 'class="front-page-upcoming-flag-day"'));
+    }
+
+    public function testDisabledMourningFlaggingLeavesTheFrontPageUnchanged(): void
+    {
+        Carbon::setTestNow('2026-07-28 12:00:00 Europe/Oslo');
+        config([
+            'mourning_flag.enabled' => false,
+            'mourning_flag.from' => '2026-07-28',
+            'mourning_flag.until' => '2026-07-28',
+        ]);
+
+        $response = $this->get('/tv');
+
+        $response->assertOk()
+            ->assertSee('Neste flaggdag:')
+            ->assertSee('Olsokdagen')
+            ->assertDontSee('Offisiell sørgeflagging')
+            ->assertDontSee('på halv stang');
+        $this->assertNull(app(FlagDayService::class)->mourningFlagging());
+    }
+
+    public function testMourningFlaggingRequiresAValidCompleteDatePeriod(): void
+    {
+        config([
+            'mourning_flag.enabled' => true,
+            'mourning_flag.from' => '2026-08-28',
+            'mourning_flag.until' => null,
+        ]);
+
+        $this->assertNull(app(FlagDayService::class)->mourningFlagging());
+
+        config(['mourning_flag.until' => '2026-08-27']);
+
+        $this->assertNull(app(FlagDayService::class)->mourningFlagging());
+    }
+
+    public function testMourningFlaggingShowsOnItsSingleConfiguredDayWithOfficialSource(): void
+    {
+        $this->configureMourningFlagging('2026-08-28', '2026-08-28');
+        Carbon::setTestNow('2026-08-28 12:00:00 Europe/Oslo');
+
+        $this->get('/tv')
+            ->assertOk()
+            ->assertSee('class="front-page-mourning-flagging"', false)
+            ->assertSee('class="front-page-mourning-heading"', false)
+            ->assertSee('Offisiell sørgeflagging')
+            ->assertSee('på halv stang')
+            ->assertSee('Offisiell informasjon: Regjeringen.no')
+            ->assertSee('href="https://www.regjeringen.no/no/eksempel"', false)
+            ->assertSee('target="_blank"', false)
+            ->assertSee('rel="noopener noreferrer"', false);
+    }
+
+    public function testMourningBannerHasFiniteAttentionAnimationAndSupportsReducedMotion(): void
+    {
+        $view = file_get_contents(resource_path('views/tv/guide.blade.php'));
+
+        $this->assertStringContainsString('animation: front-page-mourning-attention 2s ease-in-out 4;', $view);
+        $this->assertStringContainsString('@keyframes front-page-mourning-attention', $view);
+        $this->assertStringContainsString('@media (prefers-reduced-motion: reduce)', $view);
+        $this->assertStringContainsString('.front-page-mourning-flagging {', $view);
+        $this->assertStringContainsString('animation: none;', $view);
+    }
+
+    public function testMourningFlaggingIsAbsentBeforeAndAfterItsConfiguredDay(): void
+    {
+        $this->configureMourningFlagging('2026-08-28', '2026-08-28');
+
+        foreach (['2026-08-27 12:00:00', '2026-08-29 12:00:00'] as $time) {
+            Carbon::setTestNow($time.' Europe/Oslo');
+
+            $this->get('/tv')
+                ->assertOk()
+                ->assertDontSee('Offisiell sørgeflagging')
+                ->assertDontSee('på halv stang');
+        }
+    }
+
+    public function testMourningFlaggingCoversEveryDayInAConfiguredPeriod(): void
+    {
+        $this->configureMourningFlagging('2026-08-28', '2026-08-30');
+        $service = app(FlagDayService::class);
+
+        foreach (['2026-08-28', '2026-08-29', '2026-08-30'] as $date) {
+            $mourning = $service->mourningFlagging(Carbon::parse($date, FlagDayService::TIMEZONE));
+
+            $this->assertNotNull($mourning);
+            $this->assertSame('2026-08-28', $mourning['from']->toDateString());
+            $this->assertSame('2026-08-30', $mourning['until']->toDateString());
+            $this->assertTrue($mourning['half_staff']);
+        }
+    }
+
+    public function testMourningFlaggingUsesTheOsloDateWhenUtcIsStillOnThePreviousDay(): void
+    {
+        $this->configureMourningFlagging('2026-08-28', '2026-08-28');
+        Carbon::setTestNow(Carbon::parse('2026-08-27 22:30:00', 'UTC'));
+
+        $this->get('/tv')
+            ->assertOk()
+            ->assertSee('Offisiell sørgeflagging');
+    }
+
+    public function testMourningFlaggingDoesNotAffectOrdinaryNextOrUpcomingFlagDays(): void
+    {
+        $this->configureMourningFlagging('2026-07-28', '2026-07-28');
+        Carbon::setTestNow('2026-07-28 12:00:00 Europe/Oslo');
+
+        $overview = app(FlagDayService::class)->overview();
+
+        $this->assertSame('Olsokdagen', $overview['next']['name']);
+        $this->assertFalse($overview['is_flag_day']);
+        $this->assertSame(['H.K.H. Kronprinsesse Mette-Marit', '1. juledag', '1. nyttårsdag'], array_column($overview['upcoming'], 'name'));
+    }
+
+    public function testMourningAndOrdinaryFlagDayAreBothShownWhenTheyCoincide(): void
+    {
+        $this->configureMourningFlagging('2026-07-29', '2026-07-29');
+        Carbon::setTestNow('2026-07-29 12:00:00 Europe/Oslo');
+
+        $this->get('/tv')
+            ->assertOk()
+            ->assertSee('Offisiell sørgeflagging')
+            ->assertSee('Det er flaggdag i dag:')
+            ->assertSee('Olsokdagen');
+    }
+
+    public function testTodayPageShowsMourningFlaggingOnlyForSelectedDatesWithinThePeriod(): void
+    {
+        $this->configureMourningFlagging('2026-08-28', '2026-08-30');
+
+        $this->get('/dagen-i-dag/2026-08-29')
+            ->assertOk()
+            ->assertSee('Offisiell sørgeflagging')
+            ->assertSee('på halv stang');
+
+        $this->get('/dagen-i-dag/2026-08-31')
+            ->assertOk()
+            ->assertDontSee('Offisiell sørgeflagging');
+    }
+
+    private function configureMourningFlagging(string $from, string $until): void
+    {
+        config([
+            'mourning_flag.enabled' => true,
+            'mourning_flag.from' => $from,
+            'mourning_flag.until' => $until,
+            'mourning_flag.source_url' => 'https://www.regjeringen.no/no/eksempel',
+            'mourning_flag.source_name' => 'Regjeringen.no',
+            'mourning_flag.title' => 'Offisiell sørgeflagging',
+            'mourning_flag.message' => 'Det er besluttet sørgeflagging ved offentlige bygninger. Det flagges på halv stang.',
+            'mourning_flag.half_staff' => true,
+        ]);
     }
 }

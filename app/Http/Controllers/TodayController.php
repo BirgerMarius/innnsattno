@@ -34,6 +34,7 @@ class TodayController extends Controller
             'namedays' => $namedays->forDate($selectedDate)['names'] ?? [],
             'history' => $todayContent->forDate($selectedDate),
             'flagDay' => $flagDay,
+            'mourningFlagging' => $flagDays->mourningFlagging($selectedDate),
         ]);
     }
 }

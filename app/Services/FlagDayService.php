@@ -33,7 +33,58 @@ class FlagDayService
             'is_flag_day' => $upcoming[0]['date']->isSameDay($today),
             'upcoming' => array_slice($upcoming, 1, 3),
             'official_overview_url' => self::OFFICIAL_OVERVIEW_URL,
+            'mourning_flagging' => $this->mourningFlagging($today),
         ];
+    }
+
+    /**
+     * Returns a temporary official mourning notice independently of ordinary flag days.
+     */
+    public function mourningFlagging(?CarbonInterface $date = null): ?array
+    {
+        if (! config('mourning_flag.enabled', false)) {
+            return null;
+        }
+
+        $from = $this->mourningDate(config('mourning_flag.from'));
+        $until = $this->mourningDate(config('mourning_flag.until'));
+
+        if (! $from || ! $until || $until->lessThan($from)) {
+            return null;
+        }
+
+        $selectedDate = $date
+            ? CarbonImmutable::instance($date)->setTimezone(self::TIMEZONE)->startOfDay()
+            : CarbonImmutable::now(self::TIMEZONE)->startOfDay();
+
+        if ($selectedDate->lessThan($from) || $selectedDate->greaterThan($until)) {
+            return null;
+        }
+
+        return [
+            'title' => (string) config('mourning_flag.title'),
+            'message' => (string) config('mourning_flag.message'),
+            'source_url' => config('mourning_flag.source_url'),
+            'source_name' => (string) config('mourning_flag.source_name'),
+            'from' => $from,
+            'until' => $until,
+            'half_staff' => (bool) config('mourning_flag.half_staff', true),
+        ];
+    }
+
+    private function mourningDate(mixed $value): ?CarbonImmutable
+    {
+        if (! is_string($value) || $value === '') {
+            return null;
+        }
+
+        try {
+            $date = CarbonImmutable::createFromFormat('!Y-m-d', $value, self::TIMEZONE);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return $date && $date->format('Y-m-d') === $value ? $date : null;
     }
 
     public function forYear(int $year): array
