@@ -5,16 +5,16 @@
  * den offisielle meldingen fra regjeringen eller UD om sørgeflagging.
  */
 return [
-    'enabled' => false,
+    'enabled' => true,
 
-    'from' => null,
-    'until' => null,
+    'from' => '2026-08-28',
+    'until' => '2026-08-28',
 
     'title' => 'Offisiell sørgeflagging',
-    'message' => 'Det er besluttet sørgeflagging ved offentlige bygninger. Det flagges på halv stang.',
+    'message' => 'H.M. Kong Harald V er død.',
 
-    'source_url' => null,
-    'source_name' => 'Regjeringen.no',
+    'source_url' => 'https://www.kongehuset.no/',
+    'source_name' => 'Kongehuset.no',
 
     'half_staff' => true,
 ];
