@@ -82,6 +82,29 @@ class TodayPageTest extends TestCase
             ->assertSee('Peder, Petra');
     }
 
+    public function testTodayPageShowsTheActiveMourningPeriodNotice(): void
+    {
+        config([
+            'mourning_flag.enabled' => true,
+            'mourning_flag.from' => '2026-08-28',
+            'mourning_flag.until' => null,
+            'mourning_flag.title' => 'H.M. Kong Harald V er død.',
+            'mourning_flag.message' => 'Norge er i en nasjonal sørgeperiode. Det flagges på halv stang fra statlige bygninger frem til bisettelsesdagen.',
+            'mourning_flag.source_url' => 'https://www.kongehuset.no/',
+            'mourning_flag.source_name' => 'Kongehuset.no',
+        ]);
+        $this->fakeSources();
+
+        $this->get('/dagen-i-dag/2026-09-01')
+            ->assertOk()
+            ->assertSee('H.M. Kong Harald V er død.')
+            ->assertSee('Norge er i en nasjonal sørgeperiode. Det flagges på halv stang fra statlige bygninger frem til bisettelsesdagen.')
+            ->assertSee('Offisiell informasjon: Kongehuset.no')
+            ->assertSee('href="https://www.kongehuset.no/"', false)
+            ->assertSee('target="_blank"', false)
+            ->assertSee('rel="noopener noreferrer"', false);
+    }
+
     public function testSourcesAreCachedPerDate(): void
     {
         $this->fakeSources();

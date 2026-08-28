@@ -54,8 +54,9 @@
     }
 
     .front-page-mourning-flagging {
-        max-width: 52rem;
-        margin: 0 auto 1.25rem;
+        width: 100%;
+        box-sizing: border-box;
+        margin: 0 0 1.25rem;
         padding: 1.35rem 1.5rem;
         color: #fff;
         text-align: left;
@@ -74,7 +75,7 @@
         letter-spacing: .01em;
     }
 
-    .front-page-mourning-flagging p {
+    .front-page-mourning-message {
         margin: .65rem 0 0;
         font-size: 1.05rem;
         line-height: 1.6;
@@ -136,7 +137,7 @@
             padding: 1.1rem;
         }
 
-        .front-page-mourning-flagging p {
+        .front-page-mourning-message {
             font-size: 1rem;
         }
 
@@ -183,7 +184,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
         <section class="front-page-mourning-flagging" aria-label="{{ $mourningFlagging['title'] }}">
             <strong class="front-page-mourning-heading">{{ $mourningFlagging['title'] }}</strong>
             @if ($mourningFlagging['message'])
-                <p>{{ $mourningFlagging['message'] }}</p>
+                <p class="front-page-mourning-message">{{ $mourningFlagging['message'] }}</p>
             @endif
             @if ($mourningFlagging['source_url'])
                 <a class="front-page-mourning-source"

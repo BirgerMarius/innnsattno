@@ -283,7 +283,7 @@ class FlagDayTest extends TestCase
         $this->assertNull(app(FlagDayService::class)->mourningFlagging());
     }
 
-    public function testMourningFlaggingRequiresAValidCompleteDatePeriod(): void
+    public function testMourningFlaggingSupportsAnOpenPeriodAndRejectsAnInvalidEndDate(): void
     {
         config([
             'mourning_flag.enabled' => true,
@@ -291,16 +291,20 @@ class FlagDayTest extends TestCase
             'mourning_flag.until' => null,
         ]);
 
-        $this->assertNull(app(FlagDayService::class)->mourningFlagging());
+        $service = app(FlagDayService::class);
+
+        $this->assertNotNull($service->mourningFlagging(Carbon::parse('2026-08-28', FlagDayService::TIMEZONE)));
+        $this->assertNotNull($service->mourningFlagging(Carbon::parse('2026-09-15', FlagDayService::TIMEZONE)));
+        $this->assertNull($service->mourningFlagging(Carbon::parse('2026-08-27', FlagDayService::TIMEZONE)));
 
         config(['mourning_flag.until' => '2026-08-27']);
 
         $this->assertNull(app(FlagDayService::class)->mourningFlagging());
     }
 
-    public function testMourningFlaggingShowsOnItsSingleConfiguredDayWithOfficialSource(): void
+    public function testMourningFlaggingShowsDuringAnOpenPeriodWithOfficialSource(): void
     {
-        $this->configureMourningFlagging('2026-08-28', '2026-08-28');
+        $this->configureMourningFlagging('2026-08-28', null);
         Carbon::setTestNow('2026-08-28 12:00:00 Europe/Oslo');
 
         $this->get('/tv')
@@ -308,7 +312,8 @@ class FlagDayTest extends TestCase
             ->assertSee('class="front-page-mourning-flagging"', false)
             ->assertSee('class="front-page-mourning-heading"', false)
             ->assertSee('H.M. Kong Harald V er død.')
-            ->assertDontSee('<p></p>', false)
+            ->assertSee('Norge er i en nasjonal sørgeperiode. Det flagges på halv stang fra statlige bygninger frem til bisettelsesdagen.')
+            ->assertSee('class="front-page-mourning-message"', false)
             ->assertSee('Offisiell informasjon: Kongehuset.no')
             ->assertSee('href="https://www.kongehuset.no/"', false)
             ->assertSee('target="_blank"', false)
@@ -323,6 +328,10 @@ class FlagDayTest extends TestCase
         $this->assertStringContainsString('@keyframes front-page-mourning-attention', $view);
         $this->assertStringContainsString('@media (prefers-reduced-motion: reduce)', $view);
         $this->assertStringContainsString('.front-page-mourning-flagging {', $view);
+        $this->assertStringContainsString('width: 100%;', $view);
+        $this->assertStringContainsString('box-sizing: border-box;', $view);
+        $this->assertStringNotContainsString('max-width: 52rem;', $view);
+        $this->assertStringContainsString('.front-page-mourning-message {', $view);
         $this->assertStringContainsString('animation: none;', $view);
     }
 
@@ -401,7 +410,7 @@ class FlagDayTest extends TestCase
             ->assertDontSee('H.M. Kong Harald V er død.');
     }
 
-    private function configureMourningFlagging(string $from, string $until): void
+    private function configureMourningFlagging(string $from, ?string $until): void
     {
         config([
             'mourning_flag.enabled' => true,
@@ -410,7 +419,7 @@ class FlagDayTest extends TestCase
             'mourning_flag.source_url' => 'https://www.kongehuset.no/',
             'mourning_flag.source_name' => 'Kongehuset.no',
             'mourning_flag.title' => 'H.M. Kong Harald V er død.',
-            'mourning_flag.message' => '',
+            'mourning_flag.message' => 'Norge er i en nasjonal sørgeperiode. Det flagges på halv stang fra statlige bygninger frem til bisettelsesdagen.',
             'mourning_flag.half_staff' => false,
         ]);
     }

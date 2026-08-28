@@ -49,7 +49,7 @@ class FlagDayService
         $from = $this->mourningDate(config('mourning_flag.from'));
         $until = $this->mourningDate(config('mourning_flag.until'));
 
-        if (! $from || ! $until || $until->lessThan($from)) {
+        if (! $from || ($until && $until->lessThan($from))) {
             return null;
         }
 
@@ -57,7 +57,7 @@ class FlagDayService
             ? CarbonImmutable::instance($date)->setTimezone(self::TIMEZONE)->startOfDay()
             : CarbonImmutable::now(self::TIMEZONE)->startOfDay();
 
-        if ($selectedDate->lessThan($from) || $selectedDate->greaterThan($until)) {
+        if ($selectedDate->lessThan($from) || ($until && $selectedDate->greaterThan($until))) {
             return null;
         }
 
