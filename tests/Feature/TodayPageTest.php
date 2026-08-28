@@ -89,7 +89,7 @@ class TodayPageTest extends TestCase
             'mourning_flag.from' => '2026-08-28',
             'mourning_flag.until' => null,
             'mourning_flag.title' => 'H.M. Kong Harald V er død.',
-            'mourning_flag.message' => 'Norge er i en nasjonal sørgeperiode. Det flagges på halv stang fra statlige bygninger frem til bisettelsesdagen.',
+            'mourning_flag.message' => 'Norge er i en nasjonal sørgeperiode. Det flagges på halv stang fra statlige bygninger frem til gravferdsdagen.',
             'mourning_flag.source_url' => 'https://www.kongehuset.no/',
             'mourning_flag.source_name' => 'Kongehuset.no',
         ]);
@@ -98,7 +98,7 @@ class TodayPageTest extends TestCase
         $this->get('/dagen-i-dag/2026-09-01')
             ->assertOk()
             ->assertSee('H.M. Kong Harald V er død.')
-            ->assertSee('Norge er i en nasjonal sørgeperiode. Det flagges på halv stang fra statlige bygninger frem til bisettelsesdagen.')
+            ->assertSee('Norge er i en nasjonal sørgeperiode. Det flagges på halv stang fra statlige bygninger frem til gravferdsdagen.')
             ->assertSee('Offisiell informasjon: Kongehuset.no')
             ->assertSee('href="https://www.kongehuset.no/"', false)
             ->assertSee('target="_blank"', false)

@@ -11,7 +11,7 @@ return [
     'until' => null,
 
     'title' => 'H.M. Kong Harald V er død.',
-    'message' => 'Norge er i en nasjonal sørgeperiode. Det flagges på halv stang fra statlige bygninger frem til bisettelsesdagen.',
+    'message' => 'Norge er i en nasjonal sørgeperiode. Det flagges på halv stang fra statlige bygninger frem til gravferdsdagen.',
 
     'source_url' => 'https://www.kongehuset.no/',
     'source_name' => 'Kongehuset.no',

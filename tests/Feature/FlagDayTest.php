@@ -312,7 +312,7 @@ class FlagDayTest extends TestCase
             ->assertSee('class="front-page-mourning-flagging"', false)
             ->assertSee('class="front-page-mourning-heading"', false)
             ->assertSee('H.M. Kong Harald V er død.')
-            ->assertSee('Norge er i en nasjonal sørgeperiode. Det flagges på halv stang fra statlige bygninger frem til bisettelsesdagen.')
+            ->assertSee('Norge er i en nasjonal sørgeperiode. Det flagges på halv stang fra statlige bygninger frem til gravferdsdagen.')
             ->assertSee('class="front-page-mourning-message"', false)
             ->assertSee('Offisiell informasjon: Kongehuset.no')
             ->assertSee('href="https://www.kongehuset.no/"', false)
@@ -419,7 +419,7 @@ class FlagDayTest extends TestCase
             'mourning_flag.source_url' => 'https://www.kongehuset.no/',
             'mourning_flag.source_name' => 'Kongehuset.no',
             'mourning_flag.title' => 'H.M. Kong Harald V er død.',
-            'mourning_flag.message' => 'Norge er i en nasjonal sørgeperiode. Det flagges på halv stang fra statlige bygninger frem til bisettelsesdagen.',
+            'mourning_flag.message' => 'Norge er i en nasjonal sørgeperiode. Det flagges på halv stang fra statlige bygninger frem til gravferdsdagen.',
             'mourning_flag.half_staff' => false,
         ]);
     }
