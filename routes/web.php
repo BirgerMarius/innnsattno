@@ -27,6 +27,7 @@ use App\Http\Controllers\LearningController;
 use App\Http\Controllers\FrontPageController;
 use App\Http\Controllers\Admin\NewsAdminController;
 use App\Http\Controllers\Admin\NewsSourceAdminController;
+use App\Services\DwScheduleService;
 
 /*
 |--------------------------------------------------------------------------
@@ -187,6 +188,32 @@ Route::get('/print', function () {
     }
 
     $tvChannels = json_decode($response, true);
+
+    $dwChannel = app(DwScheduleService::class)->channelForDate(now('Europe/Oslo'));
+
+    if ($dwChannel !== null) {
+        $dwInsertIndex = null;
+
+        foreach ($tvChannels as $index => $tvChannel) {
+            if (($tvChannel['channel']['slug'] ?? null) === 'bbc-world-news') {
+                $dwInsertIndex = $index + 1;
+
+                break;
+            }
+        }
+
+        if ($dwInsertIndex === null) {
+            foreach ($tvChannels as $index => $tvChannel) {
+                if (($tvChannel['channel']['slug'] ?? null) === 'al-jazeera-english') {
+                    $dwInsertIndex = $index;
+
+                    break;
+                }
+            }
+        }
+
+        array_splice($tvChannels, $dwInsertIndex ?? count($tvChannels), 0, [$dwChannel]);
+    }
 
     return view('pdf')->with(['channels' => $tvChannels]);
 });
