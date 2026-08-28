@@ -164,6 +164,7 @@ Route::get('/print', function () {
 
         'national-geographic',
         'discovery-channel',
+        'viasat-explore',
         'investigation-discovery',
 
         'bbc-world-news',
