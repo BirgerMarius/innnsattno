@@ -279,8 +279,7 @@ class FlagDayTest extends TestCase
         $response->assertOk()
             ->assertSee('Neste flaggdag:')
             ->assertSee('Olsokdagen')
-            ->assertDontSee('Offisiell sørgeflagging')
-            ->assertDontSee('på halv stang');
+            ->assertDontSee('H.M. Kong Harald V er død.');
         $this->assertNull(app(FlagDayService::class)->mourningFlagging());
     }
 
@@ -308,10 +307,10 @@ class FlagDayTest extends TestCase
             ->assertOk()
             ->assertSee('class="front-page-mourning-flagging"', false)
             ->assertSee('class="front-page-mourning-heading"', false)
-            ->assertSee('Offisiell sørgeflagging')
-            ->assertSee('på halv stang')
-            ->assertSee('Offisiell informasjon: Regjeringen.no')
-            ->assertSee('href="https://www.regjeringen.no/no/eksempel"', false)
+            ->assertSee('H.M. Kong Harald V er død.')
+            ->assertDontSee('<p></p>', false)
+            ->assertSee('Offisiell informasjon: Kongehuset.no')
+            ->assertSee('href="https://www.kongehuset.no/"', false)
             ->assertSee('target="_blank"', false)
             ->assertSee('rel="noopener noreferrer"', false);
     }
@@ -336,8 +335,7 @@ class FlagDayTest extends TestCase
 
             $this->get('/tv')
                 ->assertOk()
-                ->assertDontSee('Offisiell sørgeflagging')
-                ->assertDontSee('på halv stang');
+                ->assertDontSee('H.M. Kong Harald V er død.');
         }
     }
 
@@ -352,7 +350,7 @@ class FlagDayTest extends TestCase
             $this->assertNotNull($mourning);
             $this->assertSame('2026-08-28', $mourning['from']->toDateString());
             $this->assertSame('2026-08-30', $mourning['until']->toDateString());
-            $this->assertTrue($mourning['half_staff']);
+            $this->assertFalse($mourning['half_staff']);
         }
     }
 
@@ -363,7 +361,7 @@ class FlagDayTest extends TestCase
 
         $this->get('/tv')
             ->assertOk()
-            ->assertSee('Offisiell sørgeflagging');
+            ->assertSee('H.M. Kong Harald V er død.');
     }
 
     public function testMourningFlaggingDoesNotAffectOrdinaryNextOrUpcomingFlagDays(): void
@@ -385,7 +383,7 @@ class FlagDayTest extends TestCase
 
         $this->get('/tv')
             ->assertOk()
-            ->assertSee('Offisiell sørgeflagging')
+            ->assertSee('H.M. Kong Harald V er død.')
             ->assertSee('Det er flaggdag i dag:')
             ->assertSee('Olsokdagen');
     }
@@ -396,12 +394,11 @@ class FlagDayTest extends TestCase
 
         $this->get('/dagen-i-dag/2026-08-29')
             ->assertOk()
-            ->assertSee('Offisiell sørgeflagging')
-            ->assertSee('på halv stang');
+            ->assertSee('H.M. Kong Harald V er død.');
 
         $this->get('/dagen-i-dag/2026-08-31')
             ->assertOk()
-            ->assertDontSee('Offisiell sørgeflagging');
+            ->assertDontSee('H.M. Kong Harald V er død.');
     }
 
     private function configureMourningFlagging(string $from, string $until): void
@@ -410,11 +407,11 @@ class FlagDayTest extends TestCase
             'mourning_flag.enabled' => true,
             'mourning_flag.from' => $from,
             'mourning_flag.until' => $until,
-            'mourning_flag.source_url' => 'https://www.regjeringen.no/no/eksempel',
-            'mourning_flag.source_name' => 'Regjeringen.no',
-            'mourning_flag.title' => 'Offisiell sørgeflagging',
-            'mourning_flag.message' => 'Det er besluttet sørgeflagging ved offentlige bygninger. Det flagges på halv stang.',
-            'mourning_flag.half_staff' => true,
+            'mourning_flag.source_url' => 'https://www.kongehuset.no/',
+            'mourning_flag.source_name' => 'Kongehuset.no',
+            'mourning_flag.title' => 'H.M. Kong Harald V er død.',
+            'mourning_flag.message' => '',
+            'mourning_flag.half_staff' => false,
         ]);
     }
 }

@@ -1,8 +1,7 @@
 <?php
 
 /*
- * Aktiveres bare etter at dato/periode, ordlyd og source_url er kontrollert mot
- * den offisielle meldingen fra regjeringen eller UD om sørgeflagging.
+ * Aktiveres bare når ordlyd og kilde er kontrollert mot offisiell informasjon.
  */
 return [
     'enabled' => true,
@@ -10,11 +9,10 @@ return [
     'from' => '2026-08-28',
     'until' => '2026-08-28',
 
-    'title' => 'Offisiell sørgeflagging',
-    'message' => 'H.M. Kong Harald V er død.',
+    'title' => 'H.M. Kong Harald V er død.',
+    'message' => '',
 
     'source_url' => 'https://www.kongehuset.no/',
     'source_name' => 'Kongehuset.no',
 
-    'half_staff' => true,
 ];

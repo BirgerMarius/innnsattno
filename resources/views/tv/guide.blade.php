@@ -182,7 +182,9 @@ $isEvenWeek = $weekNumber % 2 === 0;
         @endphp
         <section class="front-page-mourning-flagging" aria-label="{{ $mourningFlagging['title'] }}">
             <strong class="front-page-mourning-heading">{{ $mourningFlagging['title'] }}</strong>
-            <p>{{ $mourningFlagging['message'] }}</p>
+            @if ($mourningFlagging['message'])
+                <p>{{ $mourningFlagging['message'] }}</p>
+            @endif
             @if ($mourningFlagging['source_url'])
                 <a class="front-page-mourning-source"
                    href="{{ $mourningFlagging['source_url'] }}"

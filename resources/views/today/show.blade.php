@@ -50,7 +50,9 @@
             @if ($mourningFlagging)
                 <section class="today-card today-mourning-flagging">
                     <h2>{{ $mourningFlagging['title'] }}</h2>
-                    <p class="today-large-text">{{ $mourningFlagging['message'] }}</p>
+                    @if ($mourningFlagging['message'])
+                        <p class="today-large-text">{{ $mourningFlagging['message'] }}</p>
+                    @endif
                     @if ($mourningFlagging['source_url'])
                         <a class="today-external-link" href="{{ $mourningFlagging['source_url'] }}" target="_blank" rel="noopener noreferrer">Offisiell informasjon: {{ $mourningFlagging['source_name'] }} <span aria-hidden="true">↗</span><span class="visually-hidden"> (åpnes i ny fane)</span></a>
                     @endif
