@@ -30,26 +30,67 @@
 
 
 
-<div style="column-count:4; column-gap:0.6em; font-size:11pt; line-height:1.2;">
+<style>
+    /* Keep programme text within its newspaper column on the standalone print view. */
+    .ilseng-tv-print {
+        column-count: 4;
+        column-gap: 0.6em;
+        font-size: 11pt;
+        line-height: 1.2;
+    }
+
+    .ilseng-tv-print__channel {
+        max-width: 100%;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .ilseng-tv-print__channel-name {
+        display: block;
+        margin-top: 8px;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .ilseng-tv-print__listing {
+        display: grid;
+        grid-template-columns: 3.15em minmax(0, 1fr);
+        column-gap: 0.2em;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    .ilseng-tv-print__time {
+        white-space: nowrap;
+    }
+
+    .ilseng-tv-print__title {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+</style>
+
+<div class="ilseng-tv-print">
 
 
 
     
 
     @foreach ($channels as $channel)
-        <div>
-            <div style="margin-top:8px;">
-    <strong>{{ $channel['channel']['name'] }}</strong>
-</div>
+        <section class="ilseng-tv-print__channel">
+            <strong class="ilseng-tv-print__channel-name">{{ $channel['channel']['name'] }}</strong>
 
             @foreach ($channel['listings'] as $listing)
                 @if (\Carbon\Carbon::parse($listing['startsAt'])->addHours($hours)->format('Y-m-d H:i:s') < now())
                 @else
-                    {{ \Carbon\Carbon::parse($listing['startsAt'])->addHours($hours)->format('H:i') }}
-                    {{ $listing['title']['title'] }}<br />
+                    <div class="ilseng-tv-print__listing">
+                        <span class="ilseng-tv-print__time">{{ \Carbon\Carbon::parse($listing['startsAt'])->addHours($hours)->format('H:i') }}</span>
+                        <span class="ilseng-tv-print__title">{{ $listing['title']['title'] }}</span>
+                    </div>
                 @endif
             @endforeach
-        </div>
+        </section>
         <br />
     @endforeach
 

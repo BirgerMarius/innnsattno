@@ -122,6 +122,85 @@ class TvGuidePrintTest extends TestCase
         Http::assertSent(fn ($request) => $request->url() === 'https://www.dw.com/graph-api/en/livestream/english');
     }
 
+    public function test_ringerike_print_keeps_problematic_channel_and_programme_text_inside_its_column(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-08-29 08:00:00', 'Europe/Oslo'));
+
+        $longWord = str_repeat('Programtittelutenmellomrom', 12);
+        $longTitle = 'Orkanen Katrina: kampen mot katastrofen med en lang programtittel som skal brytes kontrollert over flere linjer';
+
+        Http::fake([
+            'tvguide.vg.no/*' => Http::response([
+                [
+                    'channel' => ['name' => 'Kanalnavn med en svært lang beskrivelse som også må holde seg i kolonnen'],
+                    'listings' => [
+                        ['startsAt' => '2026-08-29T20:00:00Z', 'title' => ['title' => $longTitle]],
+                        ['startsAt' => '2026-08-29T21:00:00Z', 'title' => ['title' => $longWord]],
+                        ['startsAt' => '2026-08-29T22:00:00Z', 'title' => ['title' => $longTitle]],
+                    ],
+                ],
+            ], 200),
+            'www.dw.com/graph-api/en/livestream/english' => Http::response([], 503),
+        ]);
+
+        $response = $this->get('/print')->assertOk();
+
+        $response
+            ->assertSee($longTitle)
+            ->assertSee($longWord)
+            ->assertSee('ringerike-tv-print__channel')
+            ->assertSee('ringerike-tv-print__listing')
+            ->assertSee('grid-template-columns: 3.15em minmax(0, 1fr)', false)
+            ->assertSee('max-width: 100%', false)
+            ->assertSee('min-width: 0', false)
+            ->assertSee('overflow: hidden', false)
+            ->assertSee('white-space: nowrap', false)
+            ->assertSee('overflow-wrap: anywhere', false)
+            ->assertSee('word-break: break-word', false)
+            ->assertSee('line-height: 1.2', false);
+
+        $this->assertSame(3, substr_count($response->getContent(), '<div class="ringerike-tv-print__listing">'));
+    }
+
+    public function test_ilseng_print_keeps_problematic_channel_and_programme_text_inside_its_column(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-08-29 08:00:00', 'Europe/Oslo'));
+
+        $longWord = str_repeat('Programtittelutenmellomrom', 12);
+        $longTitle = 'Orkanen Katrina: kampen mot katastrofen med en lang programtittel som skal brytes kontrollert over flere linjer';
+
+        Http::fake([
+            'tvguide.vg.no/*' => Http::response([
+                [
+                    'channel' => ['name' => 'Kanalnavn med en svært lang beskrivelse som også må holde seg i kolonnen'],
+                    'listings' => [
+                        ['startsAt' => '2026-08-29T20:00:00Z', 'title' => ['title' => $longTitle]],
+                        ['startsAt' => '2026-08-29T21:00:00Z', 'title' => ['title' => $longWord]],
+                        ['startsAt' => '2026-08-29T22:00:00Z', 'title' => ['title' => $longTitle]],
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $response = $this->get('/print-ilseng')->assertOk();
+
+        $response
+            ->assertSee($longTitle)
+            ->assertSee($longWord)
+            ->assertSee('ilseng-tv-print__channel')
+            ->assertSee('ilseng-tv-print__listing')
+            ->assertSee('grid-template-columns: 3.15em minmax(0, 1fr)', false)
+            ->assertSee('max-width: 100%', false)
+            ->assertSee('min-width: 0', false)
+            ->assertSee('overflow: hidden', false)
+            ->assertSee('white-space: nowrap', false)
+            ->assertSee('overflow-wrap: anywhere', false)
+            ->assertSee('word-break: break-word', false)
+            ->assertSee('line-height: 1.2', false);
+
+        $this->assertSame(3, substr_count($response->getContent(), '<div class="ilseng-tv-print__listing">'));
+    }
+
     private function dwResponse(array $slots): array
     {
         return [
