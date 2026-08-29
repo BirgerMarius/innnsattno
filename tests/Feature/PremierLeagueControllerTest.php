@@ -29,6 +29,10 @@ class PremierLeagueControllerTest extends TestCase
         $response->assertViewHas('resultCount', 12);
         $response->assertSee('Schibsted turnerings-ID');
         $response->assertSee('9186');
+
+        $this->get('/premier-league')->assertOk()
+            ->assertSee('Trykk på lagnavnet for å se hele sesongens kamper')
+            ->assertDontSee('Beta');
     }
 
     private function schedulePayload(): array

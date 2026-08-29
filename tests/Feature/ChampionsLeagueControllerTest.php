@@ -17,8 +17,9 @@ class ChampionsLeagueControllerTest extends TestCase
             '*/tournaments/seasons/9168/standings' => Http::response($this->standingsPayload(), 200),
         ]);
 
-        $this->get('/champions-league')->assertOk()->assertSee('Champions League')->assertSee('Bodø/Glimt')->assertSee('Tabell / ligafase');
-        $this->get('/champions-league/print')->assertOk()->assertSee('Ligafasetabell')->assertSee('@page');
+        $this->get('/champions-league')->assertOk()->assertSee('Champions League')->assertSee('Bodø/Glimt')->assertSee('Tabell / ligafase')
+            ->assertSee('Trykk på et lagnavn i tabellen for å se lagets kamper.')->assertDontSee('Beta');
+        $this->get('/champions-league/print')->assertOk()->assertSee('Ligafasetabell')->assertSee('@page')->assertDontSee('Beta');
     }
 
     /** @test */

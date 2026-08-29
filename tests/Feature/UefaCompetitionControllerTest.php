@@ -22,6 +22,8 @@ class UefaCompetitionControllerTest extends TestCase
             ->assertSee('Europa League')
             ->assertSee('/europa-league/lag/101', false)
             ->assertSee('Ligafasemotstander')
+            ->assertSee('Trykk på et lagnavn i tabellen for å se lagets kamper.')
+            ->assertDontSee('Beta')
             ->assertDontSee('Kvalifiseringsmotstander')
             ->assertSee('Åttedelsfinale');
         $this->get('/europa-league/print')->assertOk()->assertSee('@page')->assertSee('Europa League');
@@ -44,6 +46,8 @@ class UefaCompetitionControllerTest extends TestCase
             ->assertSee('Conference League')
             ->assertSee('/conference-league/lag/101', false)
             ->assertSee('Ligafasemotstander')
+            ->assertSee('Trykk på et lagnavn i tabellen for å se lagets kamper.')
+            ->assertDontSee('Beta')
             ->assertDontSee('Kvalifiseringsmotstander');
         $this->get('/conference-league/print')->assertOk()->assertSee('@page')->assertSee('Conference League');
         $this->get('/conference-league/lag/101')->assertOk()

@@ -27,6 +27,8 @@ class EliteserienControllerTest extends TestCase
         $response->assertSee('Kommende kamper');
         $response->assertSee('Siste resultater');
         $response->assertSee('Kilde: Schibsted/VG SportsNext-data.');
+        $response->assertSee('Trykk på lagnavnet for å se hele sesongens kamper');
+        $response->assertDontSee('Beta');
     }
 
     /** @test */

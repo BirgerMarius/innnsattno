@@ -16,17 +16,6 @@
         border-radius: 6px;
     }
 
-    .es-beta {
-        border: 1px solid #b7c2cf;
-        border-radius: 999px;
-        color: #445364;
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: .02em;
-        padding: .15rem .55rem;
-        text-transform: uppercase;
-    }
-
     .es-muted {
         color: #667085;
     }
@@ -35,10 +24,6 @@
         align-items: center;
         display: flex;
         flex-wrap: wrap;
-    }
-
-    .es-title-row .es-beta {
-        margin-left: .5rem;
     }
 
     .es-table th {
@@ -138,7 +123,6 @@
                 <div>
                     <div class="es-title-row mb-2">
                         <h1 class="h2 mb-0">Eliteserien 2026</h1>
-                        <span class="es-beta">Beta</span>
                     </div>
                     <p class="lead mb-2">
                         Kampoversikt, siste resultater og tabell hentet fra Schibsted/VG sitt sports-API.

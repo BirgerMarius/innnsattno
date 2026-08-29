@@ -9,7 +9,6 @@
     .cl-muted, .cl-status { color: #667085; }
     .cl-title-row, .cl-team, .cl-match-team { align-items: center; display: flex; }
     .cl-title-row { flex-wrap: wrap; }
-    .cl-beta { border: 1px solid #b7c2cf; border-radius: 999px; color: #445364; font-size: .75rem; font-weight: 700; letter-spacing: .02em; margin-left: .5rem; padding: .15rem .55rem; text-transform: uppercase; }
     .cl-table th { background: #eef2f6; color: #2d3748; font-size: .82rem; white-space: nowrap; }
     .cl-table td { vertical-align: middle; white-space: nowrap; }
     .cl-team { gap: .5rem; min-width: 170px; white-space: normal; }
@@ -26,6 +25,7 @@
     .cl-phase { color: #536173; font-size: .875rem; }
     .cl-team-link { color: inherit; text-decoration: none; }
     .cl-team-link:hover, .cl-team-link:focus { text-decoration: underline; }
+    .cl-team-help { background: #eef6ff; border-left: 4px solid #173f72; color: #334155; margin-bottom: 1rem; padding: .75rem 1rem; }
     .cl-bracket { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); overflow-x: auto; }
     .cl-bracket-round { background: #f8fafc; border: 1px solid #dde2e8; border-radius: 5px; min-width: 230px; padding: .75rem; }
     .cl-tie { background: #fff; border: 1px solid #dfe5ec; border-radius: 4px; break-inside: avoid; margin-top: .65rem; padding: .55rem; page-break-inside: avoid; }
@@ -42,7 +42,7 @@
 
     <section class="cl-hero p-3 p-md-4 mb-3">
         <div class="d-flex flex-wrap align-items-start justify-content-between">
-            <div><div class="cl-title-row mb-2"><h1 class="h2 mb-0">{{ $competitionName }}</h1><span class="cl-beta">Beta</span></div>
+            <div><div class="cl-title-row mb-2"><h1 class="h2 mb-0">{{ $competitionName }}</h1></div>
                 <p class="lead mb-2">Sesongen {{ $seasonLabel }} · tabell, kamper og sluttspill hentet fra VG/Schibsted sitt sports-API.</p>
                 @if($lastUpdated)<p class="cl-muted mb-0">Sist oppdatert: {{ $lastUpdated->format('d.m.Y H:i') }}</p>@endif
             </div>
@@ -56,6 +56,7 @@
     <section class="cl-section p-3 p-md-4 mb-3">
         <h2 class="h4 mb-1">Tabell / ligafase</h2>
         <p class="cl-muted mb-3">{{ $standingsGroups[0]['stageName'] ?? 'Samlet ligatabell' }}</p>
+        <p class="cl-team-help"><strong>Se alle kampene til et lag:</strong> Trykk på et lagnavn i tabellen for å se lagets kamper.</p>
         @if(count($standings))
         <div class="table-responsive"><table class="table table-sm table-bordered cl-table mb-0"><thead><tr><th>Plass</th><th>Lag</th><th class="text-center">K</th><th class="text-center">V</th><th class="text-center">U</th><th class="text-center">T</th><th class="text-center">Mål</th><th class="text-center">MF</th><th class="text-center">P</th></tr></thead><tbody>
         @foreach($standings as $team)<tr><td>{{ $team['rank'] ?? '-' }}</td><td><span class="cl-team"><a class="cl-team-link" href="{{ route($teamRoute, $team['teamId']) }}">@if($team['emblemUrl'])<img class="cl-emblem" src="{{ $team['emblemUrl'] }}" alt="{{ $team['teamName'] }}" onerror="this.remove()">@endif<span>{{ $team['teamName'] }}</span></a></span></td><td class="text-center">{{ $team['played'] ?? '-' }}</td><td class="text-center">{{ $team['wins'] ?? '-' }}</td><td class="text-center">{{ $team['draws'] ?? '-' }}</td><td class="text-center">{{ $team['losses'] ?? '-' }}</td><td class="text-center">{{ $team['goalsFor'] ?? '-' }}-{{ $team['goalsAgainst'] ?? '-' }}</td><td class="text-center">{{ $team['goalDifference'] ?? '-' }}</td><td class="text-center font-weight-bold">{{ $team['points'] ?? '-' }}</td></tr>@endforeach
