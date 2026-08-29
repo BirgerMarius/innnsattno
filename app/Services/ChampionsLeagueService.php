@@ -4,6 +4,11 @@ namespace App\Services;
 
 class ChampionsLeagueService extends SchibstedCompetitionService
 {
+    public function getLeaguePhaseTeamData(int $teamId): ?array
+    {
+        return $this->getTeamPhaseData($teamId, 'Champions League', ['group']);
+    }
+
     protected function tournamentConfigKey(): string
     {
         return 'services.schibsted_sports.champions_league_tournament_id';

@@ -176,6 +176,24 @@ abstract class SchibstedCompetitionService
      */
     public function getTeamSeasonData(int $teamId, string $leagueName): ?array
     {
+        return $this->getTeamCompetitionData($teamId, $leagueName);
+    }
+
+    /**
+     * Return a team's matches for one or more provider-defined phases. This is
+     * shared by UEFA competitions, whose qualifying and league matches live in
+     * the same SportsNext season.
+     */
+    public function getTeamPhaseData(int $teamId, string $leagueName, array $phases): ?array
+    {
+        return $this->getTeamCompetitionData($teamId, $leagueName, function (array $match) use ($phases) {
+            return in_array($match['phaseType'] ?? null, $phases, true)
+                || in_array($match['phase'] ?? null, $phases, true);
+        });
+    }
+
+    private function getTeamCompetitionData(int $teamId, string $leagueName, ?callable $phaseFilter = null): ?array
+    {
         $competition = $this->getCompetitionData();
         $team = $competition['teams'][$teamId] ?? null;
 
@@ -183,8 +201,10 @@ abstract class SchibstedCompetitionService
             return null;
         }
 
-        $matches = array_values(array_filter($competition['matches'], function (array $match) use ($teamId) {
-            return $match['homeTeamId'] === $teamId || $match['awayTeamId'] === $teamId;
+        $matches = array_values(array_filter($competition['matches'], function (array $match) use ($teamId, $phaseFilter) {
+            $isTeamMatch = $match['homeTeamId'] === $teamId || $match['awayTeamId'] === $teamId;
+
+            return $isTeamMatch && (!$phaseFilter || $phaseFilter($match));
         }));
 
         usort($matches, function (array $a, array $b) {

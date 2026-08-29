@@ -294,6 +294,8 @@ Route::get('/eliteserien/lag/{teamId}/utskrift', [EliteserienController::class, 
 Route::get('/eliteserien/test', [EliteserienController::class, 'test'])->name('eliteserien.test');
 Route::get('/champions-league', [ChampionsLeagueController::class, 'index'])->name('champions-league.index');
 Route::get('/champions-league/print', [ChampionsLeagueController::class, 'print'])->name('champions-league.print');
+Route::get('/champions-league/lag/{teamId}', [ChampionsLeagueController::class, 'team'])->whereNumber('teamId')->name('champions-league.team');
+Route::get('/champions-league/lag/{teamId}/print', [ChampionsLeagueController::class, 'teamPrint'])->whereNumber('teamId')->name('champions-league.team.print');
 Route::get('/premier-league', [PremierLeagueController::class, 'index'])->name('premier-league.index');
 Route::get('/premier-league/utskrift', [PremierLeagueController::class, 'print'])->name('premier-league.print');
 Route::get('/premier-league/lag/{teamId}', [PremierLeagueController::class, 'team'])->whereNumber('teamId')->name('premier-league.team');

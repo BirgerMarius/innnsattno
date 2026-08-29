@@ -53,6 +53,29 @@ class ChampionsLeagueController extends Controller
         ]));
     }
 
+    public function team(int $teamId)
+    {
+        $teamSeason = $this->championsLeagueService->getLeaguePhaseTeamData($teamId);
+        abort_unless($teamSeason, 404);
+
+        [$results, $fixtures] = $this->splitLeaguePhaseMatches($teamSeason['teamMatches']);
+
+        return view('champions-league.team', array_merge($teamSeason, [
+            'results' => $results,
+            'fixtures' => $fixtures,
+        ]));
+    }
+
+    public function teamPrint(int $teamId)
+    {
+        $teamSeason = $this->championsLeagueService->getLeaguePhaseTeamData($teamId);
+        abort_unless($teamSeason, 404);
+
+        return view('football.team-print', array_merge($teamSeason, [
+            'teamRoute' => 'champions-league.team',
+        ]));
+    }
+
     /**
      * Once a league-phase match has begun, keep qualifying matches out of the
      * main overview. Before then, qualification is the current competition.
@@ -83,5 +106,13 @@ class ChampionsLeagueController extends Controller
     private function isLeaguePhase(array $match): bool
     {
         return ($match['phaseType'] ?? null) === 'group' || ($match['phase'] ?? null) === 'group';
+    }
+
+    private function splitLeaguePhaseMatches(array $matches): array
+    {
+        $results = array_values(array_filter($matches, fn (array $match) => $match['isFinished']));
+        $fixtures = array_values(array_filter($matches, fn (array $match) => !$match['isFinished']));
+
+        return [$results, $fixtures];
     }
 }
