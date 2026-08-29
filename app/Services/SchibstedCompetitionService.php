@@ -69,6 +69,72 @@ abstract class SchibstedCompetitionService
         return $this->getCompetitionData()['lastUpdated'];
     }
 
+    /**
+     * Group non-qualifying cup matches into data-driven knockout rounds.
+     * The output deliberately mirrors SportsNext stages instead of imposing a
+     * competition-specific bracket, so it can be reused for UEFA competitions.
+     */
+    public function buildKnockoutRounds(array $matches): array
+    {
+        $rounds = [];
+
+        foreach ($matches as $match) {
+            if (!$this->isKnockoutMatch($match)) {
+                continue;
+            }
+
+            $roundKey = implode('|', [
+                $match['phase'] ?? '',
+                $match['stage'] ?? '',
+                $match['stageName'] ?? '',
+                $match['roundNumber'] ?? '',
+            ]);
+            $rounds[$roundKey]['label'] = $match['stageName'] ?: ($match['stage'] ?: 'Sluttspill');
+            $rounds[$roundKey]['phase'] = $match['phase'] ?? null;
+            $rounds[$roundKey]['stage'] = $match['stage'] ?? null;
+            $rounds[$roundKey]['roundNumber'] = $match['roundNumber'] ?? null;
+
+            $teamIds = [$match['homeTeamId'], $match['awayTeamId']];
+            sort($teamIds);
+            $tieKey = implode('-', $teamIds);
+            $rounds[$roundKey]['ties'][$tieKey][] = $match;
+        }
+
+        foreach ($rounds as &$round) {
+            $round['ties'] = array_values(array_map(function (array $legs) {
+                usort($legs, fn (array $a, array $b) => strcmp((string) $a['sortDate'], (string) $b['sortDate']));
+                $latestLeg = end($legs) ?: [];
+                $winnerTeamId = $latestLeg['winnerTeamId'] ?? null;
+                $winnerTeamName = null;
+
+                foreach ($legs as $leg) {
+                    if ($winnerTeamId === ($leg['homeTeamId'] ?? null)) {
+                        $winnerTeamName = $leg['homeTeam'] ?? null;
+                        break;
+                    }
+
+                    if ($winnerTeamId === ($leg['awayTeamId'] ?? null)) {
+                        $winnerTeamName = $leg['awayTeam'] ?? null;
+                        break;
+                    }
+                }
+
+                return [
+                    'legs' => $legs,
+                    'winnerTeamId' => $winnerTeamId,
+                    'winnerTeamName' => $winnerTeamName,
+                    'aggregateAvailable' => ($latestLeg['homeAggregateScore'] ?? null) !== null
+                        || ($latestLeg['awayAggregateScore'] ?? null) !== null,
+                    'homeAggregateScore' => $latestLeg['homeAggregateScore'] ?? null,
+                    'awayAggregateScore' => $latestLeg['awayAggregateScore'] ?? null,
+                ];
+            }, $round['ties']));
+        }
+        unset($round);
+
+        return array_values($rounds);
+    }
+
     public function getPrintData(string $leagueName, ?Carbon $now = null): array
     {
         $competition = $this->getCompetitionData();
@@ -217,8 +283,14 @@ abstract class SchibstedCompetitionService
             return strcmp((string) $b['sortDate'], (string) $a['sortDate']);
         });
 
+        $standingsGroups = $this->normalizeStandingsGroups($standings, $participants);
+
         return [
-            'standings' => $this->normalizeStandings($standings, $participants),
+            // Keep the established flat list for existing competition pages and
+            // team statistics. Rows are grouped in source order, rather than
+            // globally rank-sorted, so rank 1 from separate groups is not mixed.
+            'standings' => $this->flattenStandingsGroups($standingsGroups),
+            'standingsGroups' => $standingsGroups,
             'teams' => $this->normalizeTeams($participants),
             'matches' => $matches,
             'upcomingFixtures' => array_slice($upcoming, 0, self::UPCOMING_LIMIT),
@@ -294,19 +366,21 @@ abstract class SchibstedCompetitionService
         return sprintf('%s/%s', $this->tournamentUrl($tournamentId), ltrim($endpoint, '/'));
     }
 
-    private function normalizeStandings(array $standings, array $participants): array
+    private function normalizeStandingsGroups(array $standings, array $participants): array
     {
         $groups = $standings['standings'] ?? [];
-        $table = [];
+        $normalizedGroups = [];
 
         foreach ($groups as $group) {
+            $rows = [];
+
             foreach (($group['teamStandings'] ?? []) as $teamStanding) {
                 $teamId = $teamStanding['teamId'] ?? null;
                 $participant = $teamId && isset($participants[$teamId]) ? $participants[$teamId] : [];
                 $goalsFor = $this->nullableInt($teamStanding['goalsFor'] ?? null);
                 $goalsAgainst = $this->nullableInt($teamStanding['goalsAgainst'] ?? null);
 
-                $table[] = [
+                $rows[] = [
                     'rank' => $this->nullableInt($teamStanding['rank'] ?? null),
                     'teamId' => $teamId,
                     'teamName' => $participant['name'] ?? $teamStanding['teamName'] ?? 'Ukjent lag',
@@ -321,15 +395,37 @@ abstract class SchibstedCompetitionService
                     'goalDifference' => $this->goalDifference($teamStanding, $goalsFor, $goalsAgainst),
                     'points' => $this->nullableInt($teamStanding['points'] ?? null),
                     'groupName' => $group['groupName'] ?? null,
+                    'stageName' => $group['stageName'] ?? null,
+                    'rule' => is_array($teamStanding['rule'] ?? null) ? $teamStanding['rule'] : null,
                 ];
+            }
+
+            usort($rows, function (array $a, array $b) {
+                return ($a['rank'] ?? 999) <=> ($b['rank'] ?? 999);
+            });
+
+            $normalizedGroups[] = [
+                'groupName' => $group['groupName'] ?? null,
+                'stageName' => $group['stageName'] ?? null,
+                'specialNotes' => $group['specialNotes'] ?? [],
+                'rows' => $rows,
+            ];
+        }
+
+        return $normalizedGroups;
+    }
+
+    private function flattenStandingsGroups(array $groups): array
+    {
+        $rows = [];
+
+        foreach ($groups as $group) {
+            foreach ($group['rows'] as $row) {
+                $rows[] = $row;
             }
         }
 
-        usort($table, function (array $a, array $b) {
-            return ($a['rank'] ?? 999) <=> ($b['rank'] ?? 999);
-        });
-
-        return $table;
+        return $rows;
     }
 
     private function normalizeMatches(array $events, array $participants): array
@@ -359,11 +455,23 @@ abstract class SchibstedCompetitionService
                 'awayEmblemUrl' => $this->teamEmblem($participants, $awayId),
                 'homeScore' => $isFinished ? $this->scoreFor($event, $homeId) : null,
                 'awayScore' => $isFinished ? $this->scoreFor($event, $awayId) : null,
+                'homeAggregateScore' => $this->resultValue($event, $homeId, 'aggregateScore'),
+                'awayAggregateScore' => $this->resultValue($event, $awayId, 'aggregateScore'),
+                'homeOvertimeScore' => $this->resultValue($event, $homeId, 'overtimeScore'),
+                'awayOvertimeScore' => $this->resultValue($event, $awayId, 'overtimeScore'),
+                'homePenaltyScore' => $this->penaltyScoreFor($event, $homeId),
+                'awayPenaltyScore' => $this->penaltyScoreFor($event, $awayId),
+                'winnerTeamId' => $this->nullableInt($event['winners']['winnerId'] ?? null),
                 'status' => $statusType,
                 'statusSubtype' => $statusSubtype,
                 'statusLabel' => $this->statusLabel($statusType, $statusSubtype),
                 'isFinished' => $isFinished,
                 'round' => $this->roundLabel($event),
+                'phaseType' => $event['tournament']['phaseType'] ?? $event['phaseType'] ?? null,
+                'phase' => $event['tournament']['phase'] ?? $event['phase'] ?? null,
+                'stage' => $event['tournament']['stage'] ?? $event['stage'] ?? null,
+                'stageName' => $event['tournament']['stageName'] ?? $event['stageName'] ?? null,
+                'roundNumber' => $this->nullableInt($event['tournament']['round'] ?? $event['round'] ?? null),
             ];
         }
 
@@ -527,6 +635,38 @@ abstract class SchibstedCompetitionService
         }
 
         return $this->nullableInt($event['results'][$participantId]['runningScore'] ?? null);
+    }
+
+    private function resultValue(array $event, $participantId, string $field): ?int
+    {
+        if (!$participantId) {
+            return null;
+        }
+
+        return $this->nullableInt($event['results'][$participantId][$field] ?? null);
+    }
+
+    private function penaltyScoreFor(array $event, $participantId): ?int
+    {
+        foreach (['penaltyScore', 'penaltyShootoutScore', 'shootoutScore'] as $field) {
+            $score = $this->resultValue($event, $participantId, $field);
+
+            if ($score !== null) {
+                return $score;
+            }
+        }
+
+        return null;
+    }
+
+    private function isKnockoutMatch(array $match): bool
+    {
+        if (($match['phaseType'] ?? null) !== 'cup') {
+            return false;
+        }
+
+        return ($match['phase'] ?? null) !== 'qualification'
+            && ($match['stage'] ?? null) !== 'cupQualificationRound';
     }
 
     private function isFinishedStatus(string $statusType, string $statusSubtype): bool

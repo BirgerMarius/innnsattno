@@ -322,6 +322,10 @@ $isEvenWeek = $weekNumber % 2 === 0;
             ⚽ Eliteserien 2026
         </a>
 
+        <a href="/champions-league" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
+            ⚽ Champions League 2026/27
+        </a>
+
         <a href="/tidsfordriv" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
             🧩 Tidsfordriv – Sudoku
         </a>

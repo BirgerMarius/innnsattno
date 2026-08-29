@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\FeedbackAdminController;
 use App\Http\Controllers\Admin\ProfessionalResourceAdminController;
 use App\Http\Controllers\Admin\ResourceCategoryController;
 use App\Http\Controllers\EliteserienController;
+use App\Http\Controllers\ChampionsLeagueController;
 use App\Http\Controllers\FootballController;
 use App\Http\Controllers\FeedbackSubmissionController;
 use App\Http\Controllers\PremierLeagueController;
@@ -291,6 +292,8 @@ Route::get('/eliteserien/utskrift', [EliteserienController::class, 'print'])->na
 Route::get('/eliteserien/lag/{teamId}', [EliteserienController::class, 'team'])->whereNumber('teamId')->name('eliteserien.team');
 Route::get('/eliteserien/lag/{teamId}/utskrift', [EliteserienController::class, 'teamPrint'])->whereNumber('teamId')->name('eliteserien.team.print');
 Route::get('/eliteserien/test', [EliteserienController::class, 'test'])->name('eliteserien.test');
+Route::get('/champions-league', [ChampionsLeagueController::class, 'index'])->name('champions-league.index');
+Route::get('/champions-league/print', [ChampionsLeagueController::class, 'print'])->name('champions-league.print');
 Route::get('/premier-league', [PremierLeagueController::class, 'index'])->name('premier-league.index');
 Route::get('/premier-league/utskrift', [PremierLeagueController::class, 'print'])->name('premier-league.print');
 Route::get('/premier-league/lag/{teamId}', [PremierLeagueController::class, 'team'])->whereNumber('teamId')->name('premier-league.team');

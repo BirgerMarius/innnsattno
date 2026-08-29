@@ -1,7 +1,7 @@
 {
     "provider": "Schibsted SportsNext",
     "sport": "football",
-    "last_verified_at": "2026-08-25T00:00:00+00:00",
+    "last_verified_at": "2026-08-29T00:00:00+00:00",
     "source": {
         "base_url": "https://api.sportsnext.schibsted.io/v1/vg",
         "football_tournament_catalog_endpoint": "/tournaments?sport=football",
@@ -16,6 +16,74 @@
         ]
     },
     "tournaments": [
+        {
+            "provider": "Schibsted SportsNext",
+            "sport": "football",
+            "country": "International",
+            "region": null,
+            "gender": "men",
+            "competition_type": "club",
+            "name": "Champions League",
+            "short_name": "Champions League",
+            "tournament_id": 1,
+            "tournament_slug": null,
+            "current_season_name": "Champions League 2026/2027",
+            "current_season_id": 9168,
+            "available_seasons": [
+                {
+                    "season_id": 9168,
+                    "name": "Champions League 2026/2027",
+                    "start_date": "2026-07-07",
+                    "end_date": "2027-06-05",
+                    "active": true
+                }
+            ],
+            "start_date": "2026-07-07",
+            "end_date": "2027-06-05",
+            "endpoints": {
+                "season_details": "/tournaments/seasons/9168",
+                "schedule": "/tournaments/seasons/9168/schedule",
+                "standings": "/tournaments/seasons/9168/standings",
+                "tournament_details": "/tournaments/1",
+                "tournament_seasons": "/tournaments/1/seasons"
+            },
+            "endpoint_status": {
+                "season_details": "confirmed",
+                "schedule": "confirmed",
+                "standings": "confirmed",
+                "tournament_details": "confirmed",
+                "tournament_seasons": "confirmed"
+            },
+            "capabilities": {
+                "matches": true,
+                "results": true,
+                "upcoming_matches": true,
+                "match_status": true,
+                "standings": true,
+                "teams": true,
+                "team_logos": true
+            },
+            "observed_response": {
+                "schedule_event_count": 234,
+                "standings_group_count": 1,
+                "standings_team_count": 36,
+                "schedule_top_level_fields": ["events", "participants", "tournament", "tournamentSeason", "countries"],
+                "standings_top_level_fields": ["standings", "tournament", "tournamentSeason", "participants", "countries"],
+                "participants_embedded_in": ["schedule", "standings"]
+            },
+            "sample_team_ids": [{"id": 23358, "name": "Bodø/Glimt"}],
+            "last_verified_at": "2026-08-29T00:00:00+00:00",
+            "verified_at": "2026-08-29",
+            "verification_method": "live_api_from_docker01",
+            "source": "live_verification",
+            "verification_status": "confirmed",
+            "notes": [
+                "Fem turnerings- og sesongendepunkter returnerte HTTP 200 fra docker01.",
+                "Schedule inneholder kvalifisering, playoff og ligafase i samme sesong.",
+                "Standings inneholder én 36-lags ligatabell med stageName.",
+                "Participants inneholder klubbemblemer; Bodø/Glimt har participant-id 23358."
+            ]
+        },
         {
             "provider": "Schibsted SportsNext",
             "sport": "football",
