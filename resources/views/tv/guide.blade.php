@@ -314,16 +314,24 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
     <section class="shared-actions" aria-label="Sport, tidsfordriv og utskrift">
         <div class="front-page-grid">
-        <a href="/premier-league" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
+        <a href="/premier-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Premier League 2026/27
         </a>
 
-        <a href="/eliteserien" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
+        <a href="/eliteserien" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Eliteserien 2026
         </a>
 
-        <a href="/champions-league" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
+        <a href="/champions-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Champions League 2026/27
+        </a>
+
+        <a href="/europa-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+            ⚽ Europa League 2026/27
+        </a>
+
+        <a href="/conference-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+            ⚽ Conference League 2026/27
         </a>
 
         <a href="/tidsfordriv" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">

@@ -50,6 +50,18 @@ class HomepageResponsiveCssTest extends TestCase
         );
     }
 
+    public function testFootballActionsHaveOneAccessibleSharedColour(): void
+    {
+        $this->assertMatchesRegularExpression(
+            '/\.front-page-btn--football\s*\{[^}]*--front-page-btn-bg:\s*#176b46;[^}]*--front-page-btn-color:\s*#fff;/s',
+            $this->css
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.front-page-btn--football:hover,\s*\.front-page-btn--football:focus\s*\{[^}]*--front-page-btn-bg:\s*#125436;/s',
+            $this->css
+        );
+    }
+
     public function testPrisonColumnsRemainResponsiveWithoutChangingDesktopLayout(): void
     {
         $this->assertMatchesRegularExpression(

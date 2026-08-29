@@ -396,6 +396,19 @@
     --front-page-btn-color: #212529;
 }
 
+.front-page-btn--football {
+    --front-page-btn-bg: #176b46;
+    --front-page-btn-border: #125436;
+    --front-page-btn-color: #fff;
+}
+
+.front-page-btn--football:hover,
+.front-page-btn--football:focus {
+    --front-page-btn-bg: #125436;
+    --front-page-btn-border: #0d3d28;
+    --front-page-btn-color: #fff;
+}
+
 .front-page-btn--test {
     --front-page-btn-bg: #5b6f35;
     --front-page-btn-border: #5b6f35;

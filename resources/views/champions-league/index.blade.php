@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Champions League 2026/27 | INNSATT.NO')
+@section('title', $competitionName.' '.$seasonLabel.' | INNSATT.NO')
 
 @push('styles')
 <style>
@@ -42,14 +42,14 @@
 
     <section class="cl-hero p-3 p-md-4 mb-3">
         <div class="d-flex flex-wrap align-items-start justify-content-between">
-            <div><div class="cl-title-row mb-2"><h1 class="h2 mb-0">Champions League</h1><span class="cl-beta">Beta</span></div>
-                <p class="lead mb-2">Sesongen 2026/27 · tabell, kamper og sluttspill hentet fra VG/Schibsted sitt sports-API.</p>
+            <div><div class="cl-title-row mb-2"><h1 class="h2 mb-0">{{ $competitionName }}</h1><span class="cl-beta">Beta</span></div>
+                <p class="lead mb-2">Sesongen {{ $seasonLabel }} · tabell, kamper og sluttspill hentet fra VG/Schibsted sitt sports-API.</p>
                 @if($lastUpdated)<p class="cl-muted mb-0">Sist oppdatert: {{ $lastUpdated->format('d.m.Y H:i') }}</p>@endif
             </div>
-            <a href="{{ route('champions-league.print') }}" class="btn btn-success mt-2 mt-md-0"><i class="far fa-print" aria-hidden="true"></i> Skriv ut oversikt</a>
+            <a href="{{ route($printRoute) }}" class="btn btn-success mt-2 mt-md-0"><i class="far fa-print" aria-hidden="true"></i> Skriv ut oversikt</a>
         </div>
-        @if(!$apiConfigured)<p class="cl-empty mt-3">Champions League-sesongen er ikke koblet til en sikker Schibsted-sesong-ID ennå.</p>
-        @elseif($apiError && !$usingStaleData)<p class="cl-empty mt-3">Vi klarer ikke hente oppdaterte Champions League-data akkurat nå. Prøv igjen senere.</p>
+        @if(!$apiConfigured)<p class="cl-empty mt-3">{{ $competitionName }}-sesongen er ikke koblet til en sikker Schibsted-sesong-ID ennå.</p>
+        @elseif($apiError && !$usingStaleData)<p class="cl-empty mt-3">Vi klarer ikke hente oppdaterte {{ $competitionName }}-data akkurat nå. Prøv igjen senere.</p>
         @elseif($apiError)<p class="cl-empty mt-3">Nye data kunne ikke hentes akkurat nå. Viser sist lagrede data.</p>@endif
     </section>
 
@@ -58,7 +58,7 @@
         <p class="cl-muted mb-3">{{ $standingsGroups[0]['stageName'] ?? 'Samlet ligatabell' }}</p>
         @if(count($standings))
         <div class="table-responsive"><table class="table table-sm table-bordered cl-table mb-0"><thead><tr><th>Plass</th><th>Lag</th><th class="text-center">K</th><th class="text-center">V</th><th class="text-center">U</th><th class="text-center">T</th><th class="text-center">Mål</th><th class="text-center">MF</th><th class="text-center">P</th></tr></thead><tbody>
-        @foreach($standings as $team)<tr><td>{{ $team['rank'] ?? '-' }}</td><td><span class="cl-team"><a class="cl-team-link" href="{{ route('champions-league.team', $team['teamId']) }}">@if($team['emblemUrl'])<img class="cl-emblem" src="{{ $team['emblemUrl'] }}" alt="{{ $team['teamName'] }}" onerror="this.remove()">@endif<span>{{ $team['teamName'] }}</span></a></span></td><td class="text-center">{{ $team['played'] ?? '-' }}</td><td class="text-center">{{ $team['wins'] ?? '-' }}</td><td class="text-center">{{ $team['draws'] ?? '-' }}</td><td class="text-center">{{ $team['losses'] ?? '-' }}</td><td class="text-center">{{ $team['goalsFor'] ?? '-' }}-{{ $team['goalsAgainst'] ?? '-' }}</td><td class="text-center">{{ $team['goalDifference'] ?? '-' }}</td><td class="text-center font-weight-bold">{{ $team['points'] ?? '-' }}</td></tr>@endforeach
+        @foreach($standings as $team)<tr><td>{{ $team['rank'] ?? '-' }}</td><td><span class="cl-team"><a class="cl-team-link" href="{{ route($teamRoute, $team['teamId']) }}">@if($team['emblemUrl'])<img class="cl-emblem" src="{{ $team['emblemUrl'] }}" alt="{{ $team['teamName'] }}" onerror="this.remove()">@endif<span>{{ $team['teamName'] }}</span></a></span></td><td class="text-center">{{ $team['played'] ?? '-' }}</td><td class="text-center">{{ $team['wins'] ?? '-' }}</td><td class="text-center">{{ $team['draws'] ?? '-' }}</td><td class="text-center">{{ $team['losses'] ?? '-' }}</td><td class="text-center">{{ $team['goalsFor'] ?? '-' }}-{{ $team['goalsAgainst'] ?? '-' }}</td><td class="text-center">{{ $team['goalDifference'] ?? '-' }}</td><td class="text-center font-weight-bold">{{ $team['points'] ?? '-' }}</td></tr>@endforeach
         </tbody></table></div>
         @else <p class="cl-empty">Tabellen er ikke publisert i datagrunnlaget ennå.</p>@endif
     </section>

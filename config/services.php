@@ -66,12 +66,18 @@ return [
         'eliteserien_season_id' => env('SCHIBSTED_ELITESERIEN_SEASON_ID', 8766),
         'champions_league_tournament_id' => env('SCHIBSTED_CHAMPIONS_LEAGUE_TOURNAMENT_ID', 1),
         'champions_league_season_id' => env('SCHIBSTED_CHAMPIONS_LEAGUE_SEASON_ID', 9168),
+        'europa_league_tournament_id' => env('SCHIBSTED_EUROPA_LEAGUE_TOURNAMENT_ID', 14),
+        'europa_league_season_id' => env('SCHIBSTED_EUROPA_LEAGUE_SEASON_ID', 9170),
+        'conference_league_tournament_id' => env('SCHIBSTED_CONFERENCE_LEAGUE_TOURNAMENT_ID', 469),
+        'conference_league_season_id' => env('SCHIBSTED_CONFERENCE_LEAGUE_SEASON_ID', 9171),
         'catalog_path' => env('SCHIBSTED_FOOTBALL_CATALOG_PATH', storage_path('app/reference/schibsted-football-tournaments.json')),
         'known_season_ids' => [
             7767,
             9186,
             8766,
             9168,
+            9170,
+            9171,
         ],
     ],
 

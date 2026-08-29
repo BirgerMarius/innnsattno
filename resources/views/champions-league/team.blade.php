@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $team['teamName'].' | Champions League | INNSATT.NO')
+@section('title', $team['teamName'].' | '.$competitionName.' | INNSATT.NO')
 
 @push('styles')
 <style>
@@ -30,11 +30,11 @@
 <div class="cl-team-page"><div class="container py-4 py-md-5">
     @include('partials.header')
     <main class="cl-team-card p-3 p-md-4">
-        <a class="cl-team-back" href="{{ route('champions-league.index') }}">← Tilbake til Champions League</a>
+        <a class="cl-team-back" href="{{ route($competitionRoute) }}">← Tilbake til {{ $competitionName }}</a>
         <header class="cl-team-header">
             @if($team['emblemUrl'])<img src="{{ $team['emblemUrl'] }}" alt="">@endif
-            <div><h1>Champions League<br>{{ $team['teamName'] }}</h1><p>Sesongen 2026/27 · Ligafase</p></div>
-            <a class="btn btn-success cl-team-print" href="{{ route('champions-league.team.print', $team['teamId']) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut kampoversikt</a>
+            <div><h1>{{ $competitionName }}<br>{{ $team['teamName'] }}</h1><p>Sesongen {{ $seasonLabel }} · Ligafase</p></div>
+            <a class="btn btn-success cl-team-print" href="{{ route($teamPrintRoute, $team['teamId']) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut kampoversikt</a>
         </header>
 
         @if($apiError)<p class="cl-team-empty mt-3">Oppdaterte data kunne ikke lastes akkurat nå{{ $usingStaleData ? '. Viser sist lagrede data.' : '.' }}</p>@endif
@@ -60,7 +60,7 @@
                 @include('champions-league.partials.team-match', ['match' => $match, 'teamId' => $team['teamId']])
             @empty <p class="cl-team-empty">Ingen kommende ligafasekamper er publisert ennå.</p>@endforelse
         </section>
-        @if(!count($teamMatches))<p class="cl-team-empty mt-4">Dette laget har ingen Champions League-kamper i ligafasen i datagrunnlaget.</p>@endif
+        @if(!count($teamMatches))<p class="cl-team-empty mt-4">Dette laget har ingen {{ $competitionName }}-kamper i ligafasen i datagrunnlaget.</p>@endif
     </main>
     @include('partials.footer')
 </div></div>
