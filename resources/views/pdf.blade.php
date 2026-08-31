@@ -35,31 +35,44 @@
        the next newspaper column. */
     .ringerike-tv-print {
         column-count: 4;
+        column-width: auto;
+        column-fill: auto;
         column-gap: 0.6em;
         font-size: 11pt;
         line-height: 1.2;
     }
 
     .ringerike-tv-print__channel {
+        box-sizing: border-box;
+        display: block;
+        width: 100%;
         max-width: 100%;
         min-width: 0;
         overflow: hidden;
-        break-inside: avoid;
     }
 
     .ringerike-tv-print__channel-name {
         display: block;
-        margin-top: 8px;
+        max-width: 100%;
+        width: 100%;
+        break-after: avoid;
+        margin: 0.45em 0 0.1em;
         overflow-wrap: anywhere;
         word-break: break-word;
     }
 
     .ringerike-tv-print__listing {
-        display: grid;
-        grid-template-columns: 3.15em minmax(0, 1fr);
-        column-gap: 0.2em;
+        /* A block keeps the time and title together, while continuation lines can
+           use the full column width. A two-track grid reserved the time gutter on
+           every line and made otherwise ordinary titles needlessly tall. */
+        display: block;
+        box-sizing: border-box;
+        break-inside: avoid;
+        page-break-inside: avoid;
         max-width: 100%;
         min-width: 0;
+        width: 100%;
+        overflow: hidden;
     }
 
     .ringerike-tv-print__time {
@@ -67,7 +80,6 @@
     }
 
     .ringerike-tv-print__title {
-        min-width: 0;
         overflow-wrap: anywhere;
         word-break: break-word;
     }
@@ -93,7 +105,6 @@
                 @endif
             @endforeach
         </section>
-        <br />
     @endforeach
 
 

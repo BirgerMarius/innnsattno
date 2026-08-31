@@ -150,7 +150,12 @@ class TvGuidePrintTest extends TestCase
             ->assertSee($longWord)
             ->assertSee('ringerike-tv-print__channel')
             ->assertSee('ringerike-tv-print__listing')
-            ->assertSee('grid-template-columns: 3.15em minmax(0, 1fr)', false)
+            ->assertSee('column-fill: auto', false)
+            ->assertSee('display: block', false)
+            ->assertSee('break-inside: avoid', false)
+            ->assertSee('page-break-inside: avoid', false)
+            ->assertSee('break-after: avoid', false)
+            ->assertSee('margin: 0.45em 0 0.1em', false)
             ->assertSee('max-width: 100%', false)
             ->assertSee('min-width: 0', false)
             ->assertSee('overflow: hidden', false)
@@ -189,7 +194,12 @@ class TvGuidePrintTest extends TestCase
             ->assertSee($longWord)
             ->assertSee('ilseng-tv-print__channel')
             ->assertSee('ilseng-tv-print__listing')
-            ->assertSee('grid-template-columns: 3.15em minmax(0, 1fr)', false)
+            ->assertSee('column-fill: auto', false)
+            ->assertSee('display: block', false)
+            ->assertSee('break-inside: avoid', false)
+            ->assertSee('page-break-inside: avoid', false)
+            ->assertSee('break-after: avoid', false)
+            ->assertSee('margin: 0.45em 0 0.1em', false)
             ->assertSee('max-width: 100%', false)
             ->assertSee('min-width: 0', false)
             ->assertSee('overflow: hidden', false)
@@ -199,6 +209,114 @@ class TvGuidePrintTest extends TestCase
             ->assertSee('line-height: 1.2', false);
 
         $this->assertSame(3, substr_count($response->getContent(), '<div class="ilseng-tv-print__listing">'));
+    }
+
+    /**
+     * @dataProvider printLayoutSources
+     */
+    public function test_print_layout_keeps_only_individual_programmes_together_in_columns(string $view): void
+    {
+        $template = file_get_contents(resource_path("views/{$view}.blade.php"));
+
+        $this->assertStringContainsString('column-count: 4;', $template);
+        $this->assertStringContainsString('column-width: auto;', $template);
+        $this->assertStringContainsString('column-fill: auto;', $template);
+        $this->assertStringContainsString('box-sizing: border-box;', $template);
+        $this->assertStringContainsString('width: 100%;', $template);
+        $this->assertStringContainsString('break-after: avoid;', $template);
+        $this->assertStringContainsString('break-inside: avoid;', $template);
+        $this->assertStringContainsString('page-break-inside: avoid;', $template);
+        $this->assertStringContainsString('overflow-wrap: anywhere;', $template);
+        $this->assertStringContainsString('white-space: nowrap;', $template);
+        $this->assertStringNotContainsString('grid-template-columns:', $template);
+        $this->assertStringNotContainsString("overflow: hidden;\n        break-inside: avoid;", $template);
+        $this->assertStringNotContainsString("</section>\n        <br />", $template);
+    }
+
+    public function printLayoutSources(): array
+    {
+        return [
+            'Ringerike' => ['pdf'],
+            'Ilseng' => ['pdf-ilseng'],
+        ];
+    }
+
+    /**
+     * @dataProvider printRoutes
+     */
+    public function test_print_layout_renders_mixed_channel_lengths_without_reintroducing_grid_rows(string $route): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-08-29 08:00:00', 'Europe/Oslo'));
+
+        $longWord = str_repeat('Ekstraordinærtlangprogramtittel', 10);
+        $listings = array_map(fn (int $hour) => [
+            'startsAt' => sprintf('2026-08-29T%02d:00:00Z', $hour),
+            'title' => ['title' => 'Kort program'],
+        ], range(10, 21));
+
+        $channels = [
+            ['channel' => ['name' => 'Kanal med mange korte programmer'], 'listings' => $listings],
+            ['channel' => ['name' => 'Kanalnavn med en lang forklarende beskrivelse'], 'listings' => [
+                ['startsAt' => '2026-08-29T22:00:00Z', 'title' => ['title' => $longWord]],
+            ]],
+            ['channel' => ['name' => 'Kanal med få programmer'], 'listings' => [
+                ['startsAt' => '2026-08-29T23:00:00Z', 'title' => ['title' => 'Siste program']],
+            ]],
+        ];
+
+        Http::fake([
+            'tvguide.vg.no/*' => Http::response($channels, 200),
+            'www.dw.com/graph-api/en/livestream/english' => Http::response([], 503),
+        ]);
+
+        $response = $this->get($route)->assertOk();
+
+        $response
+            ->assertSee('Kort program')
+            ->assertSee($longWord)
+            ->assertSee('Kanal med få programmer')
+            ->assertSee('column-fill: auto', false)
+            ->assertDontSee('grid-template-columns:', false);
+
+        $this->assertSame(14, substr_count($response->getContent(), '__listing">'));
+    }
+
+    /**
+     * @dataProvider printRoutes
+     */
+    public function test_print_layout_gives_late_page_channels_the_full_column_width(string $route): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-08-29 08:00:00', 'Europe/Oslo'));
+
+        $longTitle = 'En lang programtittel som må brytes over flere linjer uten at Nickelodeon, DR1 eller MTV blir en smal restkolonne';
+        $channels = array_map(fn (string $name) => [
+            'channel' => ['name' => $name],
+            'listings' => [
+                ['startsAt' => '2026-08-29T20:00:00Z', 'title' => ['title' => $longTitle]],
+                ['startsAt' => '2026-08-29T21:00:00Z', 'title' => ['title' => str_repeat('Sværtlangtprogramnavn', 8)]],
+            ],
+        ], ['Nickelodeon', 'DR1', 'MTV']);
+
+        Http::fake([
+            'tvguide.vg.no/*' => Http::response($channels, 200),
+            'www.dw.com/graph-api/en/livestream/english' => Http::response([], 503),
+        ]);
+
+        $response = $this->get($route)->assertOk();
+
+        $response
+            ->assertSee('Nickelodeon')
+            ->assertSee('DR1')
+            ->assertSee('MTV')
+            ->assertSee($longTitle)
+            ->assertSee('column-count: 4', false)
+            ->assertSee('column-width: auto', false)
+            ->assertSee('width: 100%', false)
+            ->assertSee('box-sizing: border-box', false)
+            ->assertSee('overflow-wrap: anywhere', false)
+            ->assertSee('overflow: hidden', false);
+
+        $this->assertSame(6, substr_count($response->getContent(), '__listing">'));
     }
 
     private function dwResponse(array $slots): array
