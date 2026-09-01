@@ -69,11 +69,13 @@ class FootballTeamPageTest extends TestCase
 
         $css = File::get(public_path('css/custom/app.css'));
         $this->assertStringContainsString('.football-team-print-list { column-count: 2;', $css);
-        $this->assertStringContainsString('@page { size: A4 portrait; margin: 12mm; }', $css);
-        $this->assertStringContainsString('font-size: 10pt', $css);
-        $this->assertStringContainsString('column-gap: 8mm', $css);
+        $this->assertStringContainsString('@page { size: A4 portrait; margin: 12.7mm; }', $css);
+        $this->assertStringContainsString('.football-team-print-page { color: #111; font-family: Arial, sans-serif; font-size: 9.5pt;', $css);
+        $this->assertStringContainsString('.football-team-print-list { column-count: 2; column-gap: 7mm; }', $css);
         $this->assertStringContainsString('.football-team-print-stats { break-inside: avoid;', $css);
-        $this->assertStringContainsString('font-size: 8.5pt', $css);
+        $this->assertStringContainsString('.football-team-print-match { break-inside: avoid; border-bottom: .5px solid #999; display: grid; gap: 1.2mm;', $css);
+        $this->assertStringContainsString('padding: 1.05mm 0;', $css);
+        $this->assertStringContainsString('.football-team-print-note { border-top: .5px solid #777; font-size: 8.25pt;', $css);
     }
 
     /** @dataProvider leagues */
@@ -95,7 +97,8 @@ class FootballTeamPageTest extends TestCase
         $response = $this->get(($seasonId === 8766 ? '/eliteserien' : '/premier-league').'/lag/1/utskrift')->assertOk();
 
         $this->assertSame($matchCount, substr_count($response->getContent(), 'football-team-print-match'));
-        $this->assertStringContainsString('font-size: 10pt', File::get(public_path('css/custom/app.css')));
+        $this->assertStringContainsString('.football-team-print-list { column-count: 2; column-gap: 7mm; }', File::get(public_path('css/custom/app.css')));
+        $response->assertSee('Dato og tidspunkt for kommende kamper kan endres.');
     }
 
     /** @dataProvider leagues */
