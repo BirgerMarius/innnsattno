@@ -48,6 +48,7 @@ class FlagDayService
 
         $from = $this->mourningDate(config('mourning_flag.from'));
         $until = $this->mourningDate(config('mourning_flag.until'));
+        $funeralDate = $this->mourningDate(config('mourning_flag.funeral_date'));
 
         if (! $from || ($until && $until->lessThan($from))) {
             return null;
@@ -61,9 +62,11 @@ class FlagDayService
             return null;
         }
 
+        $isFuneralDay = $funeralDate && $selectedDate->isSameDay($funeralDate);
+
         return [
-            'title' => (string) config('mourning_flag.title'),
-            'message' => (string) config('mourning_flag.message'),
+            'title' => (string) config($isFuneralDay ? 'mourning_flag.funeral_title' : 'mourning_flag.title'),
+            'message' => (string) config($isFuneralDay ? 'mourning_flag.funeral_message' : 'mourning_flag.message'),
             'source_url' => config('mourning_flag.source_url'),
             'source_name' => (string) config('mourning_flag.source_name'),
             'from' => $from,

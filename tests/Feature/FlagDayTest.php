@@ -373,6 +373,39 @@ class FlagDayTest extends TestCase
             ->assertSee('H.M. Kong Harald V er død.');
     }
 
+    public function testMourningNoticeChangesForTheFuneralDayAndEndsAtOsloMidnight(): void
+    {
+        config([
+            'mourning_flag.enabled' => true,
+            'mourning_flag.from' => '2026-08-28',
+            'mourning_flag.until' => '2026-09-09',
+            'mourning_flag.title' => 'H.M. Kong Harald V er død.',
+            'mourning_flag.message' => 'Norge er i en nasjonal sørgeperiode. Det flagges på halv stang fra statlige bygninger frem til gravferdsdagen.',
+            'mourning_flag.funeral_date' => '2026-09-09',
+            'mourning_flag.funeral_title' => 'Kong Haralds gravferd er i dag',
+            'mourning_flag.funeral_message' => 'Gravferdsseremonien for H.M. Kong Harald V begynner i Oslo domkirke kl. 13.00. Det flagges på halv stang fram til gravferdsseremonien er avsluttet. Deretter skal flagget heises på hel stang.',
+        ]);
+
+        Carbon::setTestNow('2026-09-08 12:00:00 Europe/Oslo');
+        $this->get('/tv')
+            ->assertOk()
+            ->assertSee('H.M. Kong Harald V er død.')
+            ->assertDontSee('Kong Haralds gravferd er i dag');
+
+        Carbon::setTestNow('2026-09-08 22:30:00 UTC');
+        $this->get('/tv')
+            ->assertOk()
+            ->assertSee('Kong Haralds gravferd er i dag')
+            ->assertSee('Gravferdsseremonien for H.M. Kong Harald V begynner i Oslo domkirke kl. 13.00. Det flagges på halv stang fram til gravferdsseremonien er avsluttet. Deretter skal flagget heises på hel stang.')
+            ->assertDontSee('H.M. Kong Harald V er død.');
+
+        Carbon::setTestNow('2026-09-09 22:00:00 UTC');
+        $this->get('/tv')
+            ->assertOk()
+            ->assertDontSee('H.M. Kong Harald V er død.')
+            ->assertDontSee('Kong Haralds gravferd er i dag');
+    }
+
     public function testMourningFlaggingDoesNotAffectOrdinaryNextOrUpcomingFlagDays(): void
     {
         $this->configureMourningFlagging('2026-07-28', '2026-07-28');
