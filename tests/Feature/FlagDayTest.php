@@ -87,11 +87,10 @@ class FlagDayTest extends TestCase
         $flagDays = collect(app(FlagDayService::class)->forYear(2026))->keyBy('name');
 
         $expected = [
-            'H.K.H. Prinsesse Ingrid Alexandra' => 'https://www.kongehuset.no/kongehuset/hennes-kongelige-hoyhet-prinsessen/prinsesse-ingrid-alexandras-biografi',
-            'H.M. Kong Harald V' => 'https://www.kongehuset.no/kongehuset/hans-majestet-kongen/kong-haralds-biografi',
-            'H.M. Dronning Sonja' => 'https://www.kongehuset.no/kongehuset/hennes-majestet-dronningen/dronning-sonjas-biografi',
-            'H.K.H. Kronprins Haakon' => 'https://www.kongehuset.no/kongehuset/hans-kongelige-hoyhet-kronprinsen/kronprins-haakons-biografi',
-            'H.K.H. Kronprinsesse Mette-Marit' => 'https://www.kongehuset.no/kongehuset/hennes-kongelige-hoyhet-kronprinsessen/kronprinsesse-mette-marits-biografi',
+            'H.K.H. Kronprinsesse Ingrid Alexandra' => 'https://www.kongehuset.no/kongehuset/hennes-kongelige-hoyhet-prinsessen/prinsesse-ingrid-alexandras-biografi',
+            'Dronning Sonja' => 'https://www.kongehuset.no/kongehuset/hennes-majestet-dronningen/dronning-sonjas-biografi',
+            'H.M. Kong Haakon VIII' => 'https://www.kongehuset.no/kongehuset/hans-kongelige-hoyhet-kronprinsen/kronprins-haakons-biografi',
+            'H.M. Dronning Mette-Marit' => 'https://www.kongehuset.no/kongehuset/hennes-kongelige-hoyhet-kronprinsessen/kronprinsesse-mette-marits-biografi',
         ];
 
         foreach ($expected as $name => $url) {
@@ -99,12 +98,26 @@ class FlagDayTest extends TestCase
         }
     }
 
+    public function testFormerKingHaraldBirthdayIsNotAnOfficialFlagDay(): void
+    {
+        $flagDays = collect(app(FlagDayService::class)->forYear(2027));
+
+        $this->assertFalse($flagDays->contains(
+            fn (array $flagDay) => $flagDay['date']->toDateString() === '2027-02-21'
+        ));
+        $this->assertNull($flagDays->firstWhere('name', 'H.M. Kong Harald V'));
+
+        Carbon::setTestNow('2027-02-20 12:00:00 Europe/Oslo');
+        $this->get('/tv')->assertDontSee('H.M. Kong Harald V');
+        $this->assertNotSame('2027-02-21', app(FlagDayService::class)->overview()['next']['date']->toDateString());
+    }
+
     public function testRoyalBirthdayAgesAreCalculatedFromBirthYearForEachCalendarYear(): void
     {
         $ingridIn2027 = collect(app(FlagDayService::class)->forYear(2027))
-            ->firstWhere('name', 'H.K.H. Prinsesse Ingrid Alexandra');
+            ->firstWhere('name', 'H.K.H. Kronprinsesse Ingrid Alexandra');
         $ingridIn2028 = collect(app(FlagDayService::class)->forYear(2028))
-            ->firstWhere('name', 'H.K.H. Prinsesse Ingrid Alexandra');
+            ->firstWhere('name', 'H.K.H. Kronprinsesse Ingrid Alexandra');
         $newYearsDay = collect(app(FlagDayService::class)->forYear(2027))
             ->firstWhere('name', '1. nyttårsdag');
 
@@ -124,7 +137,7 @@ class FlagDayTest extends TestCase
             ->assertSeeInOrder([
                 'Neste flaggdag:',
                 '21. januar',
-                'H.K.H. Prinsesse Ingrid Alexandra (23 år)',
+                'H.K.H. Kronprinsesse Ingrid Alexandra (23 år)',
             ]);
     }
 
@@ -137,7 +150,7 @@ class FlagDayTest extends TestCase
             ->assertSeeInOrder([
                 'Det er flaggdag i dag:',
                 'href="https://www.kongehuset.no/kongehuset/hennes-kongelige-hoyhet-prinsessen/prinsesse-ingrid-alexandras-biografi"',
-                'H.K.H. Prinsesse Ingrid Alexandra (23 år)',
+                'H.K.H. Kronprinsesse Ingrid Alexandra (23 år)',
                 '</a>',
             ], false);
     }
@@ -200,7 +213,7 @@ class FlagDayTest extends TestCase
             '1. nyttårsdag',
             '<strong>21. jan. 2027</strong>:',
             'href="https://www.kongehuset.no/kongehuset/hennes-kongelige-hoyhet-prinsessen/prinsesse-ingrid-alexandras-biografi"',
-            'H.K.H. Prinsesse Ingrid Alexandra (23 år)',
+            'H.K.H. Kronprinsesse Ingrid Alexandra (23 år)',
             '<strong>6. feb. 2027</strong>:',
             'href="https://snl.no/samenes_nasjonaldag"',
             'Samenes nasjonaldag',
@@ -212,7 +225,7 @@ class FlagDayTest extends TestCase
         $upcomingNames = array_column($overview['upcoming'], 'name');
 
         $this->assertSame('1. juledag', $overview['next']['name']);
-        $this->assertSame(['1. nyttårsdag', 'H.K.H. Prinsesse Ingrid Alexandra', 'Samenes nasjonaldag'], $upcomingNames);
+        $this->assertSame(['1. nyttårsdag', 'H.K.H. Kronprinsesse Ingrid Alexandra', 'Samenes nasjonaldag'], $upcomingNames);
         $this->assertSame(['2027-01-01', '2027-01-21', '2027-02-06'], $upcomingDates);
         $this->assertCount(3, array_unique($upcomingDates));
         $this->assertCount(3, array_unique($upcomingNames));
@@ -247,7 +260,7 @@ class FlagDayTest extends TestCase
                 '<strong>1. jan. 2027</strong>:',
                 '1. nyttårsdag',
                 '<strong>21. jan. 2027</strong>:',
-                'H.K.H. Prinsesse Ingrid Alexandra (23 år)',
+                'H.K.H. Kronprinsesse Ingrid Alexandra (23 år)',
                 '<strong>6. feb. 2027</strong>:',
                 'Samenes nasjonaldag',
             ], false)
@@ -256,7 +269,7 @@ class FlagDayTest extends TestCase
         $this->assertTrue($overview['is_flag_day']);
         $this->assertSame('1. juledag', $overview['next']['name']);
         $this->assertSame(['2027-01-01', '2027-01-21', '2027-02-06'], $upcomingDates);
-        $this->assertSame(['1. nyttårsdag', 'H.K.H. Prinsesse Ingrid Alexandra', 'Samenes nasjonaldag'], $upcomingNames);
+        $this->assertSame(['1. nyttårsdag', 'H.K.H. Kronprinsesse Ingrid Alexandra', 'Samenes nasjonaldag'], $upcomingNames);
         $this->assertCount(3, array_unique($upcomingDates));
         $this->assertCount(3, array_unique($upcomingNames));
         $this->assertNotContains($overview['next']['date']->toDateString(), $upcomingDates);
@@ -415,7 +428,7 @@ class FlagDayTest extends TestCase
 
         $this->assertSame('Olsokdagen', $overview['next']['name']);
         $this->assertFalse($overview['is_flag_day']);
-        $this->assertSame(['H.K.H. Kronprinsesse Mette-Marit', '1. juledag', '1. nyttårsdag'], array_column($overview['upcoming'], 'name'));
+        $this->assertSame(['H.M. Dronning Mette-Marit', '1. juledag', '1. nyttårsdag'], array_column($overview['upcoming'], 'name'));
     }
 
     public function testMourningAndOrdinaryFlagDayAreBothShownWhenTheyCoincide(): void

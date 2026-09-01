@@ -94,17 +94,16 @@ class FlagDayService
     {
         $fixed = [
             ['month' => 1, 'day' => 1, 'name' => '1. nyttårsdag', 'information_url' => 'https://snl.no/nytt%C3%A5rsdag'],
-            ['month' => 1, 'day' => 21, 'name' => 'H.K.H. Prinsesse Ingrid Alexandra', 'birth_year' => 2004, 'information_url' => 'https://www.kongehuset.no/kongehuset/hennes-kongelige-hoyhet-prinsessen/prinsesse-ingrid-alexandras-biografi'],
+            ['month' => 1, 'day' => 21, 'name' => 'H.K.H. Kronprinsesse Ingrid Alexandra', 'birth_year' => 2004, 'information_url' => 'https://www.kongehuset.no/kongehuset/hennes-kongelige-hoyhet-prinsessen/prinsesse-ingrid-alexandras-biografi'],
             ['month' => 2, 'day' => 6, 'name' => 'Samenes nasjonaldag', 'information_url' => 'https://snl.no/samenes_nasjonaldag'],
-            ['month' => 2, 'day' => 21, 'name' => 'H.M. Kong Harald V', 'birth_year' => 1937, 'information_url' => 'https://www.kongehuset.no/kongehuset/hans-majestet-kongen/kong-haralds-biografi'],
             ['month' => 5, 'day' => 1, 'name' => 'Arbeidernes dag', 'information_url' => 'https://snl.no/1._mai'],
             ['month' => 5, 'day' => 8, 'name' => 'Frigjørings- og veterandagen', 'information_url' => 'https://snl.no/frigj%C3%B8ringen'],
             ['month' => 5, 'day' => 17, 'name' => 'Grunnlovsdagen', 'information_url' => 'https://snl.no/17._mai_-_dato'],
             ['month' => 6, 'day' => 7, 'name' => 'Unionsoppløsningen 1905', 'information_url' => 'https://snl.no/Unionsoppl%C3%B8sningen_i_1905'],
-            ['month' => 7, 'day' => 4, 'name' => 'H.M. Dronning Sonja', 'birth_year' => 1937, 'information_url' => 'https://www.kongehuset.no/kongehuset/hennes-majestet-dronningen/dronning-sonjas-biografi'],
-            ['month' => 7, 'day' => 20, 'name' => 'H.K.H. Kronprins Haakon', 'birth_year' => 1973, 'information_url' => 'https://www.kongehuset.no/kongehuset/hans-kongelige-hoyhet-kronprinsen/kronprins-haakons-biografi'],
+            ['month' => 7, 'day' => 4, 'name' => 'Dronning Sonja', 'birth_year' => 1937, 'information_url' => 'https://www.kongehuset.no/kongehuset/hennes-majestet-dronningen/dronning-sonjas-biografi'],
+            ['month' => 7, 'day' => 20, 'name' => 'H.M. Kong Haakon VIII', 'birth_year' => 1973, 'information_url' => 'https://www.kongehuset.no/kongehuset/hans-kongelige-hoyhet-kronprinsen/kronprins-haakons-biografi'],
             ['month' => 7, 'day' => 29, 'name' => 'Olsokdagen', 'information_url' => 'https://snl.no/olsok'],
-            ['month' => 8, 'day' => 19, 'name' => 'H.K.H. Kronprinsesse Mette-Marit', 'birth_year' => 1973, 'information_url' => 'https://www.kongehuset.no/kongehuset/hennes-kongelige-hoyhet-kronprinsessen/kronprinsesse-mette-marits-biografi'],
+            ['month' => 8, 'day' => 19, 'name' => 'H.M. Dronning Mette-Marit', 'birth_year' => 1973, 'information_url' => 'https://www.kongehuset.no/kongehuset/hennes-kongelige-hoyhet-kronprinsessen/kronprinsesse-mette-marits-biografi'],
             ['month' => 12, 'day' => 25, 'name' => '1. juledag', 'information_url' => 'https://snl.no/jul'],
         ];
 
