@@ -68,6 +68,8 @@ Controlleren håndterer request og view; et service-lag håndterer ekstern integ
 
 Cache beskytter mot kortvarige eksterne feil og unødvendige API-kall. Tester skal dekke både normal respons og relevant fallback. Se blant annet `TvGuideService`, `PrayerTimeService`, `FootballWorldCupService`, `RingbladNewsService`, `WeatherForecastService`, `SchibstedCompetitionService`, `NamedayService` og `OnThisDayService`.
 
+Vurder Laravels rate limiting for dynamiske eller API-tunge sider som kan bli utsatt for aggressiv crawling. Bruk `robots.txt` til å begrense unødvendig crawlertrafikk. Rate limiting er intern trafikkbeskyttelse og skal ikke trigge `ExternalDataFailureNotifier`.
+
 ### Varsling av eksterne feil
 
 Bruk `app/Services/ExternalDataFailureNotifier.php` som standardmekanisme for relevante produksjonsintegrasjoner. Kallet skal ha stabil `service` og `operation`, en kort sanitert `summary`, eventuelt `failure_kind`, og HTTP-status når det er relevant.

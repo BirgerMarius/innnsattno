@@ -40,6 +40,34 @@ class PrayerControllerTest extends TestCase
         Mail::assertNothingSent();
     }
 
+    public function test_prayer_pages_allow_normal_traffic_and_rate_limit_each_ip_independently(): void
+    {
+        Http::fake(['api.bonnetid.no/*' => Http::response([$this->bonnetidDay()])]);
+
+        for ($request = 0; $request < 60; $request++) {
+            $this->getFromIp('/bonnetider?year=2026&month=9', '203.0.113.10')->assertOk();
+        }
+
+        $this->getFromIp('/bonnetider?year=2026&month=9', '203.0.113.10')->assertStatus(429);
+        $this->getFromIp('/bonnetider-ilseng?year=2026&month=9', '203.0.113.11')->assertOk();
+
+        Mail::assertNothingSent();
+    }
+
+    public function test_prayer_print_pages_have_a_stricter_separate_rate_limit(): void
+    {
+        Http::fake(['api.bonnetid.no/*' => Http::response([$this->bonnetidDay()])]);
+
+        for ($request = 0; $request < 20; $request++) {
+            $this->getFromIp('/bonnetider/utskrift?year=2026&month=9', '203.0.113.20')->assertOk();
+        }
+
+        $this->getFromIp('/bonnetider/utskrift?year=2026&month=9', '203.0.113.20')->assertStatus(429);
+        $this->getFromIp('/bonnetider?year=2026&month=9', '203.0.113.20')->assertOk();
+
+        Mail::assertNothingSent();
+    }
+
     public function test_invalid_periods_redirect_without_calling_bonnetid_or_notifying(): void
     {
         Http::fake(['api.bonnetid.no/*' => Http::response([], 500)]);
@@ -156,5 +184,10 @@ class PrayerControllerTest extends TestCase
             'maghrib' => '20:30',
             'isha' => '22:12',
         ];
+    }
+
+    private function getFromIp(string $url, string $ip)
+    {
+        return $this->call('GET', $url, [], [], [], ['REMOTE_ADDR' => $ip]);
     }
 }

@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\RateLimiter;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -30,7 +32,17 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        RateLimiter::for('prayer-pages', function ($request) {
+            return Limit::perMinute(60)->by('prayer-pages:'.$request->ip());
+        });
+
+        RateLimiter::for('prayer-print-pages', function ($request) {
+            return Limit::perMinute(20)->by('prayer-print-pages:'.$request->ip());
+        });
+
+        RateLimiter::for('football-team-pages', function ($request) {
+            return Limit::perMinute(60)->by('football-team-pages:'.$request->ip());
+        });
 
         parent::boot();
     }

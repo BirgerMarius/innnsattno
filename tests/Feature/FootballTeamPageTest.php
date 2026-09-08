@@ -89,6 +89,18 @@ class FootballTeamPageTest extends TestCase
         $this->get($path.'/lag/999')->assertNotFound();
     }
 
+    public function test_premier_league_team_pages_allow_normal_traffic_and_rate_limit_per_ip(): void
+    {
+        $this->fakeCompetition(9186);
+
+        for ($request = 0; $request < 60; $request++) {
+            $this->getFromIp('/premier-league/lag/1', '203.0.113.30')->assertOk();
+        }
+
+        $this->getFromIp('/premier-league/lag/1', '203.0.113.30')->assertStatus(429);
+        $this->getFromIp('/premier-league/lag/1', '203.0.113.31')->assertOk();
+    }
+
     /** @dataProvider fullSeasonPrints */
     public function test_full_team_season_print_keeps_all_matches_in_the_two_column_layout(int $seasonId, int $matchCount): void
     {
@@ -254,6 +266,11 @@ class FootballTeamPageTest extends TestCase
             "*/tournaments/seasons/{$seasonId}/schedule" => Http::response(['participants' => $participants, 'events' => $events], 200),
             "*/tournaments/seasons/{$seasonId}/standings" => Http::response(['participants' => $participants, 'standings' => [['teamStandings' => [['teamId' => 1, 'rank' => 1]]]]], 200),
         ]);
+    }
+
+    private function getFromIp(string $url, string $ip)
+    {
+        return $this->call('GET', $url, [], [], [], ['REMOTE_ADDR' => $ip]);
     }
 
     private function finishedEvent(int $id, string $startDate, array $teamIds, int $homeScore, int $awayScore): array
