@@ -78,6 +78,15 @@ return view($view, [
     'month' => $month,
     'monthName' => $monthNames[$month],
     'error' => $days === [] ? 'Bønnetider kunne ikke hentes akkurat nå. Prøv igjen senere.' : null,
+    'returnUrl' => $print ? $this->returnUrl($request) : null,
 ]);
+    }
+
+    private function returnUrl(Request $request): string
+    {
+        $path = preg_replace('#/utskrift$#', '', $request->path());
+        $query = $request->getQueryString();
+
+        return '/'.ltrim($path, '/').($query ? '?'.$query : '');
     }
 }

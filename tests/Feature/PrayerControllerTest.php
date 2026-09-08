@@ -54,6 +54,28 @@ class PrayerControllerTest extends TestCase
             ->assertSee('13:29')
             ->assertSee('17:02')
             ->assertSee('20:30')
-            ->assertSee('22:12');
+            ->assertSee('22:12')
+            ->assertSee('const prayerTimesUrl = "\/bonnetider?month=9\\u0026year=2026";', false)
+            ->assertSee("window.addEventListener('afterprint'", false)
+            ->assertSee('window.location.replace(prayerTimesUrl);', false)
+            ->assertSee('window.print();', false);
+    }
+
+    public function test_ilseng_print_returns_to_the_same_month_view(): void
+    {
+        Http::fake(['api.bonnetid.no/*' => Http::response([[
+            'date' => '01-09-2026',
+            'fajr' => '03:39',
+            'duhr' => '13:29',
+            'asr' => '17:02',
+            'maghrib' => '20:30',
+            'isha' => '22:12',
+        ]])]);
+
+        $this->get('/bonnetider-ilseng/utskrift?year=2026&month=9')
+            ->assertOk()
+            ->assertSee('const prayerTimesUrl = "\/bonnetider-ilseng?month=9\\u0026year=2026";', false)
+            ->assertSee("window.addEventListener('afterprint'", false)
+            ->assertSee('window.location.replace(prayerTimesUrl);', false);
     }
 }
