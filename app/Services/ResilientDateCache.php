@@ -8,7 +8,7 @@ use Throwable;
 
 class ResilientDateCache
 {
-    public function remember(string $key, int $ttl, Closure $fetch, array $fallback = []): array
+    public function remember(string $key, int $ttl, Closure $fetch, array $fallback = [], ?Closure $onFailure = null): array
     {
         $freshKey = 'today.fresh.'.$key;
         $staleKey = 'today.stale.'.$key;
@@ -29,7 +29,11 @@ class ResilientDateCache
 
             return $data;
         } catch (Throwable $exception) {
-            report($exception);
+            if ($onFailure !== null) {
+                $onFailure($exception);
+            } else {
+                report($exception);
+            }
 
             return Cache::get($staleKey, $fallback);
         }

@@ -5,7 +5,6 @@ namespace App\Services;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class RingbladNewsService
@@ -17,6 +16,10 @@ class RingbladNewsService
     private const CACHE_TTL_SECONDS = 10800;
     private const STALE_CACHE_TTL_SECONDS = 604800;
     private const USER_AGENT = 'innsatt.no local-news/1.0 (+https://innsatt.no)';
+
+    public function __construct(private ExternalDataFailureNotifier $failureNotifier)
+    {
+    }
 
     public function latest(): array
     {
@@ -47,9 +50,10 @@ class RingbladNewsService
 
             return $articles;
         } catch (Throwable $exception) {
-            Log::warning('Could not refresh Ringblad local news.', [
-                'exception' => get_class($exception),
-                'message' => $exception->getMessage(),
+            $this->failureNotifier->report('ringblad-news', $this->failureSummary($exception), [
+                'operation' => 'front-page-news',
+                'failure_kind' => $this->failureKind($exception),
+                'status' => $exception instanceof \Illuminate\Http\Client\RequestException ? $exception->response?->status() : null,
             ]);
 
             $stale = Cache::get(self::STALE_CACHE_KEY);
@@ -246,5 +250,31 @@ class RingbladNewsService
         } catch (Throwable) {
             return null;
         }
+    }
+
+    private function failureKind(Throwable $exception): string
+    {
+        if ($exception instanceof \Illuminate\Http\Client\ConnectionException) {
+            return 'connection_exception';
+        }
+
+        if ($exception instanceof \Illuminate\Http\Client\RequestException) {
+            return 'http_status';
+        }
+
+        return 'invalid_payload';
+    }
+
+    private function failureSummary(Throwable $exception): string
+    {
+        if ($exception instanceof \Illuminate\Http\Client\RequestException) {
+            return 'Ringerikes Blad svarte med HTTP-status '.$exception->response?->status().'.';
+        }
+
+        if ($exception instanceof \Illuminate\Http\Client\ConnectionException) {
+            return 'Ringerikes Blad kunne ikke nås.';
+        }
+
+        return 'Ringerikes Blad returnerte ingen gjenkjennelige artikler.';
     }
 }

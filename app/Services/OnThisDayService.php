@@ -3,12 +3,20 @@
 namespace App\Services;
 
 use Carbon\CarbonInterface;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use JsonException;
 use RuntimeException;
+use Throwable;
 
 /** Fetches source material. Selection and presentation belong to TodayContentService. */
 class OnThisDayService
 {
+    public function __construct(private ExternalDataFailureNotifier $notifier)
+    {
+    }
+
     public function forDate(CarbonInterface $date): array
     {
         $datePage = $this->norwegianDatePage($date);
@@ -16,10 +24,18 @@ class OnThisDayService
             return $datePage;
         }
 
-        $payload = $this->fetch(config('services.today.wikimedia_url'), $date);
-        if (!$this->hasHistory($payload)) {
-            $payload = $this->fetch(config('services.today.wikimedia_fallback_url'), $date);
+        $payload = $this->fetch(config('services.today.wikimedia_url'), $date, 'no-onthisday');
+        if (!$this->hasHistory($payload ?? [])) {
+            if ($payload !== null) {
+                $this->reportPayloadFailure('no-onthisday');
+            }
+            $payload = $this->fetch(config('services.today.wikimedia_fallback_url'), $date, 'en-onthisday');
+            if (!$this->hasHistory($payload ?? []) && $payload !== null) {
+                $this->reportPayloadFailure('en-onthisday');
+            }
         }
+
+        $payload ??= [];
 
         $result = [];
         foreach (['events', 'births', 'deaths'] as $group) {
@@ -42,13 +58,18 @@ class OnThisDayService
         try {
             $month = $date->copy()->locale('nb')->translatedFormat('F');
             $title = $date->day.'. '.$month;
-            $wikitext = Http::acceptJson()->withHeaders(['User-Agent' => config('services.today.user_agent')])
+            $response = Http::acceptJson()->withHeaders(['User-Agent' => config('services.today.user_agent')])
                 ->timeout((int) config('services.today.timeout', 5))
                 ->get(config('services.today.wikipedia_api_url'), [
                     'action' => 'parse', 'page' => $title, 'prop' => 'wikitext',
                     'format' => 'json', 'formatversion' => 2,
-                ])->throw()->json('parse.wikitext', '');
-            if (!is_string($wikitext) || $wikitext === '') return [];
+                ]);
+            $response->throw();
+            $payload = $this->decodeJson($response->body());
+            $wikitext = data_get($payload, 'parse.wikitext');
+            if (!is_string($wikitext) || $wikitext === '') {
+                throw new RuntimeException('Norsk MediaWiki mangler wikitext.');
+            }
 
             $groups = ['events' => [], 'births' => [], 'deaths' => []];
             $section = null;
@@ -86,8 +107,8 @@ class OnThisDayService
             }
 
             return $this->attachWikibaseIds($groups);
-        } catch (\Throwable $exception) {
-            report($exception);
+        } catch (Throwable $exception) {
+            $this->reportFailure('no-mediawiki', $exception);
             return [];
         }
     }
@@ -98,12 +119,18 @@ class OnThisDayService
         foreach ($groups as $items) foreach ($items as $item) $titles[] = $item['article_title'];
         $ids = [];
         foreach (array_chunk(array_values(array_unique($titles)), 50) as $chunk) {
-            $pages = Http::acceptJson()->withHeaders(['User-Agent' => config('services.today.user_agent')])
+            $response = Http::acceptJson()->withHeaders(['User-Agent' => config('services.today.user_agent')])
                 ->timeout((int) config('services.today.timeout', 5))
                 ->get(config('services.today.wikipedia_api_url'), [
                     'action' => 'query', 'titles' => implode('|', $chunk), 'prop' => 'pageprops|info',
                     'redirects' => 1, 'format' => 'json', 'formatversion' => 2,
-                ])->throw()->json('query.pages', []);
+                ]);
+            $response->throw();
+            $payload = $this->decodeJson($response->body());
+            $pages = data_get($payload, 'query.pages');
+            if (!is_array($pages)) {
+                throw new RuntimeException('Norsk MediaWiki mangler sideinformasjon.');
+            }
             foreach ($pages as $page) if (!empty($page['title'])) $ids[$page['title']] = ['id' => $page['pageprops']['wikibase_item'] ?? null, 'length' => (int) ($page['length'] ?? 0)];
         }
         foreach ($groups as &$items) foreach ($items as &$item) { $metadata = $ids[$item['article_title']] ?? []; $item['wikibase_id'] = $metadata['id'] ?? null; $item['page_length'] = $metadata['length'] ?? 0; unset($item['article_title']); }
@@ -119,14 +146,26 @@ class OnThisDayService
         return trim(strip_tags(str_replace(["'''", "''", '&nbsp;'], ['', '', ' '], $text)));
     }
 
-    private function fetch(string $baseUrl, CarbonInterface $date): array
+    private function fetch(string $baseUrl, CarbonInterface $date, string $operation): ?array
     {
-        return Http::acceptJson()
-            ->withHeaders(['User-Agent' => config('services.today.user_agent')])
-            ->timeout((int) config('services.today.timeout', 5))
-            ->get(rtrim($baseUrl, '/').sprintf('/%02d/%02d', $date->month, $date->day))
-            ->throw()
-            ->json();
+        try {
+            $response = Http::acceptJson()
+                ->withHeaders(['User-Agent' => config('services.today.user_agent')])
+                ->timeout((int) config('services.today.timeout', 5))
+                ->get(rtrim($baseUrl, '/').sprintf('/%02d/%02d', $date->month, $date->day));
+            $response->throw();
+
+            $payload = $this->decodeJson($response->body());
+            if (!array_key_exists('events', $payload) && !array_key_exists('births', $payload) && !array_key_exists('deaths', $payload)) {
+                throw new RuntimeException('Wikimedia mangler forventet historikkstruktur.');
+            }
+
+            return $payload;
+        } catch (Throwable $exception) {
+            $this->reportFailure($operation, $exception);
+
+            return null;
+        }
     }
 
     private function hasHistory(array $payload): bool
@@ -170,5 +209,43 @@ class OnThisDayService
     {
         $title = preg_split('/[.:–—]/u', $text, 2)[0] ?? $text;
         return mb_strlen($title) > 90 ? mb_substr($title, 0, 87).'…' : $title;
+    }
+
+    private function decodeJson(string $body): array
+    {
+        $payload = json_decode($body, true, 512, JSON_THROW_ON_ERROR);
+        if (!is_array($payload)) {
+            throw new RuntimeException('Datakilden returnerte ikke et JSON-objekt.');
+        }
+
+        return $payload;
+    }
+
+    private function reportPayloadFailure(string $operation): void
+    {
+        $this->notifier->report('wikipedia-on-this-day', 'Wikimedia On This Day returnerte uventede data.', [
+            'operation' => $operation,
+            'failure_kind' => 'invalid_payload',
+        ]);
+    }
+
+    private function reportFailure(string $operation, Throwable $exception): void
+    {
+        $context = [
+            'operation' => $operation,
+            'failure_kind' => match (true) {
+                $exception instanceof ConnectionException => 'connection_failure',
+                $exception instanceof RequestException => 'http_status',
+                $exception instanceof JsonException => 'invalid_json',
+                $exception instanceof RuntimeException => 'invalid_payload',
+                default => 'unexpected_error',
+            },
+        ];
+
+        if ($exception instanceof RequestException && $exception->response !== null) {
+            $context['status'] = $exception->response->status();
+        }
+
+        $this->notifier->report('wikipedia-on-this-day', 'Wikipedia- eller Wikimedia-data kunne ikke hentes.', $context);
     }
 }

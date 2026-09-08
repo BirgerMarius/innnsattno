@@ -4,18 +4,20 @@ namespace App\Services\News;
 
 use App\NewsArticle;
 use App\NewsSource;
+use App\Services\ExternalDataFailureNotifier;
 use App\Services\News\Parsers\Corrections1HtmlParser;
 use App\Services\News\Parsers\SekoHtmlParser;
 use App\Services\News\Parsers\XmlFeedParser;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class NewsFeedService
 {
     private $normalizer; private $parsers;
-    public function __construct(UrlNormalizer $normalizer, XmlFeedParser $xml, Corrections1HtmlParser $corrections, SekoHtmlParser $seko)
+    public function __construct(UrlNormalizer $normalizer, XmlFeedParser $xml, Corrections1HtmlParser $corrections, SekoHtmlParser $seko, private ExternalDataFailureNotifier $notifier)
     { $this->normalizer=$normalizer; $this->parsers=[$xml,$corrections,$seko]; }
 
     public function fetchActive(?string $slug = null): array
@@ -44,7 +46,18 @@ class NewsFeedService
             $source->update(['last_success_at'=>now(),'last_error'=>null]);
         } catch(Throwable $e) {
             $message=mb_substr($e->getMessage(),0,2000); $source->update(['last_error'=>$message]); $report['error']=$message;
-            Log::warning('Nyhetshenting feilet', ['source'=>$source->slug,'error'=>$message]);
+            $context = [
+                'operation' => $source->slug,
+                'failure_kind' => match (true) {
+                    $e instanceof ConnectionException => 'connection_failure',
+                    $e instanceof RequestException => 'http_status',
+                    default => 'invalid_payload',
+                },
+            ];
+            if ($e instanceof RequestException && $e->response !== null) {
+                $context['status'] = $e->response->status();
+            }
+            $this->notifier->report('news-feed', 'Nyhetskilden kunne ikke hentes eller leses.', $context);
         }
         return $report;
     }

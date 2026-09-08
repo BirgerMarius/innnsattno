@@ -3,13 +3,24 @@
 namespace Tests\Unit;
 
 use App\Services\TodayContentService;
+use App\Mail\ExternalDataSourceFailureMail;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class TodayContentServiceTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Cache::flush();
+        Mail::fake();
+        config()->set('feedback.notification_email', 'varsling@example.test');
+    }
+
     public function testItRanksNorwegianContentSeparatelyAndRejectsEnglishAndObscureItems(): void
     {
         Http::fake(['www.wikidata.org/*' => Http::response(['entities' => [
@@ -77,6 +88,32 @@ class TodayContentServiceTest extends TestCase
             '11 November' => ['2026-11-11'], 'Norwegian history date' => ['2026-05-17'],
             'international history date' => ['2026-07-20'],
         ];
+    }
+
+    public function testFailedWikidataBatchNotifiesAndOtherContentCanStillRender(): void
+    {
+        Http::fake(['www.wikidata.org/*' => Http::response([], 503)]);
+
+        $result = app(TodayContentService::class)->curate(['events' => [
+            $this->item('Q1', 'En norsk hendelse fant sted i Norge'),
+        ]], CarbonImmutable::parse('2026-03-12'));
+
+        $this->assertSame([], $result['norway_events']);
+        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->service === 'wikidata-entities'
+            && $mail->operation === 'today-content-enrichment' && $mail->status === 503);
+    }
+
+    public function testMultipleFailedWikidataBatchesUseTheNotifierCooldown(): void
+    {
+        Http::fake(['www.wikidata.org/*' => Http::response([], 503)]);
+        $items = [];
+        foreach (range(1, 21) as $number) {
+            $items[] = $this->item('Q'.$number, 'En norsk hendelse '.$number);
+        }
+
+        app(TodayContentService::class)->curate(['events' => $items], CarbonImmutable::parse('2026-03-12'));
+
+        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
     }
 
     private function item(string $id, string $text): array

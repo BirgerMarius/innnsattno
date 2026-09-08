@@ -103,6 +103,11 @@ return [
         ],
     ],
 
+    'prayer_times' => [
+        'base_url' => env('BONNETID_API_BASE_URL', 'https://api.bonnetid.no/prayertimes'),
+        'api_token' => env('BONNETID_API_TOKEN'),
+    ],
+
     'today' => [
         'namedays_url' => env('NAMEDAYS_API_URL', 'https://webapi.no/api/v1/namedays'),
         'wikimedia_url' => env('WIKIMEDIA_ON_THIS_DAY_URL', 'https://no.wikipedia.org/api/rest_v1/feed/onthisday/all'),

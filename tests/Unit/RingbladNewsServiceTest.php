@@ -3,9 +3,11 @@
 namespace Tests\Unit;
 
 use App\Services\RingbladNewsService;
+use App\Mail\ExternalDataSourceFailureMail;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class RingbladNewsServiceTest extends TestCase
@@ -13,8 +15,7 @@ class RingbladNewsServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        Cache::forget(RingbladNewsService::CACHE_KEY);
-        Cache::forget(RingbladNewsService::STALE_CACHE_KEY);
+        Cache::flush();
     }
 
     public function testItFetchesAndParsesPublicArticleDetails(): void
@@ -73,6 +74,8 @@ class RingbladNewsServiceTest extends TestCase
 
     public function testItUsesStaleCacheWhenTheRequestTimesOut(): void
     {
+        Mail::fake();
+        config()->set('feedback.notification_email', 'varsling@example.test');
         $stale = [[
             'title' => 'Sist lagrede sak',
             'url' => 'https://www.ringblad.no/sist-lagret/s/5-45-400',
@@ -83,6 +86,32 @@ class RingbladNewsServiceTest extends TestCase
         Http::fake(fn () => throw new ConnectionException('Timed out'));
 
         $this->assertSame($stale, app(RingbladNewsService::class)->latest());
+        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->service === 'ringblad-news'
+            && $mail->operation === 'front-page-news'
+            && $mail->failureKind === 'connection-exception');
+    }
+
+    public function testItNotifiesForHttpAndParsingFailuresWhileReturningAnEmptyResultWithoutStaleData(): void
+    {
+        Mail::fake();
+        config()->set('feedback.notification_email', 'varsling@example.test');
+        Http::fake([RingbladNewsService::SOURCE_URL => Http::response('Unavailable', 503)]);
+
+        $this->assertSame([], app(RingbladNewsService::class)->latest());
+        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'http-status' && $mail->status === 503);
+
+        app(RingbladNewsService::class)->latest();
+        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+    }
+
+    public function testItNotifiesWhenExpectedArticleMarkupCannotBeParsed(): void
+    {
+        Mail::fake();
+        config()->set('feedback.notification_email', 'varsling@example.test');
+        Http::fake([RingbladNewsService::SOURCE_URL => Http::response('<html><body>Ingen artikler</body></html>', 200)]);
+
+        $this->assertSame([], app(RingbladNewsService::class)->latest());
+        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload');
     }
 
     public function testItUsesAnImageFromTheExistingTeaserMarkupWhenAvailable(): void

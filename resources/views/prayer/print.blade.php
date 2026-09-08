@@ -67,6 +67,10 @@ th {
     {{ $monthName }} {{ $year }}
 </h2>
 
+@if ($error)
+    <p style="text-align:center;">{{ $error }}</p>
+@endif
+
 <table>
 
 <tr>

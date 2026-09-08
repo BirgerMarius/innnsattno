@@ -73,6 +73,10 @@
 
 <h1>Bønnetider {{ $prison['name'] }}</h1>
 
+@if ($error)
+    <p>{{ $error }}</p>
+@endif
+
 <table>
 
 <tr>

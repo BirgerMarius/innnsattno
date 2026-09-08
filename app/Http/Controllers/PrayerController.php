@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use App\Services\PrayerTimeService;
 
 class PrayerController extends Controller
 {
+    public function __construct(private PrayerTimeService $prayerTimes)
+    {
+    }
+
     private array $prisons = [
         'ringerike' => [
             'id' => 146,
@@ -58,15 +62,12 @@ public function printIlseng(Request $request)
 
         $location = $this->prisons[$prison];
 
-        $response = Http::acceptJson()
-            ->withHeaders([
-                'api-token' => '92affaa6-0e9b-4402-8d8a-0fcd8d9e91ec'
-            ])
-            ->get(
-                "https://api.bonnetid.no/prayertimes/{$location['id']}/{$year}/{$month}/"
-            );
-
-        $days = json_decode($response, true);
+        $days = $this->prayerTimes->getMonth(
+            $location['id'],
+            (int) $year,
+            (int) $month,
+            'prayer-times'
+        );
 
         $view = $print ? 'prayer.print' : 'prayer.index';
 
@@ -76,6 +77,7 @@ return view($view, [
     'year' => $year,
     'month' => $month,
     'monthName' => $monthNames[$month],
+    'error' => $days === [] ? 'Bønnetider kunne ikke hentes akkurat nå. Prøv igjen senere.' : null,
 ]);
     }
 }

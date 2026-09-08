@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminDashboardController;
@@ -31,6 +29,7 @@ use App\Http\Controllers\FrontPageController;
 use App\Http\Controllers\Admin\NewsAdminController;
 use App\Http\Controllers\Admin\NewsSourceAdminController;
 use App\Services\DwScheduleService;
+use App\Services\TvGuideService;
 
 /*
 |--------------------------------------------------------------------------
@@ -144,7 +143,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
 });
 
-Route::get('/print', function () {
+Route::get('/print', function (TvGuideService $tvGuideService, DwScheduleService $dwScheduleService) {
 
     $channels = [
         'nrk1',
@@ -180,19 +179,9 @@ Route::get('/print', function () {
         'mtv',
     ];
 
-    $response = Http::acceptJson()->get('https://tvguide.vg.no/backend/api/tv-schedule', [
-        'channels' => implode(',', $channels),
-        'date' => Carbon::parse(now())->format('Y-m-d'),
-        'tz' => 'Europe/Oslo',
-    ]);
+    $tvChannels = $tvGuideService->getSchedule(now('Europe/Oslo'), $channels, 'ringerike-print');
 
-    if ($response->serverError()) {
-        return "Innsatt.no klarer ikke hente TV-guide fra vg.no - dette kan være fordi siden er nede.";
-    }
-
-    $tvChannels = json_decode($response, true);
-
-    $dwChannel = app(DwScheduleService::class)->channelForDate(now('Europe/Oslo'));
+    $dwChannel = $dwScheduleService->channelForDate(now('Europe/Oslo'));
 
     if ($dwChannel !== null) {
         $dwInsertIndex = null;
@@ -221,7 +210,7 @@ Route::get('/print', function () {
     return view('pdf')->with(['channels' => $tvChannels]);
 });
 
-Route::get('/print-ilseng', function () {
+Route::get('/print-ilseng', function (TvGuideService $tvGuideService) {
 
 $channels = [
     'nrk1',
@@ -266,17 +255,7 @@ $channels = [
     'tlc',
 ];
 
-    $response = Http::acceptJson()->get('https://tvguide.vg.no/backend/api/tv-schedule', [
-        'channels' => implode(',', $channels),
-        'date' => Carbon::parse(now())->format('Y-m-d'),
-        'tz' => 'Europe/Oslo',
-    ]);
-
-    if ($response->serverError()) {
-        return "Innsatt.no klarer ikke hente TV-guide fra vg.no - dette kan være fordi siden er nede.";
-    }
-
-    $tvChannels = json_decode($response, true);
+    $tvChannels = $tvGuideService->getSchedule(now('Europe/Oslo'), $channels, 'ilseng-print');
 
     return view('pdf-ilseng')->with(['channels' => $tvChannels]);
 

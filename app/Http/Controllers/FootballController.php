@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Http;
+use App\Services\FootballWorldCupService;
 
 class FootballController extends Controller
 {
+    public function __construct(private FootballWorldCupService $worldCup)
+    {
+    }
+
     public function index()
     {
         return view('football.index', $this->getFootballData());
@@ -18,17 +22,9 @@ class FootballController extends Controller
 
     private function getFootballData()
     {
-        $response = Http::get(
-            'https://api.sportsnext.schibsted.io/v1/vg/tournaments/seasons/7767/schedule'
-        );
-
-        $data = $response->json();
-
-        $standingsResponse = Http::get(
-            'https://api.sportsnext.schibsted.io/v1/vg/tournaments/seasons/7767/standings'
-        );
-
-        $standings = $standingsResponse->json();
+        $worldCup = $this->worldCup->getData();
+        $data = $worldCup['schedule'];
+        $standings = $worldCup['standings'];
 
         $groups = [];
 

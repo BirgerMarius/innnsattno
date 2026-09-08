@@ -7,7 +7,6 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 use Throwable;
 use UnexpectedValueException;
 
@@ -16,6 +15,10 @@ abstract class SchibstedCompetitionService
     private const TIMEZONE = 'Europe/Oslo';
     private const UPCOMING_LIMIT = 12;
     private const RESULTS_LIMIT = 12;
+
+    public function __construct(private ?ExternalDataFailureNotifier $notifier = null)
+    {
+    }
 
     public function getCompetitionData(): array
     {
@@ -886,10 +889,24 @@ abstract class SchibstedCompetitionService
 
     private function logApiFailure(Throwable $exception): void
     {
-        Log::warning('Could not fetch '.$this->competitionLogName().' data from Schibsted Sports API.', [
-            'exception' => get_class($exception),
-            'message' => $exception->getMessage(),
-        ]);
+        $context = [
+            'operation' => $this->cachePrefix(),
+            'failure_kind' => match (true) {
+                $exception instanceof ConnectionException => 'connection_failure',
+                $exception instanceof RequestException => 'http_status',
+                $exception instanceof UnexpectedValueException => 'invalid_payload',
+                default => 'unexpected_error',
+            },
+        ];
+        if ($exception instanceof RequestException && $exception->response !== null) {
+            $context['status'] = $exception->response->status();
+        }
+
+        ($this->notifier ?? app(ExternalDataFailureNotifier::class))->report(
+            'sportsnext-competition',
+            'SportsNext-data for '.$this->competitionLogName().' kunne ikke hentes.',
+            $context
+        );
     }
 
     abstract protected function tournamentConfigKey(): string;

@@ -5,10 +5,20 @@ namespace App\Services;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Client\RequestException;
+use JsonException;
 use RuntimeException;
+use Throwable;
+use UnexpectedValueException;
 
 class WeatherForecastService
 {
+    private const STALE_TTL_SECONDS = 21600;
+
+    public function __construct(private ExternalDataFailureNotifier $failureNotifier)
+    {
+    }
+
     public function forecast(string $locationKey = 'ringerike'): array
     {
         $location = config("services.weather.locations.{$locationKey}");
@@ -17,26 +27,53 @@ class WeatherForecastService
             throw new RuntimeException("Ukjent værsted: {$locationKey}");
         }
 
-        return Cache::remember(
-            $location['cache_key'],
-            (int) config('services.weather.cache_ttl', 1800),
-            fn () => $this->fetchForecast($location)
-        );
+        $fresh = Cache::get($location['cache_key']);
+        if (is_array($fresh)) {
+            return $fresh;
+        }
+
+        try {
+            $forecast = $this->fetchForecast($location);
+
+            Cache::put($location['cache_key'], $forecast, now()->addSeconds((int) config('services.weather.cache_ttl', 1800)));
+            Cache::put($this->staleCacheKey($location), $forecast, now()->addSeconds(self::STALE_TTL_SECONDS));
+
+            return $forecast;
+        } catch (Throwable $exception) {
+            $this->failureNotifier->report('met-weather', $this->failureSummary($exception), [
+                'operation' => $locationKey,
+                'failure_kind' => $this->failureKind($exception),
+                'status' => $exception instanceof RequestException ? $exception->response?->status() : null,
+            ]);
+
+            $stale = Cache::get($this->staleCacheKey($location));
+            if (is_array($stale)) {
+                return $stale;
+            }
+
+            throw $exception;
+        }
     }
 
     private function fetchForecast(array $location): array
     {
         $response = Http::acceptJson()
             ->withHeaders(['User-Agent' => config('services.weather.user_agent')])
+            ->connectTimeout(3)
             ->timeout((int) config('services.weather.timeout', 10))
             ->get(config('services.weather.base_url'), [
                 'lat' => $location['latitude'],
                 'lon' => $location['longitude'],
             ])
-            ->throw()
-            ->json();
+            ->throw();
 
-        $timeSeries = data_get($response, 'properties.timeseries');
+        try {
+            $payload = json_decode($response->body(), true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException $exception) {
+            throw new UnexpectedValueException('Værtjenesten returnerte ugyldig JSON.', 0, $exception);
+        }
+
+        $timeSeries = data_get($payload, 'properties.timeseries');
 
         if (!is_array($timeSeries) || $timeSeries === []) {
             throw new RuntimeException('Værtjenesten returnerte ingen prognosepunkter.');
@@ -85,7 +122,7 @@ class WeatherForecastService
         return [
             'location' => $location['name'],
             'updated_at' => Carbon::parse(
-                data_get($response, 'properties.meta.updated_at', $timeSeries[0]['time'])
+                data_get($payload, 'properties.meta.updated_at', $timeSeries[0]['time'])
             )->setTimezone('Europe/Oslo'),
             'days' => $days,
         ];
@@ -196,5 +233,44 @@ class WeatherForecastService
         }
 
         return '🌦️';
+    }
+
+    private function staleCacheKey(array $location): string
+    {
+        return $location['cache_key'].'.stale';
+    }
+
+    private function failureKind(Throwable $exception): string
+    {
+        if ($exception instanceof \Illuminate\Http\Client\ConnectionException) {
+            return 'connection_exception';
+        }
+
+        if ($exception instanceof RequestException) {
+            return 'http_status';
+        }
+
+        if ($exception instanceof UnexpectedValueException && $exception->getPrevious() instanceof JsonException) {
+            return 'invalid_json';
+        }
+
+        return 'invalid_payload';
+    }
+
+    private function failureSummary(Throwable $exception): string
+    {
+        if ($exception instanceof RequestException) {
+            return 'MET Norge svarte med HTTP-status '.$exception->response?->status().'.';
+        }
+
+        if ($exception instanceof \Illuminate\Http\Client\ConnectionException) {
+            return 'MET Norge kunne ikke nås.';
+        }
+
+        if ($exception instanceof UnexpectedValueException) {
+            return $exception->getMessage();
+        }
+
+        return 'MET Norge returnerte ingen brukbare værdata.';
     }
 }

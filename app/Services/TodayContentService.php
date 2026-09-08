@@ -3,29 +3,39 @@
 namespace App\Services;
 
 use Carbon\CarbonInterface;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use JsonException;
+use RuntimeException;
+use Throwable;
 
 class TodayContentService
 {
     private const NORWAY = 'Q20';
     private const LIMITS = ['norway_events' => 5, 'world_events' => 3, 'births' => 5, 'deaths' => 5];
 
-    private ResilientDateCache $cache;
-    private OnThisDayService $source;
-
-    public function __construct(ResilientDateCache $cache, OnThisDayService $source)
+    public function __construct(
+        private ResilientDateCache $cache,
+        private OnThisDayService $source,
+        private ExternalDataFailureNotifier $notifier,
+    )
     {
-        $this->cache = $cache;
-        $this->source = $source;
     }
 
     public function forDate(CarbonInterface $date): array
     {
         $key = sprintf('curated.v3.%02d-%02d', $date->month, $date->day);
 
-        return $this->cache->remember($key, (int) config('services.today.cache_ttl', 86400), function () use ($date) {
-            return $this->curate($this->source->forDate($date), $date);
-        }, $this->emptyResult($date));
+        return $this->cache->remember(
+            $key,
+            (int) config('services.today.cache_ttl', 86400),
+            function () use ($date) {
+                return $this->curate($this->source->forDate($date), $date);
+            },
+            $this->emptyResult($date),
+            fn (Throwable $exception) => $this->reportSourceFailure($exception)
+        );
     }
 
     public function curate(array $source, CarbonInterface $date): array
@@ -138,16 +148,22 @@ class TodayContentService
         $entities = [];
         foreach (array_chunk($ids, 20) as $chunk) {
             try {
-                $batch = Http::acceptJson()->withHeaders(['User-Agent' => config('services.today.user_agent')])
+                $response = Http::acceptJson()->withHeaders(['User-Agent' => config('services.today.user_agent')])
                     ->timeout((int) config('services.today.timeout', 5))
                     ->get(config('services.today.wikidata_url'), [
                         'action' => 'wbgetentities', 'ids' => implode('|', $chunk),
                         'props' => 'labels|descriptions|sitelinks|claims', 'languages' => 'nb|no', 'sitefilter' => 'nowiki',
                         'format' => 'json', 'formatversion' => 2,
-                    ])->throw()->json('entities', []);
+                    ]);
+                $response->throw();
+                $payload = json_decode($response->body(), true, 512, JSON_THROW_ON_ERROR);
+                if (!is_array($payload) || !is_array($payload['entities'] ?? null)) {
+                    throw new RuntimeException('Wikidata mangler forventet entities-struktur.');
+                }
+                $batch = $payload['entities'];
                 $entities = array_merge($entities, $batch);
-            } catch (\Throwable $exception) {
-                report($exception);
+            } catch (Throwable $exception) {
+                $this->reportWikidataFailure($exception);
             }
         }
 
@@ -210,5 +226,45 @@ class TodayContentService
             'norway_events' => [], 'world_events' => [], 'births' => [], 'deaths' => [],
             'observance' => null, 'fact' => null,
         ], $fixed);
+    }
+
+    private function reportWikidataFailure(Throwable $exception): void
+    {
+        $context = [
+            'operation' => 'today-content-enrichment',
+            'failure_kind' => $this->failureKind($exception),
+        ];
+
+        if ($exception instanceof RequestException && $exception->response !== null) {
+            $context['status'] = $exception->response->status();
+        }
+
+        $this->notifier->report('wikidata-entities', 'Wikidata-berikelse kunne ikke gjennomføres.', $context);
+    }
+
+    private function reportSourceFailure(Throwable $exception): void
+    {
+        // OnThisDayService already reports each unavailable source before it signals
+        // that no fallback produced usable history. Avoid a fourth duplicate alert.
+        if ($exception instanceof RuntimeException && $exception->getMessage() === 'Wikimedia returnerte ingen brukbare oppføringer.') {
+            return;
+        }
+
+        // This only covers an unexpected error while assembling the cached result.
+        $this->notifier->report('wikipedia-on-this-day', 'Dagen i dag-innhold kunne ikke oppdateres.', [
+            'operation' => 'today-content',
+            'failure_kind' => $this->failureKind($exception),
+        ]);
+    }
+
+    private function failureKind(Throwable $exception): string
+    {
+        return match (true) {
+            $exception instanceof ConnectionException => 'connection_failure',
+            $exception instanceof RequestException => 'http_status',
+            $exception instanceof JsonException => 'invalid_json',
+            $exception instanceof RuntimeException => 'invalid_payload',
+            default => 'unexpected_error',
+        };
     }
 }

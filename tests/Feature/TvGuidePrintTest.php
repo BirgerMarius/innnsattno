@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ExternalDataSourceFailureMail;
 use Tests\TestCase;
 
 class TvGuidePrintTest extends TestCase
@@ -120,6 +122,26 @@ class TvGuidePrintTest extends TestCase
 
         Http::assertSentCount(3);
         Http::assertSent(fn ($request) => $request->url() === 'https://www.dw.com/graph-api/en/livestream/english');
+    }
+
+    public function test_print_routes_render_when_vg_is_unavailable_and_report_their_own_operations(): void
+    {
+        Mail::fake();
+        config()->set('feedback.notification_email', 'varsling@example.test');
+        Http::fake([
+            'tvguide.vg.no/*' => Http::response([], 500),
+            'www.dw.com/graph-api/en/livestream/english' => Http::response($this->dwResponse([]), 200),
+        ]);
+
+        $this->get('/print')->assertOk();
+        $this->get('/print-ilseng')->assertOk();
+
+        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
+            return $mail->service === 'tv-guide-vg' && $mail->operation === 'ringerike-print';
+        });
+        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
+            return $mail->service === 'tv-guide-vg' && $mail->operation === 'ilseng-print';
+        });
     }
 
     public function test_ringerike_print_keeps_problematic_channel_and_programme_text_inside_its_column(): void
