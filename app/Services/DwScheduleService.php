@@ -5,13 +5,16 @@ namespace App\Services;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class DwScheduleService
 {
     private const ENDPOINT = 'https://www.dw.com/graph-api/en/livestream/english';
 
     private const CACHE_KEY = 'dw.tv-schedule.slots';
+
+    public function __construct(private ExternalDataFailureNotifier $failureNotifier)
+    {
+    }
 
     public function channelForDate(?Carbon $date = null): ?array
     {
@@ -81,7 +84,11 @@ class DwScheduleService
                 ->get(self::ENDPOINT);
 
             if (! $response->successful()) {
-                Log::warning('DW TV-guide svarte med HTTP-feil.', ['status' => $response->status()]);
+                $this->failureNotifier->report('dw-news', 'DW News kunne ikke hentes.', [
+                    'operation' => 'tv-guide-ringerike',
+                    'failure_kind' => 'http_status',
+                    'status' => $response->status(),
+                ]);
 
                 return null;
             }
@@ -90,7 +97,10 @@ class DwScheduleService
             $slots = $payload['data']['livestreamChannels'][0]['nextTimeSlots'] ?? null;
 
             if (! is_array($slots)) {
-                Log::warning('DW TV-guide mangler forventede programdata.');
+                $this->failureNotifier->report('dw-news', 'DW News returnerte ugyldige programdata.', [
+                    'operation' => 'tv-guide-ringerike',
+                    'failure_kind' => 'invalid_payload',
+                ]);
 
                 return null;
             }
@@ -99,7 +109,10 @@ class DwScheduleService
 
             return $slots;
         } catch (\Throwable $exception) {
-            Log::warning('DW TV-guide kunne ikke hentes.', ['error' => $exception->getMessage()]);
+            $this->failureNotifier->report('dw-news', 'DW News kunne ikke hentes: '.$exception->getMessage(), [
+                'operation' => 'tv-guide-ringerike',
+                'failure_kind' => 'request_exception',
+            ]);
 
             return null;
         }

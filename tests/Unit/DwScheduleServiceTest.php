@@ -3,10 +3,12 @@
 namespace Tests\Unit;
 
 use App\Services\DwScheduleService;
+use App\Mail\ExternalDataSourceFailureMail;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class DwScheduleServiceTest extends TestCase
@@ -87,6 +89,25 @@ class DwScheduleServiceTest extends TestCase
         Http::fake(fn () => throw new ConnectionException('Timed out'));
 
         $this->assertNull(app(DwScheduleService::class)->channelForDate(Carbon::parse('2026-07-15', 'Europe/Oslo')));
+    }
+
+    public function test_dw_failure_notifies_without_changing_its_empty_channel_fallback(): void
+    {
+        Mail::fake();
+        config()->set('feedback.notification_email', 'varsling@example.test');
+        Http::fake([
+            'www.dw.com/graph-api/en/livestream/english' => Http::response([], 503),
+        ]);
+
+        $channel = app(DwScheduleService::class)->channelForDate(Carbon::parse('2026-07-15', 'Europe/Oslo'));
+
+        $this->assertNull($channel);
+        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
+            return $mail->service === 'dw-news'
+                && $mail->operation === 'tv-guide-ringerike'
+                && $mail->failureKind === 'http-status'
+                && $mail->status === 503;
+        });
     }
 
     private function response(array $slots): array
