@@ -9,6 +9,9 @@
         <li><strong>HTTP-status:</strong> {{ $status }}</li>
     @endif
     <li><strong>Feilmelding:</strong> {{ $summary }}</li>
+    @foreach ($diagnostics ?? [] as $key => $value)
+        <li><strong>{{ str_replace('_', ' ', ucfirst($key)) }}:</strong> {{ $value }}</li>
+    @endforeach
 </ul>
 
 <p>Samme tjeneste og operasjon varsles ikke igjen de neste {{ $cooldownSeconds }} sekundene.</p>

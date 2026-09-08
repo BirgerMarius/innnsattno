@@ -21,6 +21,7 @@ class ExternalDataFailureNotifier
                 'failure_kind' => $details['failure_kind'],
                 'status' => $details['status'],
                 'summary' => $details['summary'],
+                'diagnostics' => $details['diagnostics'],
             ]);
 
             $recipient = config('feedback.notification_email');
@@ -66,6 +67,7 @@ class ExternalDataFailureNotifier
             'failure_kind' => $failureKind,
             'status' => $status === false ? null : $status,
             'summary' => $this->sanitizeText($summary),
+            'diagnostics' => $this->diagnostics($context),
             'occurred_at' => now('Europe/Oslo')->format('Y-m-d H:i:s T'),
             'cooldown_seconds' => max(1, (int) config('external_data.cooldown_seconds', 3600)),
         ];
@@ -74,6 +76,31 @@ class ExternalDataFailureNotifier
     private function cooldownKey(array $details): string
     {
         return 'external-data-failure-notified:'.sha1($details['service'].'|'.$details['operation']);
+    }
+
+    private function diagnostics(array $context): array
+    {
+        $diagnostics = [];
+
+        foreach (['location_id', 'year', 'month', 'row_index'] as $key) {
+            $value = filter_var($context[$key] ?? null, FILTER_VALIDATE_INT);
+            if ($value !== false && $value !== null) {
+                $diagnostics[$key] = $value;
+            }
+        }
+
+        foreach (['date', 'missing_field', 'invalid_field', 'payload_type', 'row_type', 'date_type', 'value_type'] as $key) {
+            if (! is_scalar($context[$key] ?? null)) {
+                continue;
+            }
+
+            $value = $this->sanitizeText((string) $context[$key]);
+            if ($value !== '') {
+                $diagnostics[$key] = $value;
+            }
+        }
+
+        return $diagnostics;
     }
 
     private function identifier(string $value, string $fallback): string

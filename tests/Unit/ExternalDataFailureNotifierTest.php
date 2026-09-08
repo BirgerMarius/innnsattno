@@ -109,6 +109,33 @@ class ExternalDataFailureNotifierTest extends TestCase
         $this->assertStringContainsString('[skjult]', $rendered);
     }
 
+    public function test_safe_diagnostics_are_included_without_changing_the_cooldown_key(): void
+    {
+        $notifier = app(ExternalDataFailureNotifier::class);
+        $context = [
+            'operation' => 'prayer-times',
+            'location_id' => 146,
+            'year' => 2026,
+            'month' => 10,
+            'row_index' => 3,
+            'missing_field' => 'isha',
+            'api_token' => 'must-not-be-included',
+        ];
+
+        $notifier->report('bonnetid-no', 'Mangler bønnetid.', $context);
+        $notifier->report('bonnetid-no', 'Mangler bønnetid.', array_replace($context, ['month' => 11]));
+
+        $mail = Mail::sent(ExternalDataSourceFailureMail::class)->first();
+        $this->assertSame([
+            'location_id' => 146,
+            'year' => 2026,
+            'month' => 10,
+            'row_index' => 3,
+            'missing_field' => 'isha',
+        ], $mail->diagnostics);
+        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+    }
+
     private function report(string $service, string $operation): void
     {
         app(ExternalDataFailureNotifier::class)->report($service, 'Datakilden svarte ikke.', [

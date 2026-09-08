@@ -43,11 +43,20 @@ class PrayerTimeService
 
             return $days;
         } catch (Throwable $exception) {
-            $this->failureNotifier->report('bonnetid-no', $this->summary($exception), [
+            $context = [
                 'operation' => $operation,
                 'failure_kind' => $this->failureKind($exception),
                 'status' => $exception instanceof RequestException ? $exception->response?->status() : null,
-            ]);
+                'location_id' => $locationId,
+                'year' => $year,
+                'month' => $month,
+            ];
+
+            if ($exception instanceof PrayerTimePayloadException) {
+                $context = array_merge($context, $exception->diagnostics());
+            }
+
+            $this->failureNotifier->report('bonnetid-no', $this->summary($exception), $context);
 
             $stale = Cache::get($keys['stale']);
 
@@ -109,31 +118,43 @@ class PrayerTimeService
     private function normalisePayload(mixed $payload): array
     {
         if (! is_array($payload) || $payload === [] || array_keys($payload) !== range(0, count($payload) - 1)) {
-            throw new UnexpectedValueException('Bønnetid.no mangler nødvendige bønnetider.');
+            throw new PrayerTimePayloadException('Bønnetid.no mangler nødvendige bønnetider.', [
+                'payload_type' => get_debug_type($payload),
+            ]);
         }
 
         $days = [];
 
-        foreach ($payload as $day) {
-            $days[] = $this->normaliseDay($day);
+        foreach ($payload as $rowIndex => $day) {
+            $days[] = $this->normaliseDay($day, $rowIndex);
         }
 
         return $days;
     }
 
-    private function normaliseDay(mixed $day): array
+    private function normaliseDay(mixed $day, int $rowIndex): array
     {
         if (! is_array($day)) {
-            throw new UnexpectedValueException('Bønnetid.no mangler nødvendige bønnetider.');
+            throw new PrayerTimePayloadException('Bønnetid.no mangler nødvendige bønnetider.', [
+                'row_index' => $rowIndex,
+                'row_type' => get_debug_type($day),
+            ]);
         }
 
         if (! is_string($day['date'] ?? null) || ! $this->isValidDate($day['date'])) {
-            throw new UnexpectedValueException('Bønnetid.no returnerte ugyldig eller manglende dato.');
+            throw new PrayerTimePayloadException('Bønnetid.no returnerte ugyldig eller manglende dato.', [
+                'row_index' => $rowIndex,
+                'date_type' => get_debug_type($day['date'] ?? null),
+            ]);
         }
 
         foreach (self::PRAYER_FIELDS as $field) {
             if (! array_key_exists($field, $day)) {
-                throw new UnexpectedValueException('Bønnetid.no mangler nødvendige bønnetider.');
+                // The published PrayerTime schema makes these fields nullable,
+                // but does not mark them as required. DRF can therefore omit an
+                // unavailable value instead of serialising it as null.
+                $day[$field] = null;
+                continue;
             }
 
             // Nullable is part of Bønnetid.no's PrayerTime schema. Keep null
@@ -144,7 +165,12 @@ class PrayerTimeService
             }
 
             if (! is_string($day[$field]) || ! preg_match('/^\d{1,2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/', $day[$field])) {
-                throw new UnexpectedValueException('Bønnetid.no mangler nødvendige bønnetider.');
+                throw new PrayerTimePayloadException('Bønnetid.no mangler nødvendige bønnetider.', [
+                    'row_index' => $rowIndex,
+                    'date' => $day['date'],
+                    'invalid_field' => $field,
+                    'value_type' => get_debug_type($day[$field]),
+                ]);
             }
         }
 

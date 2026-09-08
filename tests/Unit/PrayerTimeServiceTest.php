@@ -63,6 +63,60 @@ class PrayerTimeServiceTest extends TestCase
         Mail::assertNothingSent();
     }
 
+    public function test_documented_omitted_prayer_times_are_normalised_to_null_for_the_views(): void
+    {
+        $day = $this->bonnetidDay();
+        unset($day['fajr'], $day['isha']);
+        Http::fake(['api.bonnetid.no/*' => Http::response([$day])]);
+
+        $result = $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
+
+        $this->assertNull($result[0]['fajr']);
+        $this->assertNull($result[0]['isha']);
+        Mail::assertNothingSent();
+    }
+
+    public function test_representative_ringerike_and_ilseng_month_payloads_are_accepted(): void
+    {
+        $payloads = [
+            '146/2026/9' => [$this->bonnetidDay()],
+            // The public schema does not require the individual nullable fields.
+            '146/2026/10' => [array_diff_key($this->bonnetidDay([
+                'date' => '01-10-2026',
+                'location' => 'Ringerike',
+            ]), ['isha' => true])],
+            '181/2026/9' => [$this->bonnetidDay([
+                'date' => '01-09-2026',
+                'location' => 'Ilseng',
+                'fajr' => null,
+                'isha' => null,
+            ])],
+            '181/2026/10' => [$this->bonnetidDay([
+                'date' => '01-10-2026',
+                'location' => 'Ilseng',
+            ])],
+        ];
+
+        Http::fake(function ($request) use ($payloads) {
+            foreach ($payloads as $path => $payload) {
+                if (str_ends_with($request->url(), '/'.$path.'/')) {
+                    return Http::response($payload);
+                }
+            }
+
+            return Http::response([], 404);
+        });
+
+        foreach ([[146, 2026, 9], [146, 2026, 10], [181, 2026, 9], [181, 2026, 10]] as [$locationId, $year, $month]) {
+            $result = $this->service()->getMonth($locationId, $year, $month);
+
+            $this->assertNotSame([], $result, "Expected a result for {$locationId}/{$year}/{$month}.");
+        }
+
+        Http::assertSentCount(4);
+        Mail::assertNothingSent();
+    }
+
     public function test_http_failure_notifies_and_uses_stale_data_for_the_same_period_and_location(): void
     {
         $stale = [$this->day('2026-09-02')];
@@ -124,7 +178,16 @@ class PrayerTimeServiceTest extends TestCase
         Http::fake(['api.bonnetid.no/*' => Http::response([$this->bonnetidDay(['maghrib' => 'etter solnedgang'])])]);
 
         $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload');
+        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload'
+            && $mail->diagnostics === [
+                'location_id' => self::LOCATION_ID,
+                'year' => self::YEAR,
+                'month' => self::MONTH,
+                'row_index' => 0,
+                'date' => '01-09-2026',
+                'invalid_field' => 'maghrib',
+                'value_type' => 'string',
+            ]);
     }
 
     public function test_missing_date_notifies_and_returns_an_empty_result(): void

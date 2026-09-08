@@ -17,6 +17,7 @@ class ExternalDataSourceFailureMail extends Mailable
     public ?int $status;
     public string $occurredAt;
     public int $cooldownSeconds;
+    public array $diagnostics;
 
     public function __construct(array $details)
     {
@@ -27,6 +28,7 @@ class ExternalDataSourceFailureMail extends Mailable
         $this->status = $details['status'];
         $this->occurredAt = $details['occurred_at'];
         $this->cooldownSeconds = $details['cooldown_seconds'];
+        $this->diagnostics = $details['diagnostics'];
     }
 
     public function build()
