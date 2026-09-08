@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use DateTimeImmutable;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Cache;
@@ -126,8 +127,8 @@ class PrayerTimeService
             throw new UnexpectedValueException('Bønnetid.no mangler nødvendige bønnetider.');
         }
 
-        if (! is_string($day['date'] ?? null) || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $day['date'])) {
-            throw new UnexpectedValueException('Bønnetid.no mangler nødvendige bønnetider.');
+        if (! is_string($day['date'] ?? null) || ! $this->isValidDate($day['date'])) {
+            throw new UnexpectedValueException('Bønnetid.no returnerte ugyldig eller manglende dato.');
         }
 
         foreach (self::PRAYER_FIELDS as $field) {
@@ -148,6 +149,16 @@ class PrayerTimeService
         }
 
         return $day;
+    }
+
+    private function isValidDate(string $date): bool
+    {
+        $parsedDate = DateTimeImmutable::createFromFormat('!d-m-Y', $date);
+        $errors = DateTimeImmutable::getLastErrors();
+
+        return $parsedDate !== false
+            && ($errors === false || ($errors['warning_count'] === 0 && $errors['error_count'] === 0))
+            && $parsedDate->format('d-m-Y') === $date;
     }
 
     private function cacheKeys(int $locationId, int $year, int $month): array

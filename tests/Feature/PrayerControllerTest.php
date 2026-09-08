@@ -30,30 +30,30 @@ class PrayerControllerTest extends TestCase
     {
         Http::fake(['api.bonnetid.no/*' => Http::response([[
             'location' => 'Ringerike',
-            'date' => '2026-09-01',
-            'fajr' => '04:11:00',
-            'duhr' => '13:18:00',
-            'asr' => '17:03:00',
-            'maghrib' => '20:56:00',
-            'isha' => '22:53:00',
+            'date' => '01-09-2026',
+            'fajr' => '03:39',
+            'duhr' => '13:29',
+            'asr' => '17:02',
+            'maghrib' => '20:30',
+            'isha' => '22:12',
         ]])]);
 
         $this->get('/bonnetider?year=2026&month=9')
             ->assertOk()
-            ->assertSee('2026-09-01')
-            ->assertSee('04:11:00')
-            ->assertSee('13:18:00')
-            ->assertSee('17:03:00')
-            ->assertSee('20:56:00')
-            ->assertSee('22:53:00');
+            ->assertSee('01-09-2026')
+            ->assertSee('03:39')
+            ->assertSee('13:29')
+            ->assertSee('17:02')
+            ->assertSee('20:30')
+            ->assertSee('22:12');
 
         $this->get('/bonnetider/utskrift?year=2026&month=9')
             ->assertOk()
-            ->assertSee('2026-09-01')
-            ->assertSee('04:11:00')
-            ->assertSee('13:18:00')
-            ->assertSee('17:03:00')
-            ->assertSee('20:56:00')
-            ->assertSee('22:53:00');
+            ->assertSee('01-09-2026')
+            ->assertSee('03:39')
+            ->assertSee('13:29')
+            ->assertSee('17:02')
+            ->assertSee('20:30')
+            ->assertSee('22:12');
     }
 }

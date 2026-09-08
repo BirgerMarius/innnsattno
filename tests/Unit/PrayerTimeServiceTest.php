@@ -38,13 +38,15 @@ class PrayerTimeServiceTest extends TestCase
 
         $this->assertSame($days, $first);
         $this->assertSame($days, $second);
-        $this->assertSame('04:11:00', $first[0]['fajr']);
-        $this->assertSame('13:18:00', $first[0]['duhr']);
-        $this->assertSame('17:03:00', $first[0]['asr']);
-        $this->assertSame('20:56:00', $first[0]['maghrib']);
-        $this->assertSame('22:53:00', $first[0]['isha']);
+        $this->assertSame('03:39', $first[0]['fajr']);
+        $this->assertSame('13:29', $first[0]['duhr']);
+        $this->assertSame('17:02', $first[0]['asr']);
+        $this->assertSame('20:30', $first[0]['maghrib']);
+        $this->assertSame('22:12', $first[0]['isha']);
         Http::assertSentCount(1);
-        Http::assertSent(fn ($request) => $request->hasHeader('api-token', 'test-token'));
+        Http::assertSent(fn ($request) => $request->url() === 'https://api.bonnetid.no/prayertimes/146/2026/9/'
+            && parse_url($request->url(), PHP_URL_QUERY) === null
+            && $request->hasHeader('api-token', 'test-token'));
     }
 
     public function test_documented_nullable_prayer_times_are_kept_for_the_views(): void
@@ -75,6 +77,20 @@ class PrayerTimeServiceTest extends TestCase
                 && $mail->operation === 'prayer-times'
                 && $mail->failureKind === 'http-status'
                 && $mail->status === 500;
+        });
+    }
+
+    public function test_not_found_response_notifies_as_an_http_status_failure(): void
+    {
+        Http::fake(['api.bonnetid.no/*' => Http::response([], 404)]);
+
+        $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
+
+        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
+            return $mail->service === 'bonnetid-no'
+                && $mail->operation === 'prayer-times'
+                && $mail->failureKind === 'http-status'
+                && $mail->status === 404;
         });
     }
 
@@ -119,6 +135,24 @@ class PrayerTimeServiceTest extends TestCase
 
         $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
         Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload');
+    }
+
+    public function test_invalid_calendar_date_notifies_and_returns_an_empty_result(): void
+    {
+        Http::fake(['api.bonnetid.no/*' => Http::response([$this->bonnetidDay(['date' => '31-02-2026'])])]);
+
+        $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
+        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload'
+            && $mail->summary === 'Bønnetid.no returnerte ugyldig eller manglende dato.');
+    }
+
+    public function test_wrong_date_format_notifies_and_returns_an_empty_result(): void
+    {
+        Http::fake(['api.bonnetid.no/*' => Http::response([$this->bonnetidDay(['date' => '2026-09-01'])])]);
+
+        $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
+        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload'
+            && $mail->summary === 'Bønnetid.no returnerte ugyldig eller manglende dato.');
     }
 
     public function test_stale_data_from_another_period_or_location_is_not_used(): void
@@ -183,7 +217,7 @@ class PrayerTimeServiceTest extends TestCase
         return sprintf('prayer-times.stale.%04d-%02d.location-%d', self::YEAR, self::MONTH, self::LOCATION_ID);
     }
 
-    private function day(string $date = '2026-09-01'): array
+    private function day(string $date = '01-09-2026'): array
     {
         return [
             'date' => $date,
@@ -199,19 +233,19 @@ class PrayerTimeServiceTest extends TestCase
     {
         return array_replace([
             'location' => 'Ringerike',
-            'date' => '2026-09-01',
+            'date' => '01-09-2026',
             'district_code' => '30',
             'kommune' => 'Ringerike',
             'hijri_date' => '09 Safar 1448',
-            'istiwa_noon' => '13:11:00',
-            'duhr' => '13:18:00',
-            'asr' => '17:03:00',
-            'ghrub_sunset' => '20:50:00',
-            'maghrib' => '20:56:00',
-            'isha' => '22:53:00',
-            'fajr_sadiq' => '04:11:00',
-            'fajr' => '04:11:00',
-            'shuruq_sunrise' => '06:23:00',
+            'istiwa_noon' => '13:22:00',
+            'duhr' => '13:29',
+            'asr' => '17:02',
+            'ghrub_sunset' => '20:24',
+            'maghrib' => '20:30',
+            'isha' => '22:12',
+            'fajr_sadiq' => '03:39',
+            'fajr' => '03:39',
+            'shuruq_sunrise' => '06:31',
         ], $overrides);
     }
 
