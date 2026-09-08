@@ -15,7 +15,11 @@ class PrayerTimeService
 {
     private const FRESH_TTL_SECONDS = 21600;
     private const STALE_TTL_SECONDS = 604800;
-    private const REQUIRED_FIELDS = ['date', 'fajr', 'duhr', 'asr', 'maghrib', 'isha'];
+    /**
+     * These are the keys consumed by the prayer views. Bønnetid.no returns the
+     * same lower-case names (including its historic spelling, "duhr").
+     */
+    private const PRAYER_FIELDS = ['fajr', 'duhr', 'asr', 'maghrib', 'isha'];
 
     public function __construct(private ExternalDataFailureNotifier $failureNotifier)
     {
@@ -91,41 +95,59 @@ class PrayerTimeService
             throw new UnexpectedValueException('Bønnetid.no returnerte ugyldig JSON.', 0, $exception);
         }
 
-        if (! $this->isValidPayload($payload)) {
+        return $this->normalisePayload($payload);
+    }
+
+    /**
+     * Bønnetid.no's month endpoint is a flat list of PrayerTime objects. Its
+     * OpenAPI schema marks the individual time properties as nullable: in
+     * particular, a time can be unavailable at northern latitudes. The old
+     * controller passed those values straight through to the views, so retain
+     * that behaviour while still rejecting malformed data.
+     */
+    private function normalisePayload(mixed $payload): array
+    {
+        if (! is_array($payload) || $payload === [] || array_keys($payload) !== range(0, count($payload) - 1)) {
             throw new UnexpectedValueException('Bønnetid.no mangler nødvendige bønnetider.');
         }
 
-        return $payload;
-    }
-
-    private function isValidPayload(mixed $payload): bool
-    {
-        if (! is_array($payload) || $payload === [] || array_keys($payload) !== range(0, count($payload) - 1)) {
-            return false;
-        }
+        $days = [];
 
         foreach ($payload as $day) {
-            if (! is_array($day) || ! $this->hasRequiredFields($day)) {
-                return false;
-            }
+            $days[] = $this->normaliseDay($day);
         }
 
-        return true;
+        return $days;
     }
 
-    private function hasRequiredFields(array $day): bool
+    private function normaliseDay(mixed $day): array
     {
-        if (! is_string($day['date'] ?? null) || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $day['date'])) {
-            return false;
+        if (! is_array($day)) {
+            throw new UnexpectedValueException('Bønnetid.no mangler nødvendige bønnetider.');
         }
 
-        foreach (array_slice(self::REQUIRED_FIELDS, 1) as $field) {
-            if (! is_string($day[$field] ?? null) || ! preg_match('/^\d{1,2}:\d{2}(?::\d{2})?$/', $day[$field])) {
-                return false;
+        if (! is_string($day['date'] ?? null) || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $day['date'])) {
+            throw new UnexpectedValueException('Bønnetid.no mangler nødvendige bønnetider.');
+        }
+
+        foreach (self::PRAYER_FIELDS as $field) {
+            if (! array_key_exists($field, $day)) {
+                throw new UnexpectedValueException('Bønnetid.no mangler nødvendige bønnetider.');
+            }
+
+            // Nullable is part of Bønnetid.no's PrayerTime schema. Keep null
+            // for Blade, which renders it as an empty cell just as it did
+            // before the service refactor.
+            if ($day[$field] === null) {
+                continue;
+            }
+
+            if (! is_string($day[$field]) || ! preg_match('/^\d{1,2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/', $day[$field])) {
+                throw new UnexpectedValueException('Bønnetid.no mangler nødvendige bønnetider.');
             }
         }
 
-        return true;
+        return $day;
     }
 
     private function cacheKeys(int $locationId, int $year, int $month): array

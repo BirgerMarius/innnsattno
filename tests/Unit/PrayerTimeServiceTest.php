@@ -28,9 +28,9 @@ class PrayerTimeServiceTest extends TestCase
         config()->set('services.prayer_times.api_token', 'test-token');
     }
 
-    public function test_successful_call_returns_prayer_times_uses_configured_token_and_caches_the_response(): void
+    public function test_realistic_bonnetid_payload_is_accepted_mapped_for_the_views_and_cached(): void
     {
-        $days = [$this->day()];
+        $days = [$this->bonnetidDay()];
         Http::fake(['api.bonnetid.no/*' => Http::response($days)]);
 
         $first = $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
@@ -38,8 +38,27 @@ class PrayerTimeServiceTest extends TestCase
 
         $this->assertSame($days, $first);
         $this->assertSame($days, $second);
+        $this->assertSame('04:11:00', $first[0]['fajr']);
+        $this->assertSame('13:18:00', $first[0]['duhr']);
+        $this->assertSame('17:03:00', $first[0]['asr']);
+        $this->assertSame('20:56:00', $first[0]['maghrib']);
+        $this->assertSame('22:53:00', $first[0]['isha']);
         Http::assertSentCount(1);
         Http::assertSent(fn ($request) => $request->hasHeader('api-token', 'test-token'));
+    }
+
+    public function test_documented_nullable_prayer_times_are_kept_for_the_views(): void
+    {
+        $day = $this->bonnetidDay([
+            'fajr' => null,
+            'isha' => null,
+        ]);
+        Http::fake(['api.bonnetid.no/*' => Http::response([$day])]);
+
+        $result = $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
+
+        $this->assertSame([$day], $result);
+        Mail::assertNothingSent();
     }
 
     public function test_http_failure_notifies_and_uses_stale_data_for_the_same_period_and_location(): void
@@ -80,6 +99,24 @@ class PrayerTimeServiceTest extends TestCase
     public function test_missing_prayer_times_notifies_and_returns_an_empty_result(): void
     {
         Http::fake(['api.bonnetid.no/*' => Http::response([['date' => '2026-09-01', 'fajr' => '05:00']])]);
+        $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
+        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload');
+    }
+
+    public function test_invalid_prayer_time_value_notifies_and_returns_an_empty_result(): void
+    {
+        Http::fake(['api.bonnetid.no/*' => Http::response([$this->bonnetidDay(['maghrib' => 'etter solnedgang'])])]);
+
+        $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
+        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload');
+    }
+
+    public function test_missing_date_notifies_and_returns_an_empty_result(): void
+    {
+        $day = $this->bonnetidDay();
+        unset($day['date']);
+        Http::fake(['api.bonnetid.no/*' => Http::response([$day])]);
+
         $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
         Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload');
     }
@@ -156,6 +193,26 @@ class PrayerTimeServiceTest extends TestCase
             'maghrib' => '19:15',
             'isha' => '21:00',
         ];
+    }
+
+    private function bonnetidDay(array $overrides = []): array
+    {
+        return array_replace([
+            'location' => 'Ringerike',
+            'date' => '2026-09-01',
+            'district_code' => '30',
+            'kommune' => 'Ringerike',
+            'hijri_date' => '09 Safar 1448',
+            'istiwa_noon' => '13:11:00',
+            'duhr' => '13:18:00',
+            'asr' => '17:03:00',
+            'ghrub_sunset' => '20:50:00',
+            'maghrib' => '20:56:00',
+            'isha' => '22:53:00',
+            'fajr_sadiq' => '04:11:00',
+            'fajr' => '04:11:00',
+            'shuruq_sunrise' => '06:23:00',
+        ], $overrides);
     }
 
     private function service(): PrayerTimeService
