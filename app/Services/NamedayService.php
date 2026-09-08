@@ -25,7 +25,7 @@ class NamedayService
 
         return $this->cache->remember(
             $key,
-            (int) config('services.today.namedays_cache_ttl', 604800),
+            (int) config('services.today.namedays_cache_ttl', 86400),
             function () use ($date) {
                 $response = Http::acceptJson()
                     ->withHeaders(['User-Agent' => config('services.today.user_agent')])
@@ -54,7 +54,11 @@ class NamedayService
                 }
 
                 throw new RuntimeException('Datoen mangler i navnedagssvaret.');
-            }, [], fn (Throwable $exception) => $this->reportFailure($exception));
+            },
+            [],
+            fn (Throwable $exception) => $this->reportFailure($exception),
+            (int) config('services.today.namedays_failure_cache_ttl', 86400),
+        );
     }
 
     private function reportFailure(Throwable $exception): void

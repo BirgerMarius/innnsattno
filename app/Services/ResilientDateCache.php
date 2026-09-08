@@ -8,13 +8,28 @@ use Throwable;
 
 class ResilientDateCache
 {
-    public function remember(string $key, int $ttl, Closure $fetch, array $fallback = [], ?Closure $onFailure = null): array
+    public function remember(
+        string $key,
+        int $ttl,
+        Closure $fetch,
+        array $fallback = [],
+        ?Closure $onFailure = null,
+        int $failureTtl = 0,
+    ): array
     {
         $freshKey = 'today.fresh.'.$key;
         $staleKey = 'today.stale.'.$key;
+        $failureKey = 'today.failure.'.$key;
 
         if (Cache::has($freshKey)) {
             return Cache::get($freshKey, $fallback);
+        }
+
+        // A failed source should not be retried on every page view.  The key is
+        // derived from the caller's date-specific key, so data from another
+        // date can never become this date's fallback.
+        if ($failureTtl > 0 && Cache::has($failureKey)) {
+            return Cache::get($staleKey, $fallback);
         }
 
         try {
@@ -29,6 +44,10 @@ class ResilientDateCache
 
             return $data;
         } catch (Throwable $exception) {
+            if ($failureTtl > 0) {
+                Cache::put($failureKey, true, $failureTtl);
+            }
+
             if ($onFailure !== null) {
                 $onFailure($exception);
             } else {

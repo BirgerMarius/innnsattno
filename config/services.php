@@ -116,7 +116,8 @@ return [
         'wikidata_url' => env('WIKIDATA_API_URL', 'https://www.wikidata.org/w/api.php'),
         'user_agent' => env('TODAY_API_USER_AGENT', 'innsatt.no/1.0 innsatt@innsatt.no'),
         'cache_ttl' => env('TODAY_API_CACHE_TTL', 86400),
-        'namedays_cache_ttl' => env('NAMEDAYS_API_CACHE_TTL', 604800),
+        'namedays_cache_ttl' => env('NAMEDAYS_API_CACHE_TTL', 86400),
+        'namedays_failure_cache_ttl' => env('NAMEDAYS_API_FAILURE_CACHE_TTL', 86400),
         'timeout' => env('TODAY_API_TIMEOUT', 5),
     ],
 
