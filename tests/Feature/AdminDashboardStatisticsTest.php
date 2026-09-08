@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -10,16 +11,23 @@ class AdminDashboardStatisticsTest extends TestCase
     use RefreshDatabase;
 
     private $summaryPath;
+    private array $originalThemeConfig;
+    private array $originalMourningConfig;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->summaryPath = storage_path('framework/testing/admin-summary-' . uniqid() . '.json');
+        $this->originalThemeConfig = config('front_page_themes');
+        $this->originalMourningConfig = config('mourning_flag');
         config()->set('admin.statistics_summary_path', $this->summaryPath);
     }
 
     protected function tearDown(): void
     {
+        Carbon::setTestNow();
+        config(['front_page_themes' => $this->originalThemeConfig]);
+        config(['mourning_flag' => $this->originalMourningConfig]);
         @unlink($this->summaryPath);
         parent::tearDown();
     }
@@ -49,6 +57,33 @@ class AdminDashboardStatisticsTest extends TestCase
 
         file_put_contents($this->summaryPath, '{ikke gyldig json');
         $admin->get('/adm')->assertOk()->assertSee('Statistikk er ikke tilgjengelig akkurat nå');
+    }
+
+    public function testDashboardShowsPlannedChangesInNorwegianDateOrder(): void
+    {
+        Carbon::setTestNow('2026-09-08 12:00:00 Europe/Oslo');
+        config([
+            'mourning_flag.enabled' => true,
+            'mourning_flag.from' => '2026-08-28',
+            'mourning_flag.until' => '2026-09-09',
+            'mourning_flag.funeral_date' => '2026-09-09',
+            'front_page_themes.active' => null,
+        ]);
+
+        $response = $this->withSession(['admin_authenticated' => true])->get('/adm');
+
+        $response->assertOk()->assertSee('Planlagte endringer')
+            ->assertSeeInOrder(['09.09.2026', 'Sørgeboksen bytter til gravferdsvisning', 'I morgen', '10.09.2026', 'Sørgeboksen fjernes', 'Om 2 dager', '16.09.2026', 'Tidlig høst → Høst', 'Om 8 dager'])
+            ->assertSee('Grafisk tema endres');
+    }
+
+    public function testDashboardExplainsWhenAutomaticThemesAreManuallyPaused(): void
+    {
+        config(['front_page_themes.active' => 'jul']);
+
+        $this->withSession(['admin_authenticated' => true])->get('/adm')
+            ->assertOk()
+            ->assertSee('Automatisk temabytte er satt på pause – manuelt tema: Jul');
     }
 
     public function testDashboardShowsHumanTrafficSchemaVersionThree()

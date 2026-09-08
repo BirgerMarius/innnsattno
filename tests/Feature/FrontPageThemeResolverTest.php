@@ -112,4 +112,41 @@ class FrontPageThemeResolverTest extends TestCase
             ->assertDontSee('front-page-theme--jul', false)
             ->assertSee('Designforhåndsvisning');
     }
+
+    /**
+     * @dataProvider upcomingThemeChangeDates
+     */
+    public function testItFindsUpcomingActualThemeChanges(string $from, string $date, string $previous, string $next): void
+    {
+        $changes = app(FrontPageThemeResolver::class)->upcomingChanges(
+            Carbon::parse($from, FrontPageThemeResolver::TIMEZONE),
+            20
+        );
+
+        $this->assertSame($date, $changes[0]['date']->toDateString());
+        $this->assertSame($previous, $changes[0]['from']['id']);
+        $this->assertSame($next, $changes[0]['to']['id']);
+    }
+
+    public static function upcomingThemeChangeDates(): array
+    {
+        return [
+            'priority overlap for 17. mai' => ['2026-05-12', '2026-05-13', 'forsommer', '17-mai'],
+            'easter' => ['2026-03-28', '2026-03-29', 'var', 'paske'],
+            'advent' => ['2026-11-28', '2026-11-29', 'forjul', 'advent'],
+            'christmas' => ['2026-12-22', '2026-12-23', 'advent', 'jul'],
+            'new year across calendar year' => ['2026-12-28', '2026-12-29', 'jul', 'nyttar'],
+            'after new year across calendar year' => ['2027-01-03', '2027-01-04', 'nyttar', 'mork-vinter'],
+        ];
+    }
+
+    public function testUpcomingChangesArePausedByAValidManualTheme(): void
+    {
+        config(['front_page_themes.active' => 'jul']);
+
+        $resolver = app(FrontPageThemeResolver::class);
+
+        $this->assertSame('jul', $resolver->manualTheme()['id']);
+        $this->assertSame([], $resolver->upcomingChanges(Carbon::parse('2026-08-25', 'Europe/Oslo')));
+    }
 }

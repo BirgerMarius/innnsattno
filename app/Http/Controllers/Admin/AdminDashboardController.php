@@ -9,12 +9,13 @@ use App\NewsSource;
 use App\ProfessionalResource;
 use App\ResourceCategory;
 use App\Services\AdminStatisticsSummary;
+use App\Services\PlannedSiteChangesService;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
-    public function index(Request $request, AdminStatisticsSummary $statistics)
+    public function index(Request $request, AdminStatisticsSummary $statistics, PlannedSiteChangesService $plannedSiteChanges)
     {
         $statusCounts = ProfessionalResource::query()
             ->selectRaw('status, count(*) as aggregate')
@@ -40,6 +41,8 @@ class AdminDashboardController extends Controller
                 $query->where('status', 'new')->orWhereNull('status');
             })->count(),
             'statistics' => $statistics->read(),
+            'plannedChanges' => array_slice($plannedSiteChanges->upcoming(), 0, 6),
+            'manualTheme' => $plannedSiteChanges->manualTheme(),
             'trafficPeriod' => $period,
             'trafficDate' => $trafficDate,
             'trafficDateInvalid' => $requestedDate !== null && $trafficDate === null,

@@ -35,6 +35,51 @@ class FrontPageThemeResolver
         return null;
     }
 
+    /**
+     * Return actual future changes produced by the same resolver as the front page.
+     *
+     * @return array<int, array{date: CarbonImmutable, from: ?array, to: ?array}>
+     */
+    public function upcomingChanges(?CarbonInterface $from = null, int $days = 400): array
+    {
+        if ($this->manualTheme() !== null || $days < 1) {
+            return [];
+        }
+
+        $date = $from
+            ? CarbonImmutable::instance($from)->setTimezone(self::TIMEZONE)->startOfDay()
+            : CarbonImmutable::now(self::TIMEZONE)->startOfDay();
+        $previousTheme = $this->resolve($date);
+        $changes = [];
+
+        for ($offset = 1; $offset <= $days; $offset++) {
+            $nextDate = $date->addDays($offset);
+            $nextTheme = $this->resolve($nextDate);
+
+            if (($previousTheme['id'] ?? null) !== ($nextTheme['id'] ?? null)) {
+                $changes[] = [
+                    'date' => $nextDate,
+                    'from' => $previousTheme,
+                    'to' => $nextTheme,
+                ];
+            }
+
+            $previousTheme = $nextTheme;
+        }
+
+        return $changes;
+    }
+
+    public function manualTheme(): ?array
+    {
+        $themes = config('front_page_themes.themes', []);
+        $activeTheme = config('front_page_themes.active');
+
+        return is_string($activeTheme) && isset($themes[$activeTheme])
+            ? $themes[$activeTheme]
+            : null;
+    }
+
     private function matches(array $period, CarbonImmutable $date): bool
     {
         return match ($period['type'] ?? 'fixed') {

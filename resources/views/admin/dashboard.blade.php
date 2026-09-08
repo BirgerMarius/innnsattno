@@ -58,6 +58,34 @@
         </div>
     </section>
 
+    <section class="card admin-dashboard-section mb-4" aria-labelledby="planned-changes-title">
+        <div class="card-body p-lg-4">
+            <div class="mb-3">
+                <p class="admin-card-label mb-1">Automatikk</p>
+                <h2 class="h4 mb-1" id="planned-changes-title">Planlagte endringer</h2>
+                <p class="text-muted mb-0">Kommende automatiske, synlige endringer på nettstedet.</p>
+            </div>
+            @if ($manualTheme)
+                <div class="alert alert-info mb-3" role="status">Automatisk temabytte er satt på pause – manuelt tema: {{ $manualTheme['name'] }}</div>
+            @endif
+            @if (count($plannedChanges))
+                <div class="table-responsive"><table class="table admin-ranking-table align-middle mb-0">
+                    <thead><tr><th scope="col">Dato</th><th scope="col">Endring</th><th scope="col">Tid igjen</th></tr></thead>
+                    <tbody>@foreach ($plannedChanges as $change)
+                        @php($daysUntil = $change['date']->diffInDays(now('Europe/Oslo')->startOfDay()))
+                        <tr>
+                            <td class="text-nowrap">{{ $change['date']->format('d.m.Y') }}</td>
+                            <td><strong>{{ $change['title'] }}</strong><br><span class="text-muted small">{{ $change['description'] }}</span></td>
+                            <td class="text-nowrap">{{ $daysUntil === 0 ? 'I dag' : ($daysUntil === 1 ? 'I morgen' : 'Om '.$daysUntil.' dager') }}</td>
+                        </tr>
+                    @endforeach</tbody>
+                </table></div>
+            @else
+                <div class="alert alert-light border mb-0" role="status">Ingen kommende automatiske endringer er registrert.</div>
+            @endif
+        </div>
+    </section>
+
     <section class="card admin-dashboard-section mb-4" aria-labelledby="statistics-title">
         <div class="card-body p-lg-4">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-2 mb-3">

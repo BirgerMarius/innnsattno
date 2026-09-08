@@ -456,6 +456,39 @@ class FlagDayTest extends TestCase
             ->assertDontSee('H.M. Kong Harald V er død.');
     }
 
+    public function testUpcomingMourningChangesIncludeFuneralViewAndRemoval(): void
+    {
+        $this->configureMourningFlagging('2026-08-28', '2026-09-09');
+        config(['mourning_flag.funeral_date' => '2026-09-09']);
+
+        $changes = app(FlagDayService::class)->upcomingMourningChanges(
+            Carbon::parse('2026-09-08 12:00:00', FlagDayService::TIMEZONE)
+        );
+
+        $this->assertSame(['2026-09-09', '2026-09-10'], array_map(
+            fn (array $change) => $change['date']->toDateString(),
+            $changes
+        ));
+        $this->assertSame('Sørgeboksen bytter til gravferdsvisning', $changes[0]['title']);
+        $this->assertSame('Sørgeboksen fjernes', $changes[1]['title']);
+    }
+
+    public function testUpcomingMourningChangesExcludeEventsThatHavePassedInOslo(): void
+    {
+        $this->configureMourningFlagging('2026-08-28', '2026-09-09');
+        config(['mourning_flag.funeral_date' => '2026-09-09']);
+
+        $changes = app(FlagDayService::class)->upcomingMourningChanges(
+            Carbon::parse('2026-09-09 22:30:00', 'UTC')
+        );
+
+        $this->assertSame(['2026-09-10'], array_map(
+            fn (array $change) => $change['date']->toDateString(),
+            $changes
+        ));
+        $this->assertSame('Sørgeboksen fjernes', $changes[0]['title']);
+    }
+
     private function configureMourningFlagging(string $from, ?string $until): void
     {
         config([

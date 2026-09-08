@@ -42,17 +42,15 @@ class FlagDayService
      */
     public function mourningFlagging(?CarbonInterface $date = null): ?array
     {
-        if (! config('mourning_flag.enabled', false)) {
+        $mourning = $this->mourningConfiguration();
+
+        if ($mourning === null) {
             return null;
         }
 
-        $from = $this->mourningDate(config('mourning_flag.from'));
-        $until = $this->mourningDate(config('mourning_flag.until'));
-        $funeralDate = $this->mourningDate(config('mourning_flag.funeral_date'));
-
-        if (! $from || ($until && $until->lessThan($from))) {
-            return null;
-        }
+        $from = $mourning['from'];
+        $until = $mourning['until'];
+        $funeralDate = $mourning['funeral_date'];
 
         $selectedDate = $date
             ? CarbonImmutable::instance($date)->setTimezone(self::TIMEZONE)->startOfDay()
@@ -72,6 +70,71 @@ class FlagDayService
             'from' => $from,
             'until' => $until,
             'half_staff' => (bool) config('mourning_flag.half_staff', true),
+        ];
+    }
+
+    /**
+     * @return array<int, array{date: CarbonImmutable, title: string, description: string}>
+     */
+    public function upcomingMourningChanges(?CarbonInterface $from = null): array
+    {
+        $mourning = $this->mourningConfiguration();
+
+        if ($mourning === null) {
+            return [];
+        }
+
+        $today = $from
+            ? CarbonImmutable::instance($from)->setTimezone(self::TIMEZONE)->startOfDay()
+            : CarbonImmutable::now(self::TIMEZONE)->startOfDay();
+        $changes = [];
+        $funeralDate = $mourning['funeral_date'];
+
+        if ($funeralDate && $funeralDate->greaterThan($today)
+            && $funeralDate->greaterThanOrEqualTo($mourning['from'])
+            && (! $mourning['until'] || $funeralDate->lessThanOrEqualTo($mourning['until']))) {
+            $changes[] = [
+                'date' => $funeralDate,
+                'title' => 'Sørgeboksen bytter til gravferdsvisning',
+                'description' => 'Sørgeboksen viser informasjon om Kong Haralds gravferd.',
+            ];
+        }
+
+        if ($mourning['until']) {
+            $removalDate = $mourning['until']->addDay();
+
+            if ($removalDate->greaterThan($today)) {
+                $changes[] = [
+                    'date' => $removalDate,
+                    'title' => 'Sørgeboksen fjernes',
+                    'description' => 'Den midlertidige sørgeboksen etter Kong Haralds død tas bort.',
+                ];
+            }
+        }
+
+        return $changes;
+    }
+
+    /**
+     * @return array{from: CarbonImmutable, until: ?CarbonImmutable, funeral_date: ?CarbonImmutable}|null
+     */
+    private function mourningConfiguration(): ?array
+    {
+        if (! config('mourning_flag.enabled', false)) {
+            return null;
+        }
+
+        $from = $this->mourningDate(config('mourning_flag.from'));
+        $until = $this->mourningDate(config('mourning_flag.until'));
+
+        if (! $from || ($until && $until->lessThan($from))) {
+            return null;
+        }
+
+        return [
+            'from' => $from,
+            'until' => $until,
+            'funeral_date' => $this->mourningDate(config('mourning_flag.funeral_date')),
         ];
     }
 
