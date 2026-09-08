@@ -20,6 +20,7 @@
     const eliminationStatus = byId("eliminationStatus");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const wheel = new Wheel("wheelCanvas");
+    const MIN_ROUND_DURATION_MS = 5000;
 
     let participants = [];
     let eliminated = [];
@@ -35,6 +36,11 @@
     let tickThrottle = 0;
     let confettiTimer = null;
     let confettiLayer = null;
+    let roundToken = 0;
+    let roundStartedAt = 0;
+    let roundCompletionTimer = null;
+    let roundCompletionPending = false;
+    let transitionLocked = false;
 
     const comments = [
         "Ingen påvirkning er tillatt.", "Tilfeldigheten bestemmer.",
@@ -205,15 +211,40 @@
         confettiTimer = window.setTimeout(clearWinnerConfetti, 3200);
     }
 
+    function clearRoundCompletionTimer() {
+        if (roundCompletionTimer) {
+            window.clearTimeout(roundCompletionTimer);
+            roundCompletionTimer = null;
+        }
+    }
+
+    function invalidateRound() {
+        roundToken += 1;
+        roundStartedAt = 0;
+        roundCompletionPending = false;
+        clearRoundCompletionTimer();
+    }
+
     function beginSpin() {
+        if (running || transitionLocked) return false;
+
+        clearRoundCompletionTimer();
+        const token = ++roundToken;
+        roundStartedAt = performance.now();
+        roundCompletionPending = false;
         awaitingNextRound = false;
         setRunning(true);
         statusText.textContent = "Spinner…";
         commentText.textContent = comments[Math.floor(Math.random() * comments.length)];
-        wheel.spin();
+        if (!wheel.spin()) {
+            if (token === roundToken) setRunning(false);
+            return false;
+        }
+        return true;
     }
 
-    function showElimination(person) {
+    function showElimination(person, token) {
+        if (token !== roundToken) return;
         lastEliminationScene = randomDifferent(eliminationScenes.length, lastEliminationScene);
         const content = eliminationScenes[lastEliminationScene](escapeHtml(person.label));
         byId("eliminationScene").innerHTML = content;
@@ -227,7 +258,8 @@
         eliminationModal.show();
     }
 
-    function showWinner(person) {
+    function showWinner(person, token) {
+        if (token !== roundToken) return;
         lastWinnerScene = randomDifferent(winnerScenes.length, lastWinnerScene);
         byId("winnerScene").innerHTML = winnerScenes[lastWinnerScene](
             escapeHtml(person.label), escapeHtml(task)
@@ -241,6 +273,7 @@
         const modalElement = byId("winnerModal");
         const celebrate = () => {
             modalElement.removeEventListener("shown.bs.modal", celebrate);
+            if (token !== roundToken) return;
             playSound("winner");
             launchWinnerConfetti();
         };
@@ -276,13 +309,22 @@
     });
 
     nextRoundButton.addEventListener("click", () => {
+        if (transitionLocked || !awaitingNextRound || !eliminationModal) return;
+
+        transitionLocked = true;
+        const token = roundToken;
         const modalElement = byId("eliminationModal");
         const continueRound = () => {
             modalElement.removeEventListener("hidden.bs.modal", continueRound);
+            if (token !== roundToken || !awaitingNextRound) {
+                transitionLocked = false;
+                return;
+            }
+            transitionLocked = false;
             if (participants.length === 1) {
                 wheel.setParticipants([participants[0].label]);
                 wheel.highlight(0);
-                showWinner(participants[0]);
+                showWinner(participants[0], token);
             } else {
                 wheel.setParticipants(participants.map((person) => person.label));
                 beginSpin();
@@ -294,6 +336,8 @@
 
     resetButton.addEventListener("click", () => {
         clearWinnerConfetti();
+        invalidateRound();
+        transitionLocked = false;
         wheel.stop();
         participantsInput.value = "";
         participants = [];
@@ -301,6 +345,8 @@
         awaitingNextRound = false;
         task = "";
         wheel.setParticipants([]);
+        if (eliminationModal) eliminationModal.hide();
+        if (winnerModal) winnerModal.hide();
         wheelContainer.classList.remove("is-winner");
         statusText.textContent = "Klar for trekning";
         commentText.textContent = "Legg inn deltakerne og start hjulet.";
@@ -314,16 +360,39 @@
         if (now - tickThrottle > 55) { playSound("tick", direction); tickThrottle = now; }
     };
 
-    wheel.finishCallback = (label, index) => {
+    function presentRoundResult(token, index) {
+        if (token !== roundToken || !running) return;
+
+        roundCompletionPending = false;
+        clearRoundCompletionTimer();
         playSound("stop");
-        if (mode === "single") return showWinner(participants[index]);
+        if (mode === "single") return showWinner(participants[index], token);
         const removed = participants.splice(index, 1)[0];
         eliminated.push(removed);
         wheel.setParticipants(participants.map((person) => person.label));
         updateStatusPanel();
         statusText.textContent = `${removed.label} er slått ut`;
         commentText.textContent = "Resultatet vises før neste runde.";
-        showElimination(removed);
+        showElimination(removed, token);
+    }
+
+    wheel.finishCallback = (label, index) => {
+        const token = roundToken;
+        if (!running || roundCompletionPending || wheel.isSpinning) return;
+
+        const remaining = MIN_ROUND_DURATION_MS - (performance.now() - roundStartedAt);
+        if (remaining > 0) {
+            roundCompletionPending = true;
+            roundCompletionTimer = window.setTimeout(() => {
+                roundCompletionTimer = null;
+                roundCompletionPending = false;
+                if (token !== roundToken || wheel.isSpinning) return;
+                presentRoundResult(token, index);
+            }, remaining);
+            return;
+        }
+
+        presentRoundResult(token, index);
     };
 
     byId("winnerModal").addEventListener("hidden.bs.modal", clearWinnerConfetti);

@@ -339,13 +339,15 @@ class Wheel {
 
     spin(){
 
-        if(this.isSpinning) return;
-        if(this.names.length < 2) return;
+        if(this.isSpinning) return false;
+        if(this.names.length < 2) return false;
 
         const slice = (Math.PI * 2) / this.names.length;
         const selectedIndex = Math.floor(Math.random() * this.names.length);
         const selectedCenter = selectedIndex * slice + slice / 2;
-        const fullTurns = this.prefersReducedMotion ? 1 : 6 + Math.floor(Math.random() * 3);
+        // Reduced motion keeps the required wheel movement, but makes it calmer.
+        // It must never shorten the round below the controller's five-second floor.
+        const fullTurns = this.prefersReducedMotion ? 3 : 6 + Math.floor(Math.random() * 3);
         let target = this.pointerAngle - selectedCenter + fullTurns * Math.PI * 2;
 
         while(target <= this.rotation){
@@ -358,7 +360,9 @@ class Wheel {
         this.glowUntil = 0;
         this.isSpinning = true;
         this.spinStartTime = performance.now();
-        this.spinDuration = this.prefersReducedMotion ? 650 : this.randomSpinDuration();
+        this.spinDuration = this.prefersReducedMotion
+            ? Wheel.MIN_ROUND_DURATION_MS
+            : this.randomSpinDuration();
         this.startRotation = this.rotation;
         this.targetRotation = target;
         this.selectedIndex = selectedIndex;
@@ -372,6 +376,8 @@ class Wheel {
         this.speedCurve = this.buildSpeedCurve();
         this.previousRotation = this.rotation;
         this.lastTick = -1;
+
+        return true;
 
     }
 
@@ -407,16 +413,24 @@ class Wheel {
 
     randomSpinDuration(){
 
-        const base = 5000 + Math.random() * 3000;
+        const base = Wheel.MIN_ROUND_DURATION_MS + Math.random() * 3000;
         const drift = (Math.random() - .5) * 420;
 
-        return Math.max(5000, Math.min(8000, base + drift));
+        return Math.max(Wheel.MIN_ROUND_DURATION_MS, Math.min(8000, base + drift));
 
     }
 
     /*===================================*/
 
     rotationAt(progress){
+
+        if(this.prefersReducedMotion){
+
+            return this.startRotation +
+                (this.targetRotation - this.startRotation) *
+                this.easeInOutCubic(progress);
+
+        }
 
         if(this.surpriseSpin){
 
@@ -627,3 +641,5 @@ class Wheel {
     }
 
 }
+
+Wheel.MIN_ROUND_DURATION_MS = 5000;
