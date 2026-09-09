@@ -15,6 +15,7 @@ class NamedayService
     public function __construct(
         private ResilientDateCache $cache,
         private ExternalDataFailureNotifier $notifier,
+        private TodayDateNotificationPolicy $notificationPolicy,
     )
     {
     }
@@ -56,15 +57,16 @@ class NamedayService
                 throw new RuntimeException('Datoen mangler i navnedagssvaret.');
             },
             [],
-            fn (Throwable $exception) => $this->reportFailure($exception),
+            fn (Throwable $exception) => $this->reportFailure($exception, $date),
             (int) config('services.today.namedays_failure_cache_ttl', 86400),
         );
     }
 
-    private function reportFailure(Throwable $exception): void
+    private function reportFailure(Throwable $exception, CarbonInterface $date): void
     {
         $context = [
             'operation' => 'namedays',
+            'send_notification' => $this->notificationPolicy->shouldNotify($date),
             'failure_kind' => match (true) {
                 $exception instanceof ConnectionException => 'connection_failure',
                 $exception instanceof RequestException => 'http_status',

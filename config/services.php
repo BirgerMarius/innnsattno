@@ -118,6 +118,11 @@ return [
         'cache_ttl' => env('TODAY_API_CACHE_TTL', 86400),
         'namedays_cache_ttl' => env('NAMEDAYS_API_CACHE_TTL', 86400),
         'namedays_failure_cache_ttl' => env('NAMEDAYS_API_FAILURE_CACHE_TTL', 86400),
+        'failure_cache_ttl' => env('TODAY_API_FAILURE_CACHE_TTL', 86400),
+        // Only dates close to today represent normal interactive use. Older and
+        // distant future pages remain available, but their source failures log
+        // without sending administrator mail.
+        'notification_window_days' => env('TODAY_API_NOTIFICATION_WINDOW_DAYS', 31),
         'timeout' => env('TODAY_API_TIMEOUT', 5),
     ],
 

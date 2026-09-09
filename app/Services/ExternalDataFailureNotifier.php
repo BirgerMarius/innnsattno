@@ -25,7 +25,7 @@ class ExternalDataFailureNotifier
             ]);
 
             $recipient = config('feedback.notification_email');
-            if (! is_string($recipient) || trim($recipient) === '') {
+            if (! $details['send_notification'] || ! is_string($recipient) || trim($recipient) === '') {
                 return;
             }
 
@@ -69,7 +69,10 @@ class ExternalDataFailureNotifier
             'summary' => $this->sanitizeText($summary),
             'diagnostics' => $this->diagnostics($context),
             'occurred_at' => now('Europe/Oslo')->format('Y-m-d H:i:s T'),
-            'cooldown_seconds' => max(1, (int) config('external_data.cooldown_seconds', 3600)),
+            // Individual callers may explicitly opt in to a longer cooldown;
+            // the global default must remain suitable for active sources.
+            'cooldown_seconds' => max(1, (int) ($context['notification_cooldown_seconds'] ?? config('external_data.cooldown_seconds', 3600))),
+            'send_notification' => ($context['send_notification'] ?? true) !== false,
         ];
     }
 

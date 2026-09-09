@@ -6,6 +6,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use JsonException;
 use RuntimeException;
 use Throwable;
@@ -13,7 +14,10 @@ use Throwable;
 /** Fetches source material. Selection and presentation belong to TodayContentService. */
 class OnThisDayService
 {
-    public function __construct(private ExternalDataFailureNotifier $notifier)
+    public function __construct(
+        private ExternalDataFailureNotifier $notifier,
+        private TodayDateNotificationPolicy $notificationPolicy,
+    )
     {
     }
 
@@ -27,11 +31,11 @@ class OnThisDayService
         $payload = $this->fetch(config('services.today.wikimedia_url'), $date, 'no-onthisday');
         if (!$this->hasHistory($payload ?? [])) {
             if ($payload !== null) {
-                $this->reportPayloadFailure('no-onthisday');
+                $this->reportPayloadFailure('no-onthisday', $date);
             }
             $payload = $this->fetch(config('services.today.wikimedia_fallback_url'), $date, 'en-onthisday');
             if (!$this->hasHistory($payload ?? []) && $payload !== null) {
-                $this->reportPayloadFailure('en-onthisday');
+                $this->reportPayloadFailure('en-onthisday', $date);
             }
         }
 
@@ -55,6 +59,10 @@ class OnThisDayService
 
     private function norwegianDatePage(CarbonInterface $date): array
     {
+        if ($this->isBackedOff('no-mediawiki', $date)) {
+            return [];
+        }
+
         try {
             $month = $date->copy()->locale('nb')->translatedFormat('F');
             $title = $date->day.'. '.$month;
@@ -108,7 +116,8 @@ class OnThisDayService
 
             return $this->attachWikibaseIds($groups);
         } catch (Throwable $exception) {
-            $this->reportFailure('no-mediawiki', $exception);
+            $this->recordFailure('no-mediawiki', $date);
+            $this->reportFailure('no-mediawiki', $exception, $date);
             return [];
         }
     }
@@ -148,6 +157,10 @@ class OnThisDayService
 
     private function fetch(string $baseUrl, CarbonInterface $date, string $operation): ?array
     {
+        if ($this->isBackedOff($operation, $date)) {
+            return null;
+        }
+
         try {
             $response = Http::acceptJson()
                 ->withHeaders(['User-Agent' => config('services.today.user_agent')])
@@ -162,7 +175,8 @@ class OnThisDayService
 
             return $payload;
         } catch (Throwable $exception) {
-            $this->reportFailure($operation, $exception);
+            $this->recordFailure($operation, $date);
+            $this->reportFailure($operation, $exception, $date);
 
             return null;
         }
@@ -221,15 +235,18 @@ class OnThisDayService
         return $payload;
     }
 
-    private function reportPayloadFailure(string $operation): void
+    private function reportPayloadFailure(string $operation, CarbonInterface $date): void
     {
+        $this->recordFailure($operation, $date);
         $this->notifier->report('wikipedia-on-this-day', 'Wikimedia On This Day returnerte uventede data.', [
             'operation' => $operation,
             'failure_kind' => 'invalid_payload',
+            'send_notification' => $this->notificationPolicy->shouldNotify($date),
+            'notification_cooldown_seconds' => (int) config('services.today.failure_cache_ttl', 86400),
         ]);
     }
 
-    private function reportFailure(string $operation, Throwable $exception): void
+    private function reportFailure(string $operation, Throwable $exception, CarbonInterface $date): void
     {
         $context = [
             'operation' => $operation,
@@ -246,6 +263,24 @@ class OnThisDayService
             $context['status'] = $exception->response->status();
         }
 
+        $context['send_notification'] = $this->notificationPolicy->shouldNotify($date);
+        $context['notification_cooldown_seconds'] = (int) config('services.today.failure_cache_ttl', 86400);
+
         $this->notifier->report('wikipedia-on-this-day', 'Wikipedia- eller Wikimedia-data kunne ikke hentes.', $context);
+    }
+
+    private function isBackedOff(string $operation, CarbonInterface $date): bool
+    {
+        return Cache::has($this->failureKey($operation, $date));
+    }
+
+    private function recordFailure(string $operation, CarbonInterface $date): void
+    {
+        Cache::put($this->failureKey($operation, $date), true, (int) config('services.today.failure_cache_ttl', 86400));
+    }
+
+    private function failureKey(string $operation, CarbonInterface $date): string
+    {
+        return sprintf('today.failure.wikipedia.%s.%02d-%02d', $operation, $date->month, $date->day);
     }
 }

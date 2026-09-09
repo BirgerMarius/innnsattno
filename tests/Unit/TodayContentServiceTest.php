@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Services\TodayContentService;
 use App\Mail\ExternalDataSourceFailureMail;
 use Carbon\CarbonImmutable;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -19,6 +20,13 @@ class TodayContentServiceTest extends TestCase
         Cache::flush();
         Mail::fake();
         config()->set('feedback.notification_email', 'varsling@example.test');
+        Carbon::setTestNow(Carbon::parse('2026-03-12 12:00:00', 'Europe/Oslo'));
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
     }
 
     public function testItRanksNorwegianContentSeparatelyAndRejectsEnglishAndObscureItems(): void
@@ -113,6 +121,20 @@ class TodayContentServiceTest extends TestCase
 
         app(TodayContentService::class)->curate(['events' => $items], CarbonImmutable::parse('2026-03-12'));
 
+        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+        Http::assertSentCount(1);
+    }
+
+    public function test_wikidata_failure_is_backed_off_for_later_curations(): void
+    {
+        Http::fake(['www.wikidata.org/*' => Http::response([], 503)]);
+        $source = ['events' => [$this->item('Q1', 'En norsk hendelse')]];
+        $service = app(TodayContentService::class);
+
+        $service->curate($source, CarbonImmutable::parse('2026-03-12'));
+        $service->curate($source, CarbonImmutable::parse('2026-03-13'));
+
+        Http::assertSentCount(1);
         Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
     }
 

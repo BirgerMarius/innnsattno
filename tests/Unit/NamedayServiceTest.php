@@ -21,6 +21,7 @@ class NamedayServiceTest extends TestCase
         Cache::flush();
         Mail::fake();
         config()->set('feedback.notification_email', 'varsling@example.test');
+        Carbon::setTestNow(Carbon::parse('2026-08-02 12:00:00', 'Europe/Oslo'));
     }
 
     protected function tearDown(): void

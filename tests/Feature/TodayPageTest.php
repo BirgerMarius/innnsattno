@@ -6,6 +6,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class TodayPageTest extends TestCase
@@ -147,6 +148,22 @@ class TodayPageTest extends TestCase
             ->assertSee('Søndag 2. august 2026')
             ->assertSee('Navnedager er ikke tilgjengelige akkurat nå.')
             ->assertSee('Vi fant ingen historiske oppføringer med god nok norsk tekst for denne datoen.');
+    }
+
+    public function test_distant_bot_date_logs_failures_without_administrator_mail(): void
+    {
+        Carbon::setTestNow('2026-08-01 12:00:00 Europe/Oslo');
+        Mail::fake();
+        config()->set('feedback.notification_email', 'varsling@example.test');
+        Http::fake([
+            'webapi.no/*' => Http::response([], 503),
+            'no.wikipedia.org/*' => Http::response([], 503),
+            'en.wikipedia.org/*' => Http::response([], 503),
+        ]);
+
+        $this->get('/dagen-i-dag/1990-01-01')->assertOk();
+
+        Mail::assertNothingSent();
     }
 
     private function fakeSources(): void

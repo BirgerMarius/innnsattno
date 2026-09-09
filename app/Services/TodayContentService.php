@@ -6,6 +6,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use JsonException;
 use RuntimeException;
 use Throwable;
@@ -19,6 +20,7 @@ class TodayContentService
         private ResilientDateCache $cache,
         private OnThisDayService $source,
         private ExternalDataFailureNotifier $notifier,
+        private TodayDateNotificationPolicy $notificationPolicy,
     )
     {
     }
@@ -34,7 +36,8 @@ class TodayContentService
                 return $this->curate($this->source->forDate($date), $date);
             },
             $this->emptyResult($date),
-            fn (Throwable $exception) => $this->reportSourceFailure($exception)
+            fn (Throwable $exception) => $this->reportSourceFailure($exception, $date),
+            (int) config('services.today.failure_cache_ttl', 86400),
         );
     }
 
@@ -58,7 +61,7 @@ class TodayContentService
             'births' => $source['births'] ?? [],
             'deaths' => $source['deaths'] ?? [],
         ];
-        $entities = $this->entities($groups);
+        $entities = $this->entities($groups, $date);
         $result = $this->emptyResult($date);
         $diagnostics = ['normalized' => collect($groups)->map(fn ($items) => count($items))->all(), 'sent_to_wikidata' => count($this->candidateIds($groups)), 'enriched' => count($entities), 'classified' => 0, 'accepted' => 0, 'rejected' => [], 'rejected_items' => []];
 
@@ -138,7 +141,7 @@ class TodayContentService
         ], null];
     }
 
-    private function entities(array $groups): array
+    private function entities(array $groups, CarbonInterface $date): array
     {
         $ids = $this->candidateIds($groups);
         if ($ids === []) {
@@ -147,6 +150,9 @@ class TodayContentService
 
         $entities = [];
         foreach (array_chunk($ids, 20) as $chunk) {
+            if (Cache::has('today.failure.wikidata-entities')) {
+                break;
+            }
             try {
                 $response = Http::acceptJson()->withHeaders(['User-Agent' => config('services.today.user_agent')])
                     ->timeout((int) config('services.today.timeout', 5))
@@ -163,7 +169,8 @@ class TodayContentService
                 $batch = $payload['entities'];
                 $entities = array_merge($entities, $batch);
             } catch (Throwable $exception) {
-                $this->reportWikidataFailure($exception);
+                Cache::put('today.failure.wikidata-entities', true, (int) config('services.today.failure_cache_ttl', 86400));
+                $this->reportWikidataFailure($exception, $date);
             }
         }
 
@@ -228,10 +235,12 @@ class TodayContentService
         ], $fixed);
     }
 
-    private function reportWikidataFailure(Throwable $exception): void
+    private function reportWikidataFailure(Throwable $exception, CarbonInterface $date): void
     {
         $context = [
             'operation' => 'today-content-enrichment',
+            'send_notification' => $this->notificationPolicy->shouldNotify($date),
+            'notification_cooldown_seconds' => (int) config('services.today.failure_cache_ttl', 86400),
             'failure_kind' => $this->failureKind($exception),
         ];
 
@@ -242,7 +251,7 @@ class TodayContentService
         $this->notifier->report('wikidata-entities', 'Wikidata-berikelse kunne ikke gjennomføres.', $context);
     }
 
-    private function reportSourceFailure(Throwable $exception): void
+    private function reportSourceFailure(Throwable $exception, CarbonInterface $date): void
     {
         // OnThisDayService already reports each unavailable source before it signals
         // that no fallback produced usable history. Avoid a fourth duplicate alert.
@@ -253,6 +262,7 @@ class TodayContentService
         // This only covers an unexpected error while assembling the cached result.
         $this->notifier->report('wikipedia-on-this-day', 'Dagen i dag-innhold kunne ikke oppdateres.', [
             'operation' => 'today-content',
+            'send_notification' => $this->notificationPolicy->shouldNotify($date),
             'failure_kind' => $this->failureKind($exception),
         ]);
     }

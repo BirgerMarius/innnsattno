@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Mail\ExternalDataSourceFailureMail;
 use App\Services\OnThisDayService;
 use Carbon\CarbonImmutable;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -19,6 +20,13 @@ class OnThisDayServiceTest extends TestCase
         Cache::flush();
         Mail::fake();
         config()->set('feedback.notification_email', 'varsling@example.test');
+        Carbon::setTestNow(Carbon::parse('2026-08-01 12:00:00', 'Europe/Oslo'));
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
     }
 
     public function testNorwegianMediaWikiContentIsUsedWhenAvailable(): void
@@ -80,6 +88,25 @@ class OnThisDayServiceTest extends TestCase
 
         Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->operation === 'no-onthisday'
             && $mail->failureKind === 'invalid-payload');
+    }
+
+    public function test_total_failure_is_backed_off_per_date_without_blocking_first_request_fallbacks(): void
+    {
+        Http::fake([
+            'no.wikipedia.org/w/api.php*' => Http::response([], 503),
+            'no.wikipedia.org/api/rest_v1/*' => Http::response([], 503),
+            'en.wikipedia.org/api/rest_v1/*' => Http::response([], 503),
+        ]);
+        $service = app(OnThisDayService::class);
+        $date = CarbonImmutable::parse('2026-08-01');
+
+        try { $service->forDate($date); } catch (\RuntimeException) { }
+        try { $service->forDate($date); } catch (\RuntimeException) { }
+
+        // The first request tried all fallbacks; their date-specific failure
+        // markers make the later request entirely local.
+        Http::assertSentCount(3);
+        Mail::assertSent(ExternalDataSourceFailureMail::class, 3);
     }
 
     private function historyPayload(): array
