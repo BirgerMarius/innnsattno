@@ -39,6 +39,14 @@ class HomepageResponsiveCssTest extends TestCase
             '/\.local-news-card--text\s*\{[^}]*box-shadow:\s*none;/s',
             $this->css
         );
+        $this->assertMatchesRegularExpression(
+            '/\.local-news-card--text\s*\{[^}]*height:\s*100%;/s',
+            $this->css
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.local-news-card h3\s*\{[^}]*-webkit-line-clamp:\s*3;/s',
+            $this->css
+        );
         $this->assertStringNotContainsString('local-news-card-image--missing', $this->css);
     }
 

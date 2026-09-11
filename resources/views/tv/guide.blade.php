@@ -371,18 +371,20 @@ $isEvenWeek = $weekNumber % 2 === 0;
                 <p>Fra Ringerikes Blad</p>
             </header>
             @php
-                $newsWithImages = array_filter($localNews, fn (array $article) => !empty($article['image_url']));
-                $newsWithoutImages = array_filter($localNews, fn (array $article) => empty($article['image_url']));
+                $featuredNews = array_slice($localNews, 0, 3);
+                $compactNews = array_slice($localNews, 3, 3);
             @endphp
-            @if (!empty($newsWithImages))
+            @if (!empty($featuredNews))
                 <div class="local-news-grid">
-                    @foreach ($newsWithImages as $article)
+                    @foreach ($featuredNews as $article)
                         <article class="local-news-card local-news-card--image">
-                            <img class="local-news-card-image"
-                                 src="{{ $article['image_url'] }}"
-                                 alt=""
-                                 loading="lazy"
-                                 decoding="async">
+                            @if (!empty($article['image_url']))
+                                <img class="local-news-card-image"
+                                     src="{{ $article['image_url'] }}"
+                                     alt=""
+                                     loading="lazy"
+                                     decoding="async">
+                            @endif
                             <div class="local-news-card-content">
                                 @if (!empty($article['published_at']) || !empty($article['is_subscription']))
                                     <div class="local-news-meta">
@@ -404,9 +406,9 @@ $isEvenWeek = $weekNumber % 2 === 0;
                     @endforeach
                 </div>
             @endif
-            @if (!empty($newsWithoutImages))
+            @if (!empty($compactNews))
                 <div class="local-news-grid local-news-grid--text">
-                    @foreach ($newsWithoutImages as $article)
+                    @foreach ($compactNews as $article)
                         <article class="local-news-card local-news-card--text">
                             <div class="local-news-card-content">
                                 @if (!empty($article['published_at']) || !empty($article['is_subscription']))
