@@ -208,6 +208,7 @@
 
 </div>
 
+@if(count($playoffMatches))
 <div class="playoff-columns">
 
 <div class="playoff-column">
@@ -488,6 +489,7 @@
 
 </div>
 
+@endif
 
 @push('scripts')
 <script>

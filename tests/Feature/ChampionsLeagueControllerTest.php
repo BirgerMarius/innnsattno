@@ -19,7 +19,12 @@ class ChampionsLeagueControllerTest extends TestCase
 
         $this->get('/champions-league')->assertOk()->assertSee('Champions League')->assertSee('Bodø/Glimt')->assertSee('Tabell / ligafase')
             ->assertSee('Trykk på et lagnavn i tabellen for å se lagets kamper.')->assertDontSee('Beta');
-        $this->get('/champions-league/print')->assertOk()->assertSee('Ligafasetabell')->assertSee('@page')->assertDontSee('Beta');
+        $this->get('/champions-league/print')->assertOk()
+            ->assertSee('Ligafasetabell')
+            ->assertSee('@page')
+            ->assertDontSee('Sluttspill')
+            ->assertDontSee('Sluttspillkampene er ikke publisert i datagrunnlaget ennå.')
+            ->assertDontSee('Beta');
     }
 
     /** @test */

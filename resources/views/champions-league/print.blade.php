@@ -14,8 +14,9 @@ table { border-collapse:collapse; table-layout:fixed; width:100%; } th,td { bord
 @if($apiError)<p class="warning">Oppdaterte data kunne ikke lastes akkurat nå{{ $usingStaleData ? '. Viser sist lagrede data.' : '.' }}</p>@endif
 <section><h2>Ligafasetabell</h2>@if(count($standings))<table><thead><tr><th class="number">#</th><th class="team">Lag</th><th class="number">K</th><th class="number">V</th><th class="number">U</th><th class="number">T</th><th class="center">Mål</th><th class="number">MF</th><th class="number">P</th></tr></thead><tbody>@foreach($standings as $row)<tr><td class="number">{{ $row['rank'] ?? '–' }}</td><td>@if($row['emblemUrl'])<img class="emblem" src="{{ $row['emblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $row['teamName'] }}</td><td class="number">{{ $row['played'] ?? '–' }}</td><td class="number">{{ $row['wins'] ?? '–' }}</td><td class="number">{{ $row['draws'] ?? '–' }}</td><td class="number">{{ $row['losses'] ?? '–' }}</td><td class="center">{{ $row['goalsFor'] ?? '–' }}-{{ $row['goalsAgainst'] ?? '–' }}</td><td class="number">{{ $row['goalDifference'] ?? '–' }}</td><td class="number"><strong>{{ $row['points'] ?? '–' }}</strong></td></tr>@endforeach</tbody></table>@else<p class="empty">Tabellen er ikke publisert ennå.</p>@endif</section>
 <section class="page-break"><h2>Kamper</h2><div class="fixtures"><div><h3>Siste resultater</h3>@forelse($printResults as $match)<div class="match"><div class="phase">{{ $match['round'] ?: 'Ferdigspilt' }} · {{ $match['dateLabel'] }}</div><div>{{ $match['homeTeam'] }} <strong>{{ $match['homeScore'] ?? '–' }}–{{ $match['awayScore'] ?? '–' }}</strong> {{ $match['awayTeam'] }}</div></div>@empty<p class="empty">Ingen ferdigspilte kamper de siste 7 døgnene.</p>@endforelse</div><div><h3>Kommende kamper</h3>@forelse($printFixtures as $match)<div class="match"><div class="phase">{{ $match['startsAt']->locale('nb')->translatedFormat('D j. M \k\l. H.i') }}@if($match['round']) · {{ $match['round'] }}@endif</div><div>{{ $match['homeTeam'] }} – {{ $match['awayTeam'] }}</div></div>@empty<p class="empty">Ingen kamper er satt opp de neste 7 døgnene.</p>@endforelse</div></div></section>
+@if(count($knockoutRounds))
 <section class="page-break"><h2>Sluttspill</h2>
-@forelse($knockoutRounds as $round)
+@foreach($knockoutRounds as $round)
     <div class="knockout-round"><h3>{{ $round['label'] }}</h3>
         @foreach($round['ties'] as $tie)
             <div class="tie">
@@ -27,9 +28,8 @@ table { border-collapse:collapse; table-layout:fixed; width:100%; } th,td { bord
             </div>
         @endforeach
     </div>
-@empty
-    <p class="empty">Sluttspillkampene er ikke publisert i datagrunnlaget ennå.</p>
-@endforelse
+@endforeach
 </section>
+@endif
 <script>const returnUrl=@json($returnUrl, JSON_UNESCAPED_SLASHES);let returned=false;function back(){if(!returned){returned=true;window.location.replace(returnUrl);}}window.addEventListener('load',function(){window.addEventListener('afterprint',back,{once:true});window.print();},{once:true});</script>
 </body></html>

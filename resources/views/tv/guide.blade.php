@@ -334,12 +334,12 @@ $isEvenWeek = $weekNumber % 2 === 0;
             ⚽ Conference League 2026/27
         </a>
 
-        <a href="/tidsfordriv" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
-            🧩 Tidsfordriv – Sudoku
-        </a>
-
         <a href="/ordjakt" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
             <i class="fas fa-puzzle-piece"></i> 🧩 Tidsfordriv – Ordjakt
+        </a>
+
+        <a href="/tidsfordriv" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
+            🧩 Tidsfordriv – Sudoku
         </a>
 
         <a href="{{ route('calendar.index') }}" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--wide" role="button">
