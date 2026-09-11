@@ -101,5 +101,9 @@ class HomepageTextTest extends TestCase
         $this->assertSame(0, preg_match('/href="\/(?:tidsfordriv|ordjakt)"[^>]*front-page-btn--football/', $content));
         $this->assertSame(0, preg_match('/href="\/ordjakt"[^>]*front-page-btn--wide/', $content));
         $this->assertSame(1, preg_match('/front-page-btn--wide" role="button">\s*<i class="far fa-calendar-alt">/s', $content));
+        $this->assertSame(1, preg_match(
+            '/href="\/conference-league".*?<\/a>\s*<div class="front-page-grid__pastimes">\s*<a href="\/ordjakt".*?<\/a>\s*<a href="\/tidsfordriv".*?<\/a>\s*<\/div>/s',
+            $content
+        ));
     }
 }

@@ -82,6 +82,18 @@ class HomepageResponsiveCssTest extends TestCase
         );
     }
 
+    public function testPastimesAreAnExplicitFullWidthRowWithTheirOwnResponsiveGrid(): void
+    {
+        $this->assertMatchesRegularExpression(
+            '/\.front-page-grid__pastimes\s*\{[^}]*display:\s*grid;[^}]*grid-column:\s*1\s*\/\s*-1;[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/s',
+            $this->css
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media\s*\(max-width:\s*767\.98px\).*?\.front-page-grid__pastimes\s*\{[^}]*grid-column:\s*auto;[^}]*grid-template-columns:\s*1fr;/s',
+            $this->css
+        );
+    }
+
     public function testDateFieldsCanWrapInsideTheMobileViewport(): void
     {
         $this->assertMatchesRegularExpression(

@@ -367,6 +367,13 @@
     margin: 0;
 }
 
+.front-page-grid__pastimes {
+    display: grid;
+    gap: 8px;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .front-page-wheel-icon {
     fill: none;
     flex: 0 0 20px;
@@ -621,6 +628,11 @@
 
     .front-page-btn--wide {
         grid-column: auto;
+    }
+
+    .front-page-grid__pastimes {
+        grid-column: auto;
+        grid-template-columns: 1fr;
     }
 }
 
