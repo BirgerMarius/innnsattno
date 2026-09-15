@@ -53,6 +53,8 @@
         @elseif($apiError)<p class="cl-empty mt-3">Nye data kunne ikke hentes akkurat nå. Viser sist lagrede data.</p>@endif
     </section>
 
+    @include('football.partials.tv-matches-box', ['tvBoxContext' => 'uefa-overview'])
+
     <section class="cl-section p-3 p-md-4 mb-3">
         <h2 class="h4 mb-1">Tabell / ligafase</h2>
         <p class="cl-muted mb-3">{{ $standingsGroups[0]['stageName'] ?? 'Samlet ligatabell' }}</p>

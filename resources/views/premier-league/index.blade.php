@@ -175,7 +175,8 @@
         </section>
 
         <section class="pl-section p-3 p-md-4 mb-3" aria-labelledby="pl-tv3-plus-heading">
-            <h2 id="pl-tv3-plus-heading" class="h4 mb-3">Direktesendt Premier League på TV3+</h2>
+            <h2 id="pl-tv3-plus-heading" class="h4 mb-3">Direktesendt Premier League på TV</h2>
+            <p class="pl-tv3-plus-note mt-n2 mb-3">Kanalutvalg: Ringerike fengsel</p>
             @if(count($tv3Plus['matches']))
                 <div class="pl-tv3-plus-list">
                     @foreach($tv3Plus['matches'] as $match)

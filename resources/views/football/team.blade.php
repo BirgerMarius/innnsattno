@@ -24,6 +24,10 @@
             <p class="football-team-warning">Oppdaterte data kunne ikke lastes akkurat nå{{ $usingStaleData ? '. Viser sist lagrede data.' : '.' }}</p>
         @endif
 
+        @isset($tvMatches)
+            @include('football.partials.tv-matches-box', ['tvBoxContext' => 'team', 'tvBoxTeam' => true])
+        @endisset
+
         @if(count($teamMatches))
             <div class="football-team-list" aria-label="Alle kamper for {{ $team['teamName'] }}">
                 @foreach($teamMatches as $match)

@@ -117,6 +117,10 @@ class TvGuideServiceTest extends TestCase
         $this->assertSame('Premier League', $this->service()->displayTitle([
             'title' => ['title' => 'Premier League'],
         ]));
+        $this->assertSame('UEFA Champions League: Magasin 2026/27', $this->service()->displayTitle([
+            'title' => ['title' => 'UEFA Champions League: Magasin'],
+            'sportsEvent' => ['name' => 'Magasin 2026/27'],
+        ]));
     }
 
     public function test_upcoming_tv3_plus_matches_use_seven_cached_daily_requests_and_exclude_non_matches(): void
@@ -134,7 +138,7 @@ class TvGuideServiceTest extends TestCase
                 array_merge($this->premierLeagueListing('2026-09-10T20:00:00Z', 'Arsenal - Everton'), ['isRerun' => true]),
             ] : [];
 
-            return Http::response([['channel' => ['slug' => 'tv3-plus'], 'listings' => $listings]]);
+            return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
         });
 
         $result = $this->service()->getUpcomingPremierLeagueOnTv3Plus($now, 'premier-league-tv3-plus-print', 3);
@@ -168,6 +172,33 @@ class TvGuideServiceTest extends TestCase
         Mail::assertSent(ExternalDataSourceFailureMail::class);
     }
 
+    public function test_competition_matching_uses_exact_verified_titles_not_unreliable_uefa_slugs(): void
+    {
+        $now = Carbon::parse('2026-09-10 10:00:00', 'Europe/Oslo');
+        Http::fake(function ($request) {
+            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+            $listings = ($query['date'] ?? null) === '2026-09-10' ? [
+                $this->competitionListing('UEFA Europa League', 'uefa-conference-league-1', 'Sunderland - AZ Alkmaar'),
+                $this->competitionListing('UEFA Champions League: Magasin', 'uefa-champions-league-highlights-1', 'Magasin 2026/27'),
+                $this->competitionListing('EHF Champions League', 'ehf-champions-league-2', 'Kolstad - Kielce'),
+                $this->competitionListing('Eliteserien', 'eliteserien-7', 'Studio'),
+                $this->competitionListing('Eliteserien', 'eliteserien-7', null),
+            ] : [];
+
+            return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
+        });
+
+        $europa = $this->service()->getUpcomingCompetitionMatches($now, 'europa-league', 'europa-test', 3);
+        $eliteserien = $this->service()->getUpcomingCompetitionMatches($now, 'eliteserien', 'eliteserien-test', 3);
+
+        $this->assertSame('Sunderland – AZ Alkmaar', $europa['matches'][0]['name']);
+        $this->assertSame('TV3+', $europa['matches'][0]['channel']);
+        $this->assertSame([], $eliteserien['matches']);
+        $this->assertSame(1, $eliteserien['missingMatchNames']);
+        $this->assertSame(1, $eliteserien['excludedNonMatchProgrammes']);
+        Http::assertSentCount(7);
+    }
+
     private function primeStale(array $schedule): void
     {
         Cache::put($this->staleCacheKey(), $schedule, now()->addDays(3));
@@ -196,6 +227,17 @@ class TvGuideServiceTest extends TestCase
             'title' => ['type' => 'sportsTitle', 'slug' => 'premier-league', 'title' => 'Premier League'],
             'sportsEvent' => $eventName === null ? null : ['id' => crc32($startsAt.$eventName), 'name' => $eventName],
             'startsAt' => $startsAt,
+            'isLive' => true,
+            'isRerun' => false,
+        ];
+    }
+
+    private function competitionListing(string $title, string $slug, ?string $eventName): array
+    {
+        return [
+            'title' => ['type' => 'sportsTitle', 'slug' => $slug, 'title' => $title],
+            'sportsEvent' => $eventName === null ? null : ['name' => $eventName],
+            'startsAt' => '2026-09-10T18:55:00Z',
             'isLive' => true,
             'isRerun' => false,
         ];

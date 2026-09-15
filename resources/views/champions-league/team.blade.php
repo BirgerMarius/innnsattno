@@ -39,6 +39,8 @@
 
         @if($apiError)<p class="cl-team-empty mt-3">Oppdaterte data kunne ikke lastes akkurat nå{{ $usingStaleData ? '. Viser sist lagrede data.' : '.' }}</p>@endif
 
+        @include('football.partials.tv-matches-box', ['tvBoxContext' => 'uefa-team', 'tvBoxTeam' => true])
+
         @if(count($teamMatches))
             <div class="cl-team-summary" aria-label="Oppsummering av ligafasen">
                 @if(($seasonStats['keyFigures'][0]['value'] ?? null) !== null)<span>Plass i ligafasen: <strong>{{ $seasonStats['keyFigures'][0]['value'] }}</strong></span>@endif

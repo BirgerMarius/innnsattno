@@ -1564,6 +1564,32 @@
     text-decoration: none;
 }
 
+/* Compact, shared live-football box for the Ringerike channel selection. */
+.football-tv-box { background: #fff; border: 1px solid #dde2e8; border-radius: 6px; margin-bottom: 1rem; padding: 1rem; }
+.football-tv-box h2 { font-size: 1.25rem; margin: 0; }
+.football-tv-box__selection { color: #667085; font-size: .875rem; margin: .2rem 0 .75rem; }
+.football-tv-box__list { margin: 0; }
+.football-tv-box__match { align-items: baseline; border-top: 1px solid #e6eaf0; display: flex; gap: 1rem; justify-content: space-between; padding: .65rem 0; }
+.football-tv-box__match:first-child { padding-top: 0; }
+.football-tv-box__match:last-child { padding-bottom: 0; }
+.football-tv-box__match span, .football-tv-box__note { color: #667085; font-size: .9rem; text-align: right; }
+.football-tv-box__status { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; color: #536173; margin: 0; padding: .8rem; }
+.football-tv-box__note { margin: .75rem 0 0; }
+
+.football-team-shell > .football-tv-box { margin-top: 1rem; }
+.football-team-print-page .football-tv-box { break-inside: avoid; border-color: #777; font-size: 8.5pt; margin: 2mm 0; padding: 2mm 2.5mm; page-break-inside: avoid; }
+.football-team-print-page .football-tv-box h2 { font-size: 10pt; }
+.football-team-print-page .football-tv-box__selection { font-size: 8pt; margin: .5mm 0 1mm; }
+.football-team-print-page .football-tv-box__match { display: block; padding: .5mm 0; }
+.football-team-print-page .football-tv-box__match span { display: block; font-size: 8.5pt; text-align: left; }
+.football-team-print-page .football-tv-box__status, .football-team-print-page .football-tv-box__note { border: 0; font-size: 8.5pt; padding: 0; text-align: left; }
+
+@media (max-width: 575.98px) {
+    .football-tv-box { border-left: 0; border-right: 0; border-radius: 0; }
+    .football-tv-box__match { align-items: flex-start; flex-direction: column; gap: .2rem; }
+    .football-tv-box__match span { text-align: left; }
+}
+
 @media (max-width: 575.98px) {
     .admin-nav,
     .admin-nav form,

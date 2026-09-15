@@ -24,6 +24,8 @@ class EliteserienControllerTest extends TestCase
         $response->assertOk();
         $response->assertSee('Eliteserien 2026');
         $response->assertSee('Tabell');
+        $response->assertSee('Direktesendt Eliteserien på TV');
+        $response->assertSee('Kanalutvalg: Ringerike fengsel');
         $response->assertSee('Kommende kamper');
         $response->assertSee('Siste resultater');
         $response->assertSee('Kilde: Schibsted/VG SportsNext-data.');

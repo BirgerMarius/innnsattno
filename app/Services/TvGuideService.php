@@ -20,6 +20,28 @@ class TvGuideService
     private const FRESH_TTL_SECONDS = 600;
     private const STALE_TTL_SECONDS = 259200;
     private const TIMEZONE = 'Europe/Oslo';
+    private const UPCOMING_DAYS = 7;
+
+    /** The existing Ringerike selection used by the TV guide and football boxes. */
+    private const RINGERIKE_CHANNELS = [
+        'nrk1', 'nrk2', 'nrk3', 'tv2-direkte', 'tv2-zebra', 'tvnorge', 'tv3', 'tv3-plus',
+        'tv2-sport-1', 'tv2-sport-2', 'eurosport-norge', 'eurosport-1', 'c-more-hits',
+        'tv2-livsstil', 'rex', 'fem', 'national-geographic', 'discovery-channel',
+        'viasat-explore', 'investigation-discovery', 'bbc-world-news', 'al-jazeera-english',
+        'nickelodeon', 'dr1', 'mtv',
+    ];
+
+    /**
+     * Exact VG titles are intentional: slugs are not reliable for UEFA programming.
+     * A fixture-shaped sportsEvent.name is still required before an item is shown.
+     */
+    private const FOOTBALL_COMPETITIONS = [
+        'premier-league' => ['label' => 'Premier League', 'title' => 'Premier League'],
+        'eliteserien' => ['label' => 'Eliteserien', 'title' => 'Eliteserien'],
+        'champions-league' => ['label' => 'Champions League', 'title' => 'UEFA Champions League'],
+        'europa-league' => ['label' => 'Europa League', 'title' => 'UEFA Europa League'],
+        'conference-league' => ['label' => 'Conference League', 'title' => 'UEFA Conference League'],
+    ];
 
     public function __construct(private ExternalDataFailureNotifier $failureNotifier)
     {
@@ -86,22 +108,38 @@ class TvGuideService
             return $title;
         }
 
+        // VG may put a programme category in title and the fuller category plus
+        // season in sportsEvent.name ("...: Magasin" + "Magasin 2026/27").
+        if (preg_match('/^(.+?):\s*(.+)$/u', $title, $parts) === 1
+            && Str::startsWith(Str::lower($this->formatEventName($eventName)), Str::lower(trim($parts[2])).' ')) {
+            return trim($parts[1]).': '.$this->formatEventName($eventName);
+        }
+
         return $title.': '.$this->formatEventName($eventName);
     }
 
-    /**
-     * Return direct Premier League match broadcasts on TV3+ for the next seven
-     * calendar days, including today. Cache misses are fetched concurrently so
-     * an unavailable source cannot make a print request wait once per day.
-     */
-    public function getUpcomingPremierLeagueOnTv3Plus(CarbonInterface $now, string $operation, int $limit): array
+    public static function ringerikeChannels(): array
     {
+        return self::RINGERIKE_CHANNELS;
+    }
+
+    /**
+     * Return direct, identifiable football matches for one supported competition.
+     * The seven day cache is shared between all football pages and printouts.
+     */
+    public function getUpcomingCompetitionMatches(CarbonInterface $now, string $competition, string $operation, int $limit): array
+    {
+        if (!isset(self::FOOTBALL_COMPETITIONS[$competition])) {
+            throw new UnexpectedValueException('Ukjent fotballturnering for TV-oversikten.');
+        }
+
+        $definition = self::FOOTBALL_COMPETITIONS[$competition];
         $now = $now->copy()->setTimezone(self::TIMEZONE);
-        $end = $now->copy()->addDays(6)->endOfDay();
-        $dates = collect(range(0, 6))
+        $end = $now->copy()->addDays(self::UPCOMING_DAYS - 1)->endOfDay();
+        $dates = collect(range(0, self::UPCOMING_DAYS - 1))
             ->map(fn (int $offset) => $now->copy()->addDays($offset)->startOfDay())
             ->all();
-        $channels = ['tv3-plus'];
+        $channels = self::ringerikeChannels();
         $schedules = [];
         $missing = [];
         $hasSourceFailure = false;
@@ -110,18 +148,15 @@ class TvGuideService
         foreach ($dates as $date) {
             $keys = $this->cacheKeys($date, $channels);
             $fresh = Cache::get($keys['fresh']);
-
             if (is_array($fresh)) {
                 $schedules[] = $fresh;
                 continue;
             }
-
             $missing[$date->format('Y-m-d')] = ['date' => $date, 'keys' => $keys];
         }
 
-        foreach ($this->fetchMany(array_column($missing, 'date')) as $dateKey => $result) {
+        foreach ($this->fetchMany(array_column($missing, 'date'), $channels) as $dateKey => $result) {
             $keys = $missing[$dateKey]['keys'];
-
             if ($result['schedule'] !== null) {
                 Cache::put($keys['fresh'], $result['schedule'], now()->addSeconds(self::FRESH_TTL_SECONDS));
                 Cache::put($keys['stale'], $result['schedule'], now()->addSeconds(self::STALE_TTL_SECONDS));
@@ -136,7 +171,6 @@ class TvGuideService
                 'failure_kind' => $this->failureKind($exception),
                 'status' => $exception instanceof RequestException ? $exception->response?->status() : null,
             ]);
-
             $stale = Cache::get($keys['stale']);
             if (is_array($stale)) {
                 $schedules[] = $stale;
@@ -147,47 +181,41 @@ class TvGuideService
         $matches = [];
         $missingMatchNames = 0;
         $excludedNonMatchProgrammes = 0;
-
         foreach ($schedules as $schedule) {
             foreach ($schedule as $channel) {
                 foreach (($channel['listings'] ?? []) as $listing) {
-                    if (!$this->isLivePremierLeagueBroadcast($listing)) {
+                    if (!$this->isLiveCompetitionBroadcast($listing, $definition['title'])) {
                         continue;
                     }
-
                     $startsAt = data_get($listing, 'startsAt');
                     if (!is_string($startsAt) || $startsAt === '') {
                         continue;
                     }
-
                     $startsAt = \Carbon\Carbon::parse($startsAt)->setTimezone(self::TIMEZONE);
                     if ($startsAt->lessThan($now) || $startsAt->greaterThan($end)) {
                         continue;
                     }
-
                     $eventName = trim((string) data_get($listing, 'sportsEvent.name', ''));
                     if ($eventName === '') {
                         $missingMatchNames++;
                         continue;
                     }
-
                     if (!$this->looksLikeFixtureName($eventName)) {
                         $excludedNonMatchProgrammes++;
                         continue;
                     }
-
                     $matches[(string) data_get($listing, 'sportsEvent.id', $startsAt->toIso8601String().'|'.$eventName)] = [
                         'name' => $this->formatEventName($eventName),
                         'startsAt' => $startsAt,
-                        'channel' => 'TV3+',
+                        'channel' => trim((string) data_get($channel, 'channel.name', 'TV-kanal')),
                     ];
                 }
             }
         }
-
         usort($matches, fn (array $left, array $right) => $left['startsAt']->getTimestamp() <=> $right['startsAt']->getTimestamp());
 
         return [
+            'competitionLabel' => $definition['label'],
             'matches' => array_slice(array_values($matches), 0, $limit),
             'hasSourceFailure' => $hasSourceFailure,
             'usingStaleData' => $usingStaleData,
@@ -195,6 +223,12 @@ class TvGuideService
             'excludedNonMatchProgrammes' => $excludedNonMatchProgrammes,
             'periodEnd' => $end,
         ];
+    }
+
+    /** Backwards-compatible entry point used by the existing Premier League pages. */
+    public function getUpcomingPremierLeagueOnTv3Plus(CarbonInterface $now, string $operation, int $limit): array
+    {
+        return $this->getUpcomingCompetitionMatches($now, 'premier-league', $operation, $limit);
     }
 
     private function fetch(CarbonInterface $date, array $channels): array
@@ -243,7 +277,7 @@ class TvGuideService
         return $payload;
     }
 
-    private function fetchMany(array $dates): array
+    private function fetchMany(array $dates, array $channels): array
     {
         $pending = [];
         foreach ($dates as $date) {
@@ -252,14 +286,14 @@ class TvGuideService
         $results = [];
 
         for ($attempt = 1; $attempt <= 2 && $pending !== []; $attempt++) {
-            $responses = Http::pool(function (Pool $pool) use ($pending) {
+            $responses = Http::pool(function (Pool $pool) use ($pending, $channels) {
                 foreach ($pending as $key => $date) {
                     $pool->as($key)
                         ->acceptJson()
                         ->connectTimeout(3)
                         ->timeout(10)
                         ->get(self::ENDPOINT, [
-                            'channels' => 'tv3-plus',
+                            'channels' => implode(',', $channels),
                             'date' => $date->format('Y-m-d'),
                             'tz' => self::TIMEZONE,
                         ]);
@@ -304,11 +338,11 @@ class TvGuideService
         return $results;
     }
 
-    private function isLivePremierLeagueBroadcast(mixed $listing): bool
+    private function isLiveCompetitionBroadcast(mixed $listing, string $title): bool
     {
         return is_array($listing)
             && data_get($listing, 'title.type') === 'sportsTitle'
-            && data_get($listing, 'title.slug') === 'premier-league'
+            && data_get($listing, 'title.title') === $title
             && ($listing['isLive'] ?? false) === true
             && ($listing['isRerun'] ?? false) !== true;
     }

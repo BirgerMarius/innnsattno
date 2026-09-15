@@ -113,14 +113,14 @@ class FootballTeamPageTest extends TestCase
         ]]);
 
         $this->get('/premier-league/lag/1/utskrift')->assertOk()
-            ->assertSee('Neste direktesendte Premier League-kamp på TV3+')
+            ->assertSee('Neste Premier League på TV')
             ->assertSee('Sendestart 20.55')
             ->assertSee('Et svært langt hjemmelag med mange ord – Et svært langt bortelag med mange ord')
             ->assertSee('TV3+');
 
         $css = File::get(public_path('css/custom/app.css'));
-        $this->assertStringContainsString('.football-team-tv3-plus { break-inside: avoid;', $css);
-        $this->assertStringContainsString('.football-team-tv3-plus p { margin: .45mm 0 0; overflow-wrap: anywhere; }', $css);
+        $this->assertStringContainsString('.football-team-print-page .football-tv-box { break-inside: avoid;', $css);
+        $this->assertStringContainsString('overflow-wrap: anywhere;', $css);
         \Illuminate\Support\Carbon::setTestNow();
     }
 
@@ -130,9 +130,9 @@ class FootballTeamPageTest extends TestCase
 
         $this->get('/premier-league/lag/1/utskrift')->assertOk()
             ->assertSee('TV-opplysninger kunne ikke lastes akkurat nå.')
-            ->assertSee('football-team-tv3-plus', false);
+            ->assertSee('football-tv-box', false);
 
-        $this->assertStringContainsString('.football-team-tv3-plus { break-inside: avoid;', File::get(public_path('css/custom/app.css')));
+        $this->assertStringContainsString('.football-team-print-page .football-tv-box { break-inside: avoid;', File::get(public_path('css/custom/app.css')));
     }
 
     /** @dataProvider fullSeasonPrints */
@@ -243,7 +243,7 @@ class FootballTeamPageTest extends TestCase
         Http::fake([
             "*/tournaments/seasons/{$seasonId}/schedule" => Http::response(['participants' => $participants, 'events' => $events, 'tournamentSeason' => ['name' => '2026/27']], 200),
             "*/tournaments/seasons/{$seasonId}/standings" => Http::response(['participants' => $participants, 'standings' => [['teamStandings' => $standings]]], 200),
-            'tvguide.vg.no/*' => Http::response([['channel' => ['slug' => 'tv3-plus'], 'listings' => $tvListings]], $tvStatus),
+            'tvguide.vg.no/*' => Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $tvListings]], $tvStatus),
         ]);
     }
 

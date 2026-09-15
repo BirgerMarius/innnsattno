@@ -52,16 +52,17 @@ class PremierLeagueControllerTest extends TestCase
         Http::fake([
             '*/tournaments/seasons/9186/schedule' => Http::response($this->schedulePayload(), 200),
             '*/tournaments/seasons/9186/standings' => Http::response($this->standingsPayload(), 200),
-            'tvguide.vg.no/*' => Http::response([['channel' => ['slug' => 'tv3-plus'], 'listings' => $listings]], 200),
+            'tvguide.vg.no/*' => Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]], 200),
         ]);
 
         $response = $this->get('/premier-league')->assertOk()
-            ->assertSeeInOrder(['Direktesendt Premier League på TV3+', 'Tabell'])
+            ->assertSeeInOrder(['Direktesendt Premier League på TV', 'Tabell'])
             ->assertSee('Hjemmelag 1 – Bortelag 1')
             ->assertSee('Hjemmelag 3 – Bortelag 3')
             ->assertDontSee('Hjemmelag 4 – Bortelag 4')
             ->assertSee('Sendestart 20.55')
             ->assertSee('TV3+')
+            ->assertSee('Kanalutvalg: Ringerike fengsel')
             ->assertSee('.pl-tv3-plus-match { align-items: flex-start; flex-direction: column;', false);
 
         $this->assertSame(3, substr_count($response->getContent(), '<article class="pl-tv3-plus-match">'));

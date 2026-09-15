@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Services\SchibstedCompetitionService;
+use App\Services\TvGuideService;
 use Illuminate\Support\Carbon;
 
 abstract class UefaCompetitionController extends Controller
 {
-    public function __construct(protected SchibstedCompetitionService $competitionService)
+    public function __construct(protected SchibstedCompetitionService $competitionService, private TvGuideService $tvGuideService)
     {
     }
 
@@ -39,6 +40,7 @@ abstract class UefaCompetitionController extends Controller
             'usingStaleData' => $competition['usingStaleData'],
             'showingLeaguePhase' => $this->leaguePhaseHasStarted($competition['matches']),
             'knockoutRounds' => $this->competitionService->buildKnockoutRounds($competition['matches']),
+            'tvMatches' => $this->tvMatches(3, $this->routePrefix().'-tv-screen'),
         ]));
     }
 
@@ -49,6 +51,7 @@ abstract class UefaCompetitionController extends Controller
         return view('champions-league.print', array_merge($printData, $this->viewData(), [
             'returnUrl' => route($this->routePrefix().'.index'),
             'knockoutRounds' => $this->competitionService->buildKnockoutRounds($printData['matches']),
+            'tvMatches' => $this->tvMatches(3, $this->routePrefix().'-tv-print'),
         ]));
     }
 
@@ -62,6 +65,7 @@ abstract class UefaCompetitionController extends Controller
         return view('champions-league.team', array_merge($teamSeason, $this->viewData(), [
             'results' => $results,
             'fixtures' => $fixtures,
+            'tvMatches' => $this->tvMatches(1, $this->routePrefix().'-team-tv-screen'),
         ]));
     }
 
@@ -72,6 +76,7 @@ abstract class UefaCompetitionController extends Controller
 
         return view('football.team-print', array_merge($teamSeason, $this->viewData(), [
             'teamRoute' => $this->routePrefix().'.team',
+            'tvMatches' => $this->tvMatches(1, $this->routePrefix().'-team-tv-print'),
         ]));
     }
 
@@ -120,5 +125,12 @@ abstract class UefaCompetitionController extends Controller
             array_values(array_filter($matches, fn (array $match) => $match['isFinished'])),
             array_values(array_filter($matches, fn (array $match) => !$match['isFinished'])),
         ];
+    }
+
+    private function tvMatches(int $limit, string $operation): array
+    {
+        return $this->tvGuideService->getUpcomingCompetitionMatches(
+            now('Europe/Oslo'), $this->routePrefix(), $operation, $limit,
+        );
     }
 }

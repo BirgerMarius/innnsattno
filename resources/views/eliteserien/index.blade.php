@@ -151,6 +151,8 @@
             @endif
         </section>
 
+        @include('football.partials.tv-matches-box', ['tvBoxContext' => 'eliteserien-overview'])
+
         <section class="es-section p-3 p-md-4 mb-3">
             <h2 class="h4 mb-3">Tabell</h2>
             <p class="es-team-help mb-3"><strong>Se alle kampene til et lag:</strong> Trykk på lagnavnet for å se hele sesongens kamper, resultater og kommende oppgjør. Kampoversikten kan også skrives ut på én A4-side.</p>

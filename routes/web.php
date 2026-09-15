@@ -144,40 +144,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 });
 
 Route::get('/print', function (TvGuideService $tvGuideService, DwScheduleService $dwScheduleService) {
-
-    $channels = [
-        'nrk1',
-        'nrk2',
-        'nrk3',
-        'tv2-direkte',
-        'tv2-zebra',
-        'tvnorge',
-        'tv3',
-        'tv3-plus',
-
-        'tv2-sport-1',
-        'tv2-sport-2',
-        'eurosport-norge',
-        'eurosport-1',
-
-        'c-more-hits',
-        'tv2-livsstil',
-        'rex',
-        'fem',
-
-        'national-geographic',
-        'discovery-channel',
-        'viasat-explore',
-        'investigation-discovery',
-
-        'bbc-world-news',
-        'al-jazeera-english',
-
-        'nickelodeon',
-
-        'dr1',
-        'mtv',
-    ];
+    $channels = TvGuideService::ringerikeChannels();
 
     $tvChannels = $tvGuideService->withDisplayTitles(
         $tvGuideService->getSchedule(now('Europe/Oslo'), $channels, 'ringerike-print'),

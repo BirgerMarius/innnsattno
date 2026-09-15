@@ -25,23 +25,13 @@
             <p>Ingen ferdigspilte seriekamper ennå.</p>
         @endif
     </section>
-    @isset($tv3Plus)
-        <section class="football-team-tv3-plus" aria-labelledby="team-tv3-plus-heading">
-            <strong id="team-tv3-plus-heading">Neste direktesendte Premier League-kamp på TV3+</strong>
-            @if(count($tv3Plus['matches']))
-                @php($match = $tv3Plus['matches'][0])
-                <p>{{ $match['startsAt']->locale('nb')->translatedFormat('D j. F') }} · Sendestart {{ $match['startsAt']->format('H.i') }} · {{ $match['name'] }} · {{ $match['channel'] }}</p>
-            @elseif($tv3Plus['missingMatchNames'])
-                <p>Direktesendt Premier League på TV3+ er oppført, men kampnavn mangler.</p>
-            @elseif($tv3Plus['hasSourceFailure'])
-                <p>TV-opplysninger kunne ikke lastes akkurat nå.</p>
-            @else
-                <p>Ingen direktesendt Premier League-kamp på TV3+ er oppført de neste 7 dagene.</p>
-            @endif
-            @if($tv3Plus['hasSourceFailure'] && (count($tv3Plus['matches']) || $tv3Plus['missingMatchNames']))
-                <p class="football-team-tv3-plus-warning">TV-oversikten kan være ufullstendig{{ $tv3Plus['usingStaleData'] ? '; sist lagrede data vises der det finnes.' : '.' }}</p>
-            @endif
-        </section>
+    @isset($tvMatches)
+        @include('football.partials.tv-matches-box', ['tvBoxContext' => 'team-print', 'tvBoxTeam' => true])
+    @else
+        @isset($tv3Plus)
+            @php($tvMatches = $tv3Plus)
+            @include('football.partials.tv-matches-box', ['tvBoxContext' => 'team-print', 'tvBoxTeam' => true])
+        @endisset
     @endisset
     <div class="football-team-print-list">
         @foreach($teamMatches as $match)
