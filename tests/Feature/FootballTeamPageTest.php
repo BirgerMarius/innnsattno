@@ -101,6 +101,40 @@ class FootballTeamPageTest extends TestCase
         $this->getFromIp('/premier-league/lag/1', '203.0.113.31')->assertOk();
     }
 
+    public function test_premier_league_team_print_shows_one_compact_tv3_plus_match_for_every_team(): void
+    {
+        \Illuminate\Support\Carbon::setTestNow(\Illuminate\Support\Carbon::parse('2026-09-10 10:00:00', 'Europe/Oslo'));
+        $this->fakeCompetition(9186, [[
+            'title' => ['type' => 'sportsTitle', 'slug' => 'premier-league', 'title' => 'Premier League'],
+            'sportsEvent' => ['id' => 55, 'name' => 'Et svært langt hjemmelag med mange ord - Et svært langt bortelag med mange ord'],
+            'startsAt' => '2026-09-10T18:55:00Z',
+            'isLive' => true,
+            'isRerun' => false,
+        ]]);
+
+        $this->get('/premier-league/lag/1/utskrift')->assertOk()
+            ->assertSee('Neste direktesendte Premier League-kamp på TV3+')
+            ->assertSee('Sendestart 20.55')
+            ->assertSee('Et svært langt hjemmelag med mange ord – Et svært langt bortelag med mange ord')
+            ->assertSee('TV3+');
+
+        $css = File::get(public_path('css/custom/app.css'));
+        $this->assertStringContainsString('.football-team-tv3-plus { break-inside: avoid;', $css);
+        $this->assertStringContainsString('.football-team-tv3-plus p { margin: .45mm 0 0; overflow-wrap: anywhere; }', $css);
+        \Illuminate\Support\Carbon::setTestNow();
+    }
+
+    public function test_premier_league_team_print_keeps_the_tv_failure_message_compact(): void
+    {
+        $this->fakeCompetition(9186, [], 503);
+
+        $this->get('/premier-league/lag/1/utskrift')->assertOk()
+            ->assertSee('TV-opplysninger kunne ikke lastes akkurat nå.')
+            ->assertSee('football-team-tv3-plus', false);
+
+        $this->assertStringContainsString('.football-team-tv3-plus { break-inside: avoid;', File::get(public_path('css/custom/app.css')));
+    }
+
     /** @dataProvider fullSeasonPrints */
     public function test_full_team_season_print_keeps_all_matches_in_the_two_column_layout(int $seasonId, int $matchCount): void
     {
@@ -187,7 +221,7 @@ class FootballTeamPageTest extends TestCase
         return ['Eliteserien' => [8766, 30], 'Premier League' => [9186, 38]];
     }
 
-    private function fakeCompetition(int $seasonId): void
+    private function fakeCompetition(int $seasonId, array $tvListings = [], int $tvStatus = 200): void
     {
         Cache::flush();
         $participants = [
@@ -209,6 +243,7 @@ class FootballTeamPageTest extends TestCase
         Http::fake([
             "*/tournaments/seasons/{$seasonId}/schedule" => Http::response(['participants' => $participants, 'events' => $events, 'tournamentSeason' => ['name' => '2026/27']], 200),
             "*/tournaments/seasons/{$seasonId}/standings" => Http::response(['participants' => $participants, 'standings' => [['teamStandings' => $standings]]], 200),
+            'tvguide.vg.no/*' => Http::response([['channel' => ['slug' => 'tv3-plus'], 'listings' => $tvListings]], $tvStatus),
         ]);
     }
 

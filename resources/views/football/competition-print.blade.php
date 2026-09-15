@@ -29,6 +29,12 @@
         .emblem { height: 4mm; margin-right: 1mm; object-fit: contain; vertical-align: middle; width: 4mm; }
         .empty, .warning { border: 1px solid #aaa; padding: 2.5mm; }
         .warning { margin-bottom: 3mm; }
+        .tv3-plus-print-box { break-inside: avoid; border: 1px solid #777; margin: 0 0 3.5mm; padding: 2mm 2.5mm; }
+        .tv3-plus-print-box h2 { font-size: 10pt; margin-bottom: 1mm; }
+        .tv3-plus-print-box ul { margin: 0; padding-left: 4mm; }
+        .tv3-plus-print-box li { margin: .5mm 0; }
+        .tv3-plus-print-box p { font-size: 8.5pt; margin-top: 1mm; }
+        .tv3-plus-print-box .warning { border: 0; margin: 1mm 0 0; padding: 0; }
         .standings-section { margin-top: 3.5mm; }
         h2 { break-after: avoid; page-break-after: avoid; }
         @media print {
@@ -67,6 +73,28 @@
     @if($apiError)
         <p class="warning">Oppdaterte data kunne ikke lastes akkurat nå{{ $usingStaleData ? '. Viser sist lagrede data.' : '.' }}</p>
     @endif
+
+    @isset($tv3Plus)
+        <section class="tv3-plus-print-box" aria-labelledby="tv3-plus-heading">
+            <h2 id="tv3-plus-heading">Direktesendt Premier League på TV3+</h2>
+            @if(count($tv3Plus['matches']))
+                <ul>
+                    @foreach($tv3Plus['matches'] as $match)
+                        <li>{{ $match['startsAt']->locale('nb')->translatedFormat('D j. F') }} · Sendestart {{ $match['startsAt']->format('H.i') }} · {{ $match['name'] }} · {{ $match['channel'] }}</li>
+                    @endforeach
+                </ul>
+            @elseif($tv3Plus['missingMatchNames'])
+                <p>Direktesendt Premier League på TV3+ er oppført, men kampnavn mangler.</p>
+            @elseif($tv3Plus['hasSourceFailure'])
+                <p>TV-opplysninger kunne ikke lastes akkurat nå.</p>
+            @else
+                <p>Ingen direktesendt Premier League-kamp på TV3+ er oppført de neste 7 dagene.</p>
+            @endif
+            @if($tv3Plus['hasSourceFailure'] && (count($tv3Plus['matches']) || $tv3Plus['missingMatchNames']))
+                <p class="warning">TV-oversikten kan være ufullstendig{{ $tv3Plus['usingStaleData'] ? '; sist lagrede data vises der det finnes.' : '.' }}</p>
+            @endif
+        </section>
+    @endisset
 
     <div class="fixture-sections">
         <section>

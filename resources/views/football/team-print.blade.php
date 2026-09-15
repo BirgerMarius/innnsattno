@@ -25,6 +25,24 @@
             <p>Ingen ferdigspilte seriekamper ennå.</p>
         @endif
     </section>
+    @isset($tv3Plus)
+        <section class="football-team-tv3-plus" aria-labelledby="team-tv3-plus-heading">
+            <strong id="team-tv3-plus-heading">Neste direktesendte Premier League-kamp på TV3+</strong>
+            @if(count($tv3Plus['matches']))
+                @php($match = $tv3Plus['matches'][0])
+                <p>{{ $match['startsAt']->locale('nb')->translatedFormat('D j. F') }} · Sendestart {{ $match['startsAt']->format('H.i') }} · {{ $match['name'] }} · {{ $match['channel'] }}</p>
+            @elseif($tv3Plus['missingMatchNames'])
+                <p>Direktesendt Premier League på TV3+ er oppført, men kampnavn mangler.</p>
+            @elseif($tv3Plus['hasSourceFailure'])
+                <p>TV-opplysninger kunne ikke lastes akkurat nå.</p>
+            @else
+                <p>Ingen direktesendt Premier League-kamp på TV3+ er oppført de neste 7 dagene.</p>
+            @endif
+            @if($tv3Plus['hasSourceFailure'] && (count($tv3Plus['matches']) || $tv3Plus['missingMatchNames']))
+                <p class="football-team-tv3-plus-warning">TV-oversikten kan være ufullstendig{{ $tv3Plus['usingStaleData'] ? '; sist lagrede data vises der det finnes.' : '.' }}</p>
+            @endif
+        </section>
+    @endisset
     <div class="football-team-print-list">
         @foreach($teamMatches as $match)
             <div class="football-team-print-match"><span>{{ $match['startsAt'] ? $match['startsAt']->format('d.m.') : 'Ikke satt' }} {{ $match['timeLabel'] }}@if($match['roundNumber']) · Runde {{ $match['roundNumber'] }}@elseif($match['round']) · {{ $match['round'] }}@endif</span><strong>{{ $match['isHome'] ? 'H' : 'B' }}</strong><span class="football-team-print-opponent">@if($match['opponentEmblemUrl'])<img src="{{ $match['opponentEmblemUrl'] }}" alt="" onerror="this.remove()">@endif<span>{{ $match['opponent'] }}</span></span><b>@if($match['isFinished']){{ $match['teamScore'] ?? '–' }}–{{ $match['opponentScore'] ?? '–' }}@else{{ $match['statusLabel'] === 'Ikke startet' ? '–' : $match['statusLabel'] }}@endif</b></div>

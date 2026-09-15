@@ -1016,6 +1016,10 @@
     .football-team-print-stats { break-inside: avoid; border-bottom: .5px solid #777; font-size: 8.25pt; line-height: 1.15; margin-bottom: 2mm; padding-bottom: 1.25mm; }
     .football-team-print-stats strong { font-size: 8.75pt; }
     .football-team-print-stats p { margin: .45mm 0 0; }
+    .football-team-tv3-plus { break-inside: avoid; border-bottom: .5px solid #777; font-size: 8.25pt; line-height: 1.15; margin-bottom: 2mm; padding-bottom: 1.25mm; }
+    .football-team-tv3-plus strong { font-size: 8.75pt; }
+    .football-team-tv3-plus p { margin: .45mm 0 0; overflow-wrap: anywhere; }
+    .football-team-tv3-plus-warning { color: #555; }
     .football-team-print-list { column-count: 2; column-gap: 7mm; }
     .football-team-print-match { break-inside: avoid; border-bottom: .5px solid #999; display: grid; gap: 1.2mm; grid-template-columns: 26mm 5mm minmax(0, 1fr) 14mm; padding: 1.05mm 0; }
     .football-team-print-opponent { align-items: center; display: flex; gap: 1.2mm; min-width: 0; overflow: hidden; }

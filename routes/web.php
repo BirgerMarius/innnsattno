@@ -179,7 +179,9 @@ Route::get('/print', function (TvGuideService $tvGuideService, DwScheduleService
         'mtv',
     ];
 
-    $tvChannels = $tvGuideService->getSchedule(now('Europe/Oslo'), $channels, 'ringerike-print');
+    $tvChannels = $tvGuideService->withDisplayTitles(
+        $tvGuideService->getSchedule(now('Europe/Oslo'), $channels, 'ringerike-print'),
+    );
 
     $dwChannel = $dwScheduleService->channelForDate(now('Europe/Oslo'));
 
@@ -255,7 +257,9 @@ $channels = [
     'tlc',
 ];
 
-    $tvChannels = $tvGuideService->getSchedule(now('Europe/Oslo'), $channels, 'ilseng-print');
+    $tvChannels = $tvGuideService->withDisplayTitles(
+        $tvGuideService->getSchedule(now('Europe/Oslo'), $channels, 'ilseng-print'),
+    );
 
     return view('pdf-ilseng')->with(['channels' => $tvChannels]);
 

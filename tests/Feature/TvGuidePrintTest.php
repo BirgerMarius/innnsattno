@@ -189,6 +189,34 @@ class TvGuidePrintTest extends TestCase
         $this->assertSame(3, substr_count($response->getContent(), '<div class="ringerike-tv-print__listing">'));
     }
 
+    /**
+     * @dataProvider printRoutes
+     */
+    public function test_print_pages_show_a_sports_event_name_once_without_losing_the_compact_column_rules(string $route): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-08-29 08:00:00', 'Europe/Oslo'));
+        $eventName = 'Et svært langt hjemmelag med mange ord - Et svært langt bortelag med mange ord';
+
+        Http::fake([
+            'tvguide.vg.no/*' => Http::response([[
+                'channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'],
+                'listings' => [
+                    ['startsAt' => '2026-08-29T20:00:00Z', 'title' => ['title' => 'Premier League'], 'sportsEvent' => ['name' => $eventName]],
+                    ['startsAt' => '2026-08-29T21:00:00Z', 'title' => ['title' => 'Premier League: Et svært langt hjemmelag med mange ord – Et svært langt bortelag med mange ord'], 'sportsEvent' => ['name' => $eventName]],
+                ],
+            ]], 200),
+            'www.dw.com/graph-api/en/livestream/english' => Http::response([], 503),
+        ]);
+
+        $response = $this->get($route)->assertOk()
+            ->assertSee('Premier League: Et svært langt hjemmelag med mange ord – Et svært langt bortelag med mange ord')
+            ->assertSee('overflow-wrap: anywhere', false)
+            ->assertSee('word-break: break-word', false)
+            ->assertSee('column-count: 4', false);
+
+        $this->assertSame(2, substr_count($response->getContent(), 'Et svært langt hjemmelag med mange ord – Et svært langt bortelag med mange ord'));
+    }
+
     public function test_ilseng_print_keeps_problematic_channel_and_programme_text_inside_its_column(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-08-29 08:00:00', 'Europe/Oslo'));

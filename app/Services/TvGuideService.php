@@ -4,9 +4,12 @@ namespace App\Services;
 
 use Carbon\CarbonInterface;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use JsonException;
 use Throwable;
 use UnexpectedValueException;
@@ -50,6 +53,148 @@ class TvGuideService
 
             return is_array($stale) ? $stale : [];
         }
+    }
+
+    /**
+     * Add a presentation-safe title without changing the cached VG payload.
+     */
+    public function withDisplayTitles(array $schedule): array
+    {
+        foreach ($schedule as &$channel) {
+            if (!is_array($channel) || !is_array($channel['listings'] ?? null)) {
+                continue;
+            }
+
+            foreach ($channel['listings'] as &$listing) {
+                if (is_array($listing)) {
+                    $listing['displayTitle'] = $this->displayTitle($listing);
+                }
+            }
+            unset($listing);
+        }
+        unset($channel);
+
+        return $schedule;
+    }
+
+    public function displayTitle(array $listing): string
+    {
+        $title = trim((string) data_get($listing, 'title.title', ''));
+        $eventName = trim((string) data_get($listing, 'sportsEvent.name', ''));
+
+        if ($title === '' || $eventName === '' || $this->titleAlreadyContainsEvent($title, $eventName)) {
+            return $title;
+        }
+
+        return $title.': '.$this->formatEventName($eventName);
+    }
+
+    /**
+     * Return direct Premier League match broadcasts on TV3+ for the next seven
+     * calendar days, including today. Cache misses are fetched concurrently so
+     * an unavailable source cannot make a print request wait once per day.
+     */
+    public function getUpcomingPremierLeagueOnTv3Plus(CarbonInterface $now, string $operation, int $limit): array
+    {
+        $now = $now->copy()->setTimezone(self::TIMEZONE);
+        $end = $now->copy()->addDays(6)->endOfDay();
+        $dates = collect(range(0, 6))
+            ->map(fn (int $offset) => $now->copy()->addDays($offset)->startOfDay())
+            ->all();
+        $channels = ['tv3-plus'];
+        $schedules = [];
+        $missing = [];
+        $hasSourceFailure = false;
+        $usingStaleData = false;
+
+        foreach ($dates as $date) {
+            $keys = $this->cacheKeys($date, $channels);
+            $fresh = Cache::get($keys['fresh']);
+
+            if (is_array($fresh)) {
+                $schedules[] = $fresh;
+                continue;
+            }
+
+            $missing[$date->format('Y-m-d')] = ['date' => $date, 'keys' => $keys];
+        }
+
+        foreach ($this->fetchMany(array_column($missing, 'date')) as $dateKey => $result) {
+            $keys = $missing[$dateKey]['keys'];
+
+            if ($result['schedule'] !== null) {
+                Cache::put($keys['fresh'], $result['schedule'], now()->addSeconds(self::FRESH_TTL_SECONDS));
+                Cache::put($keys['stale'], $result['schedule'], now()->addSeconds(self::STALE_TTL_SECONDS));
+                $schedules[] = $result['schedule'];
+                continue;
+            }
+
+            $hasSourceFailure = true;
+            $exception = $result['exception'];
+            $this->failureNotifier->report('tv-guide-vg', $this->summary($exception), [
+                'operation' => $operation,
+                'failure_kind' => $this->failureKind($exception),
+                'status' => $exception instanceof RequestException ? $exception->response?->status() : null,
+            ]);
+
+            $stale = Cache::get($keys['stale']);
+            if (is_array($stale)) {
+                $schedules[] = $stale;
+                $usingStaleData = true;
+            }
+        }
+
+        $matches = [];
+        $missingMatchNames = 0;
+        $excludedNonMatchProgrammes = 0;
+
+        foreach ($schedules as $schedule) {
+            foreach ($schedule as $channel) {
+                foreach (($channel['listings'] ?? []) as $listing) {
+                    if (!$this->isLivePremierLeagueBroadcast($listing)) {
+                        continue;
+                    }
+
+                    $startsAt = data_get($listing, 'startsAt');
+                    if (!is_string($startsAt) || $startsAt === '') {
+                        continue;
+                    }
+
+                    $startsAt = \Carbon\Carbon::parse($startsAt)->setTimezone(self::TIMEZONE);
+                    if ($startsAt->lessThan($now) || $startsAt->greaterThan($end)) {
+                        continue;
+                    }
+
+                    $eventName = trim((string) data_get($listing, 'sportsEvent.name', ''));
+                    if ($eventName === '') {
+                        $missingMatchNames++;
+                        continue;
+                    }
+
+                    if (!$this->looksLikeFixtureName($eventName)) {
+                        $excludedNonMatchProgrammes++;
+                        continue;
+                    }
+
+                    $matches[(string) data_get($listing, 'sportsEvent.id', $startsAt->toIso8601String().'|'.$eventName)] = [
+                        'name' => $this->formatEventName($eventName),
+                        'startsAt' => $startsAt,
+                        'channel' => 'TV3+',
+                    ];
+                }
+            }
+        }
+
+        usort($matches, fn (array $left, array $right) => $left['startsAt']->getTimestamp() <=> $right['startsAt']->getTimestamp());
+
+        return [
+            'matches' => array_slice(array_values($matches), 0, $limit),
+            'hasSourceFailure' => $hasSourceFailure,
+            'usingStaleData' => $usingStaleData,
+            'missingMatchNames' => $missingMatchNames,
+            'excludedNonMatchProgrammes' => $excludedNonMatchProgrammes,
+            'periodEnd' => $end,
+        ];
     }
 
     private function fetch(CarbonInterface $date, array $channels): array
@@ -96,6 +241,94 @@ class TvGuideService
         }
 
         return $payload;
+    }
+
+    private function fetchMany(array $dates): array
+    {
+        $pending = [];
+        foreach ($dates as $date) {
+            $pending[$date->format('Y-m-d')] = $date;
+        }
+        $results = [];
+
+        for ($attempt = 1; $attempt <= 2 && $pending !== []; $attempt++) {
+            $responses = Http::pool(function (Pool $pool) use ($pending) {
+                foreach ($pending as $key => $date) {
+                    $pool->as($key)
+                        ->acceptJson()
+                        ->connectTimeout(3)
+                        ->timeout(10)
+                        ->get(self::ENDPOINT, [
+                            'channels' => 'tv3-plus',
+                            'date' => $date->format('Y-m-d'),
+                            'tz' => self::TIMEZONE,
+                        ]);
+                }
+            });
+
+            $retry = [];
+            foreach ($pending as $key => $date) {
+                $response = $responses[$key] ?? null;
+                try {
+                    if (!$response instanceof Response) {
+                        if ($attempt < 2) {
+                            $retry[$key] = $date;
+                            continue;
+                        }
+                        throw new ConnectionException('VG TV-guide svarte ikke.');
+                    }
+                    if ($response->serverError() && $attempt < 2) {
+                        $retry[$key] = $date;
+                        continue;
+                    }
+
+                    $response->throw();
+                    $payload = json_decode($response->body(), true, 512, JSON_THROW_ON_ERROR);
+                    if (!$this->isValidSchedule($payload)) {
+                        throw new UnexpectedValueException('VG TV-guide mangler forventede programdata.');
+                    }
+                    $results[$key] = ['schedule' => $payload, 'exception' => null];
+                } catch (JsonException $exception) {
+                    $results[$key] = ['schedule' => null, 'exception' => new UnexpectedValueException('VG TV-guide returnerte ugyldig JSON.', 0, $exception)];
+                } catch (Throwable $exception) {
+                    $results[$key] = ['schedule' => null, 'exception' => $exception];
+                }
+            }
+
+            if ($retry !== [] && $attempt < 2) {
+                usleep(250000);
+            }
+            $pending = $retry;
+        }
+
+        return $results;
+    }
+
+    private function isLivePremierLeagueBroadcast(mixed $listing): bool
+    {
+        return is_array($listing)
+            && data_get($listing, 'title.type') === 'sportsTitle'
+            && data_get($listing, 'title.slug') === 'premier-league'
+            && ($listing['isLive'] ?? false) === true
+            && ($listing['isRerun'] ?? false) !== true;
+    }
+
+    private function looksLikeFixtureName(string $eventName): bool
+    {
+        return preg_match('/^\s*[^–-]+\s+[–-]\s+[^–-]+\s*$/u', $eventName) === 1;
+    }
+
+    private function formatEventName(string $eventName): string
+    {
+        return preg_replace('/\s+-\s+/u', ' – ', trim($eventName)) ?? trim($eventName);
+    }
+
+    private function titleAlreadyContainsEvent(string $title, string $eventName): bool
+    {
+        return Str::contains(
+            Str::lower($this->formatEventName($title)),
+            Str::lower($this->formatEventName($eventName)),
+        );
     }
 
     private function isValidSchedule(mixed $payload): bool

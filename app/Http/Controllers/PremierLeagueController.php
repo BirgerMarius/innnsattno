@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Services\PremierLeagueService;
+use App\Services\TvGuideService;
 
 class PremierLeagueController extends Controller
 {
     private PremierLeagueService $premierLeagueService;
 
-    public function __construct(PremierLeagueService $premierLeagueService)
+    public function __construct(
+        PremierLeagueService $premierLeagueService,
+        private TvGuideService $tvGuideService,
+    )
     {
         $this->premierLeagueService = $premierLeagueService;
     }
@@ -52,7 +56,10 @@ class PremierLeagueController extends Controller
     {
         return view('football.competition-print', array_merge(
             $this->premierLeagueService->getPrintData('Premier League'),
-            ['returnUrl' => route('premier-league.index')],
+            [
+                'returnUrl' => route('premier-league.index'),
+                'tv3Plus' => $this->tv3PlusMatches(3),
+            ],
         ));
     }
 
@@ -75,6 +82,16 @@ class PremierLeagueController extends Controller
         return view('football.team-print', array_merge($teamSeason, [
             'backRoute' => 'premier-league.index',
             'teamRoute' => 'premier-league.team',
+            'tv3Plus' => $this->tv3PlusMatches(1),
         ]));
+    }
+
+    private function tv3PlusMatches(int $limit): array
+    {
+        return $this->tvGuideService->getUpcomingPremierLeagueOnTv3Plus(
+            now('Europe/Oslo'),
+            'premier-league-tv3-plus-print',
+            $limit,
+        );
     }
 }

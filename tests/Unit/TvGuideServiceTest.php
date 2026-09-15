@@ -104,6 +104,70 @@ class TvGuideServiceTest extends TestCase
         Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
     }
 
+    public function test_display_title_uses_the_sports_event_name_without_duplication_or_a_missing_field_error(): void
+    {
+        $this->assertSame('Premier League: Brentford – Chelsea', $this->service()->displayTitle([
+            'title' => ['title' => 'Premier League'],
+            'sportsEvent' => ['name' => 'Brentford - Chelsea'],
+        ]));
+        $this->assertSame('Premier League: Brentford – Chelsea', $this->service()->displayTitle([
+            'title' => ['title' => 'Premier League: Brentford – Chelsea'],
+            'sportsEvent' => ['name' => 'Brentford - Chelsea'],
+        ]));
+        $this->assertSame('Premier League', $this->service()->displayTitle([
+            'title' => ['title' => 'Premier League'],
+        ]));
+    }
+
+    public function test_upcoming_tv3_plus_matches_use_seven_cached_daily_requests_and_exclude_non_matches(): void
+    {
+        $now = Carbon::parse('2026-09-10 10:00:00', 'Europe/Oslo');
+        Http::fake(function ($request) {
+            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+            $listings = ($query['date'] ?? null) === '2026-09-10' ? [
+                $this->premierLeagueListing('2026-09-10T18:55:00Z', 'Brentford - Chelsea'),
+                $this->premierLeagueListing('2026-09-10T19:55:00Z', 'Arsenal - Everton'),
+                $this->premierLeagueListing('2026-09-10T20:55:00Z', 'Liverpool - Wolves'),
+                $this->premierLeagueListing('2026-09-10T21:55:00Z', 'Newcastle - Fulham'),
+                $this->premierLeagueListing('2026-09-10T17:00:00Z', 'Premier League Studio'),
+                $this->premierLeagueListing('2026-09-10T16:00:00Z', null),
+                array_merge($this->premierLeagueListing('2026-09-10T20:00:00Z', 'Arsenal - Everton'), ['isRerun' => true]),
+            ] : [];
+
+            return Http::response([['channel' => ['slug' => 'tv3-plus'], 'listings' => $listings]]);
+        });
+
+        $result = $this->service()->getUpcomingPremierLeagueOnTv3Plus($now, 'premier-league-tv3-plus-print', 3);
+
+        $this->assertSame('Brentford – Chelsea', $result['matches'][0]['name']);
+        $this->assertCount(3, $result['matches']);
+        $this->assertSame('Liverpool – Wolves', $result['matches'][2]['name']);
+        $this->assertSame('2026-09-10 20:55', $result['matches'][0]['startsAt']->format('Y-m-d H:i'));
+        $this->assertSame(1, $result['missingMatchNames']);
+        $this->assertSame(1, $result['excludedNonMatchProgrammes']);
+        $this->assertFalse($result['hasSourceFailure']);
+        Http::assertSentCount(7);
+
+        $this->service()->getUpcomingPremierLeagueOnTv3Plus($now, 'premier-league-tv3-plus-print', 1);
+        Http::assertSentCount(7);
+    }
+
+    public function test_upcoming_tv3_plus_matches_distinguish_a_source_failure_from_no_listed_match(): void
+    {
+        Http::fake(['tvguide.vg.no/*' => Http::response([], 503)]);
+
+        $result = $this->service()->getUpcomingPremierLeagueOnTv3Plus(
+            Carbon::parse('2026-09-10 10:00:00', 'Europe/Oslo'),
+            'premier-league-tv3-plus-print',
+            3,
+        );
+
+        $this->assertSame([], $result['matches']);
+        $this->assertTrue($result['hasSourceFailure']);
+        $this->assertSame(0, $result['missingMatchNames']);
+        Mail::assertSent(ExternalDataSourceFailureMail::class);
+    }
+
     private function primeStale(array $schedule): void
     {
         Cache::put($this->staleCacheKey(), $schedule, now()->addDays(3));
@@ -124,6 +188,17 @@ class TvGuideServiceTest extends TestCase
     private function channel(string $name): array
     {
         return ['channel' => ['name' => $name, 'slug' => strtolower(str_replace(' ', '-', $name))], 'listings' => []];
+    }
+
+    private function premierLeagueListing(string $startsAt, ?string $eventName): array
+    {
+        return [
+            'title' => ['type' => 'sportsTitle', 'slug' => 'premier-league', 'title' => 'Premier League'],
+            'sportsEvent' => $eventName === null ? null : ['id' => crc32($startsAt.$eventName), 'name' => $eventName],
+            'startsAt' => $startsAt,
+            'isLive' => true,
+            'isRerun' => false,
+        ];
     }
 
     private function service(): TvGuideService
