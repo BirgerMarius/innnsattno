@@ -31,6 +31,7 @@ class PremierLeagueController extends Controller
             'apiConfigured' => $competition['apiConfigured'],
             'apiError' => $competition['apiError'],
             'usingStaleData' => $competition['usingStaleData'],
+            'tv3Plus' => $this->tv3PlusMatches(3, 'premier-league-tv3-plus-screen'),
         ]);
     }
 
@@ -86,11 +87,11 @@ class PremierLeagueController extends Controller
         ]));
     }
 
-    private function tv3PlusMatches(int $limit): array
+    private function tv3PlusMatches(int $limit, string $operation = 'premier-league-tv3-plus-print'): array
     {
         return $this->tvGuideService->getUpcomingPremierLeagueOnTv3Plus(
             now('Europe/Oslo'),
-            'premier-league-tv3-plus-print',
+            $operation,
             $limit,
         );
     }

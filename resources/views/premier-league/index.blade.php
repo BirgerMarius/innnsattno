@@ -102,6 +102,26 @@
         padding: 1rem;
     }
 
+    .pl-tv3-plus-list {
+        margin: 0;
+        padding: 0;
+    }
+
+    .pl-tv3-plus-match {
+        align-items: baseline;
+        border-top: 1px solid #e6eaf0;
+        display: flex;
+        gap: 1rem;
+        justify-content: space-between;
+        padding: .7rem 0;
+    }
+
+    .pl-tv3-plus-match:first-child { border-top: 0; padding-top: 0; }
+    .pl-tv3-plus-match:last-child { padding-bottom: 0; }
+    .pl-tv3-plus-match strong { color: #1d2731; }
+    .pl-tv3-plus-meta { color: #667085; font-size: .9rem; text-align: right; }
+    .pl-tv3-plus-note { color: #667085; font-size: .9rem; margin: .75rem 0 0; }
+
     @media (max-width: 575.98px) {
         .pl-hero,
         .pl-section {
@@ -109,6 +129,9 @@
             border-right: 0;
             border-radius: 0;
         }
+
+        .pl-tv3-plus-match { align-items: flex-start; flex-direction: column; gap: .2rem; }
+        .pl-tv3-plus-meta { text-align: left; }
     }
 </style>
 @endpush
@@ -148,6 +171,29 @@
                 <p class="pl-empty mt-3">
                     Nye data kunne ikke hentes akkurat nå. Viser sist lagrede data.
                 </p>
+            @endif
+        </section>
+
+        <section class="pl-section p-3 p-md-4 mb-3" aria-labelledby="pl-tv3-plus-heading">
+            <h2 id="pl-tv3-plus-heading" class="h4 mb-3">Direktesendt Premier League på TV3+</h2>
+            @if(count($tv3Plus['matches']))
+                <div class="pl-tv3-plus-list">
+                    @foreach($tv3Plus['matches'] as $match)
+                        <article class="pl-tv3-plus-match">
+                            <strong>{{ $match['name'] }}</strong>
+                            <span class="pl-tv3-plus-meta">{{ $match['startsAt']->locale('nb')->translatedFormat('D j. F') }} · Sendestart {{ $match['startsAt']->format('H.i') }} · {{ $match['channel'] }}</span>
+                        </article>
+                    @endforeach
+                </div>
+            @elseif($tv3Plus['missingMatchNames'])
+                <p class="pl-empty">Direktesendt Premier League på TV3+ er oppført, men kampnavn mangler.</p>
+            @elseif($tv3Plus['hasSourceFailure'])
+                <p class="pl-empty">TV-opplysninger kunne ikke lastes akkurat nå.</p>
+            @else
+                <p class="pl-empty">Ingen direktesendt Premier League-kamp på TV3+ er oppført de neste 7 dagene.</p>
+            @endif
+            @if($tv3Plus['hasSourceFailure'] && (count($tv3Plus['matches']) || $tv3Plus['missingMatchNames']))
+                <p class="pl-tv3-plus-note">TV-oversikten kan være ufullstendig{{ $tv3Plus['usingStaleData'] ? '; sist lagrede data vises der det finnes.' : '.' }}</p>
             @endif
         </section>
 

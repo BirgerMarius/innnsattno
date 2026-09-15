@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class PremierLeagueControllerTest extends TestCase
@@ -33,6 +34,38 @@ class PremierLeagueControllerTest extends TestCase
         $this->get('/premier-league')->assertOk()
             ->assertSee('Trykk på lagnavnet for å se hele sesongens kamper')
             ->assertDontSee('Beta');
+    }
+
+    /** @test */
+    public function screen_page_shows_up_to_three_cached_tv3_plus_matches_between_the_hero_and_table(): void
+    {
+        Cache::flush();
+        Carbon::setTestNow(Carbon::parse('2026-09-10 10:00:00', 'Europe/Oslo'));
+        $listings = array_map(fn (int $number) => [
+            'title' => ['type' => 'sportsTitle', 'slug' => 'premier-league', 'title' => 'Premier League'],
+            'sportsEvent' => ['id' => $number, 'name' => 'Hjemmelag '.$number.' - Bortelag '.$number],
+            'startsAt' => sprintf('2026-09-10T%02d:55:00Z', 17 + $number),
+            'isLive' => true,
+            'isRerun' => false,
+        ], range(1, 4));
+
+        Http::fake([
+            '*/tournaments/seasons/9186/schedule' => Http::response($this->schedulePayload(), 200),
+            '*/tournaments/seasons/9186/standings' => Http::response($this->standingsPayload(), 200),
+            'tvguide.vg.no/*' => Http::response([['channel' => ['slug' => 'tv3-plus'], 'listings' => $listings]], 200),
+        ]);
+
+        $response = $this->get('/premier-league')->assertOk()
+            ->assertSeeInOrder(['Direktesendt Premier League på TV3+', 'Tabell'])
+            ->assertSee('Hjemmelag 1 – Bortelag 1')
+            ->assertSee('Hjemmelag 3 – Bortelag 3')
+            ->assertDontSee('Hjemmelag 4 – Bortelag 4')
+            ->assertSee('Sendestart 20.55')
+            ->assertSee('TV3+')
+            ->assertSee('.pl-tv3-plus-match { align-items: flex-start; flex-direction: column;', false);
+
+        $this->assertSame(3, substr_count($response->getContent(), '<article class="pl-tv3-plus-match">'));
+        Carbon::setTestNow();
     }
 
     private function schedulePayload(): array
