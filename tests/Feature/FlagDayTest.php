@@ -479,7 +479,7 @@ class FlagDayTest extends TestCase
         config(['mourning_flag.funeral_date' => '2026-09-09']);
 
         $changes = app(FlagDayService::class)->upcomingMourningChanges(
-            Carbon::parse('2026-09-09 22:30:00', 'UTC')
+            Carbon::parse('2026-09-09 21:30:00', 'UTC')
         );
 
         $this->assertSame(['2026-09-10'], array_map(
