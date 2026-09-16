@@ -366,19 +366,16 @@ $isEvenWeek = $weekNumber % 2 === 0;
         </a>
     </section>
 
-    @if (!empty($localNews))
+    @if (!empty($localNews) || !empty($correctionalNews['national']))
         <section class="local-news-section" aria-labelledby="local-news-heading">
             <header class="local-news-section-header">
-                <h2 id="local-news-heading">Lokale nyheter</h2>
-                <p>Fra Ringerikes Blad</p>
+                <h2 id="local-news-heading">Aktuelt fra kriminalomsorgen</h2>
+                <p>Lokale og nasjonale saker</p>
             </header>
-            @php
-                $featuredNews = array_slice($localNews, 0, 3);
-                $compactNews = array_slice($localNews, 3, 3);
-            @endphp
-            @if (!empty($featuredNews))
+            @if (!empty($localNews))
+                <h3 class="front-page-news-group-heading">Lokalt</h3>
                 <div class="local-news-grid">
-                    @foreach ($featuredNews as $article)
+                    @foreach ($localNews as $article)
                         <article class="local-news-card local-news-card--image">
                             @if (!empty($article['image_url']))
                                 <img class="local-news-card-image"
@@ -390,6 +387,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
                             <div class="local-news-card-content">
                                 @if (!empty($article['published_at']) || !empty($article['is_subscription']))
                                     <div class="local-news-meta">
+                                        <span>Ringerikes Blad</span>
                                         @if (!empty($article['published_at']))
                                             <time>{{ $article['published_at'] }}</time>
                                         @endif
@@ -408,18 +406,25 @@ $isEvenWeek = $weekNumber % 2 === 0;
                     @endforeach
                 </div>
             @endif
-            @if (!empty($compactNews))
+            @if (!empty($correctionalNews['national']))
+                <h3 class="front-page-news-group-heading">Nasjonalt</h3>
                 <div class="local-news-grid local-news-grid--text">
-                    @foreach ($compactNews as $article)
+                    @foreach ($correctionalNews['national'] as $article)
                         <article class="local-news-card local-news-card--text">
                             <div class="local-news-card-content">
-                                @if (!empty($article['published_at']) || !empty($article['is_subscription']))
+                                @if (!empty($article['published_at']) || !empty($article['is_subscription']) || !empty($article['source']))
                                     <div class="local-news-meta">
+                                        @if (!empty($article['source']))
+                                            <span>{{ $article['source'] }}</span>
+                                        @endif
                                         @if (!empty($article['published_at']))
                                             <time>{{ $article['published_at'] }}</time>
                                         @endif
                                         @if (!empty($article['is_subscription']))
                                             <span class="local-news-subscription">Abonnement</span>
+                                        @endif
+                                        @if (($article['source_count'] ?? 1) > 1)
+                                            <span>Omtalt av {{ $article['source_count'] }} kilder</span>
                                         @endif
                                     </div>
                                 @endif
@@ -433,12 +438,20 @@ $isEvenWeek = $weekNumber % 2 === 0;
                     @endforeach
                 </div>
             @endif
-            <a class="local-news-more"
-               href="https://www.ringblad.no/ringerike-fengsel/"
-               target="_blank"
-               rel="noopener noreferrer">
-                Se flere lokale nyheter hos Ringerikes Blad
-            </a>
+            @if (!empty($localNews))
+                <a class="local-news-more" href="https://www.ringblad.no/ringerike-fengsel/" target="_blank" rel="noopener noreferrer">Se flere lokale nyheter hos Ringerikes Blad</a>
+            @endif
+        </section>
+    @endif
+
+    @if (!empty($correctionalNews['union']))
+        <section class="union-news-section" aria-labelledby="union-news-heading">
+            <h2 id="union-news-heading">Fra fagforeningene</h2>
+            <ul class="union-news-list">
+                @foreach ($correctionalNews['union'] as $article)
+                    <li><span class="union-news-source">{{ $article['label'] }}:</span> <a href="{{ $article['url'] }}" target="_blank" rel="noopener noreferrer">{{ $article['title'] }}</a>@if (!empty($article['published_at'])) <time> · {{ $article['published_at'] }}</time>@endif</li>
+                @endforeach
+            </ul>
         </section>
     @endif
 

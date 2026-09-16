@@ -89,7 +89,7 @@ class HomepageTextTest extends TestCase
 
         $response->assertSeeInOrder([
             'Spinn hjulet',
-            'Lokale nyheter',
+            'Aktuelt fra kriminalomsorgen',
             'Anbefalt fagstoff',
             'Fagnyheter',
             'Har du en idé?',

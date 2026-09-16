@@ -235,6 +235,50 @@
     margin: 2px 0 16px;
 }
 
+.front-page-news-group-heading {
+    color: #173f72;
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 20px 0 10px;
+}
+
+.front-page-news-group-heading:first-of-type {
+    margin-top: 0;
+}
+
+.union-news-section {
+    background: #fff;
+    border: 1px solid #d9e2ec;
+    border-radius: 10px;
+    margin-top: 24px;
+    padding: 18px 20px;
+}
+
+.union-news-section h2 {
+    color: #173f72;
+    font-size: 1.2rem;
+    margin: 0 0 10px;
+}
+
+.union-news-list {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.union-news-list li {
+    margin: 7px 0;
+}
+
+.union-news-source {
+    color: #173f72;
+    font-weight: 700;
+}
+
+.union-news-list time {
+    color: #6c757d;
+    font-size: .85rem;
+}
+
 .local-news-grid {
     display: grid;
     gap: 16px;
@@ -1006,6 +1050,14 @@
 @media print {
     /* Leave Chrome's optional page header and footer their normal breathing room. */
     @page { size: A4 portrait; margin: 12.7mm; }
+
+    .local-news-section,
+    .union-news-section,
+    .local-news-card,
+    .union-news-list li {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
 
     .football-team-print-page { color: #111; font-family: Arial, sans-serif; font-size: 9.5pt; line-height: 1.16; margin: 0 auto; max-width: 184.6mm; }
     .football-team-print-page .no-print { display: none !important; }

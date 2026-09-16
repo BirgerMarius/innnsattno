@@ -28,8 +28,8 @@ class RingbladNewsHomepageTest extends TestCase
 
         $this->get(route('tv'))
             ->assertOk()
-            ->assertSee('Lokale nyheter')
-            ->assertSee('Fra Ringerikes Blad')
+            ->assertSee('Aktuelt fra kriminalomsorgen')
+            ->assertSee('Ringerikes Blad')
             ->assertSee('Nyhet om Ringerike fengsel')
             ->assertSee('class="local-news-section"', false)
             ->assertSee('class="local-news-card local-news-card--image"', false)
@@ -52,7 +52,7 @@ class RingbladNewsHomepageTest extends TestCase
             ->assertDontSee('local-news-column');
     }
 
-    public function testHomepageSplitsTheSixNewestArticlesIntoImageAndTextRows(): void
+    public function testHomepageShowsAtMostThreeLocalArticles(): void
     {
         $articles = [];
 
@@ -70,20 +70,16 @@ class RingbladNewsHomepageTest extends TestCase
 
         $response = $this->get(route('tv'))
             ->assertOk()
-            ->assertSeeInOrder(['Nyhet 1', 'Nyhet 2', 'Nyhet 3', 'Nyhet 4', 'Nyhet 5', 'Nyhet 6'])
-            ->assertSee('class="local-news-card local-news-card--text"', false)
+            ->assertSeeInOrder(['Nyhet 1', 'Nyhet 2', 'Nyhet 3'])
+            ->assertDontSee('Nyhet 4')
+            ->assertDontSee('class="local-news-card local-news-card--text"', false)
             ->assertDontSee('local-news-card-image--missing', false)
             ->assertSee('src="https://images.ringblad.no/nyhet-1.jpg"', false)
             ->assertSee('src="https://images.ringblad.no/nyhet-2.jpg"', false)
             ->assertSee('src="https://images.ringblad.no/nyhet-3.jpg"', false)
-            ->assertDontSee('src="https://images.ringblad.no/nyhet-4.jpg"', false)
-            ->assertDontSee('src="https://images.ringblad.no/nyhet-5.jpg"', false)
-            ->assertDontSee('src="https://images.ringblad.no/nyhet-6.jpg"', false)
-            ->assertSee('20. aug 2026')
-            ->assertSee('Abonnement');
+            ->assertDontSee('src="https://images.ringblad.no/nyhet-4.jpg"', false);
 
         $content = (string) $response->getContent();
         $this->assertSame(3, substr_count($content, 'class="local-news-card local-news-card--image"'));
-        $this->assertSame(3, substr_count($content, 'class="local-news-card local-news-card--text"'));
     }
 }
