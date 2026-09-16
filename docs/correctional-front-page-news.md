@@ -24,11 +24,11 @@ RSS leses lokalt med XML-nettverk deaktivert. Timeout, HTTP-feil, tom/ugyldig XM
 
 ## Utvalg og gruppering
 
-Nasjonale artikler må bestå både relevansgrensen og en separat, lokal score for nasjonal betydning. Sistnevnte krever eksplisitte signaler i overskrift eller feedmetadata, som budsjett/sparetiltak, kapasitet, lov/forskrift, landsdekkende bemanning eller systemiske tilsynsfunn. Rutinemessige nøkkeltall kvalifiserer ikke bare fordi de kommer fra KDI. URL-er og feedetiketter for `debatt`, `meninger`, `kommentar` og `kronikk` blir aldri nasjonale, men kan fortsatt vises under fagforeningene.
+Nasjonale artikler må komme fra KDI eller Sivilombudet og bestå både relevansgrensen og en separat, lokal score for nasjonal betydning. Sistnevnte krever eksplisitte signaler i overskrift eller feedmetadata, som budsjett/sparetiltak, kapasitet, lov/forskrift, landsdekkende bemanning eller systemiske tilsynsfunn. Rutinemessige nøkkeltall kvalifiserer ikke bare fordi de kommer fra KDI. NFF- og KY-saker er alltid fagforeningsstoff og vises aldri i den nasjonale gruppen, uansett score. URL-er og feedetiketter for `debatt`, `meninger`, `kommentar` og `kronikk` blir aldri nasjonale, men kan fortsatt vises under fagforeningene.
 
 URL-sporing fjernes før lagring. Artikler samles i én saksklynge når de ligger i et 72-timers vindu, har minst 0,60 tittellikhet (0,65 for fagforeningsklynger) og deler et særpreget tema/entitet eller to felles signaler. Generiske ord som «fengsel» og «Kriminalomsorgen» er ikke nok alene. Den offentlige og åpne kilden prioriteres, deretter relevans, faglig kilde og tidlig publisering.
 
-Forsiden viser maksimalt tre lokale Ringblad-saker og tre nasjonale klynger. Nasjonale klynger utløper etter ti dager. Fagforeningslisten viser maksimalt fem unike NFF/KY-klynger i inntil 30 dager, reserverer en plass til hver når begge har ferske saker, og undertrykker klynger som allerede vises nasjonalt.
+Forsiden viser maksimalt tre lokale Ringblad-saker og tre nasjonale klynger. Nasjonale klynger utløper etter ti dager. Fagforeningslisten viser maksimalt fem unike NFF/KY-klynger i inntil 30 dager og reserverer en plass til hver når begge har ferske saker.
 
 ## Drift før produksjonssetting
 

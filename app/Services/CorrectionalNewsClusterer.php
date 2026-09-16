@@ -28,6 +28,7 @@ class CorrectionalNewsClusterer
         $to = $published->copy()->addHours((int) config('correctional_news.cluster_window_hours', 72));
 
         return CorrectionalNewsCluster::with('items')
+            ->where('category', $category)
             ->where('expires_at', '>', now())
             ->whereBetween('primary_published_at', [$from, $to])
             ->get()

@@ -53,7 +53,9 @@ class CorrectionalNewsServiceTest extends TestCase
         $this->assertSame(2, $cluster->source_count);
         $this->assertSame('https://kysiden.no/2026/09/15/fengslene-sparer/', $cluster->primary_url);
         $this->assertGreaterThanOrEqual(80, $cluster->relevance_score);
-        $this->assertContains('Norske fengsler må spare 83 millioner kroner', array_column(app(CorrectionalNewsService::class)->frontPage()['national'], 'title'));
+        $frontPage = app(CorrectionalNewsService::class)->frontPage();
+        $this->assertContains('Norske fengsler må spare 83 millioner kroner', array_column($frontPage['union'], 'title'));
+        $this->assertNotContains('Norske fengsler må spare 83 millioner kroner', array_column($frontPage['national'], 'title'));
     }
 
     public function testScorerRejectsOrdinaryCrimeButKeepsRelevantStoryWithNegativeWords(): void
@@ -76,7 +78,7 @@ class CorrectionalNewsServiceTest extends TestCase
         $this->assertGreaterThanOrEqual(60, $scorer->assess(['title' => 'Tilsyn avdekker ulovlig isolasjon i norske fengsler'])['score']);
     }
 
-    public function testDebateStaysInUnionWhileTheLargerSavingsNewsIsNational(): void
+    public function testHighSignificanceNffStoryStaysInUnion(): void
     {
         $nff = app(NffNewsSource::class);
         Http::fake([$nff->url() => Http::response($this->rss([
@@ -85,8 +87,53 @@ class CorrectionalNewsServiceTest extends TestCase
         ]), 200)]);
         app(CorrectionalNewsService::class)->refresh('nff');
         $frontPage = app(CorrectionalNewsService::class)->frontPage();
-        $this->assertSame(['Fengslene må spare 83 millioner'], array_column($frontPage['national'], 'title'));
+        $this->assertSame([], array_column($frontPage['national'], 'title'));
         $this->assertContains('Kriminalomsorgen trenger en tydelig plan', array_column($frontPage['union'], 'title'));
+        $this->assertContains('Fengslene må spare 83 millioner', array_column($frontPage['union'], 'title'));
+        $this->assertDatabaseHas('correctional_news_clusters', [
+            'display_title' => 'Fengslene må spare 83 millioner',
+            'category' => 'union',
+            'national_significance_score' => 80,
+        ]);
+    }
+
+    public function testHighSignificanceKyStoryStaysInUnion(): void
+    {
+        $ky = app(\App\Services\CorrectionalNews\KyNewsSource::class);
+        Http::fake([$ky->url() => Http::response($this->rss([
+            ['KY: fengslene må spare 83 millioner', 'https://kysiden.test/aktuelt/sparing', 'Tue, 15 Sep 2026 09:00:00 +0200', 'Kriminalomsorg'],
+        ]), 200)]);
+
+        app(CorrectionalNewsService::class)->refresh('ky');
+        $frontPage = app(CorrectionalNewsService::class)->frontPage();
+
+        $this->assertSame([], $frontPage['national']);
+        $this->assertSame(['KY: fengslene må spare 83 millioner'], array_column($frontPage['union'], 'title'));
+        $this->assertSame('KY', $frontPage['union'][0]['label']);
+    }
+
+    public function testKdiAndSivilombudetCanQualifyAsNational(): void
+    {
+        $kdi = app(\App\Services\CorrectionalNews\KdiRssSource::class);
+        $sivilombudet = app(\App\Services\CorrectionalNews\SivilombudetRssSource::class);
+        Http::fake([
+            $kdi->url() => Http::response($this->rss([
+                ['Nasjonal plan for fengselskapasitet', 'https://ntb.test/pressemelding/kapasitet', 'Tue, 15 Sep 2026 09:00:00 +0200', 'Kriminalomsorg'],
+            ]), 200),
+            $sivilombudet->url() => Http::response($this->rss([
+                ['Tilsyn avdekker ulovlig isolasjon i norske fengsler', 'https://sivilombudet.test/uttalelser/isolasjon', 'Tue, 15 Sep 2026 10:00:00 +0200', 'Tilsyn'],
+            ]), 200),
+        ]);
+
+        $service = app(CorrectionalNewsService::class);
+        $service->refresh('kdi');
+        $service->refresh('sivilombudet');
+        $national = $service->frontPage()['national'];
+
+        $this->assertSame([
+            'Nasjonal plan for fengselskapasitet',
+            'Tilsyn avdekker ulovlig isolasjon i norske fengsler',
+        ], array_column($national, 'title'));
     }
 
     public function testExistingUrlIsReassessedWithoutCreatingADuplicate(): void
@@ -98,6 +145,7 @@ class CorrectionalNewsServiceTest extends TestCase
         $this->assertSame(1, $report['updated']);
         $this->assertDatabaseCount('correctional_news_items', 1);
         $this->assertDatabaseHas('correctional_news_items', ['national_significance_score' => 80]);
+        $this->assertDatabaseHas('correctional_news_clusters', ['category' => 'union']);
     }
 
     public function testDifferentEventsAtTheSamePrisonAreNotMerged(): void
@@ -114,7 +162,7 @@ class CorrectionalNewsServiceTest extends TestCase
         $this->assertSame(2, CorrectionalNewsCluster::count());
     }
 
-    public function testUnionListIsBalancedLimitedAndSuppressesNationalClusters(): void
+    public function testUnionListIsBalancedLimitedAndExcludesNonUnionClusters(): void
     {
         $now = now();
         foreach (['nff', 'ky', 'nff', 'nff', 'nff', 'nff'] as $index => $sourceKey) {

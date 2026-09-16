@@ -19,6 +19,9 @@ use Throwable;
 
 class CorrectionalNewsService
 {
+    private const UNION_SOURCE_KEYS = ['nff', 'ky'];
+    private const NATIONAL_SOURCE_KEYS = ['kdi', 'sivilombudet'];
+
     public function __construct(
         private CorrectionalNewsRelevanceScorer $scorer,
         private CorrectionalNewsNationalSignificanceScorer $nationalSignificanceScorer,
@@ -53,11 +56,8 @@ class CorrectionalNewsService
 
         return Cache::remember('correctional-news.front-page', config('correctional_news.front_page_cache_seconds', 300), function () {
             $now = now();
-            // Union articles remain union candidates for 30 days. The strongest ones may
-            // also be selected as national front-page stories, but are suppressed from
-            // the union list only when they were actually selected there.
             $nationalClusters = $this->clusters('national', $now)
-                ->merge($this->clusters('union', $now))
+                ->filter(fn ($cluster) => $this->hasOnlySources($cluster, self::NATIONAL_SOURCE_KEYS))
                 ->filter(fn ($cluster) => $cluster->national_significance_score >= config('correctional_news.national_significance_threshold', 60))
                 ->sort(function ($left, $right) {
                     foreach ([
@@ -68,8 +68,7 @@ class CorrectionalNewsService
                     return 0;
                 })->take(3)->values();
             $national = $nationalClusters->map(fn ($cluster) => $this->display($cluster))->all();
-            $nationalIds = $nationalClusters->pluck('id')->all();
-            $union = $this->unionSelection($now, $nationalIds);
+            $union = $this->unionSelection($now);
 
             return compact('national', 'union');
         });
@@ -197,8 +196,8 @@ class CorrectionalNewsService
         if (! $item) {
             return;
         }
-        $unionOnly = $cluster->items->every(fn ($candidate) => in_array($candidate->source_key, ['nff', 'ky'], true));
-        $category = $unionOnly ? 'union' : 'national';
+        $hasUnionSource = $cluster->items->contains(fn ($candidate) => in_array($candidate->source_key, self::UNION_SOURCE_KEYS, true));
+        $category = $hasUnionSource ? 'union' : 'national';
         $cluster->update([
             'category' => $category,
             'display_title' => $item->original_title, 'primary_source' => $item->source_name, 'primary_url' => $item->original_url,
@@ -219,12 +218,12 @@ class CorrectionalNewsService
             ->orderByDesc('primary_published_at')->get();
     }
 
-    private function unionSelection(Carbon $now, array $nationalIds): array
+    private function unionSelection(Carbon $now): array
     {
-        $clusters = $this->clusters('union', $now)->whereNotIn('id', $nationalIds);
+        $clusters = $this->clusters('union', $now)->filter(fn ($cluster) => $this->hasOnlySources($cluster, self::UNION_SOURCE_KEYS));
         $bySource = [];
         foreach ($clusters as $cluster) {
-            $sources = $cluster->items()->pluck('source_key')->all();
+            $sources = array_intersect($cluster->items()->pluck('source_key')->all(), self::UNION_SOURCE_KEYS);
             foreach (array_unique($sources) as $source) {
                 $bySource[$source] ??= $cluster;
             }
@@ -239,12 +238,22 @@ class CorrectionalNewsService
     private function display(CorrectionalNewsCluster $cluster, bool $union = false): array
     {
         $sourceKeys = $cluster->items()->pluck('source_key')->unique()->all();
+        if ($union) {
+            $sourceKeys = array_values(array_intersect($sourceKeys, self::UNION_SOURCE_KEYS));
+        }
         $label = $union && in_array('nff', $sourceKeys, true) && in_array('ky', $sourceKeys, true) ? 'NFF/KY' : ($union ? strtoupper($sourceKeys[0] ?? '') : $cluster->primary_source);
         return [
             'title' => $cluster->display_title, 'url' => $cluster->primary_url, 'source' => $cluster->primary_source,
             'label' => $label, 'published_at' => $cluster->primary_published_at?->locale('nb')->translatedFormat('j. M Y'),
             'is_subscription' => $cluster->primary_is_subscription, 'source_count' => $cluster->source_count,
         ];
+    }
+
+    private function hasOnlySources(CorrectionalNewsCluster $cluster, array $allowedSourceKeys): bool
+    {
+        $sourceKeys = $cluster->items()->pluck('source_key')->unique()->all();
+
+        return $sourceKeys !== [] && count(array_diff($sourceKeys, $allowedSourceKeys)) === 0;
     }
 
     private function sources(): array { return [$this->nff, $this->ky, $this->kdi, $this->sivilombudet]; }
