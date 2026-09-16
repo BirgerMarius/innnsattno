@@ -2,6 +2,34 @@
 
 Denne filen er en løpende changelog og huskeliste for endringer som gjøres direkte på produksjonsserveren og derfor ikke automatisk ligger i Git-repositoryet. Dokumenter blant annet Nginx-, systemd-, cron-/timer-, firewall- og annen manuell serverkonfigurasjon her.
 
+## 2026-09-16 – Automatisk nyhetstjeneste på forsiden
+
+Den automatiske forsidetjenesten for kriminalomsorgsnyheter ble deployet med hovedcommit `d38189983f7c508b7b59ab36cb13b5dd7574f13e` og etterfølgende justering `8b6e260f795d44bd0900fe6914dc344075487b8c`.
+
+### Produksjonsserver
+
+- Migreringene `2026_09_16_000000_create_correctional_news_clusters_table`, `2026_09_16_000100_create_correctional_news_items_table` og `2026_09_16_000200_add_national_significance_to_correctional_news_tables` ble kjørt uten feil.
+- Første produksjonsinnhenting lyktes for NFF-magasinet, KY, KDI/NTB og Sivilombudet.
+- Forsiden svarte HTTP 200.
+- NFF- og KY-saker vises bare under «Fra fagforeningene».
+- «Nasjonalt» skjules når ingen KDI- eller Sivilombudet-saker kvalifiserer.
+
+Laravel-scheduleren ble aktivert i `forge`-brukerens crontab:
+
+```cron
+* * * * * cd /home/forge/innsatt.no/innnsattno && /usr/bin/php artisan schedule:run >> /dev/null 2>&1
+```
+
+Cron ble bekreftet kjørt hvert minutt gjennom systemloggen. Laravel kjører KDI hvert 15. minutt og NFF, KY og Sivilombudet hvert 30. minutt. Scheduleroppgavene bruker `withoutOverlapping()`.
+
+### Senere kontroll
+
+```bash
+sudo -u forge crontab -l
+sudo -u forge /usr/bin/php /home/forge/innsatt.no/innnsattno/artisan schedule:list
+sudo -u forge /usr/bin/php /home/forge/innsatt.no/innnsattno/artisan correctional-news:fetch
+```
+
 ## 2026-09-10 – Blokkering av SERankingBacklinksBot
 
 ### Produksjonsserver
