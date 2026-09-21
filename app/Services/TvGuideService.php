@@ -43,6 +43,20 @@ class TvGuideService
         'conference-league' => ['label' => 'Conference League', 'title' => 'UEFA Conference League'],
     ];
 
+    /**
+     * Only add entries after verifying their exact VG representation.  This is
+     * deliberately separate from the competition boxes above: a Norway match
+     * is highlighted in the ordinary prison TV guide, not shown in a new box.
+     */
+    private const SUPPORTED_NORWAY_MENS_COMPETITIONS = [
+        [
+            'title_id' => 572756,
+            'title_type' => 'sportsTitle',
+            'title' => 'UEFA Nations League',
+            'slug' => 'uefa-nations-league',
+        ],
+    ];
+
     public function __construct(private ExternalDataFailureNotifier $failureNotifier)
     {
     }
@@ -90,6 +104,7 @@ class TvGuideService
             foreach ($channel['listings'] as &$listing) {
                 if (is_array($listing)) {
                     $listing['displayTitle'] = $this->displayTitle($listing);
+                    $listing['norwayMensMatchLabel'] = $this->norwayMensMatchLabel($listing);
                 }
             }
             unset($listing);
@@ -116,6 +131,26 @@ class TvGuideService
         }
 
         return $title.': '.$this->formatEventName($eventName);
+    }
+
+    /**
+     * A label for a verified Norway men's fixture, or null for all other
+     * programmes.  Do not require isLive: VG has marked a scheduled first
+     * broadcast as false before kick-off.  Replays remain excluded.
+     */
+    public function norwayMensMatchLabel(array $listing): ?string
+    {
+        if (($listing['isRerun'] ?? false) === true || ! $this->hasSupportedNorwayMensCompetition($listing)) {
+            return null;
+        }
+
+        $participants = $this->fixtureParticipants((string) data_get($listing, 'sportsEvent.name', ''));
+
+        if ($participants === null || ! in_array('Norge', $participants, true)) {
+            return null;
+        }
+
+        return '⚽ '.implode(' – ', $participants);
     }
 
     public static function ringerikeChannels(): array
@@ -349,7 +384,34 @@ class TvGuideService
 
     private function looksLikeFixtureName(string $eventName): bool
     {
-        return preg_match('/^\s*[^–-]+\s+[–-]\s+[^–-]+\s*$/u', $eventName) === 1;
+        return $this->fixtureParticipants($eventName) !== null;
+    }
+
+    /** @return array{string, string}|null */
+    private function fixtureParticipants(string $eventName): ?array
+    {
+        if (preg_match('/^\s*([^–-]+?)\s+[–-]\s+([^–-]+?)\s*$/u', $eventName, $matches) !== 1) {
+            return null;
+        }
+
+        $home = trim($matches[1]);
+        $away = trim($matches[2]);
+
+        return $home !== '' && $away !== '' ? [$home, $away] : null;
+    }
+
+    private function hasSupportedNorwayMensCompetition(array $listing): bool
+    {
+        foreach (self::SUPPORTED_NORWAY_MENS_COMPETITIONS as $competition) {
+            if ((int) data_get($listing, 'title.id') === $competition['title_id']
+                && data_get($listing, 'title.type') === $competition['title_type']
+                && data_get($listing, 'title.title') === $competition['title']
+                && data_get($listing, 'title.slug') === $competition['slug']) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function formatEventName(string $eventName): string

@@ -100,7 +100,7 @@
                 @else
                     <div class="ringerike-tv-print__listing">
                         <span class="ringerike-tv-print__time">{{ \Carbon\Carbon::parse($listing['startsAt'])->addHours($hours)->format('H:i') }}</span>
-                        <span class="ringerike-tv-print__title">{{ $listing['displayTitle'] ?? $listing['title']['title'] }}</span>
+                        <span class="ringerike-tv-print__title">{{ $listing['norwayMensMatchLabel'] ?? $listing['displayTitle'] ?? $listing['title']['title'] }}</span>
                     </div>
                 @endif
             @endforeach

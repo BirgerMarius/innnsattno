@@ -91,6 +91,29 @@ class TvGuidePrintTest extends TestCase
         });
     }
 
+    public function test_both_prison_prints_highlight_a_norway_mens_match_on_an_available_channel(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-09-24 10:00:00', 'Europe/Oslo'));
+        $channels = [[
+            'channel' => ['name' => 'TV 2 Direkte', 'slug' => 'tv2-direkte'],
+            'listings' => [$this->norwayNationsLeagueListing('Norge - Danmark')],
+        ]];
+
+        Http::fake([
+            'tvguide.vg.no/*' => Http::response($channels, 200),
+            'www.dw.com/graph-api/en/livestream/english' => Http::response($this->dwResponse([]), 200),
+        ]);
+
+        $this->get('/print')->assertOk()->assertSee('⚽ Norge – Danmark');
+        $this->get('/print-ilseng')->assertOk()->assertSee('⚽ Norge – Danmark');
+
+        Http::assertSent(function ($request) {
+            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+
+            return isset($query['channels']) && in_array('tv2-direkte', explode(',', $query['channels']), true);
+        });
+    }
+
     public function test_ringerike_print_inserts_dw_news_between_bbc_and_al_jazeera(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-07-15 10:00:00', 'Europe/Oslo'));
@@ -377,6 +400,19 @@ class TvGuidePrintTest extends TestCase
                     'nextTimeSlots' => $slots,
                 ]],
             ],
+        ];
+    }
+
+    private function norwayNationsLeagueListing(string $eventName): array
+    {
+        return [
+            'id' => 492289320,
+            'title' => ['id' => 572756, 'type' => 'sportsTitle', 'title' => 'UEFA Nations League', 'slug' => 'uefa-nations-league'],
+            'sportsEvent' => ['id' => 771259, 'name' => $eventName],
+            'startsAt' => '2026-09-24T18:35:00+00:00',
+            'endsAt' => '2026-09-24T20:45:00+00:00',
+            'isLive' => false,
+            'isRerun' => false,
         ];
     }
 }

@@ -123,6 +123,53 @@ class TvGuideServiceTest extends TestCase
         ]));
     }
 
+    public function test_it_identifies_verified_norway_mens_nations_league_fixtures_in_both_home_and_away_order(): void
+    {
+        $this->assertSame('⚽ Norge – Danmark', $this->service()->norwayMensMatchLabel(
+            $this->norwayNationsLeagueListing('Norge - Danmark'),
+        ));
+        $this->assertSame('⚽ Danmark – Norge', $this->service()->norwayMensMatchLabel(
+            $this->norwayNationsLeagueListing('Danmark - Norge'),
+        ));
+    }
+
+    public function test_it_identifies_a_scheduled_norway_match_even_when_vg_has_not_set_is_live(): void
+    {
+        $listing = $this->norwayNationsLeagueListing('Norge - Portugal');
+        $listing['isLive'] = false;
+
+        $this->assertSame('⚽ Norge – Portugal', $this->service()->norwayMensMatchLabel($listing));
+    }
+
+    public function test_it_excludes_replays_and_non_fixture_norway_programmes(): void
+    {
+        $replay = $this->norwayNationsLeagueListing('Norge - Portugal');
+        $replay['isRerun'] = true;
+
+        $this->assertNull($this->service()->norwayMensMatchLabel($replay));
+        $this->assertNull($this->service()->norwayMensMatchLabel([
+            'title' => ['id' => 572756, 'type' => 'sportsTitle', 'title' => 'UEFA Nations League', 'slug' => 'uefa-nations-league'],
+            'isRerun' => false,
+            'sportsEvent' => null,
+        ]));
+        $this->assertNull($this->service()->norwayMensMatchLabel([
+            'title' => ['id' => 17791, 'type' => 'series', 'title' => 'Norges tøffeste', 'slug' => 'norges-toeffeste'],
+            'isRerun' => false,
+            'sportsEvent' => ['name' => 'Norge - Danmark'],
+        ]));
+    }
+
+    public function test_it_excludes_other_sports_and_not_yet_verified_football_competitions(): void
+    {
+        $otherSport = $this->norwayNationsLeagueListing('Norge - Ungarn');
+        $otherSport['title'] = ['id' => 104040, 'type' => 'sportsTitle', 'title' => 'EHF Euro Cup', 'slug' => 'ehf-euro-cup-kvinner'];
+        $unsupportedFootball = $this->norwayNationsLeagueListing('Norge - Italia');
+        $unsupportedFootball['title'] = ['id' => 999999, 'type' => 'sportsTitle', 'title' => 'VM-kvalifisering', 'slug' => 'vm-kvalifisering'];
+
+        $this->assertNull($this->service()->norwayMensMatchLabel($otherSport));
+        $this->assertNull($this->service()->norwayMensMatchLabel($unsupportedFootball));
+    }
+
     public function test_upcoming_tv3_plus_matches_use_seven_cached_daily_requests_and_exclude_non_matches(): void
     {
         $now = Carbon::parse('2026-09-10 10:00:00', 'Europe/Oslo');
@@ -238,6 +285,17 @@ class TvGuideServiceTest extends TestCase
             'title' => ['type' => 'sportsTitle', 'slug' => $slug, 'title' => $title],
             'sportsEvent' => $eventName === null ? null : ['name' => $eventName],
             'startsAt' => '2026-09-10T18:55:00Z',
+            'isLive' => true,
+            'isRerun' => false,
+        ];
+    }
+
+    private function norwayNationsLeagueListing(string $eventName): array
+    {
+        return [
+            'title' => ['id' => 572756, 'type' => 'sportsTitle', 'title' => 'UEFA Nations League', 'slug' => 'uefa-nations-league'],
+            'sportsEvent' => ['id' => crc32($eventName), 'name' => $eventName],
+            'startsAt' => '2026-09-24T18:35:00Z',
             'isLive' => true,
             'isRerun' => false,
         ];
