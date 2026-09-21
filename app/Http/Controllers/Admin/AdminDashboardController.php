@@ -46,6 +46,7 @@ class AdminDashboardController extends Controller
             'trafficPeriod' => $period,
             'trafficDate' => $trafficDate,
             'trafficDateInvalid' => $requestedDate !== null && $trafficDate === null,
+            'tvPrintDefaultDate' => now('Europe/Oslo')->format('Y-m-d'),
         ]);
     }
 

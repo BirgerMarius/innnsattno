@@ -158,6 +158,18 @@ class TvGuideService
         return self::RINGERIKE_CHANNELS;
     }
 
+    /** The existing Ilseng selection used by its TV guide printout. */
+    public static function ilsengChannels(): array
+    {
+        return [
+            'nrk1', 'nrk2', 'nrk3', 'tv2-direkte', 'tv2-zebra', 'tv2-livsstil', 'tv2-nyheter',
+            'tvnorge', 'tv3', 'tv3-plus', 'tv6', 'fem', 'rex', 'vox', 'discovery-channel',
+            'national-geographic', 'eurosport-1', 'eurosport-norge', 'tv2-sport-1', 'tv2-sport-2',
+            'v-sport-1', 'v-sport-2', 'v-sport-3', 'v-film-premiere', 'v-film-action', 'v-series',
+            'bbc-nordic', 'disney-channel', 'history', 'tlc',
+        ];
+    }
+
     /**
      * Return direct, identifiable football matches for one supported competition.
      * The seven day cache is shared between all football pages and printouts.

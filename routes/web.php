@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminTvPrintController;
 use App\Http\Controllers\Admin\FeedbackAdminController;
 use App\Http\Controllers\Admin\ProfessionalResourceAdminController;
 use App\Http\Controllers\Admin\ResourceCategoryController;
@@ -26,10 +27,9 @@ use App\Http\Controllers\TodayController;
 use App\Http\Controllers\ChangeHistoryController;
 use App\Http\Controllers\LearningController;
 use App\Http\Controllers\FrontPageController;
+use App\Http\Controllers\TvPrintController;
 use App\Http\Controllers\Admin\NewsAdminController;
 use App\Http\Controllers\Admin\NewsSourceAdminController;
-use App\Services\DwScheduleService;
-use App\Services\TvGuideService;
 
 /*
 |--------------------------------------------------------------------------
@@ -98,6 +98,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->middleware('throttle:5,1')
         ->name('login.store');
     Route::middleware('admin.auth')->group(function () {
+        Route::get('/tv-utskrift', AdminTvPrintController::class)->name('tv-print');
         Route::post('/logout', [AdminAuthController::class, 'logout'])
             ->name('logout');
         Route::get('/fagstoff', [ProfessionalResourceAdminController::class, 'index'])
@@ -143,94 +144,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
 });
 
-Route::get('/print', function (TvGuideService $tvGuideService, DwScheduleService $dwScheduleService) {
-    $channels = TvGuideService::ringerikeChannels();
-
-    $tvChannels = $tvGuideService->withDisplayTitles(
-        $tvGuideService->getSchedule(now('Europe/Oslo'), $channels, 'ringerike-print'),
-    );
-
-    $dwChannel = $dwScheduleService->channelForDate(now('Europe/Oslo'));
-
-    if ($dwChannel !== null) {
-        $dwInsertIndex = null;
-
-        foreach ($tvChannels as $index => $tvChannel) {
-            if (($tvChannel['channel']['slug'] ?? null) === 'bbc-world-news') {
-                $dwInsertIndex = $index + 1;
-
-                break;
-            }
-        }
-
-        if ($dwInsertIndex === null) {
-            foreach ($tvChannels as $index => $tvChannel) {
-                if (($tvChannel['channel']['slug'] ?? null) === 'al-jazeera-english') {
-                    $dwInsertIndex = $index;
-
-                    break;
-                }
-            }
-        }
-
-        array_splice($tvChannels, $dwInsertIndex ?? count($tvChannels), 0, [$dwChannel]);
-    }
-
-    return view('pdf')->with(['channels' => $tvChannels]);
-});
-
-Route::get('/print-ilseng', function (TvGuideService $tvGuideService) {
-
-$channels = [
-    'nrk1',
-    'nrk2',
-    'nrk3',
-
-    'tv2-direkte',
-    'tv2-zebra',
-    'tv2-livsstil',
-    'tv2-nyheter',
-
-    'tvnorge',
-
-    'tv3',
-    'tv3-plus',
-    'tv6',
-
-    'fem',
-    'rex',
-    'vox',
-
-    'discovery-channel',
-    'national-geographic',
-
-    'eurosport-1',
-    'eurosport-norge',
-
-    'tv2-sport-1',
-    'tv2-sport-2',
-
-    'v-sport-1',
-    'v-sport-2',
-    'v-sport-3',
-
-    'v-film-premiere',
-    'v-film-action',
-    'v-series',
-
-    'bbc-nordic',
-    'disney-channel',
-    'history',
-    'tlc',
-];
-
-    $tvChannels = $tvGuideService->withDisplayTitles(
-        $tvGuideService->getSchedule(now('Europe/Oslo'), $channels, 'ilseng-print'),
-    );
-
-    return view('pdf-ilseng')->with(['channels' => $tvChannels]);
-
-});
+Route::get('/print', [TvPrintController::class, 'ringerike']);
+Route::get('/print-ilseng', [TvPrintController::class, 'ilseng']);
 
 Route::get('/test', function () {
     return '<h1>Dette er testsiden min</h1>';

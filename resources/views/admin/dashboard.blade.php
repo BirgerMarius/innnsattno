@@ -58,6 +58,19 @@
         </div>
     </section>
 
+    <section class="card admin-dashboard-section mb-4" aria-labelledby="tv-print-title">
+        <div class="card-body p-lg-4">
+            <p class="admin-card-label mb-1">Testverktøy</p>
+            <h2 class="h4 mb-1" id="tv-print-title">TV-utskrift</h2>
+            <p class="text-muted mb-3">Åpne TV-guiden for en dato innenfor VGs tilgjengelige datovindu.</p>
+            <form method="get" action="{{ route('admin.tv-print') }}" class="d-flex flex-wrap align-items-end gap-3" target="_blank">
+                <div><label for="tv_print_date" class="form-label">Dato</label><input type="date" id="tv_print_date" name="date" value="{{ $tvPrintDefaultDate }}" class="form-control" required></div>
+                <div><label for="tv_print_prison" class="form-label">Fengsel</label><select id="tv_print_prison" name="prison" class="form-select" required><option value="ringerike">Ringerike</option><option value="ilseng">Ilseng</option></select></div>
+                <button type="submit" class="btn btn-primary">Åpne TV-utskrift</button>
+            </form>
+        </div>
+    </section>
+
     <section class="card admin-dashboard-section mb-4" aria-labelledby="planned-changes-title">
         <div class="card-body p-lg-4">
             <div class="mb-3">

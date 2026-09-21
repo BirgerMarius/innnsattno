@@ -19,8 +19,8 @@
 </h2>
 
 <p style="text-align:center; margin-top:0; margin-bottom:20px;">
-    {{ \Carbon\Carbon::now()->locale('nb_NO')->dayName }}
-    {{ \Carbon\Carbon::now()->locale('nb_NO')->format('d.m.Y') }}
+    {{ $printDate->copy()->locale('nb_NO')->dayName }}
+    {{ $printDate->format('d.m.Y') }}
 </p>
     
     
@@ -95,7 +95,7 @@
             <strong class="ilseng-tv-print__channel-name">{{ $channel['channel']['name'] }}</strong>
 
             @foreach ($channel['listings'] as $listing)
-                @if (\Carbon\Carbon::parse($listing['startsAt'])->addHours($hours)->format('Y-m-d H:i:s') < now())
+                @if (!$isSelectedDate && \Carbon\Carbon::parse($listing['startsAt'])->addHours($hours)->format('Y-m-d H:i:s') < now())
                 @else
                     <div class="ilseng-tv-print__listing">
                         <span class="ilseng-tv-print__time">{{ \Carbon\Carbon::parse($listing['startsAt'])->addHours($hours)->format('H:i') }}</span>
