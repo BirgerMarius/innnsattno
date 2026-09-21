@@ -361,6 +361,22 @@ class FlagDayTest extends TestCase
         }
     }
 
+    public function testPrincessAstridsFuneralNoticeUsesConfirmedDetailsWithoutUnpublishedFlagInstructions(): void
+    {
+        config(['mourning_flag.enabled' => true]);
+        $service = app(FlagDayService::class);
+
+        $this->assertNull($service->mourningFlagging(Carbon::parse('2026-09-22', FlagDayService::TIMEZONE)));
+
+        $notice = $service->mourningFlagging(Carbon::parse('2026-09-23', FlagDayService::TIMEZONE));
+        $this->assertSame('Prinsesse Astrids gravferd er i dag', $notice['title']);
+        $this->assertStringContainsString('Ris kirke i Oslo kl. 13.00', $notice['message']);
+        $this->assertStringNotContainsString('halv stang', $notice['message']);
+        $this->assertFalse($notice['half_staff']);
+
+        $this->assertNull($service->mourningFlagging(Carbon::parse('2026-09-24', FlagDayService::TIMEZONE)));
+    }
+
     public function testMourningFlaggingCoversEveryDayInAConfiguredPeriod(): void
     {
         $this->configureMourningFlagging('2026-08-28', '2026-08-30');

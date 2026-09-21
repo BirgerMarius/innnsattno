@@ -96,7 +96,7 @@ class FlagDayService
             $changes[] = [
                 'date' => $funeralDate,
                 'title' => 'Sørgeboksen bytter til gravferdsvisning',
-                'description' => 'Sørgeboksen viser informasjon om Kong Haralds gravferd.',
+                'description' => 'Sørgeboksen viser «'.(string) config('mourning_flag.funeral_title').'».',
             ];
         }
 
@@ -107,7 +107,7 @@ class FlagDayService
                 $changes[] = [
                     'date' => $removalDate,
                     'title' => 'Sørgeboksen fjernes',
-                    'description' => 'Den midlertidige sørgeboksen etter Kong Haralds død tas bort.',
+                    'description' => 'Den midlertidige sørgeboksen tas bort.',
                 ];
             }
         }
