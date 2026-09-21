@@ -67,15 +67,15 @@ class LearningPrototypeTest extends TestCase
             ->assertDontSee('INNSATT.NO');
     }
 
-    public function test_homepage_marks_learning_prototype_as_news_and_test(): void
+    public function test_homepage_marks_learning_prototype_as_under_development(): void
     {
         Http::fake(['*' => Http::response([], 200)]);
 
         $this->get(route('tv'))
             ->assertOk()
             ->assertSee('Lær noe nytt')
-            ->assertSee('aria-label="Ny testfunksjon"', false)
-            ->assertSeeInOrder(['Lær noe nytt', 'NYHET', 'TEST']);
+            ->assertSee('aria-label="Under utvikling"', false)
+            ->assertSeeInOrder(['Lær noe nytt', 'Under utvikling']);
     }
 
     public function test_unknown_learning_sheet_returns_not_found(): void

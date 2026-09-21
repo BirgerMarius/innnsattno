@@ -355,12 +355,12 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
         <a href="{{ route('quiz.create') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--test" role="button">
             ❓ Lag en quiz
-            <span class="front-page-quiz-badges" aria-label="Ny testfunksjon"><span>NYHET</span><span>TEST</span></span>
+            <span class="front-page-quiz-badges" aria-label="Under utvikling"><span>Under utvikling</span></span>
         </a>
 
         <a href="{{ route('learning.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--test" role="button">
             <i class="far fa-lightbulb" aria-hidden="true"></i> Lær noe nytt
-            <span class="front-page-quiz-badges" aria-label="Ny testfunksjon"><span>NYHET</span><span>TEST</span></span>
+            <span class="front-page-quiz-badges" aria-label="Under utvikling"><span>Under utvikling</span></span>
         </a>
         </div>
 

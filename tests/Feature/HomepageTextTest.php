@@ -56,7 +56,7 @@ class HomepageTextTest extends TestCase
         );
     }
 
-    public function testHomepageMarksQuizAsNewTestFeature(): void
+    public function testHomepageMarksQuizAsUnderDevelopment(): void
     {
         Cache::put(RingbladNewsService::CACHE_KEY, [[
             'title' => 'Lokal sak for rekkefølgetest',
@@ -71,8 +71,9 @@ class HomepageTextTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Lag en quiz')
-            ->assertSee('NYHET')
-            ->assertSee('TEST')
+            ->assertSee('Under utvikling')
+            ->assertDontSee('NYHET')
+            ->assertDontSee('TEST')
             ->assertSee('front-page-btn--test', false)
             ->assertSeeInOrder([
                 'Premier League',
