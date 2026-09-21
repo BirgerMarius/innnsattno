@@ -41,7 +41,7 @@ class TvGuideService
         'champions-league' => ['label' => 'Champions League', 'title' => 'UEFA Champions League'],
         'europa-league' => ['label' => 'Europa League', 'title' => 'UEFA Europa League'],
         'conference-league' => ['label' => 'Conference League', 'title' => 'UEFA Conference League'],
-        'nations-league' => ['label' => 'Nations League', 'title' => 'UEFA Nations League', 'allow_scheduled' => true, 'prioritize_norway' => true],
+        'nations-league' => ['label' => 'Nations League', 'title' => 'UEFA Nations League', 'allow_scheduled' => true, 'calendar_week' => true],
     ];
 
     /**
@@ -173,7 +173,9 @@ class TvGuideService
 
     /**
      * Return direct, identifiable football matches for one supported competition.
-     * The seven day cache is shared between all football pages and printouts.
+     * The cache is shared between all football pages and printouts. Nations
+     * League deliberately uses its current calendar week, while other boxes
+     * retain their existing rolling seven-day period.
      */
     public function getUpcomingCompetitionMatches(CarbonInterface $now, string $competition, string $operation, int $limit): array
     {
@@ -183,9 +185,14 @@ class TvGuideService
 
         $definition = self::FOOTBALL_COMPETITIONS[$competition];
         $now = $now->copy()->setTimezone(self::TIMEZONE);
-        $end = $now->copy()->addDays(self::UPCOMING_DAYS - 1)->endOfDay();
-        $dates = collect(range(0, self::UPCOMING_DAYS - 1))
-            ->map(fn (int $offset) => $now->copy()->addDays($offset)->startOfDay())
+        $periodStart = ($definition['calendar_week'] ?? false)
+            ? $now->copy()->startOfWeek(\Carbon\Carbon::MONDAY)
+            : $now->copy();
+        $end = ($definition['calendar_week'] ?? false)
+            ? $now->copy()->endOfWeek(\Carbon\Carbon::SUNDAY)
+            : $now->copy()->addDays(self::UPCOMING_DAYS - 1)->endOfDay();
+        $dates = collect(range(0, $periodStart->diffInDays($end)))
+            ->map(fn (int $offset) => $periodStart->copy()->addDays($offset)->startOfDay())
             ->all();
         $channels = self::ringerikeChannels();
         $schedules = [];
@@ -240,7 +247,7 @@ class TvGuideService
                         continue;
                     }
                     $startsAt = \Carbon\Carbon::parse($startsAt)->setTimezone(self::TIMEZONE);
-                    if ($startsAt->lessThan($now) || $startsAt->greaterThan($end)) {
+                    if ($startsAt->lessThan($periodStart) || $startsAt->greaterThan($end)) {
                         continue;
                     }
                     $eventName = trim((string) data_get($listing, 'sportsEvent.name', ''));
@@ -254,29 +261,17 @@ class TvGuideService
                     }
                     $matches[(string) data_get($listing, 'sportsEvent.id', $startsAt->toIso8601String().'|'.$eventName)] = [
                         'name' => $this->formatEventName($eventName),
-                        'participants' => $this->fixtureParticipants($eventName),
                         'startsAt' => $startsAt,
                         'channel' => trim((string) data_get($channel, 'channel.name', 'TV-kanal')),
                     ];
                 }
             }
         }
-        usort($matches, function (array $left, array $right) use ($definition) {
-            if ($definition['prioritize_norway'] ?? false) {
-                $leftIsNorway = in_array('Norge', $left['participants'] ?? [], true);
-                $rightIsNorway = in_array('Norge', $right['participants'] ?? [], true);
-
-                if ($leftIsNorway !== $rightIsNorway) {
-                    return $leftIsNorway ? -1 : 1;
-                }
-            }
-
-            return $left['startsAt']->getTimestamp() <=> $right['startsAt']->getTimestamp();
-        });
+        usort($matches, fn (array $left, array $right) => $left['startsAt']->getTimestamp() <=> $right['startsAt']->getTimestamp());
 
         return [
             'competitionLabel' => $definition['label'],
-            'matches' => array_slice(array_values($matches), 0, $limit),
+            'matches' => $limit > 0 ? array_slice(array_values($matches), 0, $limit) : array_values($matches),
             'hasSourceFailure' => $hasSourceFailure,
             'usingStaleData' => $usingStaleData,
             'missingMatchNames' => $missingMatchNames,

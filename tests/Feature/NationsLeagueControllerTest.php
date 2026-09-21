@@ -43,6 +43,38 @@ class NationsLeagueControllerTest extends TestCase
         $this->get('/nations-league')->assertOk()->assertSee('Vi klarer ikke hente oppdaterte Nations League-data akkurat nå.');
     }
 
+    /** @test */
+    public function nations_league_screen_and_print_show_the_same_complete_current_week_tv_list(): void
+    {
+        Cache::flush();
+        Carbon::setTestNow(Carbon::parse('2026-09-21 10:00:00', 'Europe/Oslo'));
+        Http::fake([
+            '*/tournaments/seasons/8889/schedule' => Http::response($this->schedule(), 200),
+            '*/tournaments/seasons/8889/standings' => Http::response($this->standings(), 200),
+            'tvguide.vg.no/*' => function ($request) {
+                parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+                return Http::response(($query['date'] ?? null) === '2026-09-24' ? [[
+                    'channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'],
+                    'listings' => [
+                        $this->tvListing('Sverige - Romania', '2026-09-24T16:00:00Z'),
+                        $this->tvListing('Norge - Danmark', '2026-09-24T18:55:00Z'),
+                        $this->tvListing('Tsjekkia - Kroatia', '2026-09-24T19:00:00Z'),
+                        $this->tvListing('Norge - Portugal', '2026-09-27T18:55:00Z', false),
+                        $this->tvListing('Studio', '2026-09-24T15:00:00Z'),
+                        $this->tvListing('Utenfor uke - Lag', '2026-09-28T18:00:00Z'),
+                    ],
+                ]] : []);
+            },
+        ]);
+
+        foreach (['/nations-league', '/nations-league/utskrift'] as $url) {
+            $this->get($url)->assertOk()
+                ->assertSeeInOrder(['Sverige – Romania', 'Norge – Danmark', 'Tsjekkia – Kroatia', 'Norge – Portugal'])
+                ->assertDontSee('Studio')->assertDontSee('Utenfor uke')->assertDontSee('Kanalutvalg: Ringerike fengsel');
+        }
+        Carbon::setTestNow();
+    }
+
     private function schedule(): array
     {
         return ['tournamentSeason' => ['name' => 'UEFA Nations League 2026/2028'], 'participants' => [11667 => ['name' => 'Norge'], 11662 => ['name' => 'Danmark'], 11496 => ['name' => 'Portugal'], 11478 => ['name' => 'Wales'], 2 => ['name' => 'Utenfor uke']], 'events' => [
@@ -62,5 +94,13 @@ class NationsLeagueControllerTest extends TestCase
                 ['teamId' => 11662, 'rank' => 3, 'played' => 0, 'wins' => 0, 'draws' => 0, 'losses' => 0, 'goalsFor' => 0, 'goalsAgainst' => 0, 'points' => 0],
             ]],
         ]];
+    }
+
+    private function tvListing(string $name, string $startsAt, bool $isLive = true): array
+    {
+        return [
+            'title' => ['type' => 'sportsTitle', 'title' => 'UEFA Nations League', 'slug' => 'uefa-nations-league'],
+            'sportsEvent' => ['name' => $name], 'startsAt' => $startsAt, 'isLive' => $isLive, 'isRerun' => false,
+        ];
     }
 }

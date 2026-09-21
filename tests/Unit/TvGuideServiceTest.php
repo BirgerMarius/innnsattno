@@ -266,7 +266,7 @@ class TvGuideServiceTest extends TestCase
         $this->assertSame(1, $result['excludedNonMatchProgrammes']);
     }
 
-    public function test_nations_league_box_prioritizes_exact_norway_fixtures_before_other_matches(): void
+    public function test_nations_league_box_lists_all_current_week_fixtures_in_chronological_order(): void
     {
         $now = Carbon::parse('2026-09-24 10:00:00', 'Europe/Oslo');
         Http::fake(function ($request) {
@@ -278,13 +278,14 @@ class TvGuideServiceTest extends TestCase
                 array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Norge - Portugal'), ['startsAt' => '2026-09-27T18:55:00Z', 'isLive' => false]),
                 array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Magasin'), ['startsAt' => '2026-09-24T15:00:00Z']),
                 array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Norge - Danmark'), ['startsAt' => '2026-09-24T20:00:00Z', 'isRerun' => true]),
+                array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Utenfor uke - Lag'), ['startsAt' => '2026-09-28T18:00:00Z']),
             ] : [];
             return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
         });
 
-        $result = $this->service()->getUpcomingCompetitionMatches($now, 'nations-league', 'nations-league-priority-test', 3);
-        $this->assertSame(['Norge – Danmark', 'Norge – Portugal', 'Sverige – Romania'], array_column($result['matches'], 'name'));
-        $this->assertCount(3, $result['matches']);
+        $result = $this->service()->getUpcomingCompetitionMatches($now, 'nations-league', 'nations-league-week-test', 0);
+        $this->assertSame(['Sverige – Romania', 'Norge – Danmark', 'Tsjekkia – Kroatia', 'Norge – Portugal'], array_column($result['matches'], 'name'));
+        $this->assertCount(4, $result['matches']);
         $this->assertSame(1, $result['excludedNonMatchProgrammes']);
     }
 

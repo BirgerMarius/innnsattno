@@ -19,7 +19,7 @@ class NationsLeagueController extends Controller
         return view('nations-league.index', array_merge($this->emptyViewData(), $competition, $this->pageData($competition), [
             'weekFixturesByDate' => collect($weekFixtures)->groupBy('dateLabel'),
             'recentResultsByDate' => collect($competition['recentResults'])->groupBy('dateLabel'),
-            'tvMatches' => $this->tvMatches(3, 'nations-league-tv-screen'),
+            'tvMatches' => $this->tvMatches(0, 'nations-league-tv-screen'),
         ]));
     }
 
@@ -64,7 +64,7 @@ class NationsLeagueController extends Controller
         $printData = $this->nationsLeague->getPrintData('Nations League');
 
         return view('nations-league.print', array_merge($this->emptyViewData(), $printData, $this->pageData($printData), [
-            'tvMatches' => $this->tvMatches(3, 'nations-league-tv-print'),
+            'tvMatches' => $this->tvMatches(0, 'nations-league-tv-print'),
             'returnUrl' => route('nations-league.index'),
         ]));
     }
