@@ -33,7 +33,7 @@
         <a class="cl-team-back" href="{{ route($competitionRoute) }}">← Tilbake til {{ $competitionName }}</a>
         <header class="cl-team-header">
             @if($team['emblemUrl'])<img src="{{ $team['emblemUrl'] }}" alt="">@endif
-            <div><h1>{{ $competitionName }}<br>{{ $team['teamName'] }}</h1><p>Sesongen {{ $seasonLabel }} · Ligafase</p></div>
+            <div><h1>{{ $competitionName }}<br>{{ $team['teamName'] }}</h1><p>Sesongen {{ $seasonLabel }} · {{ $teamPhaseLabel ?? 'Ligafase' }}@if(!empty($teamGroupName)) · {{ $teamGroupName }}@endif</p></div>
             <a class="btn btn-success cl-team-print" href="{{ route($teamPrintRoute, $team['teamId']) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut kampoversikt</a>
         </header>
 

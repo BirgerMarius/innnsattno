@@ -72,6 +72,23 @@ abstract class SchibstedCompetitionService
         return $this->getCompetitionData()['lastUpdated'];
     }
 
+    /** Return all scheduled matches in the ISO calendar week (Monday–Sunday). */
+    public function matchesForCalendarWeek(array $matches, ?Carbon $now = null): array
+    {
+        $now = ($now ?: now(self::TIMEZONE))->copy()->timezone(self::TIMEZONE);
+        $weekStart = $now->copy()->startOfWeek(Carbon::MONDAY);
+        $weekEnd = $now->copy()->endOfWeek(Carbon::SUNDAY);
+
+        $matches = array_values(array_filter($matches, function (array $match) use ($weekStart, $weekEnd) {
+            return ($match['startsAt'] ?? null) instanceof Carbon
+                && $match['startsAt']->betweenIncluded($weekStart, $weekEnd);
+        }));
+
+        usort($matches, fn (array $a, array $b) => $a['startsAt']->getTimestamp() <=> $b['startsAt']->getTimestamp());
+
+        return $matches;
+    }
+
     /**
      * Group non-qualifying cup matches into data-driven knockout rounds.
      * The output deliberately mirrors SportsNext stages instead of imposing a

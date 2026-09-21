@@ -50,6 +50,7 @@
 
 .front-page-quiz-badges { display: inline-flex; gap: 4px; margin-left: 6px; vertical-align: middle; }
 .front-page-quiz-badges span { background: rgba(23, 63, 114, .88); border-radius: 3px; color: #fff; font-size: .57rem; font-weight: 700; letter-spacing: .04em; line-height: 1; padding: 3px 4px; }
+.front-page-new-badge { background:rgba(255,255,255,.92); border-radius:3px; color:#125436; font-size:.57rem; font-weight:700; letter-spacing:.04em; line-height:1; margin-left:6px; padding:3px 4px; vertical-align:middle; }
 
 /* ========================================
    Lær noe nytt – prototype

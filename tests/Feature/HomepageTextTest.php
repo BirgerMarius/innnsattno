@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Services\RingbladNewsService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class HomepageTextTest extends TestCase
@@ -79,6 +80,7 @@ class HomepageTextTest extends TestCase
                 'Champions League',
                 'Europa League',
                 'Conference League',
+                'Nations League',
                 'Tidsfordriv – Ordjakt',
                 'Tidsfordriv – Sudoku',
                 'Månedskalender – For utskrift',
@@ -97,7 +99,7 @@ class HomepageTextTest extends TestCase
 
         $content = (string) $response->getContent();
         $this->assertSame(2, substr_count($content, 'front-page-btn--test'));
-        $this->assertSame(5, substr_count($content, 'front-page-btn--football'));
+        $this->assertSame(6, substr_count($content, 'front-page-btn--football'));
         $this->assertSame(0, preg_match('/href="\/(?:tidsfordriv|ordjakt)"[^>]*front-page-btn--football/', $content));
         $this->assertSame(0, preg_match('/href="\/ordjakt"[^>]*front-page-btn--wide/', $content));
         $this->assertSame(1, preg_match('/front-page-btn--wide" role="button">\s*<i class="far fa-calendar-alt">/s', $content));
@@ -105,5 +107,15 @@ class HomepageTextTest extends TestCase
             '/href="\/conference-league".*?<\/a>\s*<div class="front-page-grid__pastimes">\s*<a href="\/ordjakt".*?<\/a>\s*<a href="\/tidsfordriv".*?<\/a>\s*<\/div>/s',
             $content
         ));
+    }
+
+    public function testHomepageShowsTheNationsLeagueNewBadgeOnlyDuringLaunchWeek(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-09-24 12:00:00', 'Europe/Oslo'));
+        $this->get(route('tv'))->assertOk()->assertSee('front-page-new-badge', false)->assertSee('>NY<', false);
+
+        Carbon::setTestNow(Carbon::parse('2026-09-28 00:00:00', 'Europe/Oslo'));
+        $this->get(route('tv'))->assertOk()->assertDontSee('front-page-new-badge', false);
+        Carbon::setTestNow();
     }
 }

@@ -14,11 +14,48 @@ class NationsLeagueController extends Controller
     public function index()
     {
         $competition = $this->nationsLeague->getCompetitionData();
+        $weekFixtures = $this->nationsLeague->matchesForCalendarWeek($competition['matches'] ?? []);
 
         return view('nations-league.index', array_merge($this->emptyViewData(), $competition, $this->pageData($competition), [
-            'upcomingFixturesByDate' => collect($competition['upcomingFixtures'])->groupBy('dateLabel'),
+            'weekFixturesByDate' => collect($weekFixtures)->groupBy('dateLabel'),
             'recentResultsByDate' => collect($competition['recentResults'])->groupBy('dateLabel'),
             'tvMatches' => $this->tvMatches(3, 'nations-league-tv-screen'),
+        ]));
+    }
+
+    public function team(int $teamId)
+    {
+        $teamSeason = $this->nationsLeague->getTeamPhaseData($teamId, 'Nations League', ['group']);
+        abort_unless($teamSeason, 404);
+
+        $results = array_values(array_filter($teamSeason['teamMatches'], fn (array $match) => $match['isFinished']));
+        $fixtures = array_values(array_filter($teamSeason['teamMatches'], fn (array $match) => !$match['isFinished']));
+        $group = $this->nationsLeague->groupForTeam($teamSeason['standingsGroups'], $teamId);
+
+        return view('champions-league.team', array_merge($teamSeason, [
+            'competitionName' => 'Nations League',
+            'seasonLabel' => $teamSeason['seasonName'] ?? '2026/28',
+            'competitionRoute' => 'nations-league.index',
+            'teamPrintRoute' => 'nations-league.team.print',
+            'teamGroupName' => $group['stageName'] ?? null,
+            'teamPhaseLabel' => 'League- og gruppespill',
+            'results' => $results,
+            'fixtures' => $fixtures,
+            'tvMatches' => $this->tvMatches(1, 'nations-league-team-tv-screen'),
+        ]));
+    }
+
+    public function teamPrint(int $teamId)
+    {
+        $teamSeason = $this->nationsLeague->getTeamPhaseData($teamId, 'Nations League', ['group']);
+        abort_unless($teamSeason, 404);
+
+        return view('football.team-print', array_merge($teamSeason, [
+            'competitionName' => 'Nations League',
+            'seasonLabel' => $teamSeason['seasonName'] ?? '2026/28',
+            'backRoute' => 'nations-league.index',
+            'teamRoute' => 'nations-league.team',
+            'tvMatches' => $this->tvMatches(1, 'nations-league-team-tv-print'),
         ]));
     }
 
@@ -51,6 +88,6 @@ class NationsLeagueController extends Controller
 
     private function emptyViewData(): array
     {
-        return ['standingsGroups' => [], 'upcomingFixtures' => [], 'recentResults' => []];
+        return ['standingsGroups' => [], 'weekFixturesByDate' => [], 'upcomingFixtures' => [], 'recentResults' => []];
     }
 }

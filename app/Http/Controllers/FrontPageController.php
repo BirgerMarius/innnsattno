@@ -50,6 +50,10 @@ class FrontPageController extends Controller
             'isThemePreview' => $isThemePreview,
             'theme' => $theme,
             'todayNamedays' => $namedays->forDate($today)['names'] ?? [],
+            'showNationsLeagueNewBadge' => $today->betweenIncluded(
+                Carbon::create(2026, 9, 21, 0, 0, 0, FlagDayService::TIMEZONE),
+                Carbon::create(2026, 9, 27, 23, 59, 59, FlagDayService::TIMEZONE),
+            ),
         ]);
     }
 }

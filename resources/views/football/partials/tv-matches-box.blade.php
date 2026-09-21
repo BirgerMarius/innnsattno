@@ -1,7 +1,7 @@
 @php($tvBoxId = 'football-tv-'.$tvBoxContext)
 <section class="football-tv-box {{ $tvBoxClass ?? '' }}" aria-labelledby="{{ $tvBoxId }}">
     <h2 id="{{ $tvBoxId }}">{{ $tvBoxTeam ?? false ? 'Neste' : 'Direktesendt' }} {{ $tvMatches['competitionLabel'] }} på TV</h2>
-    <p class="football-tv-box__selection">Kanalutvalg: Ringerike fengsel</p>
+    @if($tvBoxShowSelection ?? true)<p class="football-tv-box__selection">Kanalutvalg: Ringerike fengsel</p>@endif
     @if(count($tvMatches['matches']))
         <div class="football-tv-box__list">
             @foreach($tvMatches['matches'] as $match)

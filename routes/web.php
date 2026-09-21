@@ -174,6 +174,8 @@ Route::get('/conference-league/lag/{teamId}', [ConferenceLeagueController::class
 Route::get('/conference-league/lag/{teamId}/print', [ConferenceLeagueController::class, 'teamPrint'])->whereNumber('teamId')->middleware('throttle:football-team-pages')->name('conference-league.team.print');
 Route::get('/nations-league', [NationsLeagueController::class, 'index'])->name('nations-league.index');
 Route::get('/nations-league/utskrift', [NationsLeagueController::class, 'print'])->name('nations-league.print');
+Route::get('/nations-league/lag/{teamId}', [NationsLeagueController::class, 'team'])->whereNumber('teamId')->middleware('throttle:football-team-pages')->name('nations-league.team');
+Route::get('/nations-league/lag/{teamId}/utskrift', [NationsLeagueController::class, 'teamPrint'])->whereNumber('teamId')->middleware('throttle:football-team-pages')->name('nations-league.team.print');
 Route::get('/premier-league', [PremierLeagueController::class, 'index'])->name('premier-league.index');
 Route::get('/premier-league/utskrift', [PremierLeagueController::class, 'print'])->name('premier-league.print');
 Route::get('/premier-league/lag/{teamId}', [PremierLeagueController::class, 'team'])->whereNumber('teamId')->middleware('throttle:football-team-pages')->name('premier-league.team');

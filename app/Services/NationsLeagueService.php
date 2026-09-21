@@ -23,4 +23,17 @@ class NationsLeagueService extends SchibstedCompetitionService
 
         return null;
     }
+
+    public function groupForTeam(array $standingsGroups, int $teamId): ?array
+    {
+        foreach ($standingsGroups as $group) {
+            foreach ($group['rows'] as $row) {
+                if ((int) ($row['teamId'] ?? 0) === $teamId) {
+                    return $group;
+                }
+            }
+        }
+
+        return null;
+    }
 }

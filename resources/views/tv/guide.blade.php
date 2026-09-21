@@ -336,6 +336,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
         <a href="/nations-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Nations League 2026/28
+            @if($showNationsLeagueNewBadge)<span class="front-page-new-badge" aria-label="Ny tjeneste">NY</span>@endif
         </a>
 
         <div class="front-page-grid__pastimes">

@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Services\NationsLeagueService;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class NationsLeagueServiceTest extends TestCase
@@ -24,5 +25,19 @@ class NationsLeagueServiceTest extends TestCase
 
         $this->assertSame('A4', $service->norwayGroup($data['standingsGroups'])['groupName']);
         $this->assertSame('Nedrykkskvalifisering', $service->norwayGroup($data['standingsGroups'])['rows'][1]['rule']['name']);
+    }
+
+    /** @test */
+    public function it_selects_all_matches_from_monday_through_sunday_in_oslo_time(): void
+    {
+        $service = new NationsLeagueService();
+        $data = $service->normalizeCompetitionData(['participants' => [1 => ['name' => 'Norge'], 2 => ['name' => 'Danmark']], 'events' => [
+            ['id' => 1, 'startDate' => '2026-09-24T18:45:00Z', 'participantIds' => [1, 2], 'status' => ['type' => 'notStarted']],
+            ['id' => 2, 'startDate' => '2026-09-27T18:45:00Z', 'participantIds' => [1, 2], 'status' => ['type' => 'notStarted']],
+            ['id' => 3, 'startDate' => '2026-09-28T18:45:00Z', 'participantIds' => [1, 2], 'status' => ['type' => 'notStarted']],
+        ]], ['standings' => []]);
+
+        $week = $service->matchesForCalendarWeek($data['matches'], Carbon::parse('2026-09-21 10:00:00', 'Europe/Oslo'));
+        $this->assertSame([1, 2], array_column($week, 'id'));
     }
 }
