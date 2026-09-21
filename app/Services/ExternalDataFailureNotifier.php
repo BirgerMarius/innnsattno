@@ -73,12 +73,17 @@ class ExternalDataFailureNotifier
             // the global default must remain suitable for active sources.
             'cooldown_seconds' => max(1, (int) ($context['notification_cooldown_seconds'] ?? config('external_data.cooldown_seconds', 3600))),
             'send_notification' => ($context['send_notification'] ?? true) !== false,
+            'notification_key' => isset($context['notification_key'])
+                ? $this->sanitizeText((string) $context['notification_key'])
+                : null,
         ];
     }
 
     private function cooldownKey(array $details): string
     {
-        return 'external-data-failure-notified:'.sha1($details['service'].'|'.$details['operation']);
+        return 'external-data-failure-notified:'.sha1(
+            $details['service'].'|'.$details['operation'].'|'.($details['notification_key'] ?? '')
+        );
     }
 
     private function diagnostics(array $context): array

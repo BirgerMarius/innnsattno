@@ -43,6 +43,8 @@ class PrayerTimeService
 
             return $days;
         } catch (Throwable $exception) {
+            $stale = Cache::get($keys['stale']);
+            $hasUsableStaleData = is_array($stale) && $stale !== [];
             $context = [
                 'operation' => $operation,
                 'failure_kind' => $this->failureKind($exception),
@@ -50,17 +52,21 @@ class PrayerTimeService
                 'location_id' => $locationId,
                 'year' => $year,
                 'month' => $month,
+                // Keep logging every failed fetch, but only email when the
+                // current or next displayed month has no usable fallback.
+                'send_notification' => $this->isRelevantPeriod($year, $month) && ! $hasUsableStaleData,
+                'notification_cooldown_seconds' => 86400,
             ];
 
             if ($exception instanceof PrayerTimePayloadException) {
                 $context = array_merge($context, $exception->diagnostics());
             }
 
+            $context['notification_key'] = $this->notificationKey($context, $exception);
+
             $this->failureNotifier->report('bonnetid-no', $this->summary($exception), $context);
 
-            $stale = Cache::get($keys['stale']);
-
-            return is_array($stale) ? $stale : [];
+            return $hasUsableStaleData ? $stale : [];
         }
     }
 
@@ -196,6 +202,31 @@ class PrayerTimeService
             'fresh' => 'prayer-times.fresh.'.$suffix,
             'stale' => 'prayer-times.stale.'.$suffix,
         ];
+    }
+
+    private function isRelevantPeriod(int $year, int $month): bool
+    {
+        $currentMonth = now('Europe/Oslo')->startOfMonth();
+        $requestedMonth = $currentMonth->copy()->setDate($year, $month, 1);
+
+        return $requestedMonth->betweenIncluded($currentMonth, $currentMonth->copy()->addMonth());
+    }
+
+    private function notificationKey(array $context, Throwable $exception): string
+    {
+        $diagnostics = [];
+        foreach (['location_id', 'year', 'month', 'row_index', 'date', 'invalid_field', 'payload_type', 'row_type', 'date_type', 'value_type'] as $key) {
+            if (array_key_exists($key, $context)) {
+                $diagnostics[$key] = $context[$key];
+            }
+        }
+
+        return hash('sha256', json_encode([
+            'failure_kind' => $context['failure_kind'],
+            'status' => $context['status'],
+            'summary' => $this->summary($exception),
+            'diagnostics' => $diagnostics,
+        ], JSON_THROW_ON_ERROR));
     }
 
     private function failureKind(Throwable $exception): string

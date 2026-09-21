@@ -106,7 +106,11 @@ class PrayerController extends Controller
 
         return $requestedMonth->betweenIncluded(
             $currentMonth->copy()->subMonth(),
-            $currentMonth->copy()->addMonths(12),
+            // The page only offers navigation and printing for the following
+            // month. Bønnetid.no does not publish dependable data a year in
+            // advance, so accepting longer ranges merely lets crawlers cause
+            // unnecessary API calls and false operational alerts.
+            $currentMonth->copy()->addMonth(),
         );
     }
 

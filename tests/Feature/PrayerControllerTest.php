@@ -28,13 +28,13 @@ class PrayerControllerTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_current_previous_and_twelve_months_ahead_are_accepted(): void
+    public function test_current_previous_and_next_month_are_accepted(): void
     {
         Http::fake(['api.bonnetid.no/*' => Http::response([$this->bonnetidDay()])]);
 
         $this->get('/bonnetider?year=2026&month=9')->assertOk();
         $this->get('/bonnetider?year=2026&month=8')->assertOk();
-        $this->get('/bonnetider?year=2027&month=9')->assertOk();
+        $this->get('/bonnetider?year=2026&month=10')->assertOk();
 
         Http::assertSentCount(3);
         Mail::assertNothingSent();
@@ -76,6 +76,8 @@ class PrayerControllerTest extends TestCase
             '/bonnetider?year=2026&month=0',
             '/bonnetider?year=2026&month=13',
             '/bonnetider?year=1927&month=9',
+            '/bonnetider?year=2026&month=11',
+            '/bonnetider?year=2027&month=7',
             '/bonnetider?year=2027&month=10',
         ] as $url) {
             $this->get($url)->assertRedirect('/bonnetider?year=2026&month=9');

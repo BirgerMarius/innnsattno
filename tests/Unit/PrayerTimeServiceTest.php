@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Mail\ExternalDataSourceFailureMail;
 use App\Services\PrayerTimeService;
+use Carbon\Carbon;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -26,6 +27,14 @@ class PrayerTimeServiceTest extends TestCase
         Mail::fake();
         config()->set('feedback.notification_email', 'varsling@example.test');
         config()->set('services.prayer_times.api_token', 'test-token');
+        Carbon::setTestNow(Carbon::parse('2026-09-21 12:00:00', 'Europe/Oslo'));
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+
+        parent::tearDown();
     }
 
     public function test_realistic_bonnetid_payload_is_accepted_mapped_for_the_views_and_cached(): void
@@ -117,7 +126,7 @@ class PrayerTimeServiceTest extends TestCase
         Mail::assertNothingSent();
     }
 
-    public function test_http_failure_notifies_and_uses_stale_data_for_the_same_period_and_location(): void
+    public function test_http_failure_uses_stale_data_without_notifying_for_the_same_period_and_location(): void
     {
         $stale = [$this->day('2026-09-02')];
         Cache::put($this->staleKey(), $stale, now()->addDays(7));
@@ -126,12 +135,7 @@ class PrayerTimeServiceTest extends TestCase
         $result = $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
 
         $this->assertSame($stale, $result);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
-            return $mail->service === 'bonnetid-no'
-                && $mail->operation === 'prayer-times'
-                && $mail->failureKind === 'http-status'
-                && $mail->status === 500;
-        });
+        Mail::assertNothingSent();
     }
 
     public function test_not_found_response_notifies_as_an_http_status_failure(): void
@@ -148,14 +152,28 @@ class PrayerTimeServiceTest extends TestCase
         });
     }
 
-    public function test_connection_failure_notifies_and_uses_stale_data(): void
+    public function test_future_unpublished_month_is_logged_but_does_not_send_an_email(): void
+    {
+        Http::fake(['api.bonnetid.no/*' => Http::response([])]);
+        Log::shouldReceive('warning')
+            ->once()
+            ->with('External data source failure.', Mockery::on(fn (array $context) => $context['diagnostics']['year'] === 2027
+                && $context['diagnostics']['month'] === 7));
+
+        $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, 2027, 7));
+
+        Mail::assertNothingSent();
+        Http::assertSent(fn ($request) => $request->url() === 'https://api.bonnetid.no/prayertimes/146/2027/7/');
+    }
+
+    public function test_connection_failure_uses_stale_data_without_notifying(): void
     {
         $stale = [$this->day('2026-09-03')];
         Cache::put($this->staleKey(), $stale, now()->addDays(7));
         Http::fake(fn () => throw new ConnectionException('Timed out'));
 
         $this->assertSame($stale, $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'connection-exception');
+        Mail::assertNothingSent();
     }
 
     public function test_invalid_json_notifies_and_returns_an_empty_result(): void
@@ -235,6 +253,40 @@ class PrayerTimeServiceTest extends TestCase
         $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
 
         Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+    }
+
+    public function test_relevant_failure_without_usable_data_is_notified_at_most_once_per_day(): void
+    {
+        Http::fake(['api.bonnetid.no/*' => Http::response([], 500)]);
+
+        $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
+        $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
+        Carbon::setTestNow(Carbon::parse('2026-09-22 12:00:01', 'Europe/Oslo'));
+        $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
+
+        Mail::assertSent(ExternalDataSourceFailureMail::class, 2);
+    }
+
+    public function test_changed_relevant_failure_is_not_hidden_by_the_daily_cooldown(): void
+    {
+        Http::fakeSequence()
+            ->push([], 500)
+            ->push([], 503);
+
+        $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
+        $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
+
+        Mail::assertSent(ExternalDataSourceFailureMail::class, 2);
+    }
+
+    public function test_relevant_failure_with_usable_stale_data_is_logged_without_email(): void
+    {
+        Cache::put($this->staleKey(), [$this->day()], now()->addDays(7));
+        Http::fake(['api.bonnetid.no/*' => Http::response([], 500)]);
+
+        $this->assertSame([$this->day()], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
+
+        Mail::assertNothingSent();
     }
 
     public function test_missing_token_does_not_make_an_http_call_and_is_not_hardcoded_in_php(): void
