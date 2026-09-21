@@ -187,6 +187,36 @@ php artisan football:schibsted-explore \
   --no-cache
 ```
 
+## UEFA Nations League
+
+UEFA Nations League 2026/28 er bekreftet live i Schibsted/VG SportsNext API-et 2026-09-21.
+
+| Felt | Verdi |
+| --- | --- |
+| Turnering | UEFA Nations League (menn) |
+| tournamentId | 187 |
+| seasonId | 8889 |
+| Sesong | UEFA Nations League 2026/2028 |
+| Sesongtype | `mixed` |
+| Periode | 24.09.2026–28.03.2028 |
+
+Disse endepunktene returnerte HTTP 200 og gyldig JSON:
+
+```text
+GET /tournaments/187
+GET /tournaments/187/seasons
+GET /tournaments/seasons/8889/schedule
+GET /tournaments/seasons/8889/standings
+```
+
+Observerte data:
+
+- Schedule inneholder 156 kamper og 54 deltakere, med gruppe, fase og runde per kamp.
+- Standings inneholder 14 separate tabeller: League A (A1–A4), B (B1–B4), C (C1–C4) og D (D1–D2).
+- Norge er participant-ID `11667` og ligger i League A, gruppe 4 sammen med Danmark, Portugal og Wales.
+- Hver tabellrad kan ha en regel med kode og norsk navn, blant annet `playoffs`, `promotion`, `promotion_playoffs`, `relegation_playoffs` og `relegation`.
+- Sesongens publiserte kamper er gruppekamper; sluttspill/finaler er ikke oppført som kamper ennå.
+
 ## Turneringskatalog
 
 Maskinlesbar katalog ligger her:

@@ -334,6 +334,10 @@ $isEvenWeek = $weekNumber % 2 === 0;
             ⚽ Conference League 2026/27
         </a>
 
+        <a href="/nations-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+            ⚽ Nations League 2026/28
+        </a>
+
         <div class="front-page-grid__pastimes">
             <a href="/ordjakt" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
                 <i class="fas fa-puzzle-piece"></i> 🧩 Tidsfordriv – Ordjakt

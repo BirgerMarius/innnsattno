@@ -41,6 +41,7 @@ class TvGuideService
         'champions-league' => ['label' => 'Champions League', 'title' => 'UEFA Champions League'],
         'europa-league' => ['label' => 'Europa League', 'title' => 'UEFA Europa League'],
         'conference-league' => ['label' => 'Conference League', 'title' => 'UEFA Conference League'],
+        'nations-league' => ['label' => 'Nations League', 'title' => 'UEFA Nations League'],
     ];
 
     /**

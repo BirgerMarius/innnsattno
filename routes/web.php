@@ -11,6 +11,7 @@ use App\Http\Controllers\EliteserienController;
 use App\Http\Controllers\ChampionsLeagueController;
 use App\Http\Controllers\ConferenceLeagueController;
 use App\Http\Controllers\EuropaLeagueController;
+use App\Http\Controllers\NationsLeagueController;
 use App\Http\Controllers\FootballController;
 use App\Http\Controllers\FeedbackSubmissionController;
 use App\Http\Controllers\PremierLeagueController;
@@ -171,6 +172,8 @@ Route::get('/conference-league', [ConferenceLeagueController::class, 'index'])->
 Route::get('/conference-league/print', [ConferenceLeagueController::class, 'print'])->name('conference-league.print');
 Route::get('/conference-league/lag/{teamId}', [ConferenceLeagueController::class, 'team'])->whereNumber('teamId')->middleware('throttle:football-team-pages')->name('conference-league.team');
 Route::get('/conference-league/lag/{teamId}/print', [ConferenceLeagueController::class, 'teamPrint'])->whereNumber('teamId')->middleware('throttle:football-team-pages')->name('conference-league.team.print');
+Route::get('/nations-league', [NationsLeagueController::class, 'index'])->name('nations-league.index');
+Route::get('/nations-league/utskrift', [NationsLeagueController::class, 'print'])->name('nations-league.print');
 Route::get('/premier-league', [PremierLeagueController::class, 'index'])->name('premier-league.index');
 Route::get('/premier-league/utskrift', [PremierLeagueController::class, 'print'])->name('premier-league.print');
 Route::get('/premier-league/lag/{teamId}', [PremierLeagueController::class, 'team'])->whereNumber('teamId')->middleware('throttle:football-team-pages')->name('premier-league.team');
