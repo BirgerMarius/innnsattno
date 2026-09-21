@@ -246,13 +246,14 @@ class TvGuideServiceTest extends TestCase
         Http::assertSentCount(7);
     }
 
-    public function test_nations_league_box_only_shows_live_fixture_broadcasts(): void
+    public function test_nations_league_box_shows_scheduled_fixture_broadcasts_but_excludes_non_matches_and_replays(): void
     {
         $now = Carbon::parse('2026-09-24 10:00:00', 'Europe/Oslo');
         Http::fake(function ($request) {
             parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
             $listings = ($query['date'] ?? null) === '2026-09-24' ? [
                 array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Norge - Danmark'), ['startsAt' => '2026-09-24T18:55:00Z']),
+                array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Norge - Portugal'), ['startsAt' => '2026-09-25T18:55:00Z', 'isLive' => false]),
                 array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Studio'), ['startsAt' => '2026-09-24T16:55:00Z']),
                 array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Norge - Danmark'), ['startsAt' => '2026-09-24T20:55:00Z', 'isRerun' => true]),
             ] : [];
@@ -261,7 +262,29 @@ class TvGuideServiceTest extends TestCase
 
         $result = $this->service()->getUpcomingCompetitionMatches($now, 'nations-league', 'nations-league-test', 3);
         $this->assertSame('Nations League', $result['competitionLabel']);
-        $this->assertSame(['Norge – Danmark'], array_column($result['matches'], 'name'));
+        $this->assertSame(['Norge – Danmark', 'Norge – Portugal'], array_column($result['matches'], 'name'));
+        $this->assertSame(1, $result['excludedNonMatchProgrammes']);
+    }
+
+    public function test_nations_league_box_prioritizes_exact_norway_fixtures_before_other_matches(): void
+    {
+        $now = Carbon::parse('2026-09-24 10:00:00', 'Europe/Oslo');
+        Http::fake(function ($request) {
+            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+            $listings = ($query['date'] ?? null) === '2026-09-24' ? [
+                array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Sverige - Romania'), ['startsAt' => '2026-09-24T16:00:00Z']),
+                array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Norge - Danmark'), ['startsAt' => '2026-09-24T18:55:00Z']),
+                array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Tsjekkia - Kroatia'), ['startsAt' => '2026-09-24T19:00:00Z']),
+                array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Norge - Portugal'), ['startsAt' => '2026-09-27T18:55:00Z', 'isLive' => false]),
+                array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Magasin'), ['startsAt' => '2026-09-24T15:00:00Z']),
+                array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Norge - Danmark'), ['startsAt' => '2026-09-24T20:00:00Z', 'isRerun' => true]),
+            ] : [];
+            return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
+        });
+
+        $result = $this->service()->getUpcomingCompetitionMatches($now, 'nations-league', 'nations-league-priority-test', 3);
+        $this->assertSame(['Norge – Danmark', 'Norge – Portugal', 'Sverige – Romania'], array_column($result['matches'], 'name'));
+        $this->assertCount(3, $result['matches']);
         $this->assertSame(1, $result['excludedNonMatchProgrammes']);
     }
 

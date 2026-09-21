@@ -26,6 +26,7 @@ class NationsLeagueControllerTest extends TestCase
             ->assertSee('Nedrykkskvalifisering')->assertSee('Denne ukens kamper')->assertSee('Resultater')
             ->assertSeeInOrder(['24.09.2026', 'Norge', 'Danmark', '27.09.2026', 'Norge', 'Portugal'])->assertDontSee('Utenfor uke')
             ->assertSee('/nations-league/lag/11667', false)->assertSee('/nations-league/lag/11496', false)
+            ->assertDontSee('Kanalutvalg: Ringerike fengsel')
             ->assertSee('nl-norway', false);
         $this->get('/nations-league/lag/11667')->assertOk()->assertSee('Norge')->assertSee('League A, Group 4')->assertSee('Portugal');
         $this->get('/nations-league/lag/11496')->assertOk()->assertSee('Portugal')->assertSee('Norge');

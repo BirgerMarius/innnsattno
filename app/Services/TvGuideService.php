@@ -41,7 +41,7 @@ class TvGuideService
         'champions-league' => ['label' => 'Champions League', 'title' => 'UEFA Champions League'],
         'europa-league' => ['label' => 'Europa League', 'title' => 'UEFA Europa League'],
         'conference-league' => ['label' => 'Conference League', 'title' => 'UEFA Conference League'],
-        'nations-league' => ['label' => 'Nations League', 'title' => 'UEFA Nations League'],
+        'nations-league' => ['label' => 'Nations League', 'title' => 'UEFA Nations League', 'allow_scheduled' => true, 'prioritize_norway' => true],
     ];
 
     /**
@@ -232,7 +232,7 @@ class TvGuideService
         foreach ($schedules as $schedule) {
             foreach ($schedule as $channel) {
                 foreach (($channel['listings'] ?? []) as $listing) {
-                    if (!$this->isLiveCompetitionBroadcast($listing, $definition['title'])) {
+                    if (!$this->isCompetitionBroadcast($listing, $definition)) {
                         continue;
                     }
                     $startsAt = data_get($listing, 'startsAt');
@@ -254,13 +254,25 @@ class TvGuideService
                     }
                     $matches[(string) data_get($listing, 'sportsEvent.id', $startsAt->toIso8601String().'|'.$eventName)] = [
                         'name' => $this->formatEventName($eventName),
+                        'participants' => $this->fixtureParticipants($eventName),
                         'startsAt' => $startsAt,
                         'channel' => trim((string) data_get($channel, 'channel.name', 'TV-kanal')),
                     ];
                 }
             }
         }
-        usort($matches, fn (array $left, array $right) => $left['startsAt']->getTimestamp() <=> $right['startsAt']->getTimestamp());
+        usort($matches, function (array $left, array $right) use ($definition) {
+            if ($definition['prioritize_norway'] ?? false) {
+                $leftIsNorway = in_array('Norge', $left['participants'] ?? [], true);
+                $rightIsNorway = in_array('Norge', $right['participants'] ?? [], true);
+
+                if ($leftIsNorway !== $rightIsNorway) {
+                    return $leftIsNorway ? -1 : 1;
+                }
+            }
+
+            return $left['startsAt']->getTimestamp() <=> $right['startsAt']->getTimestamp();
+        });
 
         return [
             'competitionLabel' => $definition['label'],
@@ -386,13 +398,13 @@ class TvGuideService
         return $results;
     }
 
-    private function isLiveCompetitionBroadcast(mixed $listing, string $title): bool
+    private function isCompetitionBroadcast(mixed $listing, array $definition): bool
     {
         return is_array($listing)
             && data_get($listing, 'title.type') === 'sportsTitle'
-            && data_get($listing, 'title.title') === $title
-            && ($listing['isLive'] ?? false) === true
-            && ($listing['isRerun'] ?? false) !== true;
+            && data_get($listing, 'title.title') === $definition['title']
+            && ($listing['isRerun'] ?? false) !== true
+            && (($definition['allow_scheduled'] ?? false) || ($listing['isLive'] ?? false) === true);
     }
 
     private function looksLikeFixtureName(string $eventName): bool
