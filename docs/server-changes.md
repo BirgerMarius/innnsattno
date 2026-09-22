@@ -2,6 +2,23 @@
 
 Denne filen er en løpende changelog og huskeliste for endringer som gjøres direkte på produksjonsserveren og derfor ikke automatisk ligger i Git-repositoryet. Dokumenter blant annet Nginx-, systemd-, cron-/timer-, firewall- og annen manuell serverkonfigurasjon her.
 
+## 2026-09-22 – Avgrenset blokkering av distribuert bot på «Dagen i dag»
+
+### Bakgrunn
+
+- En distribuert bot ga 617 treff på daterte «Dagen i dag»-sider med samme User-Agent fra mange IP-adresser.
+
+### Produksjonsserver
+
+- Fil: `/etc/nginx/sites-available/innsatt.no`
+- Det er lagt inn en regel som svarer med HTTP 403 bare når den aktuelle User-Agent-en besøker en datert URL på formen `/dagen-i-dag/YYYY-MM-DD`.
+- Andre URL-er og andre User-Agents omfattes ikke av regelen.
+
+### Verifisering
+
+- `nginx -t`: OK
+- Nginx ble lastet inn på nytt etter valideringen.
+
 ## 2026-09-16 – Automatisk nyhetstjeneste på forsiden
 
 Den automatiske forsidetjenesten for kriminalomsorgsnyheter ble deployet med hovedcommit `d38189983f7c508b7b59ab36cb13b5dd7574f13e` og etterfølgende justering `8b6e260f795d44bd0900fe6914dc344075487b8c`.
