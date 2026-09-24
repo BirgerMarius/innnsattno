@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class ChampionsLeagueControllerTest extends TestCase
@@ -63,6 +64,34 @@ class ChampionsLeagueControllerTest extends TestCase
 
         $this->get('/champions-league/lag/4')->assertOk()
             ->assertSee('Dette laget har ingen Champions League-kamper i ligafasen i datagrunnlaget.');
+    }
+
+    /** @test */
+    public function champions_league_print_shows_available_match_emblems_without_hiding_a_team_without_an_emblem(): void
+    {
+        Cache::flush();
+        Carbon::setTestNow(Carbon::parse('2026-09-10 12:00:00', 'Europe/Oslo'));
+        Http::fake([
+            '*/tournaments/seasons/9168/schedule' => Http::response($this->schedulePayload(), 200),
+            '*/tournaments/seasons/9168/standings' => Http::response($this->standingsPayload(), 200),
+        ]);
+
+        try {
+            $this->get('/champions-league/print')->assertOk()
+                ->assertViewHas('printFixtures', function (array $matches) {
+                    $this->assertStringStartsWith('https://example.test/bodo.png', $matches[0]['homeEmblemUrl']);
+                    $this->assertNull($matches[0]['awayEmblemUrl']);
+
+                    return true;
+                })
+                ->assertSee('class="match-teams"', false)
+                ->assertSee('https://example.test/bodo.png', false)
+                ->assertSee('Bodø/Glimt')
+                ->assertSee('Motstander')
+                ->assertSee('.match-teams { overflow-wrap:anywhere; }', false);
+        } finally {
+            Carbon::setTestNow();
+        }
     }
 
     private function schedulePayload(): array
