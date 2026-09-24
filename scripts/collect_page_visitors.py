@@ -20,7 +20,7 @@ LOG_PATTERN = re.compile(
     r'(?P<status>\d{3}) \S+ "[^"]*" "(?P<agent>[^"]*)"'
 )
 BOT_PATTERN = re.compile(
-    r'claudebot|serankingbacklinksbot|amazonbot|googlebot|applebot|bingbot|ahrefsbot|'
+    r'claudebot|serankingbacklinksbot|amazonbot|googlebot|googleother|applebot|bingbot|ahrefsbot|'
     r'wp-safe-scanner|bot|crawler|spider|scanner|slurp|headless|lighthouse|preview|'
     r'curl|wget|python|go-http-client|libwww|httpclient|nikto|sqlmap|masscan|zgrab', re.I,
 )

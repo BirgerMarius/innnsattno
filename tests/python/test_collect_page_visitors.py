@@ -17,6 +17,26 @@ def line(ip, day, target, agent='Mozilla/5.0', status=200, method='GET', time='1
 
 
 class CollectPageVisitorsTest(unittest.TestCase):
+    def test_googleother_crawl_does_not_become_a_human_session(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            googleother = (
+                'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) '
+                'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.52 '
+                'Mobile Safari/537.36 (compatible; GoogleOther)'
+            )
+            log.write_text(
+                line('66.249.73.172', '24/Sep/2026', '/nations-league/lag/11478', googleother)
+                + line('66.249.73.172', '24/Sep/2026', '/nations-league/lag/11479', googleother)
+                + line('203.0.113.10', '24/Sep/2026', '/tv')
+                + line('203.0.113.10', '24/Sep/2026', '/quiz')
+            )
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 9, 24))
+            self.assertEqual(2, traffic[('2026-09-24', 'bot', 'requests')])
+            self.assertEqual(2, traffic[('2026-09-24', 'human', 'pageviews')])
+            self.assertEqual(1, traffic[('2026-09-24', 'human', 'sessions')])
+            self.assertFalse(any(ip == '66.249.73.172' for _, _, ip in pages))
+
     def test_classifies_normal_browser_session_and_filters_known_automation(self):
         with tempfile.TemporaryDirectory() as directory:
             log = Path(directory) / 'access.log'

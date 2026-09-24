@@ -54,7 +54,7 @@ Forsiden er `/tv` og vises som **Forside**. `/print` er **TV-utskrift Ringerike*
 ## Klassifisering
 
 - `human`: vellykket `GET` med 2xx-svar mot offentlig HTML-side med nok øktbevis til å være anslått menneskelig. Redirects (3xx) og `HEAD` er tekniske forespørsler, ikke sidevisninger.
-- `bot`: kjente crawler- og bot-User-Agents, blant annet ClaudeBot, Googlebot, bingbot, Amazonbot, Applebot og AhrefsBot.
+- `bot`: kjente crawler- og bot-User-Agents, blant annet ClaudeBot, Googlebot, GoogleOther, bingbot, Amazonbot, Applebot og AhrefsBot.
 - `monitoring`: Uptime Kuma og andre monitor-User-Agents.
 - `scanner`: kjente sikkerhetsskannerstier og -queryer (inkludert `wp-json`, `rest_route`, WordPress- og PHP-forsøk), mislykkede tekniske forespørsler og raske bønnetid-enumereringer. En `/tv`-forespørsel inntil to minutter etter et slikt forsøk fra samme IP behandles som mulig redirect-rest; regelen er med hensikt kort for ikke å ramme delte nettverk.
 - `excluded`: trafikk fra eksplisitt konfigurerte IP-er, inkludert administratortrafikk.
