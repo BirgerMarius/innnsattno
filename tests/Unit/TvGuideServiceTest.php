@@ -289,6 +289,26 @@ class TvGuideServiceTest extends TestCase
         $this->assertSame(1, $result['excludedNonMatchProgrammes']);
     }
 
+    public function test_nations_league_print_can_use_an_exact_rolling_seven_day_window(): void
+    {
+        $now = Carbon::parse('2026-09-24 10:00:00', 'Europe/Oslo');
+        Http::fake(function ($request) {
+            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+            $listings = ($query['date'] ?? null) === '2026-10-01' ? [
+                array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Norge - Danmark'), ['startsAt' => '2026-10-01T07:59:00Z']),
+                array_merge($this->competitionListing('UEFA Nations League', 'uefa-nations-league', 'Norge - Portugal'), ['startsAt' => '2026-10-01T08:01:00Z']),
+            ] : [];
+
+            return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
+        });
+
+        $result = $this->service()->getUpcomingCompetitionMatches($now, 'nations-league', 'nations-league-print-test', 0, true);
+
+        $this->assertSame(['Norge – Danmark'], array_column($result['matches'], 'name'));
+        $this->assertSame('2026-10-01 10:00:00', $result['periodEnd']->format('Y-m-d H:i:s'));
+        Http::assertSentCount(8);
+    }
+
     private function primeStale(array $schedule): void
     {
         Cache::put($this->staleCacheKey(), $schedule, now()->addDays(3));

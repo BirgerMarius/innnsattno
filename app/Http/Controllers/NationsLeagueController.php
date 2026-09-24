@@ -62,9 +62,13 @@ class NationsLeagueController extends Controller
     public function print()
     {
         $printData = $this->nationsLeague->getPrintData('Nations League');
+        $tvMatches = $this->withMatchEmblems(
+            $this->tvMatches(0, 'nations-league-tv-print', true),
+            $printData['matches'] ?? [],
+        );
 
         return view('nations-league.print', array_merge($this->emptyViewData(), $printData, $this->pageData($printData), [
-            'tvMatches' => $this->tvMatches(0, 'nations-league-tv-print'),
+            'tvMatches' => $tvMatches,
             'returnUrl' => route('nations-league.index'),
         ]));
     }
@@ -79,11 +83,48 @@ class NationsLeagueController extends Controller
         ];
     }
 
-    private function tvMatches(int $limit, string $operation): array
+    private function tvMatches(int $limit, string $operation, bool $useRollingSevenDayPeriod = false): array
     {
         return $this->tvGuideService->getUpcomingCompetitionMatches(
-            now('Europe/Oslo'), 'nations-league', $operation, $limit,
+            now('Europe/Oslo'), 'nations-league', $operation, $limit, $useRollingSevenDayPeriod,
         );
+    }
+
+    private function withMatchEmblems(array $tvMatches, array $matches): array
+    {
+        $matchEmblems = [];
+
+        foreach ($matches as $match) {
+            $matchEmblems[$this->fixtureKey($match['homeTeam'] ?? '', $match['awayTeam'] ?? '')] = $match;
+        }
+
+        foreach ($tvMatches['matches'] as &$tvMatch) {
+            $fixture = $matchEmblems[$this->fixtureKeyFromTitle($tvMatch['name'] ?? '')] ?? null;
+
+            if ($fixture) {
+                $tvMatch = array_merge($tvMatch, [
+                    'homeTeam' => $fixture['homeTeam'],
+                    'awayTeam' => $fixture['awayTeam'],
+                    'homeEmblemUrl' => $fixture['homeEmblemUrl'],
+                    'awayEmblemUrl' => $fixture['awayEmblemUrl'],
+                ]);
+            }
+        }
+        unset($tvMatch);
+
+        return $tvMatches;
+    }
+
+    private function fixtureKeyFromTitle(string $title): string
+    {
+        $teams = preg_split('/\s*[–-]\s*/u', $title, 2);
+
+        return count($teams) === 2 ? $this->fixtureKey($teams[0], $teams[1]) : '';
+    }
+
+    private function fixtureKey(string $homeTeam, string $awayTeam): string
+    {
+        return mb_strtolower(trim($homeTeam).'|'.trim($awayTeam));
     }
 
     private function emptyViewData(): array

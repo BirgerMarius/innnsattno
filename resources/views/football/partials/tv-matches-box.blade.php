@@ -6,7 +6,7 @@
         <div class="football-tv-box__list">
             @foreach($tvMatches['matches'] as $match)
                 <article class="football-tv-box__match">
-                    <strong>{{ $match['name'] }}</strong>
+                    <strong>@if(isset($match['homeTeam']))@if($match['homeEmblemUrl'])<img class="football-tv-box__emblem" src="{{ $match['homeEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['homeTeam'] }} – @if($match['awayEmblemUrl'])<img class="football-tv-box__emblem" src="{{ $match['awayEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['awayTeam'] }}@else{{ $match['name'] }}@endif</strong>
                     <span>{{ $match['startsAt']->locale('nb')->translatedFormat('D j. F') }} · Sendestart {{ $match['startsAt']->format('H.i') }} · {{ $match['channel'] }}</span>
                 </article>
             @endforeach

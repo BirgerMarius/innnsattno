@@ -177,7 +177,7 @@ class TvGuideService
      * League deliberately uses its current calendar week, while other boxes
      * retain their existing rolling seven-day period.
      */
-    public function getUpcomingCompetitionMatches(CarbonInterface $now, string $competition, string $operation, int $limit): array
+    public function getUpcomingCompetitionMatches(CarbonInterface $now, string $competition, string $operation, int $limit, bool $useRollingSevenDayPeriod = false): array
     {
         if (!isset(self::FOOTBALL_COMPETITIONS[$competition])) {
             throw new UnexpectedValueException('Ukjent fotballturnering for TV-oversikten.');
@@ -185,12 +185,15 @@ class TvGuideService
 
         $definition = self::FOOTBALL_COMPETITIONS[$competition];
         $now = $now->copy()->setTimezone(self::TIMEZONE);
-        $periodStart = ($definition['calendar_week'] ?? false)
+        $useCalendarWeek = ($definition['calendar_week'] ?? false) && ! $useRollingSevenDayPeriod;
+        $periodStart = $useCalendarWeek
             ? $now->copy()->startOfWeek(\Carbon\Carbon::MONDAY)
             : $now->copy();
-        $end = ($definition['calendar_week'] ?? false)
+        $end = $useCalendarWeek
             ? $now->copy()->endOfWeek(\Carbon\Carbon::SUNDAY)
-            : $now->copy()->addDays(self::UPCOMING_DAYS - 1)->endOfDay();
+            : ($useRollingSevenDayPeriod
+                ? $now->copy()->addDays(self::UPCOMING_DAYS)
+                : $now->copy()->addDays(self::UPCOMING_DAYS - 1)->endOfDay());
         $dates = collect(range(0, $periodStart->diffInDays($end)))
             ->map(fn (int $offset) => $periodStart->copy()->addDays($offset)->startOfDay())
             ->all();

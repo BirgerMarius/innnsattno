@@ -60,6 +60,8 @@ class NationsLeagueControllerTest extends TestCase
                 ->assertSee('https://example.test/danmark.png', false);
 
             $this->get('/nations-league/utskrift')->assertOk()
+                ->assertViewHas('printResults', fn (array $matches) => array_column($matches, 'id') === [2])
+                ->assertViewHas('printFixtures', fn (array $matches) => array_column($matches, 'id') === [1, 3])
                 ->assertViewHas('printResults', function (array $matches) {
                     $this->assertNull($matches[0]['homeEmblemUrl']);
                     $this->assertStringStartsWith('https://example.test/norge.png', $matches[0]['awayEmblemUrl']);
@@ -85,7 +87,7 @@ class NationsLeagueControllerTest extends TestCase
     }
 
     /** @test */
-    public function nations_league_screen_and_print_show_the_same_complete_current_week_tv_list(): void
+    public function nations_league_print_limits_tv_matches_to_its_rolling_seven_day_window_and_shows_available_flags(): void
     {
         Cache::flush();
         Carbon::setTestNow(Carbon::parse('2026-09-21 10:00:00', 'Europe/Oslo'));
@@ -108,12 +110,20 @@ class NationsLeagueControllerTest extends TestCase
             },
         ]);
 
-        foreach (['/nations-league', '/nations-league/utskrift'] as $url) {
-            $this->get($url)->assertOk()
+        try {
+            $this->get('/nations-league')->assertOk()
                 ->assertSeeInOrder(['Sverige – Romania', 'Norge – Danmark', 'Tsjekkia – Kroatia', 'Norge – Portugal'])
                 ->assertDontSee('Studio')->assertDontSee('Utenfor uke')->assertDontSee('Kanalutvalg: Ringerike fengsel');
+
+            $this->get('/nations-league/utskrift')->assertOk()
+                ->assertSeeInOrder(['Sverige – Romania', 'Norge', 'Danmark', 'Tsjekkia – Kroatia', 'Norge', 'Portugal'])
+                ->assertSee('https://example.test/norge.png', false)
+                ->assertSee('https://example.test/danmark.png', false)
+                ->assertSee('football-tv-box__emblem', false)
+                ->assertDontSee('Studio')->assertDontSee('Utenfor uke')->assertDontSee('Kanalutvalg: Ringerike fengsel');
+        } finally {
+            Carbon::setTestNow();
         }
-        Carbon::setTestNow();
     }
 
     private function schedule(): array
