@@ -33,5 +33,5 @@ table { border-collapse:collapse; table-layout:fixed; width:100%; } th,td { bord
 @endforeach
 </section>
 @endif
-<script>const returnUrl=@json($returnUrl, JSON_UNESCAPED_SLASHES);let returned=false;function back(){if(!returned){returned=true;window.location.replace(returnUrl);}}window.addEventListener('load',function(){window.addEventListener('afterprint',back,{once:true});window.print();},{once:true});</script>
+@include('partials.print-redirect', ['fallbackUrl' => $returnUrl, 'autoPrint' => true])
 </body></html>

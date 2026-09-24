@@ -492,9 +492,7 @@
 @endif
 
 @push('scripts')
-<script>
-window.print();
-</script>
+@include('partials.print-redirect', ['fallbackUrl' => '/fotball', 'autoPrint' => true])
 @endpush
 
 @endsection

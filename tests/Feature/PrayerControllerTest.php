@@ -151,9 +151,9 @@ class PrayerControllerTest extends TestCase
             ->assertSee('17:02')
             ->assertSee('20:30')
             ->assertSee('22:12')
-            ->assertSee('const prayerTimesUrl = "\/bonnetider?month=9\\u0026year=2026";', false)
+            ->assertSee('const returnUrl = "/bonnetider?month=9&year=2026";', false)
             ->assertSee("window.addEventListener('afterprint'", false)
-            ->assertSee('window.location.replace(prayerTimesUrl);', false)
+            ->assertSee('window.location.replace(returnUrl);', false)
             ->assertSee('window.print();', false);
     }
 
@@ -170,9 +170,9 @@ class PrayerControllerTest extends TestCase
 
         $this->get('/bonnetider-ilseng/utskrift?year=2026&month=9')
             ->assertOk()
-            ->assertSee('const prayerTimesUrl = "\/bonnetider-ilseng?month=9\\u0026year=2026";', false)
+            ->assertSee('const returnUrl = "/bonnetider-ilseng?month=9&year=2026";', false)
             ->assertSee("window.addEventListener('afterprint'", false)
-            ->assertSee('window.location.replace(prayerTimesUrl);', false);
+            ->assertSee('window.location.replace(returnUrl);', false);
     }
 
     private function bonnetidDay(): array

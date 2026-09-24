@@ -208,5 +208,6 @@
             </div>
         </section>
     @endforeach
+@include('partials.print-redirect', ['fallbackUrl' => route('calendar.index', [], false), 'autoPrint' => false])
 </body>
 </html>

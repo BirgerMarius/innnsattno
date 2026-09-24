@@ -111,11 +111,7 @@ td{
 
 </ul>
 
-<script>
-window.onload = function () {
-    window.print();
-};
-</script>
+@include('partials.print-redirect', ['fallbackUrl' => '/ordjakt?kategori='.urlencode(request('kategori', '')), 'autoPrint' => true])
 
 </body>
 </html>

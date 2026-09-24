@@ -101,23 +101,7 @@ th {
     Kilde: Bonnetid.no • innsatt.no/bonnetider
 </div>
 
-<script>
-    let hasReturnedToPrayerTimes = false;
-    const prayerTimesUrl = @json($returnUrl);
-
-    window.addEventListener('afterprint', function () {
-        if (hasReturnedToPrayerTimes) {
-            return;
-        }
-
-        hasReturnedToPrayerTimes = true;
-        window.location.replace(prayerTimesUrl);
-    });
-
-    window.addEventListener('load', function () {
-        window.print();
-    }, { once: true });
-</script>
+@include('partials.print-redirect', ['fallbackUrl' => $returnUrl, 'autoPrint' => true])
 
 </body>
 </html>

@@ -46,7 +46,7 @@ class FootballTeamPageTest extends TestCase
     public function test_team_print_page_has_compact_one_page_layout_and_returns_to_same_team(string $path, int $seasonId): void
     {
         $this->fakeCompetition($seasonId);
-        $escapedReturnPath = str_replace('/', '\\/', $path.'/lag/1');
+        $returnPath = $path.'/lag/1';
 
         $this->get($path.'/lag/1/utskrift')
             ->assertOk()
@@ -60,9 +60,9 @@ class FootballTeamPageTest extends TestCase
             ->assertSee('Hjemme: 1 seier, 0 uavgjort, 0 tap')
             ->assertSee('Største seier: 2–1 mot Motstander A (01.08.2026)')
             ->assertSee("window.addEventListener('afterprint'", false)
-            ->assertSee('if (hasReturnedToTeamPage)', false)
-            ->assertSee('window.location.replace(teamPageUrl)', false)
-            ->assertSee('const teamPageUrl = "'.$escapedReturnPath.'"', false)
+            ->assertSee('if (!printStarted || returned) return;', false)
+            ->assertSee('window.location.replace(returnUrl)', false)
+            ->assertSee('const returnUrl = '.json_encode($returnPath, JSON_UNESCAPED_SLASHES).';', false)
             ->assertSee('window.print()', false)
             ->assertSee('{ once: true }', false)
             ->assertSee('Merk:');

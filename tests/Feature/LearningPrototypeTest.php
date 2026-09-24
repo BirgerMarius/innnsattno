@@ -59,9 +59,9 @@ class LearningPrototypeTest extends TestCase
             ->assertSee('learning-figure--gps', false)
             ->assertSee('Skriv ut')
             ->assertSee("window.addEventListener('afterprint'", false)
-            ->assertSee('if (hasReturnedToLearningSheet)', false)
-            ->assertSee('const learningSheetUrl = "\\/laer-noe-nytt\\/kunnskap-og-teknologi\\/gps"', false)
-            ->assertSee('window.location.replace(learningSheetUrl)', false)
+            ->assertSee('if (!printStarted || returned) return;', false)
+            ->assertSee('const returnUrl = "/laer-noe-nytt/kunnskap-og-teknologi/gps";', false)
+            ->assertSee('window.location.replace(returnUrl)', false)
             ->assertSee('window.print()', false)
             ->assertSee('{ once: true }', false)
             ->assertDontSee('INNSATT.NO');

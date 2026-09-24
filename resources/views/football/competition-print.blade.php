@@ -118,26 +118,6 @@
         @else <p class="empty">Tabellen kunne ikke lastes akkurat nå.</p> @endif
     </section>
 
-    <script>
-        const returnUrl = @json($returnUrl, JSON_UNESCAPED_SLASHES);
-        let hasReturnedFromPrint = false;
-
-        function returnFromPrint() {
-            if (hasReturnedFromPrint) {
-                return;
-            }
-
-            hasReturnedFromPrint = true;
-            window.location.replace(returnUrl);
-        }
-
-        window.addEventListener('load', function () {
-            if (!window.__innsattPrintStarted) {
-                window.__innsattPrintStarted = true;
-                window.addEventListener('afterprint', returnFromPrint, { once: true });
-                window.print();
-            }
-        }, { once: true });
-    </script>
+    @include('partials.print-redirect', ['fallbackUrl' => $returnUrl, 'autoPrint' => true])
 </body>
 </html>

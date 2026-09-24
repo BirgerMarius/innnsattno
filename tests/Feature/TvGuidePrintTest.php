@@ -37,8 +37,9 @@ class TvGuidePrintTest extends TestCase
         $this->get($route)
             ->assertOk()
             ->assertSee("window.addEventListener('afterprint'", false)
-            ->assertSee('if (hasReturnedToTvGuide)', false)
-            ->assertSee('window.location.replace("\\/tv")', false)
+            ->assertSee('if (!printStarted || returned) return;', false)
+            ->assertSee('window.location.replace(returnUrl)', false)
+            ->assertSee('const returnUrl = "/tv";', false)
             ->assertSee('window.print()', false)
             ->assertSee('{ once: true }', false);
     }

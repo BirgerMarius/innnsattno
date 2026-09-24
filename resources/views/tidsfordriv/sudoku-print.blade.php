@@ -196,11 +196,7 @@
 @endforeach
 
 @endif
-<script>
-
-window.print();
-
-</script>
+@include('partials.print-redirect', ['fallbackUrl' => '/tidsfordriv', 'autoPrint' => true])
 
 </body>
 </html>

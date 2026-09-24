@@ -44,6 +44,28 @@
     @yield('content')
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (() => {
+            const isPrintPath = (path) => /(?:^|\/)(?:print|utskrift|fasit)$/.test(path);
+            const returnTo = window.location.pathname + window.location.search + window.location.hash;
+
+            document.querySelectorAll('a[href]').forEach((link) => {
+                const url = new URL(link.href, window.location.href);
+                if (url.origin === window.location.origin && isPrintPath(url.pathname)) {
+                    url.searchParams.set('return_to', returnTo);
+                    link.href = url.pathname + url.search + url.hash;
+                }
+            });
+
+            document.querySelectorAll('form[action]').forEach((form) => {
+                const url = new URL(form.action, window.location.href);
+                if (url.origin !== window.location.origin || !isPrintPath(url.pathname)) return;
+                const input = document.createElement('input');
+                input.type = 'hidden'; input.name = 'return_to'; input.value = returnTo;
+                form.appendChild(input);
+            });
+        })();
+    </script>
    
     @stack('scripts')
 

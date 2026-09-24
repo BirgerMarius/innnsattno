@@ -39,15 +39,6 @@
         @endforeach
     </div>
     <p class="football-team-print-note"><strong>Merk:</strong> Dato og tidspunkt for kommende kamper kan endres. Kampoversikten oppdateres når nye opplysninger blir tilgjengelige.</p>
-    <script>
-        let hasReturnedToTeamPage = false;
-        const teamPageUrl = @json($returnUrl);
-        window.addEventListener('afterprint', function () {
-            if (hasReturnedToTeamPage) return;
-            hasReturnedToTeamPage = true;
-            window.location.replace(teamPageUrl);
-        });
-        window.addEventListener('load', function () { window.print(); }, { once: true });
-    </script>
+    @include('partials.print-redirect', ['fallbackUrl' => $returnUrl, 'autoPrint' => true])
 </body>
 </html>

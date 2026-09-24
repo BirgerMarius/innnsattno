@@ -10,22 +10,6 @@
     @php($returnUrl = route('learning.show', [$category, $sheet], false))
     <div class="learning-print-actions no-print"><button type="button" onclick="window.print()">Skriv ut</button><a href="{{ route('learning.show', [$category, $sheet]) }}">Tilbake</a></div>
     @include('learning.partials.sheet')
-    <script>
-        let hasReturnedToLearningSheet = false;
-        const learningSheetUrl = @json($returnUrl);
-
-        window.addEventListener('afterprint', function () {
-            if (hasReturnedToLearningSheet) {
-                return;
-            }
-
-            hasReturnedToLearningSheet = true;
-            window.location.replace(learningSheetUrl);
-        });
-
-        window.addEventListener('load', function () {
-            window.print();
-        }, { once: true });
-    </script>
+    @include('partials.print-redirect', ['fallbackUrl' => $returnUrl, 'autoPrint' => true])
 </body>
 </html>

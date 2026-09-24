@@ -46,5 +46,6 @@
             </li>
         @endforeach
     </ol>
+    @include('partials.print-redirect', ['fallbackUrl' => route('quiz.show', [], false), 'autoPrint' => false])
 </body>
 </html>

@@ -96,14 +96,14 @@ class CompetitionPrintTest extends TestCase
         $this->fakeRollingWindowCompetition(8766);
         $this->get('/eliteserien/utskrift')->assertOk()
             ->assertSee('const returnUrl = '.json_encode(route('eliteserien.index'), JSON_UNESCAPED_SLASHES).';', false)
-            ->assertSee("window.addEventListener('afterprint', returnFromPrint, { once: true });", false)
+            ->assertSee("window.addEventListener('afterprint'", false)
             ->assertSee('window.location.replace(returnUrl);', false);
 
         Cache::flush();
         $this->fakeRollingWindowCompetition(9186);
         $this->get('/premier-league/utskrift')->assertOk()
             ->assertSee('const returnUrl = '.json_encode(route('premier-league.index'), JSON_UNESCAPED_SLASHES).';', false)
-            ->assertSee("window.addEventListener('afterprint', returnFromPrint, { once: true });", false)
+            ->assertSee("window.addEventListener('afterprint'", false)
             ->assertSee('window.location.replace(returnUrl);', false);
     }
 
