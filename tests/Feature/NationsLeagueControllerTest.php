@@ -44,6 +44,47 @@ class NationsLeagueControllerTest extends TestCase
     }
 
     /** @test */
+    public function nations_league_print_uses_the_same_match_flag_data_for_results_and_fixtures(): void
+    {
+        Cache::flush();
+        Carbon::setTestNow(Carbon::parse('2026-09-21 10:00:00', 'Europe/Oslo'));
+        Http::fake([
+            '*/tournaments/seasons/8889/schedule' => Http::response($this->schedule(), 200),
+            '*/tournaments/seasons/8889/standings' => Http::response($this->standings(), 200),
+            'tvguide.vg.no/*' => Http::response([], 200),
+        ]);
+
+        try {
+            $this->get('/nations-league')->assertOk()
+                ->assertSee('https://example.test/norge.png', false)
+                ->assertSee('https://example.test/danmark.png', false);
+
+            $this->get('/nations-league/utskrift')->assertOk()
+                ->assertViewHas('printResults', function (array $matches) {
+                    $this->assertNull($matches[0]['homeEmblemUrl']);
+                    $this->assertStringStartsWith('https://example.test/norge.png', $matches[0]['awayEmblemUrl']);
+
+                    return true;
+                })
+                ->assertViewHas('printFixtures', function (array $matches) {
+                    $this->assertStringStartsWith('https://example.test/norge.png', $matches[0]['homeEmblemUrl']);
+                    $this->assertStringStartsWith('https://example.test/danmark.png', $matches[0]['awayEmblemUrl']);
+
+                    return true;
+                })
+                ->assertSee('Resultater og kommende kamper')
+                ->assertSee('class="fixture-teams"', false)
+                ->assertSee('https://example.test/norge.png', false)
+                ->assertSee('https://example.test/danmark.png', false)
+                ->assertSeeInOrder(['Portugal', '1–2', 'Norge'])
+                ->assertSeeInOrder(['Norge', '–', 'Danmark'])
+                ->assertSee('.fixture-teams { overflow-wrap: anywhere; }', false);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    /** @test */
     public function nations_league_screen_and_print_show_the_same_complete_current_week_tv_list(): void
     {
         Cache::flush();
@@ -77,7 +118,7 @@ class NationsLeagueControllerTest extends TestCase
 
     private function schedule(): array
     {
-        return ['tournamentSeason' => ['name' => 'UEFA Nations League 2026/2028'], 'participants' => [11667 => ['name' => 'Norge'], 11662 => ['name' => 'Danmark'], 11496 => ['name' => 'Portugal'], 11478 => ['name' => 'Wales'], 2 => ['name' => 'Utenfor uke']], 'events' => [
+        return ['tournamentSeason' => ['name' => 'UEFA Nations League 2026/2028'], 'participants' => [11667 => ['name' => 'Norge', 'images' => ['clubLogo' => ['url' => 'https://example.test/norge.png']]], 11662 => ['name' => 'Danmark', 'images' => ['clubLogo' => ['url' => 'https://example.test/danmark.png']]], 11496 => ['name' => 'Portugal'], 11478 => ['name' => 'Wales'], 2 => ['name' => 'Utenfor uke']], 'events' => [
             ['id' => 1, 'startDate' => '2026-09-24T18:45:00Z', 'participantIds' => [11667, 11662], 'status' => ['type' => 'notStarted'], 'tournament' => ['phaseType' => 'group', 'phase' => 'group', 'groupName' => 'A4', 'stageName' => 'League A, Group 4', 'round' => '1']],
             ['id' => 3, 'startDate' => '2026-09-27T18:45:00Z', 'participantIds' => [11667, 11496], 'status' => ['type' => 'notStarted'], 'tournament' => ['phaseType' => 'group', 'phase' => 'group', 'groupName' => 'A4', 'stageName' => 'League A, Group 4', 'round' => '2']],
             ['id' => 4, 'startDate' => '2026-09-28T18:45:00Z', 'participantIds' => [11667, 2], 'status' => ['type' => 'notStarted'], 'tournament' => ['phaseType' => 'group', 'phase' => 'group', 'groupName' => 'A4', 'stageName' => 'League A, Group 4', 'round' => '3']],
