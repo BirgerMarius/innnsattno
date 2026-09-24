@@ -54,6 +54,7 @@ class RingbladNewsService
                 'operation' => 'front-page-news',
                 'failure_kind' => $this->failureKind($exception),
                 'status' => $exception instanceof \Illuminate\Http\Client\RequestException ? $exception->response?->status() : null,
+                'notification_cooldown_seconds' => 86400,
             ]);
 
             $stale = Cache::get(self::STALE_CACHE_KEY);

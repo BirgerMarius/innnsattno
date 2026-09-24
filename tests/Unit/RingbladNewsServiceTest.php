@@ -114,6 +114,23 @@ class RingbladNewsServiceTest extends TestCase
         Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload');
     }
 
+    public function testItSendsAtMostOneFailureEmailPerTwentyFourHours(): void
+    {
+        Mail::fake();
+        config()->set('feedback.notification_email', 'varsling@example.test');
+        Http::fake([RingbladNewsService::SOURCE_URL => Http::response('<html><body>Ingen artikler</body></html>', 200)]);
+        $this->travelTo(now());
+
+        app(RingbladNewsService::class)->latest();
+        $this->travel(23)->hours();
+        app(RingbladNewsService::class)->latest();
+        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+
+        $this->travel(1)->hours();
+        app(RingbladNewsService::class)->latest();
+        Mail::assertSent(ExternalDataSourceFailureMail::class, 2);
+    }
+
     public function testItUsesAnImageFromTheExistingTeaserMarkupWhenAvailable(): void
     {
         $articles = app(RingbladNewsService::class)->parse($this->html([
