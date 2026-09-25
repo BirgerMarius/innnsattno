@@ -29,6 +29,7 @@ use App\Http\Controllers\ChangeHistoryController;
 use App\Http\Controllers\LearningController;
 use App\Http\Controllers\FrontPageController;
 use App\Http\Controllers\TvPrintController;
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\Admin\NewsAdminController;
 use App\Http\Controllers\Admin\NewsSourceAdminController;
 
@@ -86,6 +87,9 @@ Route::get('/fagstoff', [ProfessionalResourceController::class, 'index'])
 Route::get('/laer-noe-nytt', [LearningController::class, 'index'])->name('learning.index');
 Route::get('/laer-noe-nytt/{category}/{sheet}', [LearningController::class, 'show'])->name('learning.show');
 Route::get('/laer-noe-nytt/{category}/{sheet}/utskrift', [LearningController::class, 'print'])->name('learning.print');
+Route::get('/spillforslag', [ActivityController::class, 'index'])->name('activities.index');
+Route::get('/spillforslag/{activity}', [ActivityController::class, 'show'])->name('activities.show');
+Route::get('/spillforslag/{activity}/utskrift', [ActivityController::class, 'print'])->name('activities.print');
 Route::get('/nyheter', [NewsController::class, 'index'])->name('news.index');
 
 Route::get('/adm', [AdminDashboardController::class, 'index'])

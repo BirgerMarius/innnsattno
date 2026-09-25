@@ -340,6 +340,10 @@ $isEvenWeek = $weekNumber % 2 === 0;
         </a>
 
         <div class="front-page-grid__pastimes">
+            <a href="{{ route('activities.index') }}" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
+                🎲 Spillforslag – for utskrift
+            </a>
+
             <a href="/ordjakt" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button">
                 <i class="fas fa-puzzle-piece"></i> 🧩 Tidsfordriv – Ordjakt
             </a>
