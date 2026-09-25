@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Services\RingbladNewsService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
@@ -102,6 +103,7 @@ class HomepageTextTest extends TestCase
 
         $content = (string) $response->getContent();
         $this->assertSame(2, substr_count($content, 'front-page-btn--test'));
+        $this->assertSame(3, substr_count($content, 'front-page-quiz-badges'));
         $this->assertSame(6, substr_count($content, 'front-page-btn--football'));
         $this->assertSame(0, preg_match('/href="\/(?:tidsfordriv|ordjakt)"[^>]*front-page-btn--football/', $content));
         $this->assertSame(0, preg_match('/href="\/ordjakt"[^>]*front-page-btn--wide/', $content));
@@ -116,6 +118,24 @@ class HomepageTextTest extends TestCase
 
         Carbon::setTestNow(Carbon::parse('2026-09-28 00:00:00', 'Europe/Oslo'));
         $this->get(route('tv'))->assertOk()->assertDontSee('front-page-new-badge', false);
+        Carbon::setTestNow();
+    }
+
+    public function testActivitiesNewBadgeUsesTheFixedOsloPublicationTimeAndExpiresAfterFourteenDays(): void
+    {
+        Config::set('activities.published_at', '2026-10-09 09:00:00');
+
+        Carbon::setTestNow(Carbon::parse('2026-10-09 08:59:59', 'Europe/Oslo'));
+        $this->get(route('tv'))->assertOk()->assertDontSee('>Nyhet<', false);
+
+        Carbon::setTestNow(Carbon::parse('2026-10-09 09:00:00', 'Europe/Oslo'));
+        $this->get(route('tv'))->assertOk()->assertSee('>Nyhet<', false)->assertSee('Under utvikling');
+
+        Carbon::setTestNow(Carbon::parse('2026-10-23 08:59:59', 'Europe/Oslo'));
+        $this->get(route('tv'))->assertOk()->assertSee('>Nyhet<', false)->assertSee('Under utvikling');
+
+        Carbon::setTestNow(Carbon::parse('2026-10-23 09:00:00', 'Europe/Oslo'));
+        $this->get(route('tv'))->assertOk()->assertDontSee('>Nyhet<', false)->assertSee('Under utvikling');
         Carbon::setTestNow();
     }
 }
