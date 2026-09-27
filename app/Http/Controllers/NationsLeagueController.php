@@ -19,7 +19,9 @@ class NationsLeagueController extends Controller
         return view('nations-league.index', array_merge($this->emptyViewData(), $competition, $this->pageData($competition), [
             'weekFixturesByDate' => collect($weekFixtures)->groupBy('dateLabel'),
             'recentResultsByDate' => collect($competition['recentResults'])->groupBy('dateLabel'),
-            'tvMatches' => $this->tvMatches(0, 'nations-league-tv-screen'),
+            // The TV box is a live schedule, unlike "Denne ukens kamper"
+            // below, which deliberately remains a calendar-week overview.
+            'tvMatches' => $this->tvMatches(0, 'nations-league-tv-screen', true),
         ]));
     }
 

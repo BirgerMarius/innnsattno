@@ -23,7 +23,7 @@
         .fixture { border-bottom: .5px solid #aaa; padding: 1mm 0; }
         .fixture-teams { overflow-wrap: anywhere; }
         .fixture-meta { color: #444; font-size: 7.5pt; margin-bottom: .5mm; }
-        .groups { display: grid; gap: 1.5mm 2mm; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .groups { display: grid; gap: 1.5mm 2mm; grid-template-columns: repeat(2, minmax(0, 1fr)); }
         .group { border: 1px solid #aaa; padding: 1.25mm; }
         .group h3 { font-size: 7.5pt; line-height: 1.05; }
         .group table { font-size: 7.25pt; line-height: 1.05; }
@@ -37,6 +37,12 @@
         .football-tv-box__match { border-top: .5px solid #aaa; padding: .5mm 0; }
         .football-tv-box__match span { display: block; font-size: 7.5pt; }
         .football-tv-box__status, .football-tv-box__note { font-size: 7.5pt; margin: .75mm 0 0; }
+        .nations-league-print-tv { break-inside: auto; page-break-inside: auto; }
+        .nations-league-print-tv .football-tv-box__list { column-gap: 3mm; columns: 2; }
+        .nations-league-print-tv .football-tv-box__match { break-inside: avoid; overflow-wrap: anywhere; page-break-inside: avoid; padding: .35mm 0; }
+        .nations-league-print-tv .football-tv-box__match strong { display: block; }
+        .standings-page { break-before: page; page-break-before: always; }
+        .standings-page h2:first-child { margin-top: 0; }
         @media print { .no-print { display: none !important; } }
     </style>
 </head>
@@ -44,7 +50,7 @@
     <div class="actions no-print"><button type="button" onclick="window.print()">Skriv ut</button></div>
     <header><div><strong>Innsatt.no</strong><h1>Nations League</h1><span>{{ $seasonLabel }}</span></div><div>Generert {{ $generatedAt->locale('nb')->translatedFormat('j. F Y \k\l. H.i') }}</div></header>
     @if($apiError)<p class="warning">Oppdaterte data kunne ikke lastes akkurat nå{{ $usingStaleData ? '. Viser sist lagrede data.' : '.' }}</p>@endif
-    @include('football.partials.tv-matches-box', ['tvBoxContext' => 'nations-league-print', 'tvBoxShowSelection' => false])
+    @include('football.partials.tv-matches-box', ['tvBoxContext' => 'nations-league-print', 'tvBoxClass' => 'nations-league-print-tv', 'tvBoxShowSelection' => false])
 
     <h2>Resultater og kommende kamper</h2>
     <div class="fixtures{{ count($printResults) === 0 || count($printFixtures) === 0 ? ' fixtures--single' : '' }}">
@@ -57,11 +63,13 @@
         @if(count($printResults) === 0 && count($printFixtures) === 0)<p class="empty">Ingen ferdigspilte eller kommende kamper i syvdagersvinduene.</p>@endif
     </div>
 
-    <h2>Norges gruppe</h2>
-    @if($norwayGroup)<table><thead><tr><th>#</th><th>Lag</th><th class="number">K</th><th class="number">MF</th><th class="number">P</th><th>Mulighet</th></tr></thead><tbody>@foreach($norwayGroup['rows'] as $team)<tr class="{{ (int) $team['teamId'] === $norwayTeamId ? 'norway' : '' }}"><td>{{ $team['rank'] ?? '–' }}</td><td>@if($team['emblemUrl'])<img class="emblem" src="{{ $team['emblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $team['teamName'] }}</td><td class="number">{{ $team['played'] ?? '–' }}</td><td class="number">{{ $team['goalDifference'] ?? '–' }}</td><td class="number">{{ $team['points'] ?? '–' }}</td><td>{{ $team['rule']['name'] ?? '' }}</td></tr>@endforeach</tbody></table>@else<p class="empty">Norges gruppe er ikke publisert ennå.</p>@endif
+    <section class="standings-page">
+        <h2>Norges gruppe</h2>
+        @if($norwayGroup)<table><thead><tr><th>#</th><th>Lag</th><th class="number">K</th><th class="number">MF</th><th class="number">P</th><th>Mulighet</th></tr></thead><tbody>@foreach($norwayGroup['rows'] as $team)<tr class="{{ (int) $team['teamId'] === $norwayTeamId ? 'norway' : '' }}"><td>{{ $team['rank'] ?? '–' }}</td><td>@if($team['emblemUrl'])<img class="emblem" src="{{ $team['emblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $team['teamName'] }}</td><td class="number">{{ $team['played'] ?? '–' }}</td><td class="number">{{ $team['goalDifference'] ?? '–' }}</td><td class="number">{{ $team['points'] ?? '–' }}</td><td>{{ $team['rule']['name'] ?? '' }}</td></tr>@endforeach</tbody></table>@else<p class="empty">Norges gruppe er ikke publisert ennå.</p>@endif
 
-    <h2>Alle grupper</h2>
-    <div class="groups">@foreach($standingsGroups as $group)<section class="group"><h3>{{ preg_replace('/^.*?, (League [A-D]), Group (\d+)$/', '$1 · gruppe $2', $group['stageName'] ?? 'Gruppe '.$group['groupName']) }}</h3><table><thead><tr><th>#</th><th>Lag</th><th class="number">K</th><th class="number">P</th></tr></thead><tbody>@foreach($group['rows'] as $team)<tr class="{{ (int) $team['teamId'] === $norwayTeamId ? 'norway' : '' }}"><td>{{ $team['rank'] ?? '–' }}</td><td>@if($team['emblemUrl'])<img class="emblem" src="{{ $team['emblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $team['teamName'] }}</td><td class="number">{{ $team['played'] ?? '–' }}</td><td class="number">{{ $team['points'] ?? '–' }}</td></tr>@endforeach</tbody></table></section>@endforeach</div>
+        <h2>Alle grupper</h2>
+        <div class="groups">@foreach($standingsGroups as $group)<section class="group"><h3>{{ preg_replace('/^.*?, (League [A-D]), Group (\d+)$/', '$1 · gruppe $2', $group['stageName'] ?? 'Gruppe '.$group['groupName']) }}</h3><table><thead><tr><th>#</th><th>Lag</th><th class="number">K</th><th class="number">P</th></tr></thead><tbody>@foreach($group['rows'] as $team)<tr class="{{ (int) $team['teamId'] === $norwayTeamId ? 'norway' : '' }}"><td>{{ $team['rank'] ?? '–' }}</td><td>@if($team['emblemUrl'])<img class="emblem" src="{{ $team['emblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $team['teamName'] }}</td><td class="number">{{ $team['played'] ?? '–' }}</td><td class="number">{{ $team['points'] ?? '–' }}</td></tr>@endforeach</tbody></table></section>@endforeach</div>
+    </section>
     @include('partials.print-redirect', ['fallbackUrl' => $returnUrl, 'autoPrint' => true])
 </body>
 </html>

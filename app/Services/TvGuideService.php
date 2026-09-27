@@ -174,8 +174,8 @@ class TvGuideService
     /**
      * Return direct, identifiable football matches for one supported competition.
      * The cache is shared between all football pages and printouts. Nations
-     * League deliberately uses its current calendar week, while other boxes
-     * retain their existing rolling seven-day period.
+     * League callers can opt into an exact rolling seven-day period; its
+     * default remains the calendar week for the existing team-page use.
      */
     public function getUpcomingCompetitionMatches(CarbonInterface $now, string $competition, string $operation, int $limit, bool $useRollingSevenDayPeriod = false): array
     {
