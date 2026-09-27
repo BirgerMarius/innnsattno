@@ -44,6 +44,42 @@ class NationsLeagueControllerTest extends TestCase
     }
 
     /** @test */
+    public function nations_league_marks_norway_home_and_away_matches_but_not_other_matches(): void
+    {
+        Cache::flush();
+        Carbon::setTestNow(Carbon::parse('2026-09-21 10:00:00', 'Europe/Oslo'));
+        Http::fake([
+            '*/tournaments/seasons/8889/schedule' => Http::response($this->schedule(), 200),
+            '*/tournaments/seasons/8889/standings' => Http::response($this->standings(), 200),
+            'tvguide.vg.no/*' => function ($request) {
+                parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+
+                return Http::response(($query['date'] ?? null) === '2026-09-24' ? [[
+                    'channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'],
+                    'listings' => [
+                        $this->tvListing('Norge - Danmark', '2026-09-24T18:55:00Z'),
+                        $this->tvListing('Portugal - Norge', '2026-09-24T20:55:00Z'),
+                        $this->tvListing('Danmark - Wales', '2026-09-24T21:00:00Z'),
+                    ],
+                ]] : []);
+            },
+        ]);
+
+        try {
+            $response = $this->get('/nations-league')->assertOk()
+                ->assertSee('🇳🇴 Norge', false)
+                ->assertSee('Danmark – Wales');
+
+            $html = $response->getContent();
+            $this->assertSame(3, substr_count($html, 'class="nl-match nl-match--norway"'));
+            $this->assertSame(2, substr_count($html, 'class="football-tv-box__match football-tv-box__match--norway"'));
+            $this->assertSame(5, substr_count($html, '🇳🇴 Norge'));
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    /** @test */
     public function nations_league_print_uses_the_same_match_flag_data_for_results_and_fixtures(): void
     {
         Cache::flush();

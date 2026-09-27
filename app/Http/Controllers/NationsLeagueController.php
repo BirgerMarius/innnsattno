@@ -21,7 +21,11 @@ class NationsLeagueController extends Controller
             'recentResultsByDate' => collect($competition['recentResults'])->groupBy('dateLabel'),
             // The TV box is a live schedule, unlike "Denne ukens kamper"
             // below, which deliberately remains a calendar-week overview.
-            'tvMatches' => $this->tvMatches(0, 'nations-league-tv-screen', true),
+            'tvMatches' => $this->withMatchEmblems(
+                $this->tvMatches(0, 'nations-league-tv-screen', true),
+                $competition['matches'] ?? [],
+                false,
+            ),
         ]));
     }
 
@@ -92,7 +96,7 @@ class NationsLeagueController extends Controller
         );
     }
 
-    private function withMatchEmblems(array $tvMatches, array $matches): array
+    private function withMatchEmblems(array $tvMatches, array $matches, bool $includeTeamDetails = true): array
     {
         $matchEmblems = [];
 
@@ -105,11 +109,18 @@ class NationsLeagueController extends Controller
 
             if ($fixture) {
                 $tvMatch = array_merge($tvMatch, [
-                    'homeTeam' => $fixture['homeTeam'],
-                    'awayTeam' => $fixture['awayTeam'],
-                    'homeEmblemUrl' => $fixture['homeEmblemUrl'],
-                    'awayEmblemUrl' => $fixture['awayEmblemUrl'],
+                    'homeTeamId' => $fixture['homeTeamId'],
+                    'awayTeamId' => $fixture['awayTeamId'],
                 ]);
+
+                if ($includeTeamDetails) {
+                    $tvMatch = array_merge($tvMatch, [
+                        'homeTeam' => $fixture['homeTeam'],
+                        'awayTeam' => $fixture['awayTeam'],
+                        'homeEmblemUrl' => $fixture['homeEmblemUrl'],
+                        'awayEmblemUrl' => $fixture['awayEmblemUrl'],
+                    ]);
+                }
             }
         }
         unset($tvMatch);
