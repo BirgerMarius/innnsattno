@@ -8,7 +8,7 @@
     <main class="container fangenytt-page">
         <section class="fangenytt-intro" aria-labelledby="fangenytt-heading">
             <h1 id="fangenytt-heading">Fangenytt</h1>
-            <p class="lead">Fangenytt er et nyhetsmagasin av og for innsatte, utgitt av Fangeforeningen.</p>
+            <p class="lead">Fangenytt er et nyhetsmagasin av og for innsatte, utgitt av <a href="https://www.fangeforeningen.no/" target="_blank" rel="noopener noreferrer">Fangeforeningen</a>.</p>
             <p>Her finner du tilgjengelige utgaver for lesing og rask utskrift. Velg en utgave for å åpne original-PDF-en og bruke nettleserens eller PDF-leserens utskriftsfunksjon.</p>
             <p class="fangenytt-disclaimer">Fangenytt utgis av Fangeforeningen. Innsatt.no er ikke ansvarlig for innholdet i magasinet.</p>
         </section>

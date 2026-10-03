@@ -55,13 +55,17 @@ class FrontPageController extends Controller
                 Carbon::create(2026, 9, 27, 23, 59, 59, FlagDayService::TIMEZONE),
             ),
             'showActivitiesNewBadge' => $this->showActivitiesNewBadge($today),
+            'showFangenyttNewBadge' => $this->showNewBadge($today, config('fangenytt.published_at')),
         ]);
     }
 
     private function showActivitiesNewBadge(Carbon $now): bool
     {
-        $publishedAt = config('activities.published_at');
+        return $this->showNewBadge($now, config('activities.published_at'));
+    }
 
+    private function showNewBadge(Carbon $now, mixed $publishedAt): bool
+    {
         if (! is_string($publishedAt) || trim($publishedAt) === '') {
             return false;
         }

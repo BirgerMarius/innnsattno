@@ -1,6 +1,13 @@
 <?php
 
 return [
+    /*
+     * Set this once when Fangenytt is published, using Oslo local time.
+     * Do not change it on later deploys: the Nyhet badge is shown for 14 days.
+     * Example: 2026-10-03 10:00:00
+     */
+    'published_at' => env('FANGENYTT_PUBLISHED_AT'),
+
     // Utgavene er lagt inn manuelt etter kontroll hos Fangeforeningen.
     // Nye utgaver kan legges øverst i denne listen.
     'issues' => [

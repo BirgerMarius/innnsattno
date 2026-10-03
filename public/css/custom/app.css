@@ -1285,6 +1285,23 @@
     --front-page-btn-color: #fff;
 }
 
+.front-page-btn--fangenytt {
+    --front-page-btn-bg: #7c2d12;
+    --front-page-btn-border: #65220d;
+    --front-page-btn-color: #fff;
+}
+
+.front-page-btn--fangenytt:hover,
+.front-page-btn--fangenytt:focus {
+    --front-page-btn-bg: #65220d;
+    --front-page-btn-border: #4a1808;
+    --front-page-btn-color: #fff;
+}
+
+.front-page-new-badge--fangenytt {
+    color: #7c2d12;
+}
+
 .front-page-btn--professional:focus-visible,
 .professional-resource-link:focus-visible,
 .admin-area .btn:focus-visible,
