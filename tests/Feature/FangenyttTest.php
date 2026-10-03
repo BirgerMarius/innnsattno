@@ -37,10 +37,16 @@ class FangenyttTest extends TestCase
             ->assertOk()
             ->assertSee('Fangenytt')
             ->assertSee('href="'.route('fangenytt.index').'"', false)
-            ->assertSee('front-page-btn--fangenytt', false);
+            ->assertSee('front-page-btn--fangenytt', false)
+            ->assertSeeInOrder([
+                'ℹ️ Ilseng fengsel',
+                'Fangenytt',
+                'Premier League',
+            ]);
 
         $css = file_get_contents(public_path('css/custom/app.css'));
-        $this->assertMatchesRegularExpression('/\.front-page-btn--fangenytt\s*\{[^}]*--front-page-btn-bg:\s*#7c2d12;[^}]*--front-page-btn-color:\s*#fff;/s', $css);
+        $this->assertMatchesRegularExpression('/\.front-page-btn--fangenytt\s*\{[^}]*--front-page-btn-bg:\s*#7c2d12;[^}]*--front-page-btn-color:\s*#fff;[^}]*flex-direction:\s*column;/s', $css);
+        $this->assertMatchesRegularExpression('/front-page-btn--fangenytt[^>]*>\s*<span class="front-page-btn-title">.*?Fangenytt.*?<\/span>\s*<small>Magasin for innsatte – klar til utskrift<\/small>/s', (string) $response->getContent());
     }
 
     public function testHomepageShowsFangenyttNewBadgeForFourteenDays(): void

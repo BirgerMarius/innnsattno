@@ -1289,6 +1289,8 @@
     --front-page-btn-bg: #7c2d12;
     --front-page-btn-border: #65220d;
     --front-page-btn-color: #fff;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .front-page-btn--fangenytt:hover,
