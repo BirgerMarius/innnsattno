@@ -635,6 +635,93 @@
     margin-top: 32px;
 }
 
+.fangenytt-page {
+    margin-bottom: 3rem;
+    margin-top: 2rem;
+    max-width: 900px;
+}
+
+.fangenytt-intro {
+    background: #fff;
+    border: 1px solid #d9e2ec;
+    border-radius: 10px;
+    box-shadow: 0 3px 12px rgba(27, 54, 93, .08);
+    padding: 1.5rem;
+}
+
+.fangenytt-intro h1,
+.fangenytt-issues-heading,
+.fangenytt-issue-card h3 {
+    color: #173f72;
+}
+
+.fangenytt-intro p:last-child {
+    margin-bottom: 0;
+}
+
+.fangenytt-disclaimer {
+    color: #6c757d;
+    font-size: .9rem;
+    margin-top: 1rem;
+}
+
+.fangenytt-issues-heading {
+    font-size: 1.35rem;
+    margin: 2rem 0 1rem;
+}
+
+.fangenytt-issue-list {
+    display: grid;
+    gap: .75rem;
+}
+
+.fangenytt-issue-card {
+    align-items: center;
+    background: #fff;
+    border: 1px solid #d9e2ec;
+    border-radius: 8px;
+    box-shadow: 0 2px 7px rgba(27, 54, 93, .06);
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+}
+
+.fangenytt-issue-card h3,
+.fangenytt-issue-edition {
+    margin: 0;
+}
+
+.fangenytt-issue-card h3 {
+    font-size: 1.1rem;
+}
+
+.fangenytt-issue-edition {
+    color: #6c757d;
+    margin-top: .2rem;
+}
+
+.fangenytt-open-button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+@media (max-width: 575.98px) {
+    .fangenytt-intro,
+    .fangenytt-issue-card {
+        padding: 1rem;
+    }
+
+    .fangenytt-issue-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .fangenytt-open-button {
+        width: 100%;
+    }
+}
+
 .front-page-btn:focus-visible {
     box-shadow: 0 0 0 0.25rem rgba(33, 37, 41, 0.35);
     outline: 3px solid #fff;

@@ -466,6 +466,11 @@ $isEvenWeek = $weekNumber % 2 === 0;
     @endif
 
     <section class="front-page-grid front-page-content-actions" aria-label="Faglig innhold">
+        <a href="{{ route('fangenytt.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--professional front-page-btn--wide" role="button">
+            <span class="front-page-btn-title"><i class="far fa-newspaper" aria-hidden="true"></i> Fangenytt</span>
+            <small>Magasin for innsatte – klar til utskrift</small>
+        </a>
+
         <a href="{{ route('professional-resources.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--professional front-page-btn--wide" role="button">
             <span class="front-page-btn-title"><i class="far fa-book-open"></i> Anbefalt fagstoff</span>
             <small>Utvalgte ressurser for ansatte og andre interesserte</small>

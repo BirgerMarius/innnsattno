@@ -30,6 +30,7 @@ use App\Http\Controllers\LearningController;
 use App\Http\Controllers\FrontPageController;
 use App\Http\Controllers\TvPrintController;
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\FangenyttController;
 use App\Http\Controllers\Admin\NewsAdminController;
 use App\Http\Controllers\Admin\NewsSourceAdminController;
 
@@ -91,6 +92,7 @@ Route::get('/spillforslag', [ActivityController::class, 'index'])->name('activit
 Route::get('/spillforslag/{activity}', [ActivityController::class, 'show'])->name('activities.show');
 Route::get('/spillforslag/{activity}/utskrift', [ActivityController::class, 'print'])->name('activities.print');
 Route::get('/nyheter', [NewsController::class, 'index'])->name('news.index');
+Route::get('/fangenytt', [FangenyttController::class, 'index'])->name('fangenytt.index');
 
 Route::get('/adm', [AdminDashboardController::class, 'index'])
     ->middleware('admin.auth')
