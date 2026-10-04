@@ -53,6 +53,28 @@ Viktige regler:
 
 Produksjonsdeploy skjer med prosjektets separate deployverktøy og er ikke en del av vanlig Codex-implementering. Commit og push innebærer aldri automatisk deploy.
 
+## Fangenytt-arkiv
+
+Fangenytt-PDF-er lagres utenfor Git i `storage/app/fangenytt/`. Laravel-ruten
+`/fangenytt/{nummer}/pdf` leverer bare utgaver som er registrert i
+`config/fangenytt.php`, og åpner dem inline i nettleseren. Arkivet påvirkes ikke
+av `git pull`, deployer eller `php artisan optimize:clear`, forutsatt at
+`storage/` er en vedvarende katalog på serveren.
+
+For å legge inn en ny utgave manuelt:
+
+1. Legg utgaven øverst i `config/fangenytt.php` med `number`, eventuell
+   `edition`/dato, `original_url` og nøyaktig `local_file` på formen
+   `fangenytt-{nummer}.pdf`.
+2. Kjør `php artisan fangenytt:sync` på produksjonsserveren. Eksisterende filer
+   hoppes over; bruk bare `--force` dersom en lokal fil bevisst skal erstattes.
+3. Kontroller `/fangenytt` og åpne `/fangenytt/{nummer}/pdf` for å kontrollere
+   visning og utskrift.
+
+Kommandoen henter bare konfigurerte utgaver, validerer HTTP-status og PDF-signatur,
+og fortsetter med neste utgave hvis én nedlasting feiler. Den oppdager ikke nye
+utgaver automatisk.
+
 ## Historisk dokumentasjon
 
 `PROJECT_ANALYSIS.md` er et historisk øyeblikksbilde og kan inneholde utdaterte opplysninger. Kontroller alltid gjeldende kode, tester og konfigurasjon.

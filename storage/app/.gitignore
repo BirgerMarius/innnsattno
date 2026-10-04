@@ -1,5 +1,7 @@
 *
 !public/
+!fangenytt/
+!fangenytt/.gitignore
 !reference/
 !reference/*.json
 !.gitignore

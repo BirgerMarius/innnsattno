@@ -93,6 +93,9 @@ Route::get('/spillforslag/{activity}', [ActivityController::class, 'show'])->nam
 Route::get('/spillforslag/{activity}/utskrift', [ActivityController::class, 'print'])->name('activities.print');
 Route::get('/nyheter', [NewsController::class, 'index'])->name('news.index');
 Route::get('/fangenytt', [FangenyttController::class, 'index'])->name('fangenytt.index');
+Route::get('/fangenytt/{number}/pdf', [FangenyttController::class, 'pdf'])
+    ->whereNumber('number')
+    ->name('fangenytt.pdf');
 
 Route::get('/adm', [AdminDashboardController::class, 'index'])
     ->middleware('admin.auth')

@@ -3,12 +3,13 @@
 namespace Tests\Feature;
 
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class FangenyttTest extends TestCase
 {
-    public function testFangenyttPageShowsAvailableIssuesWithOriginalPdfLinks(): void
+    public function testFangenyttPageShowsAvailableIssuesWithLocalPdfLinks(): void
     {
         $response = $this->get('/fangenytt');
 
@@ -18,15 +19,32 @@ class FangenyttTest extends TestCase
             ->assertSee('Fangenytt nr. 18')
             ->assertSee('Fangenytt nr. 1')
             ->assertSee('Åpne / skriv ut')
-            ->assertSee('https://www.fangeforeningen.no/wp-content/uploads/2026/10/Fangenytt-magasin-18-pdf.pdf', false)
-            ->assertSee('https://www.fangeforeningen.no/wp-content/uploads/2026/05/Fangenytt-nr.-16.pdf', false)
-            ->assertSee('https://www.fangeforeningen.no/wp-content/uploads/Nyhetsbrev/ff-nyhetsbrev.pdf', false)
             ->assertSee('href="https://www.fangeforeningen.no/" target="_blank" rel="noopener noreferrer"', false);
 
         foreach (Config::get('fangenytt.issues') as $issue) {
-            $this->assertStringStartsWith('https://www.fangeforeningen.no/', $issue['url']);
-            $response->assertSee('href="'.$issue['url'].'"', false);
+            $this->assertStringStartsWith('https://www.fangeforeningen.no/', $issue['original_url']);
+            $response->assertSee('href="'.route('fangenytt.pdf', ['number' => $issue['number']]).'"', false);
         }
+    }
+
+    public function testPdfRouteRejectsUnknownOrMissingIssues(): void
+    {
+        Storage::fake('fangenytt');
+
+        $this->get('/fangenytt/999/pdf')->assertNotFound();
+        $this->get('/fangenytt/18/pdf')->assertNotFound();
+        $this->get('/fangenytt/18/../pdf')->assertNotFound();
+    }
+
+    public function testPdfRouteServesRegisteredLocalPdfInline(): void
+    {
+        Storage::fake('fangenytt');
+        Storage::disk('fangenytt')->put('fangenytt-18.pdf', '%PDF-1.4 test');
+
+        $this->get(route('fangenytt.pdf', ['number' => 18]))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf')
+            ->assertHeader('Content-Disposition', 'inline; filename="fangenytt-18.pdf"');
     }
 
     public function testHomepageLinksToFangenytt(): void
