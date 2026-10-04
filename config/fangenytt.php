@@ -8,9 +8,14 @@ return [
      */
     'published_at' => env('FANGENYTT_PUBLISHED_AT'),
 
-    // Utgavene er lagt inn manuelt etter kontroll hos Fangeforeningen.
-    // original_url er kilde/referanse; local_file er arkivfilen som vises fra Innsatt.no.
-    // Nye utgaver kan legges øverst i denne listen.
+    // Bare disse HTTPS-vertsnavnene kan brukes av den dynamiske importkommandoen.
+    'allowed_source_hosts' => [
+        'www.fangeforeningen.no',
+        'fangeforeningen.no',
+    ],
+
+    // Historisk seed-kilde for nr. 1–18. Nye utgaver registreres i databasen via
+    // fangenytt:import og skal ikke legges til her.
     'issues' => [
         ['number' => 18, 'original_url' => 'https://www.fangeforeningen.no/wp-content/uploads/2026/10/Fangenytt-magasin-18-pdf.pdf', 'local_file' => 'fangenytt-18.pdf'],
         ['number' => 17, 'original_url' => 'https://www.fangeforeningen.no/wp-content/uploads/2026/06/Fangenytt-magasin-17-5.pdf', 'local_file' => 'fangenytt-17.pdf'],

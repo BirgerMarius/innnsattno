@@ -55,32 +55,49 @@ Produksjonsdeploy skjer med prosjektets separate deployverktøy og er ikke en de
 
 ## Fangenytt-arkiv
 
-Fangenytt-PDF-er lagres utenfor Git i `storage/app/fangenytt/`. Laravel-ruten
-`/fangenytt/{nummer}/pdf` leverer bare utgaver som er registrert i
-`config/fangenytt.php`, og åpner dem inline i nettleseren. Arkivet påvirkes ikke
-av `git pull`, deployer eller `php artisan optimize:clear`, forutsatt at
-`storage/` er en vedvarende katalog på serveren.
+Fangenytt-metadata lagres varig i tabellen `fangenytt_issues`; `config/fangenytt.php`
+er kun historisk seed-kilde for nr. 1–18. PDF-er ligger utenfor Git i
+`storage/app/fangenytt/`, og forsider i `storage/app/fangenytt/covers/`. Laravel-rutene
+`/fangenytt/{nummer}/pdf` og `/fangenytt/{nummer}/cover` leverer kun utgaver med
+status `published`. Arkivet påvirkes ikke av `git pull`, deployer eller
+`php artisan optimize:clear`, forutsatt at `storage/` er en vedvarende katalog.
 
-For å legge inn en ny utgave manuelt:
+Ved første deploy av databaseendringen kjøres følgende, i denne rekkefølgen:
 
-1. Legg utgaven øverst i `config/fangenytt.php` med `number`, eventuell
-   `edition`/dato, `original_url` og nøyaktig `local_file` på formen
-   `fangenytt-{nummer}.pdf`.
-2. Kjør `php artisan fangenytt:sync` på produksjonsserveren. Eksisterende filer
-   hoppes over; bruk bare `--force` dersom en lokal fil bevisst skal erstattes.
-   Ved ny nedlasting genereres også en forside.
-3. Etter deploy, eller for å opprette manglende forsider til eksisterende PDF-er
-   uten ny nedlasting, kjør `php artisan fangenytt:covers`. Bruk `--force` bare
-   når alle forsider bevisst skal genereres på nytt.
-4. Kontroller `/fangenytt`, åpne `/fangenytt/{nummer}/pdf`, og kontroller
-   `/fangenytt/{nummer}/cover` for en utgave med generert forside.
+```bash
+sudo -u forge php artisan migrate --force
+sudo -u forge php artisan db:seed --class=Database\\Seeders\\FangenyttIssueSeeder --force
+```
 
-Kommandoen henter bare konfigurerte utgaver, validerer HTTP-status og PDF-signatur,
-og fortsetter med neste utgave hvis én nedlasting feiler. Den oppdager ikke nye
-utgaver automatisk. Forsider lagres utenfor Git i `storage/app/fangenytt/covers/`
-som komprimerte JPEG-bilder, og genereres én gang med Popplers `pdftoppm`.
-Produksjonsserveren må ha pakken `poppler-utils` installert; den inngår også i
-prosjektets lokale Docker-image.
+Seedingen er idempotent og registrerer nr. 1–18 uten å flytte, laste ned eller
+endre eksisterende lokale PDF-er og covers.
+
+Importer en ny utgave manuelt uten kodeendring:
+
+```bash
+sudo -u forge php artisan fangenytt:import 19 "https://www.fangeforeningen.no/...pdf" --edition="1/2027" --published-at="2027-01-15" --source=manual
+```
+
+Kommandoen godtar bare HTTPS-lenker fra de eksplisitt godkjente
+Fangeforeningen-vertsnavnene i konfigurasjonen. Den oppretter utgaven som `pending`,
+validerer HTTP-respons og PDF-signatur, lagrer den lokale PDF-en, genererer cover med
+`pdftoppm`, og setter først deretter status til `published`. Feil gir `failed`, rydder
+opp lokale mellomfiler og gjør aldri utgaven offentlig. `poppler-utils` må være
+installert på produksjonsserveren.
+
+`php artisan fangenytt:sync` og `php artisan fangenytt:covers` fungerer fortsatt for
+publiserte databaseutgaver. Den siste brukes for å opprette manglende covers uten ny
+nedlasting; `--force` regenererer eksisterende covers.
+
+En fremtidig e-post- eller nettsteddetektor skal ikke importere filer selv. Den skal
+bare sende kandidatdata (`number`, `original_url`, valgfri `edition`, `published_at`
+og `source`, for eksempel `email` eller `website`) til `FangenyttImporter`. Ingen
+e-postintegrasjon eller automatisk schedulerjobb er aktivert ennå.
+
+Ved rollback av denne migrasjonen fjernes bare metadata-tabellen; lokale PDF-er og
+covers slettes ikke. En ny `migrate` etterfulgt av seed-kommandoen registrerer nr.
+1–18 på nytt. Metadata for senere dynamisk importerte utgaver må ved behov gjenopprettes
+fra databasebackup.
 
 ## Historisk dokumentasjon
 

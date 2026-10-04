@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\FangenyttIssue;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
@@ -18,39 +19,33 @@ class FangenyttArchive
     {
         $disk = Storage::disk(self::DISK);
 
-        return array_values(array_map(function (array $issue) use ($disk) {
-            $issue['cover_file'] = $this->coverFile($issue);
-            $issue['has_cover'] = $disk->exists($issue['cover_file']);
+        return FangenyttIssue::where('status', FangenyttIssue::STATUS_PUBLISHED)
+            ->orderByDesc('number')
+            ->get()
+            ->map(function (FangenyttIssue $issue) use ($disk) {
+                $issue->has_cover = $disk->exists($issue->cover_file);
 
-            return $issue;
-        }, array_filter(config('fangenytt.issues', []), fn (array $issue) => $this->hasExpectedLocalFile($issue))));
+                return $issue;
+            })
+            ->all();
     }
 
-    public function findIssue(int $number): ?array
+    public function findIssue(int $number): ?FangenyttIssue
     {
-        foreach (config('fangenytt.issues', []) as $issue) {
-            if ((int) ($issue['number'] ?? 0) === $number && $this->hasExpectedLocalFile($issue)) {
-                return $issue;
-            }
-        }
-
-        return null;
+        return FangenyttIssue::where('number', $number)
+            ->where('status', FangenyttIssue::STATUS_PUBLISHED)
+            ->first();
     }
 
     public function sync(bool $force = false): array
     {
         $reports = [];
 
-        foreach (config('fangenytt.issues', []) as $issue) {
-            $number = $issue['number'] ?? '?';
-
-            if (! $this->hasExpectedLocalFile($issue) || empty($issue['original_url'])) {
-                $reports[] = ['number' => $number, 'status' => 'feilet', 'message' => 'Ugyldig Fangenytt-konfigurasjon.'];
-                continue;
-            }
+        foreach (FangenyttIssue::where('status', FangenyttIssue::STATUS_PUBLISHED)->get() as $issue) {
+            $number = $issue->number;
 
             $disk = Storage::disk(self::DISK);
-            if (! $force && $disk->exists($issue['local_file'])) {
+            if (! $force && $disk->exists($issue->local_file)) {
                 $reports[] = ['number' => $number, 'status' => 'hoppet over', 'message' => 'Lokal fil finnes allerede.'];
                 continue;
             }
@@ -59,7 +54,7 @@ class FangenyttArchive
                 $response = Http::accept('application/pdf')
                     ->connectTimeout(5)
                     ->timeout(30)
-                    ->get($issue['original_url']);
+                    ->get($issue->original_url);
 
                 if (! $response->successful()) {
                     $reports[] = ['number' => $number, 'status' => 'feilet', 'message' => 'HTTP-status '.$response->status().'.'];
@@ -72,8 +67,8 @@ class FangenyttArchive
                     continue;
                 }
 
-                $disk->put($issue['local_file'], $contents);
-                $reports[] = ['number' => $number, 'status' => 'lastet ned', 'message' => $issue['local_file']];
+                $disk->put($issue->local_file, $contents);
+                $reports[] = ['number' => $number, 'status' => 'lastet ned', 'message' => $issue->local_file];
                 $reports[] = $this->generateCover($issue, true);
             } catch (Throwable $exception) {
                 report($exception);
@@ -88,32 +83,25 @@ class FangenyttArchive
     {
         $reports = [];
 
-        foreach (config('fangenytt.issues', []) as $issue) {
-            $number = $issue['number'] ?? '?';
-
-            if (! $this->hasExpectedLocalFile($issue)) {
-                $reports[] = ['number' => $number, 'status' => 'feilet', 'message' => 'Ugyldig Fangenytt-konfigurasjon.'];
-                continue;
-            }
-
+        foreach (FangenyttIssue::where('status', FangenyttIssue::STATUS_PUBLISHED)->get() as $issue) {
             $reports[] = $this->generateCover($issue, $force);
         }
 
         return $reports;
     }
 
-    public function coverFile(array $issue): string
+    public function coverFile(FangenyttIssue $issue): string
     {
-        return 'covers/fangenytt-'.$issue['number'].'.jpg';
+        return $issue->cover_file;
     }
 
-    private function generateCover(array $issue, bool $force): array
+    private function generateCover(FangenyttIssue $issue, bool $force): array
     {
         $disk = Storage::disk(self::DISK);
-        $number = $issue['number'];
+        $number = $issue->number;
         $coverFile = $this->coverFile($issue);
 
-        if (! $disk->exists($issue['local_file'])) {
+        if (! $disk->exists($issue->local_file)) {
             return ['number' => $number, 'status' => 'hoppet over', 'message' => 'Lokal PDF mangler.'];
         }
 
@@ -121,22 +109,13 @@ class FangenyttArchive
             return ['number' => $number, 'status' => 'hoppet over', 'message' => 'Forside finnes allerede.'];
         }
 
-        $result = $this->coverGenerator->generate($issue['local_file'], $coverFile);
+        $result = $this->coverGenerator->generate($issue->local_file, $coverFile);
 
         return [
             'number' => $number,
             'status' => $result['success'] ? 'forside generert' : 'feilet',
             'message' => $result['message'],
         ];
-    }
-
-    private function hasExpectedLocalFile(array $issue): bool
-    {
-        $number = filter_var($issue['number'] ?? null, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
-
-        return $number !== false
-            && isset($issue['local_file'])
-            && $issue['local_file'] === 'fangenytt-'.$number.'.pdf';
     }
 
     private function looksLikePdf(string $contents): bool

@@ -3,7 +3,8 @@
 namespace Tests\Feature;
 
 use App\Services\FangenyttCoverGenerator;
-use Illuminate\Support\Facades\Config;
+use App\FangenyttIssue;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Mockery;
@@ -11,16 +12,21 @@ use Tests\TestCase;
 
 class SyncFangenyttCommandTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         Storage::fake('fangenytt');
-        Config::set('fangenytt.issues', [[
+        FangenyttIssue::create([
             'number' => 18,
             'original_url' => 'https://fangeforeningen.test/fangenytt-18.pdf',
             'local_file' => 'fangenytt-18.pdf',
-        ]]);
+            'cover_file' => 'covers/fangenytt-18.jpg',
+            'source' => 'test',
+            'status' => FangenyttIssue::STATUS_PUBLISHED,
+        ]);
 
         $coverGenerator = Mockery::mock(FangenyttCoverGenerator::class);
         $coverGenerator->shouldReceive('generate')

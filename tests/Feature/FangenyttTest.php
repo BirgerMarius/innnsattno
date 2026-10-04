@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use Database\Seeders\FangenyttIssueSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
@@ -9,6 +11,13 @@ use Tests\TestCase;
 
 class FangenyttTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(FangenyttIssueSeeder::class);
+    }
     public function testFangenyttPageShowsAvailableIssuesWithLocalPdfLinks(): void
     {
         $response = $this->get('/fangenytt');
