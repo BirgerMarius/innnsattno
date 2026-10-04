@@ -2,6 +2,26 @@
 
 Denne filen er en løpende changelog og huskeliste for endringer som gjøres direkte på produksjonsserveren og derfor ikke automatisk ligger i Git-repositoryet. Dokumenter blant annet Nginx-, systemd-, cron-/timer-, firewall- og annen manuell serverkonfigurasjon her.
 
+## 2026-10-04 – Poppler for Fangenytt-forsider
+
+### Produksjonsserver
+
+- `poppler-utils` ble installert via `apt`.
+- Produksjonen har nå `/usr/bin/pdftoppm`, versjon 24.02.0.
+- Verktøyet genererer komprimerte JPEG-forsider fra første side i lokale Fangenytt-PDF-er.
+
+Deretter ble følgende kjørt uten feil:
+
+```bash
+sudo -u forge php artisan fangenytt:covers
+```
+
+Forsider for Fangenytt nr. 1–18 ble generert i `storage/app/fangenytt/covers/`.
+
+### Merknader
+
+- PDF- og coverfilene ligger utenfor Git.
+
 ## 2026-09-22 – Avgrenset blokkering av distribuert bot på «Dagen i dag»
 
 ### Bakgrunn
