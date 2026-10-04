@@ -96,6 +96,9 @@ Route::get('/fangenytt', [FangenyttController::class, 'index'])->name('fangenytt
 Route::get('/fangenytt/{number}/pdf', [FangenyttController::class, 'pdf'])
     ->whereNumber('number')
     ->name('fangenytt.pdf');
+Route::get('/fangenytt/{number}/cover', [FangenyttController::class, 'cover'])
+    ->whereNumber('number')
+    ->name('fangenytt.cover');
 
 Route::get('/adm', [AdminDashboardController::class, 'index'])
     ->middleware('admin.auth')

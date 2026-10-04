@@ -68,12 +68,19 @@ For å legge inn en ny utgave manuelt:
    `fangenytt-{nummer}.pdf`.
 2. Kjør `php artisan fangenytt:sync` på produksjonsserveren. Eksisterende filer
    hoppes over; bruk bare `--force` dersom en lokal fil bevisst skal erstattes.
-3. Kontroller `/fangenytt` og åpne `/fangenytt/{nummer}/pdf` for å kontrollere
-   visning og utskrift.
+   Ved ny nedlasting genereres også en forside.
+3. Etter deploy, eller for å opprette manglende forsider til eksisterende PDF-er
+   uten ny nedlasting, kjør `php artisan fangenytt:covers`. Bruk `--force` bare
+   når alle forsider bevisst skal genereres på nytt.
+4. Kontroller `/fangenytt`, åpne `/fangenytt/{nummer}/pdf`, og kontroller
+   `/fangenytt/{nummer}/cover` for en utgave med generert forside.
 
 Kommandoen henter bare konfigurerte utgaver, validerer HTTP-status og PDF-signatur,
 og fortsetter med neste utgave hvis én nedlasting feiler. Den oppdager ikke nye
-utgaver automatisk.
+utgaver automatisk. Forsider lagres utenfor Git i `storage/app/fangenytt/covers/`
+som komprimerte JPEG-bilder, og genereres én gang med Popplers `pdftoppm`.
+Produksjonsserveren må ha pakken `poppler-utils` installert; den inngår også i
+prosjektets lokale Docker-image.
 
 ## Historisk dokumentasjon
 

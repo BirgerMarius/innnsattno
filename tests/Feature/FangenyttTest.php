@@ -36,6 +36,14 @@ class FangenyttTest extends TestCase
         $this->get('/fangenytt/18/../pdf')->assertNotFound();
     }
 
+    public function testCoverRouteRejectsUnknownOrMissingIssues(): void
+    {
+        Storage::fake('fangenytt');
+
+        $this->get('/fangenytt/999/cover')->assertNotFound();
+        $this->get('/fangenytt/18/cover')->assertNotFound();
+    }
+
     public function testPdfRouteServesRegisteredLocalPdfInline(): void
     {
         Storage::fake('fangenytt');
@@ -45,6 +53,39 @@ class FangenyttTest extends TestCase
             ->assertOk()
             ->assertHeader('Content-Type', 'application/pdf')
             ->assertHeader('Content-Disposition', 'inline; filename="fangenytt-18.pdf"');
+    }
+
+    public function testCoverRouteServesRegisteredLocalCoverInline(): void
+    {
+        Storage::fake('fangenytt');
+        Storage::disk('fangenytt')->put('covers/fangenytt-18.jpg', 'test image');
+
+        $this->get(route('fangenytt.cover', ['number' => 18]))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'image/jpeg')
+            ->assertHeader('Content-Disposition', 'inline; filename="fangenytt-18.jpg"');
+    }
+
+    public function testFangenyttPageShowsCoverWhenItExistsAndFallsBackWhenItDoesNot(): void
+    {
+        Storage::fake('fangenytt');
+        Storage::disk('fangenytt')->put('covers/fangenytt-18.jpg', 'test image');
+
+        $this->get('/fangenytt')
+            ->assertOk()
+            ->assertSee('src="'.route('fangenytt.cover', ['number' => 18]).'"', false)
+            ->assertSee('href="'.route('fangenytt.pdf', ['number' => 18]).'"', false)
+            ->assertSee('Forside ikke tilgjengelig');
+    }
+
+    public function testFangeforeningenLinkHasClearVisualClass(): void
+    {
+        $this->get('/fangenytt')
+            ->assertOk()
+            ->assertSee('class="fangenytt-source-link" href="https://www.fangeforeningen.no/"', false);
+
+        $css = file_get_contents(public_path('css/custom/app.css'));
+        $this->assertMatchesRegularExpression('/\.fangenytt-source-link\s*\{[^}]*text-decoration:\s*underline;/s', $css);
     }
 
     public function testHomepageLinksToFangenytt(): void

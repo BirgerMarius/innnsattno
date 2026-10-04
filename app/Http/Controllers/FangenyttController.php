@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Storage;
 
 class FangenyttController extends Controller
 {
-    public function index()
+    public function index(FangenyttArchive $archive)
     {
         return view('fangenytt.index', [
-            'issues' => config('fangenytt.issues', []),
+            'issues' => $archive->issues(),
         ]);
     }
 
@@ -26,6 +26,22 @@ class FangenyttController extends Controller
         return response()->file($disk->path($issue['local_file']), [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="'.$issue['local_file'].'"',
+        ]);
+    }
+
+    public function cover(int $number, FangenyttArchive $archive)
+    {
+        $issue = $archive->findIssue($number);
+
+        abort_unless($issue, 404);
+
+        $disk = Storage::disk(FangenyttArchive::DISK);
+        $coverFile = $archive->coverFile($issue);
+        abort_unless($disk->exists($coverFile), 404);
+
+        return response()->file($disk->path($coverFile), [
+            'Content-Type' => 'image/jpeg',
+            'Content-Disposition' => 'inline; filename="'.basename($coverFile).'"',
         ]);
     }
 }

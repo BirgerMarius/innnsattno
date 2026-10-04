@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Services\FangenyttCoverGenerator;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Mockery;
 use Tests\TestCase;
 
 class SyncFangenyttCommandTest extends TestCase
@@ -19,6 +21,12 @@ class SyncFangenyttCommandTest extends TestCase
             'original_url' => 'https://fangeforeningen.test/fangenytt-18.pdf',
             'local_file' => 'fangenytt-18.pdf',
         ]]);
+
+        $coverGenerator = Mockery::mock(FangenyttCoverGenerator::class);
+        $coverGenerator->shouldReceive('generate')
+            ->byDefault()
+            ->andReturn(['success' => true, 'message' => 'covers/fangenytt-18.jpg']);
+        $this->app->instance(FangenyttCoverGenerator::class, $coverGenerator);
     }
 
     public function testCommandDownloadsSimulatedPdf(): void
@@ -27,6 +35,7 @@ class SyncFangenyttCommandTest extends TestCase
 
         $this->artisan('fangenytt:sync')
             ->expectsOutputToContain('lastet ned')
+            ->expectsOutputToContain('forside generert')
             ->assertExitCode(0);
 
         Storage::disk('fangenytt')->assertExists('fangenytt-18.pdf');

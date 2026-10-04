@@ -8,6 +8,7 @@ RUN apt-get update \
         libicu-dev \
         libonig-dev \
         libxml2-dev \
+        poppler-utils \
     && docker-php-ext-install \
         pdo \
         pdo_mysql \
