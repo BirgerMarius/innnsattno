@@ -65,12 +65,18 @@ status `published`. Arkivet påvirkes ikke av `git pull`, deployer eller
 Ved første deploy av databaseendringen kjøres følgende, i denne rekkefølgen:
 
 ```bash
+sudo -u forge composer dump-autoload --no-scripts --no-dev --optimize
 sudo -u forge php artisan migrate --force
-sudo -u forge php artisan db:seed --class=Database\\Seeders\\FangenyttIssueSeeder --force
+sudo -u forge php artisan db:seed --class='Database\Seeders\FangenyttIssueSeeder' --force
 ```
 
 Seedingen er idempotent og registrerer nr. 1–18 uten å flytte, laste ned eller
 endre eksisterende lokale PDF-er og covers.
+
+`database/seeds/` inneholder både eldre globale seedere og namespacede
+`Database\Seeders`-klasser. Composer har derfor både historisk classmap og en
+eksplisitt PSR-4-mapping for den namespacede strukturen. Autoloaderen må
+regenereres etter deploy når en ny seederklasse er lagt til.
 
 Importer en ny utgave manuelt uten kodeendring:
 
