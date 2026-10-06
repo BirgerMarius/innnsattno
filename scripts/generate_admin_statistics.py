@@ -228,11 +228,11 @@ def human_periods_for_days(connection, latest_date, days):
     known_automated = sum(classified.get(category, 0) for category in ('bot', 'monitoring', 'scanner', 'excluded'))
     coverage = coverage_for_period(connection, first, latest_date)
     comparison = None
-    if coverage and coverage['complete'] and coverage['classifier_versions'] == [4]:
+    if coverage and coverage['complete'] and coverage['classifier_versions'] == [5]:
         previous_latest = first - dt.timedelta(days=1)
         previous_first = previous_latest - dt.timedelta(days=days - 1)
         previous_coverage = coverage_for_period(connection, previous_first, previous_latest)
-        if previous_coverage and previous_coverage['complete'] and previous_coverage['classifier_versions'] == [4]:
+        if previous_coverage and previous_coverage['complete'] and previous_coverage['classifier_versions'] == [5]:
             comparison = {
                 'from': previous_first.isoformat(), 'to': previous_latest.isoformat(),
                 'pageviews': scalar(connection, "SELECT SUM(pageviews) FROM daily_page_ip_stats WHERE date BETWEEN ? AND ?", (previous_first.isoformat(), previous_latest.isoformat())),

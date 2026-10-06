@@ -132,7 +132,7 @@ class GenerateAdminStatisticsTest(unittest.TestCase):
                 INSERT INTO daily_ip_stats VALUES ('2026-08-04', '203.0.113.10');
                 INSERT INTO daily_page_ip_stats VALUES ('2026-08-04', '/tv', '203.0.113.10', 3), ('2026-08-04', '/print', '203.0.113.10', 2);
                 INSERT INTO daily_traffic_classification_stats VALUES ('2026-08-04', 'human', 'requests', 5), ('2026-08-04', 'human', 'pageviews', 5), ('2026-08-04', 'human', 'sessions', 1), ('2026-08-04', 'scanner', 'requests', 2);
-                INSERT INTO daily_statistics_coverage VALUES ('2026-08-04', 4, '2026-08-04T12:00:00+00:00');
+                INSERT INTO daily_statistics_coverage VALUES ('2026-08-04', 5, '2026-08-04T12:00:00+00:00');
             """)
             connection.commit(); connection.close()
             data = GENERATOR.generate(database)

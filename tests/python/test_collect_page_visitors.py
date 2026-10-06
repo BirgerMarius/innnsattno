@@ -132,8 +132,88 @@ class CollectPageVisitorsTest(unittest.TestCase):
             COLLECTOR.replace_database_rows(database, pages, traffic, first, latest)
             connection = sqlite3.connect(database)
             self.assertEqual(7, connection.execute("SELECT pageviews FROM daily_page_ip_stats WHERE date = '2026-08-02'").fetchone()[0])
-            self.assertEqual([('2026-08-04', 4)], connection.execute('SELECT date,classifier_version FROM daily_statistics_coverage').fetchall())
+            self.assertEqual([('2026-08-04', 5)], connection.execute('SELECT date,classifier_version FROM daily_statistics_coverage').fetchall())
             connection.close()
+
+    def test_fast_broad_tour_with_browser_agent_is_scanner_not_human(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            paths = [
+                '/tv', '/dagen-i-dag', '/vaer', '/visitasjon', '/bonnetider',
+                '/print', '/print-ilseng', '/fangenytt', '/eliteserien', '/quiz',
+                '/https%3A/innsatt.no/vaer', '/https%3A/snl.no/jul',
+            ]
+            log.write_text(''.join(
+                line('203.0.113.55', '04/Aug/2026', path, time=f'12:00:{second:02d}')
+                for second, path in enumerate(paths)
+            ))
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertFalse(pages)
+            self.assertEqual(len(paths), traffic[('2026-08-04', 'scanner', 'requests')])
+            self.assertEqual(0, traffic[('2026-08-04', 'human', 'pageviews')])
+
+    def test_fast_broad_tour_without_bad_links_is_scanner_not_human(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            paths = [
+                '/tv', '/dagen-i-dag', '/vaer', '/visitasjon', '/bonnetider',
+                '/print', '/print-ilseng', '/fangenytt', '/eliteserien', '/quiz',
+            ]
+            log.write_text(''.join(
+                line('203.0.113.56', '04/Aug/2026', path, time=f'12:00:{second:02d}')
+                for second, path in enumerate(paths)
+            ))
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertFalse(pages)
+            self.assertEqual(len(paths), traffic[('2026-08-04', 'scanner', 'requests')])
+
+    def test_natural_tv_print_session_remains_human(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(
+                line('203.0.113.129', '04/Aug/2026', '/tv', time='12:00:00')
+                + line('203.0.113.129', '04/Aug/2026', '/print', time='12:04:12')
+                + line('203.0.113.129', '04/Aug/2026', '/tv', time='12:07:49')
+            )
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertEqual(2, pages[('2026-08-04', '/tv', '203.0.113.129')])
+            self.assertEqual(1, pages[('2026-08-04', '/print', '203.0.113.129')])
+            self.assertEqual(3, traffic[('2026-08-04', 'human', 'pageviews')])
+            self.assertEqual(0, traffic[('2026-08-04', 'scanner', 'requests')])
+
+    def test_monitoring_does_not_exclude_browser_session_from_same_network(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(
+                line('203.0.113.2', '04/Aug/2026', '/tv', 'Uptime Kuma', time='12:00:00')
+                + line('203.0.113.2', '04/Aug/2026', '/tv', 'Mozilla/5.0', time='12:01:00')
+                + line('203.0.113.2', '04/Aug/2026', '/print', 'Mozilla/5.0', time='12:03:00')
+            )
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertEqual(1, traffic[('2026-08-04', 'monitoring', 'requests')])
+            self.assertEqual(2, traffic[('2026-08-04', 'human', 'pageviews')])
+            self.assertEqual(1, pages[('2026-08-04', '/print', '203.0.113.2')])
+
+    def test_static_resource_does_not_alone_qualify_single_page_as_human(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(
+                line('203.0.113.57', '04/Aug/2026', '/tv', time='12:00:00')
+                + line('203.0.113.57', '04/Aug/2026', '/css/app.css', time='12:00:01')
+            )
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertFalse(pages)
+            self.assertEqual(0, traffic[('2026-08-04', 'human', 'pageviews')])
+            self.assertEqual(1, traffic[('2026-08-04', 'other', 'single_page_candidates')])
+
+    def test_one_malformed_absolute_link_is_not_alone_a_scanner_session(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(line('203.0.113.58', '04/Aug/2026', '/https%3A/innsatt.no/vaer'))
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertFalse(pages)
+            self.assertEqual(0, traffic[('2026-08-04', 'scanner', 'requests')])
+            self.assertEqual(1, traffic[('2026-08-04', 'other', 'single_page_candidates')])
 
 
 if __name__ == '__main__':

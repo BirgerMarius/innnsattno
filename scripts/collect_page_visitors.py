@@ -19,6 +19,7 @@ LOG_PATTERN = re.compile(
     r'^(?P<ip>\S+) \S+ \S+ \[(?P<time>[^]]+)] "(?P<method>\S+) (?P<target>\S+) [^"]+" '
     r'(?P<status>\d{3}) \S+ "[^"]*" "(?P<agent>[^"]*)"'
 )
+ANONYMISED_NETWORK_PATTERN = re.compile(r'^nettverk-\d+$', re.I)
 BOT_PATTERN = re.compile(
     r'claudebot|serankingbacklinksbot|amazonbot|googlebot|googleother|applebot|bingbot|ahrefsbot|'
     r'wp-safe-scanner|bot|crawler|spider|scanner|slurp|headless|lighthouse|preview|'
@@ -37,6 +38,11 @@ SCANNER_PATH_PATTERN = re.compile(
 SCANNER_QUERY_PATTERN = re.compile(
     r'(?:^|[?&])(?:rest_route=/?(?:batch|wp|v\d)|[^=]*wp[^=]*=|.*(?:wp-json|xmlrpc|phpunit|eval-stdin))', re.I,
 )
+# A browser normally follows absolute URLs directly.  A path that starts with
+# one is consequently an application treating a copied absolute link as a
+# relative one.  One bad click is not enough to classify a visit, but repeated
+# occurrences in a rapid, wide session are a strong automation signal.
+MALFORMED_ABSOLUTE_PATH_PATTERN = re.compile(r'^/(?:https?:|mailto:)', re.I)
 STATIC_EXTENSIONS = {
     '.css', '.js', '.map', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico',
     '.woff', '.woff2', '.ttf', '.eot', '.pdf', '.xml', '.txt', '.json', '.zip', '.mp4',
@@ -91,12 +97,25 @@ def is_static(target):
     return Path(path).suffix in STATIC_EXTENSIONS or path.startswith('/favicon') or path == '/robots.txt'
 
 
+def has_malformed_absolute_path(target):
+    return bool(MALFORMED_ABSOLUTE_PATH_PATTERN.match(target_path(target) or ''))
+
+
 def parse_event(line):
     match = LOG_PATTERN.match(line)
     if not match:
         return None
     try:
-        address = str(ipaddress.ip_address(match['ip']))
+        try:
+            address = str(ipaddress.ip_address(match['ip']))
+        except ValueError:
+            # Exported incident logs may replace IP addresses with stable
+            # ``nettverk-NNN`` labels.  Keeping that label intact lets the
+            # behavioural classifier be validated without re-identifying a
+            # visitor.  Nginx itself continues to provide real IP addresses.
+            if not ANONYMISED_NETWORK_PATTERN.fullmatch(match['ip']):
+                raise
+            address = match['ip']
         when = dt.datetime.strptime(match['time'], '%d/%b/%Y:%H:%M:%S %z').astimezone(OSLO_TIMEZONE)
         status = int(match['status'])
     except ValueError:
@@ -170,11 +189,35 @@ def sessionize(events, excluded=None):
             raw_targets = {event.target for _, event in candidates if (event.path or '').startswith('/bonnetider')}
             duration = chunk[-1][1].when - chunk[0][1].when
             if len(candidates) >= 10 and len(raw_targets) >= 6 and duration <= dt.timedelta(minutes=10):
-                scanner_ids.update(index for index, _ in candidates)
+                scanner_ids.update(index for index, _ in chunk)
                 continue
-            # Require a second page or a normal static-resource follow-up before calling it human.
-            has_static = any(is_static(event.target) for _, event in chunk)
-            if len(candidates) >= 2 or (candidates and has_static):
+
+            # Browser-like User-Agents can still be automated.  A rapid tour
+            # through many unrelated public HTML pages is not enough alone:
+            # it must combine both breadth and speed.  Repeated malformed
+            # absolute URLs are an independent, stronger signal.  Marking the
+            # *session* (not the IP) preserves later ordinary visits from a
+            # shared network and keeps monitoring on a separate UA identity.
+            paths = {event.path for _, event in candidates if event.path}
+            malformed_links = sum(has_malformed_absolute_path(event.target) for _, event in chunk)
+            rapid_broad_tour = (
+                len(candidates) >= 10
+                and len(paths) >= 8
+                and duration <= dt.timedelta(minutes=2)
+            )
+            repeated_bad_links = (
+                malformed_links >= 2
+                and len(candidates) >= 4
+                and duration <= dt.timedelta(minutes=5)
+            )
+            if rapid_broad_tour or repeated_bad_links:
+                scanner_ids.update(index for index, _ in chunk)
+                continue
+
+            # Cached CSS/images, a Referer, or repeated loads of one page do
+            # not establish human use.  Require two distinct successful public
+            # HTML pages in this IP+UA session instead.
+            if len(paths) >= 2:
                 human_ids.update(index for index, _ in candidates)
                 sessions.append(candidates[0][1].day)
     return human_ids, sessions, scanner_ids
@@ -246,7 +289,7 @@ def replace_database_rows(database, pages, traffic, first, latest):
             connection.executemany('INSERT INTO daily_traffic_classification_stats(date,category,metric,count) VALUES (?,?,?,?)',
                                    [(day, category, metric, count) for (day, category, metric), count in traffic.items()])
             connection.executemany('INSERT INTO daily_statistics_coverage(date,classifier_version,updated_at) VALUES (?,?,?)',
-                                   [(day, 4, dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()) for day in covered_days])
+                                   [(day, 5, dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()) for day in covered_days])
             connection.execute('DELETE FROM daily_page_ip_stats WHERE date < ?', (first.isoformat(),))
             connection.execute('DELETE FROM daily_traffic_classification_stats WHERE date < ?', (first.isoformat(),))
     finally:
