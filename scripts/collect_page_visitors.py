@@ -53,6 +53,7 @@ CANONICAL_PATHS = {
 }
 SESSION_GAP = dt.timedelta(minutes=30)
 OSLO_TIMEZONE = ZoneInfo('Europe/Oslo')
+SUDOKU_PRINT_PATH = '/tidsfordriv/sudoku/print'
 
 
 @dataclass
@@ -220,7 +221,71 @@ def sessionize(events, excluded=None):
             if len(paths) >= 2:
                 human_ids.update(index for index, _ in candidates)
                 sessions.append(candidates[0][1].day)
+                # The normal Sudoku print view returns directly to
+                # /tidsfordriv after printing.  A repeated loop through the
+                # site root and /tv instead is a documented, strongly
+                # suspicious pattern.  It is not a reason to block a visitor
+                # or to reclassify the rest of the session: only the already
+                # human-classified /tidsfordriv pageviews become unresolved.
+                human_ids.difference_update(sudoku_print_loop_pageview_ids(chunk))
     return human_ids, sessions, scanner_ids
+
+
+def sudoku_print_loop_pageview_ids(chunk):
+    """Return human-candidate Tidsfordriv pageviews in a repeated print loop.
+
+    A cycle is GET / (3xx), GET /tv (2xx), GET /tidsfordriv (2xx), a successful
+    Sudoku POST 5--25 seconds later, then another GET / (3xx) within 60 seconds.
+    The initial root and TV requests must occur within two minutes of the POST.
+    At least two complete cycles must fit in five minutes.  Resource requests and
+    concurrent requests are deliberately ignored while matching the ordered
+    milestones.
+    """
+    cycles = []
+    for post_position, (post_id, post) in enumerate(chunk):
+        if (post.method != 'POST' or post.path != SUDOKU_PRINT_PATH
+                or not 200 <= post.status < 300):
+            continue
+
+        tids_position = next((position for position in range(post_position - 1, -1, -1)
+                              if chunk[position][1].method == 'GET'
+                              and chunk[position][1].path == '/tidsfordriv'
+                              and 200 <= chunk[position][1].status < 300
+                              and dt.timedelta(seconds=5) <= post.when - chunk[position][1].when
+                              <= dt.timedelta(seconds=25)), None)
+        if tids_position is None:
+            continue
+
+        tv_position = next((position for position in range(tids_position - 1, -1, -1)
+                            if chunk[position][1].method == 'GET'
+                            and chunk[position][1].path == '/tv'
+                            and 200 <= chunk[position][1].status < 300
+                            and post.when - chunk[position][1].when <= dt.timedelta(minutes=2)), None)
+        if tv_position is None:
+            continue
+
+        root_position = next((position for position in range(tv_position - 1, -1, -1)
+                              if is_root_redirect(chunk[position][1])
+                              and post.when - chunk[position][1].when <= dt.timedelta(minutes=2)), None)
+        if root_position is None:
+            continue
+
+        has_return_to_root = any(
+            is_root_redirect(event) and event.when - post.when <= dt.timedelta(seconds=60)
+            for _, event in chunk[post_position + 1:]
+        )
+        if has_return_to_root:
+            cycles.append((root_position, tids_position, post_position))
+
+    if len(cycles) < 2 or chunk[cycles[-1][2]][1].when - chunk[cycles[0][0]][1].when > dt.timedelta(minutes=5):
+        return set()
+    return {index for index, event in chunk
+            if event.method == 'GET' and event.path == '/tidsfordriv'
+            and 200 <= event.status < 300}
+
+
+def is_root_redirect(event):
+    return event.method == 'GET' and target_path(event.target) == '/' and 300 <= event.status < 400
 
 
 def collect(log_paths, admin_ip=None, today=None, retention_days=60, excluded_ips=None):
@@ -289,7 +354,7 @@ def replace_database_rows(database, pages, traffic, first, latest):
             connection.executemany('INSERT INTO daily_traffic_classification_stats(date,category,metric,count) VALUES (?,?,?,?)',
                                    [(day, category, metric, count) for (day, category, metric), count in traffic.items()])
             connection.executemany('INSERT INTO daily_statistics_coverage(date,classifier_version,updated_at) VALUES (?,?,?)',
-                                   [(day, 5, dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()) for day in covered_days])
+                                   [(day, 6, dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()) for day in covered_days])
             connection.execute('DELETE FROM daily_page_ip_stats WHERE date < ?', (first.isoformat(),))
             connection.execute('DELETE FROM daily_traffic_classification_stats WHERE date < ?', (first.isoformat(),))
     finally:

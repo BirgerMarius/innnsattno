@@ -16,6 +16,18 @@ def line(ip, day, target, agent='Mozilla/5.0', status=200, method='GET', time='1
     return f'{ip} - - [{day}:{time} +0000] "{method} {target} HTTP/1.1" {status} 123 "-" "{agent}"\n'
 
 
+def sudoku_loop_cycle(ip, day, minute, post_status=200, return_target='/', post_second=20):
+    prefix = f'12:{minute:02d}'
+    return (
+        line(ip, day, '/', status=302, time=prefix + ':00')
+        + line(ip, day, '/tv', time=prefix + ':01')
+        + line(ip, day, '/tidsfordriv', time=prefix + ':10')
+        + line(ip, day, '/css/app.css', time=prefix + ':10')
+        + line(ip, day, '/tidsfordriv/sudoku/print', method='POST', status=post_status, time=prefix + f':{post_second:02d}')
+        + line(ip, day, return_target, status=302 if return_target == '/' else 200, time=prefix + ':40')
+    )
+
+
 class CollectPageVisitorsTest(unittest.TestCase):
     def test_googleother_crawl_does_not_become_a_human_session(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -132,7 +144,7 @@ class CollectPageVisitorsTest(unittest.TestCase):
             COLLECTOR.replace_database_rows(database, pages, traffic, first, latest)
             connection = sqlite3.connect(database)
             self.assertEqual(7, connection.execute("SELECT pageviews FROM daily_page_ip_stats WHERE date = '2026-08-02'").fetchone()[0])
-            self.assertEqual([('2026-08-04', 5)], connection.execute('SELECT date,classifier_version FROM daily_statistics_coverage').fetchall())
+            self.assertEqual([('2026-08-04', 6)], connection.execute('SELECT date,classifier_version FROM daily_statistics_coverage').fetchall())
             connection.close()
 
     def test_fast_broad_tour_with_browser_agent_is_scanner_not_human(self):
@@ -214,6 +226,68 @@ class CollectPageVisitorsTest(unittest.TestCase):
             self.assertFalse(pages)
             self.assertEqual(0, traffic[('2026-08-04', 'scanner', 'requests')])
             self.assertEqual(1, traffic[('2026-08-04', 'other', 'single_page_candidates')])
+
+    def test_single_sudoku_print_cycle_remains_human(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(sudoku_loop_cycle('203.0.113.60', '04/Aug/2026', 0))
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertEqual(1, pages[('2026-08-04', '/tidsfordriv', '203.0.113.60')])
+            self.assertEqual(2, traffic[('2026-08-04', 'human', 'pageviews')])
+
+    def test_repeated_sudoku_print_loop_moves_only_tidsfordriv_pageviews_to_other(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(
+                sudoku_loop_cycle('203.0.113.61', '04/Aug/2026', 0)
+                + sudoku_loop_cycle('203.0.113.61', '04/Aug/2026', 1)
+            )
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertNotIn(('2026-08-04', '/tidsfordriv', '203.0.113.61'), pages)
+            self.assertEqual(2, pages[('2026-08-04', '/tv', '203.0.113.61')])
+            self.assertEqual(2, traffic[('2026-08-04', 'human', 'pageviews')])
+            self.assertEqual(2, traffic[('2026-08-04', 'other', 'single_page_candidates')])
+
+    def test_sudoku_print_loop_requires_successful_posts_and_time_bounds(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(
+                sudoku_loop_cycle('203.0.113.62', '04/Aug/2026', 0, post_status=419)
+                + sudoku_loop_cycle('203.0.113.62', '04/Aug/2026', 1, post_status=419)
+                + sudoku_loop_cycle('203.0.113.63', '04/Aug/2026', 10, post_second=14)
+                + sudoku_loop_cycle('203.0.113.63', '04/Aug/2026', 11, post_second=36)
+            )
+            pages, _, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertEqual(2, pages[('2026-08-04', '/tidsfordriv', '203.0.113.62')])
+            self.assertEqual(2, pages[('2026-08-04', '/tidsfordriv', '203.0.113.63')])
+
+    def test_normal_sudoku_return_and_tv_prints_do_not_trigger_print_loop(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(
+                sudoku_loop_cycle('203.0.113.64', '04/Aug/2026', 0, return_target='/tidsfordriv')
+                + sudoku_loop_cycle('203.0.113.64', '04/Aug/2026', 1, return_target='/tidsfordriv')
+                + line('203.0.113.65', '04/Aug/2026', '/tv', time='12:10:00')
+                + line('203.0.113.65', '04/Aug/2026', '/print', time='12:11:00')
+                + line('203.0.113.65', '04/Aug/2026', '/print-ilseng', time='12:12:00')
+            )
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertEqual(4, pages[('2026-08-04', '/tidsfordriv', '203.0.113.64')])
+            self.assertEqual(1, pages[('2026-08-04', '/print', '203.0.113.65')])
+            self.assertEqual(1, pages[('2026-08-04', '/print-ilseng', '203.0.113.65')])
+            self.assertEqual(0, traffic[('2026-08-04', 'scanner', 'requests')])
+
+    def test_sudoku_print_loop_does_not_affect_later_session_from_same_network(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(
+                sudoku_loop_cycle('203.0.113.66', '04/Aug/2026', 0)
+                + sudoku_loop_cycle('203.0.113.66', '04/Aug/2026', 1)
+                + line('203.0.113.66', '04/Aug/2026', '/tv', time='12:32:00')
+                + line('203.0.113.66', '04/Aug/2026', '/tidsfordriv', time='12:33:00')
+            )
+            pages, _, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertEqual(1, pages[('2026-08-04', '/tidsfordriv', '203.0.113.66')])
 
 
 if __name__ == '__main__':

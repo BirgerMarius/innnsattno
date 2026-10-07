@@ -1,6 +1,6 @@
 # Statistikksammendrag for adminportalen
 
-Adminportalen leser bare det begrensede JSON-sammendraget; Laravel åpner aldri historikkdatabasen eller Nginx-loggene. Ny innsamling bruker schema 4 med klassifiserer versjon 5, som skiller anslått menneskelig bruk fra kjent automatisert/teknisk og uklassifisert trafikk, og viser nøyaktig hvilke dager som faktisk har logggrunnlag. JSON-filen inneholder ingen IP-adresser.
+Adminportalen leser bare det begrensede JSON-sammendraget; Laravel åpner aldri historikkdatabasen eller Nginx-loggene. Ny innsamling bruker schema 4 med klassifiserer versjon 6, som skiller anslått menneskelig bruk fra kjent automatisert/teknisk og uklassifisert trafikk, og viser nøyaktig hvilke dager som faktisk har logggrunnlag. JSON-filen inneholder ingen IP-adresser.
 
 ## Produksjonsarkitektur
 
@@ -57,8 +57,10 @@ Forsiden er `/tv` og vises som **Forside**. `/print` er **TV-utskrift Ringerike*
 - `bot`: kjente crawler- og bot-User-Agents, blant annet ClaudeBot, Googlebot, GoogleOther, bingbot, Amazonbot, Applebot og AhrefsBot.
 - `monitoring`: Uptime Kuma og andre monitor-User-Agents.
 - `scanner`: kjente sikkerhetsskannerstier og -queryer (inkludert `wp-json`, `rest_route`, WordPress- og PHP-forsøk), mislykkede tekniske forespørsler og raske bønnetid-enumereringer. En `/tv`-forespørsel inntil to minutter etter et slikt forsøk fra samme IP behandles som mulig redirect-rest; regelen er med hensikt kort for ikke å ramme delte nettverk. Klassifiserer versjon 5 markerer dessuten hele IP + User-Agent-økten som automatisert når enten (a) minst 10 vellykkede offentlige HTML-forespørsler mot minst 8 ulike sider skjer innen 2 minutter, eller (b) minst to feilbehandlede absolutte lenker (`/https:/…` eller `/mailto:…`) forekommer sammen med minst fire vellykkede offentlige HTML-forespørsler innen 5 minutter. Én feilaktig lenke, høy forespørselsmengde eller manglende Referer er ikke nok alene.
+- `other`: Klassifiserer versjon 6 flytter bare `/tidsfordriv`-visninger til uavklart når samme IP + User-Agent-økt har minst to komplette Sudoku-utskriftsløkker innen fem minutter: `GET /` med 3xx, `GET /tv` med 2xx, `GET /tidsfordriv` med 2xx, vellykket `POST /tidsfordriv/sudoku/print` 5–25 sekunder senere, og en ny `GET /` med 3xx innen 60 sekunder. Starten av hver løkke må være høyst to minutter før POST-en. Mellomliggende ressurskall ignoreres. Andre sider, enkeltforsøk, mislykkede POST-er, normal retur direkte til `/tidsfordriv` og TV-utskrifter berøres ikke. De omklassifiserte visningene blir `other` og teller som uavklarte enkeltstående sidekandidater; de beholdes ikke i menneskelige sidevisninger eller nettverk.
+
+Bare menneskeklassifiserte sidevisninger skrives til `daily_page_ip_stats`. Dermed kan en omklassifisert `/tidsfordriv`-visning ikke telle både som menneskelig og uavklart, og den bidrar ikke til rangering eller unike menneskelige nettverk. Generatoren grupperer deretter per `(path, ip)` for hele valgt periode før den teller unike nettverk, så samme nettverk på flere dager teller én gang per side/funksjon i perioden.
 - `excluded`: trafikk fra eksplisitt konfigurerte IP-er, inkludert administratortrafikk.
-- `other`: uklassifisert trafikk. Dette er ikke automatisk kjent teknisk trafikk.
 
 Kjent automatisert/teknisk trafikk er nøyaktig summen av `bot`, `monitoring`, `scanner` og `excluded`. `other` holdes separat fordi den kan inneholde legitime enkeltstående sidevisninger, for eksempel fra en nettleser som allerede har CSS og bilder i cache. `single_page_candidates` viser hvor mange slike enkeltstående sidekandidater som finnes i uklassifisert trafikk.
 
@@ -66,7 +68,7 @@ En økt er foreløpig samme IP + User-Agent med maksimalt 30 minutters inaktivit
 
 ## Omklassifisering etter ny klassifiserer
 
-`daily_page_ip_stats` og `daily_traffic_classification_stats` inneholder bare aggregater, ikke tidspunkt, User-Agent eller rekkefølge. De er derfor ikke tilstrekkelige til å bruke versjon 5 på gammel historikk. For å omklassifisere må statistikkjobben kjøres på nytt med de komplette, dedupliserte Nginx-loggene for hver ønsket dag. Samleren erstatter bare dager som faktisk finnes i det angitte loggsettet; den sletter ikke øvrige dager eller råhistorikken. `daily_statistics_coverage.classifier_version` blir 5 for regenererte dager, slik at sammenligning bare skjer mellom fullt dekkede dager med samme regelsett.
+`daily_page_ip_stats` og `daily_traffic_classification_stats` inneholder bare aggregater, ikke tidspunkt, User-Agent eller rekkefølge. De er derfor ikke tilstrekkelige til å bruke versjon 6 på gammel historikk. For å omklassifisere må statistikkjobben kjøres på nytt med de komplette, dedupliserte Nginx-loggene for hver ønsket dag. Samleren erstatter bare dager som faktisk finnes i det angitte loggsettet; den sletter ikke øvrige dager eller råhistorikken. `daily_statistics_coverage.classifier_version` blir 6 for regenererte dager, slik at sammenligning bare skjer mellom fullt dekkede dager med samme regelsett.
 
 ## Kontrollert produksjonsoppdatering av root-eide deler
 
@@ -99,7 +101,7 @@ For 17.08.2026 viste schema 3-sammendraget:
 
 Ved kontroll av en ny generering skal minst følgende være sant:
 
-- `schema_version` er `4`, og `daily_statistics_coverage.classifier_version` er `5` etter at ny samler har kjørt.
+- `schema_version` er `4`, og `daily_statistics_coverage.classifier_version` er `6` etter at ny samler har kjørt.
 - `daily` inneholder bare datoer med faktisk logggrunnlag; perioder viser om de er fullstendige eller delvise.
 - `periods` inneholder `1`, `7` og `30`.
 - `admin-summary.json` inneholder ingen IP-adresser.
