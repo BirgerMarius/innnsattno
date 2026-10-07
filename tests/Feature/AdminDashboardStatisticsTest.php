@@ -124,6 +124,62 @@ class AdminDashboardStatisticsTest extends TestCase
             ->assertDontSee('203.0.113.42');
     }
 
+    public function testReadAcceptsCompleteSchemaFourReportWithClassifierVersionFive(): void
+    {
+        $this->writeSummary([
+            'schema_version' => 4,
+            'periods' => $this->currentPeriods([5]),
+            'top_pages' => $this->topPages(),
+            'daily' => [],
+        ]);
+
+        $summary = app(\App\Services\AdminStatisticsSummary::class)->read();
+
+        $this->assertNotNull($summary);
+        $this->assertSame([5], $summary['periods']['1']['coverage']['classifier_versions']);
+    }
+
+    public function testReadStillAcceptsSchemaFourReportWithClassifierVersionFour(): void
+    {
+        $this->writeSummary([
+            'schema_version' => 4,
+            'periods' => $this->currentPeriods([4]),
+            'top_pages' => $this->topPages(),
+            'daily' => [],
+        ]);
+
+        $this->assertNotNull(app(\App\Services\AdminStatisticsSummary::class)->read());
+    }
+
+    public function testReadAcceptsSchemaFourCoverageWithClassifierVersionsFourAndFive(): void
+    {
+        $this->writeSummary([
+            'schema_version' => 4,
+            'periods' => $this->currentPeriods([4, 5]),
+            'top_pages' => $this->topPages(),
+            'daily' => [],
+        ]);
+
+        $summary = app(\App\Services\AdminStatisticsSummary::class)->read();
+
+        $this->assertNotNull($summary);
+        $this->assertSame([4, 5], $summary['periods']['7']['coverage']['classifier_versions']);
+    }
+
+    public function testReadRejectsInvalidOrUnknownSchemaFourClassifierVersions(): void
+    {
+        foreach ([[3], [6], ['5'], [5.0]] as $versions) {
+            $this->writeSummary([
+                'schema_version' => 4,
+                'periods' => $this->currentPeriods($versions),
+                'top_pages' => $this->topPages(),
+                'daily' => [],
+            ]);
+
+            $this->assertNull(app(\App\Services\AdminStatisticsSummary::class)->read());
+        }
+    }
+
     public function testDashboardRejectsInvalidHumanTrafficSchemaVersionThree()
     {
         $periods = $this->humanPeriods();
@@ -302,7 +358,7 @@ class AdminDashboardStatisticsTest extends TestCase
         return ['2026-08-03' => $entry];
     }
 
-    private function currentPeriods(): array
+    private function currentPeriods(array $classifierVersions = [4]): array
     {
         $periods = $this->humanPeriods();
         foreach ($periods as $days => &$period) {
@@ -313,7 +369,7 @@ class AdminDashboardStatisticsTest extends TestCase
                 $dates[] = $date->format('Y-m-d');
             }
             $period['coverage'] = ['available_dates' => $dates, 'covered_days' => count($dates),
-                'expected_days' => count($dates), 'complete' => true, 'classifier_versions' => [4]];
+                'expected_days' => count($dates), 'complete' => true, 'classifier_versions' => $classifierVersions];
             $period['features'] = [
                 ['name' => 'Forside', 'pageviews' => 12, 'unique_networks' => 4, 'print_pageviews' => 0],
                 ['name' => 'TV-utskrifter', 'pageviews' => 3, 'unique_networks' => 2, 'print_pageviews' => 3],

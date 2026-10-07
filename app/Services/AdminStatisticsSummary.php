@@ -290,7 +290,7 @@ class AdminStatisticsSummary
             $previous = $date;
         }
         foreach ($coverage['classifier_versions'] as $version) {
-            if (! is_int($version) || $version !== 4) {
+            if (! is_int($version) || ! in_array($version, [4, 5], true)) {
                 return null;
             }
         }
