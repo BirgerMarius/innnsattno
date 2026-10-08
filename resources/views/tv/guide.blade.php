@@ -268,6 +268,27 @@ $isEvenWeek = $weekNumber % 2 === 0;
 @include('partials.header')
 
 <div class="front-page-actions">
+    @if ($showPodcastRecommendation)
+        <article class="podcast-recommendation-card" aria-labelledby="podcast-recommendation-title">
+            <img class="podcast-recommendation-card__image"
+                 src="{{ asset('img/podcast/betjenten-og-psyken.png') }}"
+                 alt="To hoder med en nøkkel i midten, illustrasjon fra podkasten Betjenten og psyken"
+                 width="1200"
+                 height="628"
+                 decoding="async">
+            <div class="podcast-recommendation-card__content">
+                <span class="podcast-recommendation-card__label">Anbefales</span>
+                <h2 id="podcast-recommendation-title">Betjenten og psyken</h2>
+                <p>Samtaler om psykisk helse i fengsel med ansatte i kriminalomsorgen og terapeuter.</p>
+                <p class="podcast-recommendation-card__publisher">En podkast fra Sykehuset Innlandet</p>
+                <div class="podcast-recommendation-card__links">
+                    <a class="podcast-recommendation-card__link" href="https://www.sykehuset-innlandet.no/podkast/betjenten-og-psyken/" target="_blank" rel="noopener noreferrer">Les mer ↗</a>
+                    <a class="podcast-recommendation-card__link" href="https://open.spotify.com/show/4DCB36GYqnR3D1d9WIBMHe" target="_blank" rel="noopener noreferrer">Hør ↗</a>
+                </div>
+            </div>
+        </article>
+    @endif
+
     <section class="prison-actions" aria-label="Tjenester for fengslene">
         <div class="prison-actions-column prison-actions-column--ringerike">
             <a href="/print" class="btn btn-primary btn-lg front-page-btn front-page-btn--ringerike" role="button">
@@ -318,24 +339,6 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <span class="front-page-btn-title"><i class="far fa-newspaper" aria-hidden="true"></i> Fangenytt @if($showFangenyttNewBadge)<span class="front-page-new-badge front-page-new-badge--fangenytt" aria-label="Nyhet">Nyhet</span>@endif</span>
             <small>Magasin for innsatte – klar til utskrift</small>
         </a>
-
-        @if ($showPodcastRecommendation)
-            <article class="podcast-recommendation-card front-page-grid__wide" aria-labelledby="podcast-recommendation-title">
-                <img class="podcast-recommendation-card__image"
-                     src="{{ asset('img/podcast/betjenten-og-psyken.png') }}"
-                     alt="To hoder med en nøkkel i midten, illustrasjon fra podkasten Betjenten og psyken"
-                     width="1200"
-                     height="628"
-                     decoding="async">
-                <div class="podcast-recommendation-card__content">
-                    <span class="podcast-recommendation-card__label">Anbefales</span>
-                    <h2 id="podcast-recommendation-title">Betjenten og psyken</h2>
-                    <p>Samtaler om psykisk helse i fengsel med ansatte i kriminalomsorgen og terapeuter.</p>
-                    <p class="podcast-recommendation-card__publisher">En podkast fra Sykehuset Innlandet</p>
-                    <a href="https://www.sykehuset-innlandet.no/podkast/betjenten-og-psyken/" target="_blank" rel="noopener noreferrer">Les mer og lytt ↗</a>
-                </div>
-            </article>
-        @endif
 
         <a href="/premier-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Premier League 2026/27

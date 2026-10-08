@@ -41,10 +41,12 @@ class PodcastRecommendationTest extends TestCase
             ->assertSee('Betjenten og psyken')
             ->assertSee('Samtaler om psykisk helse i fengsel med ansatte i kriminalomsorgen og terapeuter.')
             ->assertSee('En podkast fra Sykehuset Innlandet')
-            ->assertSee('Les mer og lytt ↗')
+            ->assertSee('Les mer ↗')
+            ->assertSee('Hør ↗')
             ->assertSee('src="'.asset('img/podcast/betjenten-og-psyken.png').'"', false)
-            ->assertSee('target="_blank" rel="noopener noreferrer">Les mer og lytt ↗', false)
-            ->assertSeeInOrder(['Fangenytt', 'podcast-recommendation-card', 'Premier League']);
+            ->assertSee('href="https://www.sykehuset-innlandet.no/podkast/betjenten-og-psyken/" target="_blank" rel="noopener noreferrer">Les mer ↗', false)
+            ->assertSee('href="https://open.spotify.com/show/4DCB36GYqnR3D1d9WIBMHe" target="_blank" rel="noopener noreferrer">Hør ↗', false)
+            ->assertSeeInOrder(['front-page-date', 'podcast-recommendation-card', 'Skriv ut TV-guide – Ringerike fengsel']);
 
         Carbon::setTestNow(Carbon::parse('2026-11-05 08:59:59', 'Europe/Oslo'));
         $this->get(route('tv'))->assertOk()->assertSee('podcast-recommendation-card', false);

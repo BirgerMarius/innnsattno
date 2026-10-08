@@ -108,6 +108,14 @@ class HomepageResponsiveCssTest extends TestCase
             '/@media\s*\(max-width:\s*767\.98px\).*?\.podcast-recommendation-card\s*\{\s*flex-direction:\s*column;/s',
             $this->css
         );
+        $this->assertMatchesRegularExpression(
+            '/\.podcast-recommendation-card__links\s*\{[^}]*display:\s*flex;[^}]*flex-wrap:\s*wrap;/s',
+            $this->css
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media\s*\(max-width:\s*767\.98px\).*?\.podcast-recommendation-card__links\s*\{\s*flex-direction:\s*column;/s',
+            $this->css
+        );
     }
 
     public function testDateFieldsCanWrapInsideTheMobileViewport(): void
