@@ -384,7 +384,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
     @if (!empty($localNews) || !empty($correctionalNews['national']))
         <section class="local-news-section" aria-labelledby="local-news-heading">
             <header class="local-news-section-header">
-                <h2 id="local-news-heading">Lokale nyheter fra Ringerike fengsel</h2>
+                <h2 id="local-news-heading">Lokale nyheter om Ringerike fengsel</h2>
                 <p>Lokale nyheter om Ringerike fengsel fra Ringerikes Blad</p>
             </header>
             @if (!empty($localNews))
