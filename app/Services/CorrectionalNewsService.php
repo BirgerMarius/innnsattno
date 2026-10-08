@@ -133,7 +133,7 @@ class CorrectionalNewsService
         }
 
         $hash = hash('sha256', $url); $externalId = $this->externalId($url);
-        $existing = $externalId ? CorrectionalNewsItem::where('source_key', $source->key())->where('external_id', $externalId)->first() : null;
+        $existing = $externalId ? $this->mergeExistingExternalId($source->key(), $externalId) : null;
         if ($existing) {
             $existing->update(['original_title' => $title, 'normalized_title' => $this->clusterer->normalizedTitle($title), 'original_url' => $url, 'normalized_url' => $url, 'normalized_url_hash' => $hash, 'published_at' => $published, 'fetched_at' => now()]);
             if ($existing->cluster) $this->selectPrimary($existing->cluster->fresh('items'));
@@ -238,6 +238,7 @@ class CorrectionalNewsService
         $remaining = $clusters->reject(fn ($cluster) => $selected->contains('id', $cluster->id))
             ->sortByDesc('primary_published_at')->take(max(0, 5 - $selected->count()));
         return $selected->merge($remaining)->unique('id')->sortByDesc('primary_published_at')
+            ->unique(fn ($cluster) => $this->sourceExternalIdentity($cluster) ?? 'cluster:'.$cluster->id)
             ->map(fn ($cluster) => $this->display($cluster, true))->values()->all();
     }
 
@@ -274,5 +275,26 @@ class CorrectionalNewsService
         return $query ? $normalized.'?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986) : $normalized;
     }
     private function externalId(string $url): ?string { return preg_match('/(?:^|[^0-9])(\d{5,})(?:[^0-9]|$)/', $url, $matches) ? $matches[1] : null; }
+    private function sourceExternalIdentity(CorrectionalNewsCluster $cluster): ?string
+    {
+        $item = $cluster->items()->whereIn('source_key', self::UNION_SOURCE_KEYS)->orderByDesc('fetched_at')->first();
+        if (! $item) return null;
+        $externalId = $item->external_id ?: $this->externalId($item->normalized_url);
+        return $externalId ? $item->source_key.':'.$externalId : null;
+    }
+    private function mergeExistingExternalId(string $sourceKey, string $externalId): ?CorrectionalNewsItem
+    {
+        $items = CorrectionalNewsItem::where('source_key', $sourceKey)->get()->filter(fn ($item) => ($item->external_id ?: $this->externalId($item->normalized_url)) === $externalId)->sortByDesc('fetched_at')->values();
+        $canonical = $items->shift();
+        if (! $canonical) return null;
+        $canonical->update(['external_id' => $externalId]);
+        foreach ($items as $duplicate) {
+            $cluster = $duplicate->cluster;
+            $duplicate->delete();
+            if ($cluster && $cluster->items()->count() === 0) $cluster->delete();
+            elseif ($cluster) $this->selectPrimary($cluster->fresh('items'));
+        }
+        return $canonical->fresh();
+    }
     private function failureKind(Throwable $exception): string { return $exception instanceof ConnectionException ? 'connection_failure' : ($exception instanceof RequestException ? 'http_status' : 'invalid_payload'); }
 }

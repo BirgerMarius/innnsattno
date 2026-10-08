@@ -162,6 +162,18 @@ class CorrectionalNewsServiceTest extends TestCase
         $this->assertSame(2, CorrectionalNewsCluster::count());
     }
 
+    public function test_existing_nff_items_with_the_same_external_id_are_merged_and_not_recreated(): void
+    {
+        $nff = app(NffNewsSource::class); $now = now();
+        foreach (['starthjelp', 'over-200-millioner', '246-millioner'] as $index => $slug) {
+            $cluster = CorrectionalNewsCluster::create(['category'=>'union','display_title'=>'Gammel '.$slug,'primary_source'=>'NFF','primary_url'=>'https://nff.test/'.$slug.'-2719323','primary_published_at'=>$now->copy()->subMinutes($index),'source_count'=>1,'first_seen_at'=>$now,'last_seen_at'=>$now,'expires_at'=>$now->copy()->addDays(30)]);
+            CorrectionalNewsItem::create(['correctional_news_cluster_id'=>$cluster->id,'source_key'=>'nff','source_name'=>'NFF','original_title'=>'Gammel '.$slug,'normalized_title'=>'gammel','original_url'=>'https://nff.test/'.$slug.'-2719323','normalized_url'=>'https://nff.test/'.$slug.'-2719323','normalized_url_hash'=>hash('sha256','https://nff.test/'.$slug.'-2719323'),'published_at'=>$now,'fetched_at'=>$now->copy()->subMinutes($index),'labels'=>[]]);
+        }
+        Http::fake([$nff->url()=>Http::response($this->rss([['Vil bruke 246 millioner på nytt fengsel','https://nff.test/ny-slug-2719323','Tue, 15 Sep 2026 09:00:00 +0200','Kriminalomsorg']]),200)]);
+        $service=app(CorrectionalNewsService::class); $service->refresh('nff'); $this->assertSame(1,CorrectionalNewsItem::where('source_key','nff')->where('external_id','2719323')->count()); $this->assertSame(['Vil bruke 246 millioner på nytt fengsel'],array_column($service->frontPage()['union'],'title'));
+        $service->refresh('nff'); $this->assertSame(1,CorrectionalNewsItem::where('source_key','nff')->where('external_id','2719323')->count());
+    }
+
     public function testUnionListIsBalancedLimitedAndExcludesNonUnionClusters(): void
     {
         $now = now();
