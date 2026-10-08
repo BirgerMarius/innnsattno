@@ -8,6 +8,14 @@ use Tests\TestCase;
 
 class PodcastRecommendationTest extends TestCase
 {
+    public function testPodcastCoverUsesTheCompleteSquareOriginal(): void
+    {
+        $dimensions = getimagesize(public_path('img/podcast/betjenten-og-psyken.png'));
+
+        $this->assertSame(1436, $dimensions[0]);
+        $this->assertSame(1436, $dimensions[1]);
+    }
+
     public function testPodcastRecommendationIsHiddenWithoutPublicationTime(): void
     {
         Config::set('podcast_recommendation.published_at', null);

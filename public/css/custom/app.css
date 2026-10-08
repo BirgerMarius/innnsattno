@@ -479,12 +479,20 @@
 }
 
 .podcast-recommendation-card__image {
-    flex: 0 0 34%;
-    max-width: 34%;
-    object-fit: cover;
+    --podcast-cover-size: clamp(180px, 20vw, 240px);
+    align-self: center;
+    flex: 0 0 var(--podcast-cover-size);
+    height: var(--podcast-cover-size);
+    max-width: var(--podcast-cover-size);
+    object-fit: contain;
+    width: var(--podcast-cover-size);
 }
 
 .podcast-recommendation-card__content {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     padding: 20px 22px;
 }
 

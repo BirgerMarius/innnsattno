@@ -101,7 +101,7 @@ class HomepageResponsiveCssTest extends TestCase
             $this->css
         );
         $this->assertMatchesRegularExpression(
-            '/\.podcast-recommendation-card__image\s*\{[^}]*flex:\s*0\s+0\s+34%;[^}]*object-fit:\s*cover;/s',
+            '/\.podcast-recommendation-card__image\s*\{[^}]*align-self:\s*center;[^}]*height:\s*var\(--podcast-cover-size\);[^}]*object-fit:\s*contain;/s',
             $this->css
         );
         $this->assertMatchesRegularExpression(
