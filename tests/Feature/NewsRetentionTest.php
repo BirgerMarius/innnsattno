@@ -6,8 +6,11 @@ use App\NewsArticle;
 use App\NewsArticleTombstone;
 use App\NewsSource;
 use App\Services\News\NewsFeedService;
+use App\Services\News\NewsArticleRetentionService;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -72,6 +75,23 @@ class NewsRetentionTest extends TestCase
         $this->assertSame(0, NewsArticle::count());
         $this->assertSame(1, NewsArticleTombstone::count());
         $this->assertSame(1, $second['duplicates']);
+    }
+
+    public function testArticleIsNotDeletedWhenRecordingItsTombstoneFails(): void
+    {
+        $source = $this->source();
+        $article = $this->article($source, 'Behold ved feil', now('Europe/Oslo')->subDays(11));
+        DB::unprepared("CREATE TRIGGER fail_news_tombstone BEFORE INSERT ON news_article_tombstones BEGIN SELECT RAISE(FAIL, 'tombstone failed'); END;");
+
+        try {
+            app(NewsArticleRetentionService::class)->discard($article);
+            $this->fail('Forventet feil ved lagring av tombstone.');
+        } catch (QueryException $exception) {
+            $this->assertStringContainsString('tombstone failed', $exception->getMessage());
+        }
+
+        $this->assertDatabaseHas('news_articles', ['id' => $article->id]);
+        $this->assertSame(0, NewsArticleTombstone::count());
     }
 
     private function source(): NewsSource
