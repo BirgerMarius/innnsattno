@@ -17,7 +17,7 @@ use Throwable;
 class NewsFeedService
 {
     private $normalizer; private $parsers;
-    public function __construct(UrlNormalizer $normalizer, XmlFeedParser $xml, Corrections1HtmlParser $corrections, SekoHtmlParser $seko, private ExternalDataFailureNotifier $notifier)
+    public function __construct(UrlNormalizer $normalizer, XmlFeedParser $xml, Corrections1HtmlParser $corrections, SekoHtmlParser $seko, private ExternalDataFailureNotifier $notifier, private NewsArticleRetentionService $retention)
     { $this->normalizer=$normalizer; $this->parsers=[$xml,$corrections,$seko]; }
 
     public function fetchActive(?string $slug = null): array
@@ -38,10 +38,15 @@ class NewsFeedService
             $response->throw(); $items=$parser->parse($response->body(),$source); $report['found']=count($items);
             foreach($items as $item) {
                 $clean=$this->clean($item); if(!$clean) continue;
+                $fetchedAt=now('Europe/Oslo'); $urlHash=NewsArticle::normalizedUrlHash($clean['normalized_url']);
                 $duplicate=$clean['external_id'] ? NewsArticle::where('news_source_id',$source->id)->where('external_id',$clean['external_id'])->exists() : false;
                 $duplicate=$duplicate || NewsArticle::where('news_source_id',$source->id)->where('normalized_url_hash',NewsArticle::normalizedUrlHash($clean['normalized_url']))->exists();
+                $duplicate=$duplicate || $this->retention->hasBeenProcessed($source->id, $clean['external_id'], $urlHash);
                 if($duplicate){$report['duplicates']++; continue;}
-                NewsArticle::create($clean+['news_source_id'=>$source->id,'status'=>NewsArticle::STATUS_PENDING,'fetched_at'=>now()]); $report['new']++;
+                if($this->retention->isExpired($clean['published_at'], $fetchedAt)) {
+                    $this->retention->remember($source->id, $clean['external_id'], $urlHash); $report['duplicates']++; continue;
+                }
+                NewsArticle::create($clean+['news_source_id'=>$source->id,'status'=>NewsArticle::STATUS_PENDING,'fetched_at'=>$fetchedAt]); $report['new']++;
             }
             $source->update(['last_success_at'=>now(),'last_error'=>null]);
         } catch(Throwable $e) {

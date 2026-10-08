@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\NewsArticle;
+use App\Services\News\NewsArticleRetentionService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 class NewsAdminController extends Controller
@@ -19,9 +20,13 @@ class NewsAdminController extends Controller
         $newsArticle->update(['edited_title'=>$data['edited_title']?:null,'edited_excerpt'=>$data['edited_excerpt']?:null]);
         return back()->with('success','Visningsteksten ble lagret.');
     }
-    public function status(Request $request, NewsArticle $newsArticle)
+    public function status(Request $request, NewsArticle $newsArticle, NewsArticleRetentionService $retention)
     {
         $data=$request->validate(['status'=>['required',Rule::in(array_keys(NewsArticle::STATUSES))]]); $published=$data['status']===NewsArticle::STATUS_PUBLISHED;
+        if (in_array($data['status'], [NewsArticle::STATUS_HIDDEN, NewsArticle::STATUS_ARCHIVED], true)) {
+            $retention->discard($newsArticle);
+            return back()->with('success', 'Artikkelen ble slettet og blir ikke hentet inn igjen.');
+        }
         $newsArticle->update(['status'=>$data['status'],'approved_at'=>$published?($newsArticle->approved_at?:now()):null]);
         return back()->with('success','Status ble endret til '.(NewsArticle::STATUSES[$data['status']]??$data['status']).'.');
     }

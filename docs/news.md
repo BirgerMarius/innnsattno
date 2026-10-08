@@ -29,6 +29,7 @@ Hent alle aktive kilder eller én kilde:
 ```bash
 php artisan news:fetch
 php artisan news:fetch --source=corrections1
+php artisan news:prune
 ```
 
 Gå til `/admin/nyheter` med eksisterende admininnlogging. Fanen «Nye» viser `pending`. Der kan visningstittel og egen ingress lagres, og artikkelen publiseres, skjules, arkiveres eller flyttes tilbake til Nye. Kilder administreres på `/admin/nyheter/kilder`, hvor de kan aktiveres/deaktiveres og hentes enkeltvis. Offentlig side er `/nyheter`.

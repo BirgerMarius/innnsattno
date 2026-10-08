@@ -7,6 +7,7 @@ use App\Console\Commands\ExploreSchibstedFootball;
 use App\Console\Commands\ProbeSchibstedFootball;
 use App\Console\Commands\FetchNews;
 use App\Console\Commands\FetchCorrectionalNews;
+use App\Console\Commands\PruneNewsArticles;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -23,6 +24,7 @@ class Kernel extends ConsoleKernel
         ProbeSchibstedFootball::class,
         FetchNews::class,
         FetchCorrectionalNews::class,
+        PruneNewsArticles::class,
     ];
 
     /**
@@ -37,6 +39,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('correctional-news:fetch --source=nff')->everyThirtyMinutes()->withoutOverlapping();
         $schedule->command('correctional-news:fetch --source=ky')->everyThirtyMinutes()->withoutOverlapping();
         $schedule->command('correctional-news:fetch --source=sivilombudet')->everyThirtyMinutes()->withoutOverlapping();
+        $schedule->command('news:prune')->hourly()->withoutOverlapping();
     }
 
     /**

@@ -14,4 +14,9 @@ class NewsSource extends Model
     {
         return $this->hasMany(NewsArticle::class);
     }
+
+    public function articleTombstones()
+    {
+        return $this->hasMany(NewsArticleTombstone::class);
+    }
 }
