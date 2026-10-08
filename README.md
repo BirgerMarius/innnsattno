@@ -53,6 +53,14 @@ Viktige regler:
 
 Produksjonsdeploy skjer med prosjektets separate deployverktøy og er ikke en del av vanlig Codex-implementering. Commit og push innebærer aldri automatisk deploy.
 
+### Sesjonscookie i produksjon
+
+Sesjonscookien er `Secure` som standard når `APP_ENV=production`; sett likevel
+`SESSION_SECURE_COOKIE=true` eksplisitt i produksjonens `.env`. Lokale miljøer
+som kjøres over HTTP kan beholde `SESSION_SECURE_COOKIE=false`. Etter endring
+av `.env` eller konfigurasjon må Laravels konfigurasjonscache tømmes med
+`php artisan optimize:clear` før responsheadere kontrolleres.
+
 ## Fangenytt-arkiv
 
 Fangenytt-metadata lagres varig i tabellen `fangenytt_issues`; `config/fangenytt.php`
