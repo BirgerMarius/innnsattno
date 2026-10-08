@@ -17,7 +17,6 @@ class XmlFeedParser implements ParserInterface
         $isRss = isset($xml->channel); $items = $isRss ? $xml->channel->item : $xml->xpath('/*[local-name()="feed"]/*[local-name()="entry"]'); $result = [];
         foreach ($items as $item) {
             $url = $isRss ? (string) $item->link : $this->xpathValue($item, './*[local-name()="link"]/@href');
-            if ($source->slug === 'nff-magasinet' && strpos($url, '/nffmagasinet/') === false) continue;
             $media = $item->children('http://search.yahoo.com/mrss/');
             $result[] = ['external_id'=>$isRss ? ((string)$item->guid ?: null) : ($this->xpathValue($item,'./*[local-name()="id"]') ?: null), 'url'=>$url, 'title'=>$isRss ? (string)$item->title : $this->xpathValue($item,'./*[local-name()="title"]'),
                 'excerpt'=>$isRss ? (string)$item->description : $this->xpathValue($item,'./*[local-name()="summary"]'), 'author'=>$this->author($item),

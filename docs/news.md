@@ -6,7 +6,7 @@ Nyheter hentes til en modereringskø og blir aldri offentlige før en administra
 
 | Slug | Kilde | Land | Metode |
 | --- | --- | --- | --- |
-| `nff-magasinet` | NFF-magasinet / FriFagbevegelse | Norge | RSS. Den publiserte FriFagbevegelse-feeden er felles; adapteren tar konservativt bare lenker under `/nffmagasinet/`. |
+| `nff-magasinet` | NFF-magasinet / FriFagbevegelse | Norge | RSS fra den dedikerte NFF-magasinet-feeden `https://www.frifagbevegelse.no/nff-magasinet/?lab_viewport=rss`. |
 | `faengselsforbundet` | Fængselsforbundet | Danmark | RSS fra WordPress-feeden `/feed/`. |
 | `seko-kriminalvarden` | Seko, bransje Vård | Sverige | Kildespesifikk HTML-parser. Kontrollerte RSS-adresser ga HTML/404 og ingen stabil feed ble funnet. Artikler filtreres konservativt etter tydelig kriminalomsorgsrelevans i tittel, ingress eller URL. |
 | `corrections1` | Corrections1 Original Content | Internasjonalt | Kildespesifikk HTML-parser. Den oppgitte `original-content-rss`-adressen returnerer vanlig HTML (`text/html`), ikke XML. |
