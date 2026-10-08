@@ -1,16 +1,24 @@
 <?php
 namespace App\Http\Controllers;
+
 use App\NewsArticle;
-use Illuminate\Http\Request;
+
 class NewsController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        $countries=['norge'=>'Norge','sverige'=>'Sverige','danmark'=>'Danmark','internasjonalt'=>'Internasjonalt']; $filter=$request->query('land');
-        if($filter && !isset($countries[$filter])) return redirect()->route('news.index');
-        $articles=NewsArticle::with('source')->where('status',NewsArticle::STATUS_PUBLISHED)
-            ->when($filter,function($q)use($countries,$filter){$q->whereHas('source',function($s)use($countries,$filter){$s->where('country',$countries[$filter]);});})
-            ->orderByRaw('COALESCE(published_at, fetched_at, created_at) DESC')->paginate(12)->withQueryString();
-        return view('news.index',compact('articles','countries','filter'));
+        // `fetched_at` is set only when a new article is created. It is therefore a
+        // stable fallback for sources that omit a publication date; `created_at` is
+        // retained for older rows without a fetched timestamp.
+        $publicDate = 'COALESCE(published_at, fetched_at, created_at)';
+        $cutoff = now('Europe/Oslo')->subDays(10);
+
+        $articles = NewsArticle::with('source')
+            ->where('status', NewsArticle::STATUS_PUBLISHED)
+            ->whereRaw("{$publicDate} >= ?", [$cutoff])
+            ->orderByRaw("{$publicDate} DESC")
+            ->paginate(12);
+
+        return view('news.index', compact('articles'));
     }
 }

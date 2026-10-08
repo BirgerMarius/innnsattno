@@ -4,10 +4,6 @@
 @include('partials.header')
 <main class="container page-container news-page">
  <div class="mb-4"><h1>Nyheter</h1><p class="lead">Kuraterte nyheter om kriminalomsorg, sikkerhet, arbeidsmiljø og rehabilitering.</p></div>
- <nav class="d-flex flex-wrap gap-2 mb-4" aria-label="Filtrer nyheter etter land">
-  <a class="btn {{ !$filter?'btn-primary':'btn-outline-secondary' }}" href="{{ route('news.index') }}">Alle</a>
-  @foreach($countries as $slug=>$country)<a class="btn {{ $filter===$slug?'btn-primary':'btn-outline-secondary' }}" href="{{ route('news.index',['land'=>$slug]) }}">{{ $country }}</a>@endforeach
- </nav>
  <div class="row g-4">
  @forelse($articles as $article)
   <article class="col-12 col-md-6"><div class="card h-100 news-card">
