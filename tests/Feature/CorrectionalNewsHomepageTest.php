@@ -34,7 +34,8 @@ class CorrectionalNewsHomepageTest extends TestCase
 
         $this->get(route('tv'))
             ->assertOk()
-            ->assertSee('Aktuelt fra kriminalomsorgen')
+            ->assertSee('Lokale nyheter fra Ringerike fengsel')
+            ->assertSee('Lokale nyheter om Ringerike fengsel fra Ringerikes Blad')
             ->assertSee('Lokalt')
             ->assertSee('Lokal sak om Ringerike fengsel')
             ->assertSee('Fra fagforeningene')

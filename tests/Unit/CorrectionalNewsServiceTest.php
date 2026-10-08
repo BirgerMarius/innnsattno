@@ -116,12 +116,13 @@ class CorrectionalNewsServiceTest extends TestCase
     {
         $kdi = app(\App\Services\CorrectionalNews\KdiRssSource::class);
         $sivilombudet = app(\App\Services\CorrectionalNews\SivilombudetRssSource::class);
+        $date = now()->toRfc2822String();
         Http::fake([
             $kdi->url() => Http::response($this->rss([
-                ['Nasjonal plan for fengselskapasitet', 'https://ntb.test/pressemelding/kapasitet', 'Tue, 15 Sep 2026 09:00:00 +0200', 'Kriminalomsorg'],
+                ['Nasjonal plan for fengselskapasitet', 'https://ntb.test/pressemelding/kapasitet', $date, 'Kriminalomsorg'],
             ]), 200),
             $sivilombudet->url() => Http::response($this->rss([
-                ['Tilsyn avdekker ulovlig isolasjon i norske fengsler', 'https://sivilombudet.test/uttalelser/isolasjon', 'Tue, 15 Sep 2026 10:00:00 +0200', 'Tilsyn'],
+                ['Tilsyn avdekker ulovlig isolasjon i norske fengsler', 'https://sivilombudet.test/uttalelser/isolasjon', $date, 'Tilsyn'],
             ]), 200),
         ]);
 

@@ -59,6 +59,13 @@ HTML-utskriftsruter svarer med `X-Robots-Tag: noindex, follow`. De står ikke i
 `robots.txt`, fordi søkemotorer må kunne hente en side for å oppdage `noindex`.
 Dette påvirker ikke Fangenytt-PDF-er eller vanlige innholdssider.
 
+## Nasjonale nyheter på forsiden
+
+KDI- og Sivilombudet-feeder hentes og caches separat, men vises bare når en fersk
+sak oppfyller de eksplisitte relevans- og nasjonalitetskriteriene. Forsidens
+Ringblad-blokk beskriver derfor kun lokale nyheter; fagforeningsnyheter og den
+separate `/nyheter`-siden er uavhengige av dette utvalget.
+
 ### Sesjonscookie i produksjon
 
 Sesjonscookien er `Secure` som standard når `APP_ENV=production`; sett likevel
