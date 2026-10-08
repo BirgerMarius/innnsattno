@@ -1,4 +1,4 @@
-
+@include('partials.tv-print-head', ['title' => 'TV-guide – Ilseng fengsel | Innsatt.no'])
 
 @php
     $now = \Carbon\Carbon::now();
@@ -110,3 +110,5 @@
 </div>
 
 @include('partials.print-redirect', ['fallbackUrl' => route('tv', [], false), 'autoPrint' => true])
+</body>
+</html>

@@ -11,8 +11,8 @@
 
         <div class="tidsfordriv-info">
             Velg vanskelighetsgrad og antall sider.<br>
-            PDF-en åpnes automatisk og kan skrives ut eller lagres.<br>
-            Dersom du huker av <strong>Ta med fasit</strong>, legges løsningene bakerst i dokumentet.
+            En utskriftsvennlig side åpnes automatisk og kan skrives ut fra nettleseren.<br>
+            Dersom du huker av <strong>Ta med fasit</strong>, vises løsningene bakerst på utskriftssiden.
         </div>
 
         @if(session('error'))

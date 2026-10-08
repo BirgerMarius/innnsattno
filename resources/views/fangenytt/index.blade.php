@@ -20,7 +20,7 @@
                     <article class="fangenytt-issue-card">
                         <a class="fangenytt-cover-link" href="{{ route('fangenytt.pdf', ['number' => $issue['number']]) }}" target="_blank" rel="noopener noreferrer">
                             @if ($issue['has_cover'])
-                                <img class="fangenytt-cover" src="{{ route('fangenytt.cover', ['number' => $issue['number']]) }}" alt="Forside til Fangenytt nr. {{ $issue['number'] }}">
+                                <img class="fangenytt-cover" src="{{ route('fangenytt.cover', ['number' => $issue['number']]) }}" alt="Forside til Fangenytt nr. {{ $issue['number'] }}" width="108" height="144" loading="lazy">
                             @else
                                 <span class="fangenytt-cover-placeholder" aria-label="Forside ikke tilgjengelig">Forside<br>ikke tilgjengelig</span>
                             @endif

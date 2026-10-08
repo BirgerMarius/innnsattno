@@ -710,11 +710,14 @@
     border-radius: 3px;
     box-shadow: 0 2px 5px rgba(27, 54, 93, .14);
     display: block;
+    aspect-ratio: 3 / 4;
     height: auto;
     max-width: 108px;
 }
 
 .fangenytt-cover {
+    height: 144px;
+    object-fit: contain;
     width: 108px;
 }
 
