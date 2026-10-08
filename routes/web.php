@@ -45,6 +45,14 @@ Route::get('/', function () {
 });
 
 Route::get('/tv', [FrontPageController::class, 'index'])->name('tv');
+Route::get('/podkast/betjenten-og-psyken/les-mer', function () {
+    return redirect()->away('https://www.sykehuset-innlandet.no/podkast/betjenten-og-psyken/', 302)
+        ->header('Cache-Control', 'no-store');
+})->name('podcast-recommendation.read-more');
+Route::get('/podkast/betjenten-og-psyken/hor', function () {
+    return redirect()->away('https://open.spotify.com/show/4DCB36GYqnR3D1d9WIBMHe', 302)
+        ->header('Cache-Control', 'no-store');
+})->name('podcast-recommendation.listen');
 Route::get('/design-test', [FrontPageController::class, 'overview'])->name('design-test.index');
 Route::get('/design-test/{theme}', [FrontPageController::class, 'preview'])->name('design-test.preview');
 

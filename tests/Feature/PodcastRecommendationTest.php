@@ -8,6 +8,26 @@ use Tests\TestCase;
 
 class PodcastRecommendationTest extends TestCase
 {
+    public function testPodcastReadMoreRedirectUsesTheFixedTargetWithoutCaching(): void
+    {
+        $response = $this->get('/podkast/betjenten-og-psyken/les-mer?target=https://example.test');
+
+        $response
+            ->assertStatus(302)
+            ->assertHeader('Location', 'https://www.sykehuset-innlandet.no/podkast/betjenten-og-psyken/');
+        $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
+    }
+
+    public function testPodcastListenRedirectUsesTheFixedTargetWithoutCaching(): void
+    {
+        $response = $this->get('/podkast/betjenten-og-psyken/hor?target=https://example.test');
+
+        $response
+            ->assertStatus(302)
+            ->assertHeader('Location', 'https://open.spotify.com/show/4DCB36GYqnR3D1d9WIBMHe');
+        $this->assertStringContainsString('no-store', $response->headers->get('Cache-Control'));
+    }
+
     public function testPodcastCoverUsesTheCompleteSquareOriginal(): void
     {
         $dimensions = getimagesize(public_path('img/podcast/betjenten-og-psyken.png'));
@@ -44,8 +64,8 @@ class PodcastRecommendationTest extends TestCase
             ->assertSee('Les mer ↗')
             ->assertSee('Hør ↗')
             ->assertSee('src="'.asset('img/podcast/betjenten-og-psyken.png').'"', false)
-            ->assertSee('href="https://www.sykehuset-innlandet.no/podkast/betjenten-og-psyken/" target="_blank" rel="noopener noreferrer">Les mer ↗', false)
-            ->assertSee('href="https://open.spotify.com/show/4DCB36GYqnR3D1d9WIBMHe" target="_blank" rel="noopener noreferrer">Hør ↗', false)
+            ->assertSee('href="/podkast/betjenten-og-psyken/les-mer" target="_blank" rel="noopener noreferrer">Les mer ↗', false)
+            ->assertSee('href="/podkast/betjenten-og-psyken/hor" target="_blank" rel="noopener noreferrer">Hør ↗', false)
             ->assertSeeInOrder(['front-page-date', 'podcast-recommendation-card', 'Skriv ut TV-guide – Ringerike fengsel']);
 
         Carbon::setTestNow(Carbon::parse('2026-11-05 08:59:59', 'Europe/Oslo'));

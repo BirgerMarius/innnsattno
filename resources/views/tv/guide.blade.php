@@ -282,8 +282,8 @@ $isEvenWeek = $weekNumber % 2 === 0;
                 <p>Samtaler om psykisk helse i fengsel med ansatte i kriminalomsorgen og terapeuter.</p>
                 <p class="podcast-recommendation-card__publisher">En podkast fra Sykehuset Innlandet</p>
                 <div class="podcast-recommendation-card__links">
-                    <a class="podcast-recommendation-card__link" href="https://www.sykehuset-innlandet.no/podkast/betjenten-og-psyken/" target="_blank" rel="noopener noreferrer">Les mer ↗</a>
-                    <a class="podcast-recommendation-card__link" href="https://open.spotify.com/show/4DCB36GYqnR3D1d9WIBMHe" target="_blank" rel="noopener noreferrer">Hør ↗</a>
+                    <a class="podcast-recommendation-card__link" href="{{ route('podcast-recommendation.read-more', [], false) }}" target="_blank" rel="noopener noreferrer">Les mer ↗</a>
+                    <a class="podcast-recommendation-card__link" href="{{ route('podcast-recommendation.listen', [], false) }}" target="_blank" rel="noopener noreferrer">Hør ↗</a>
                 </div>
             </div>
         </article>

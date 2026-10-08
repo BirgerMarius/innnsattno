@@ -37,6 +37,12 @@ Ikke skriv administratorens faktiske IP, andre private verdier, hemmeligheter el
 
 Uptime Kuma klassifiseres normalt som `monitoring`. Hvis den kommer fra samme IP som `ADMIN_IP`, får eksplisitt IP-ekskludering prioritet og trafikken vises som `excluded`. Det er ønsket: administrator-, test- og overvåkingstrafikk skal ikke inngå i brukerstatistikken.
 
+### Videresendinger for podkastanbefalingen
+
+`/podkast/betjenten-og-psyken/les-mer` og `/podkast/betjenten-og-psyken/hor` er applikasjonsstyrte `302`-videresendinger med faste mål-URL-er. Nginx logger forespørslene som vanlige access-loggoppføringer, og GoAccess tar som standard med `3xx`-statuskoder i rapportens forespørsels- og statusoversikter. De er ikke menneskelige sidevisninger i det begrensede admin-sammendraget: innsamleren klassifiserer bare vellykkede `GET`-svar med `2xx` som sidekandidater.
+
+Det er ingen Nginx-endring nødvendig så lenge nettstedets vanlige `access_log` fortsatt skriver alle statuskoder til `/var/log/nginx/innsatt.no-access.log`. Ved produksjonsoppdateringen skal driftsansvarlig kontrollere at `/root/innsatt-statistikk/oppdater-rapport.sh` ikke filtrerer bort `3xx`-linjer før GoAccess, og at GoAccess ikke startes med en `--ignore-status=302`-regel eller en sti-ekskludering som dekker `/podkast/betjenten-og-psyken/`. Hvis en slik filtrering finnes, skal den fjernes for disse rutene og rapporten regenereres fra de samme Nginx-loggene.
+
 ## Schema 4 og adminvisningen
 
 Schema 4 har tre hoveddeler:
