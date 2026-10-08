@@ -1,0 +1,4 @@
+<?php
+namespace Tests\Feature;
+use Tests\TestCase;
+class WordSearchPrintTest extends TestCase { public function test_print_uses_the_same_puzzle_and_new_puzzle_gets_a_new_identifier(): void { $first=$this->get('/ordjakt?kategori=dyr'); preg_match('/puzzle=([a-f0-9-]+)/', $first->getContent(), $match); $this->assertNotEmpty($match[1]); $puzzle=session('wordsearch.puzzles.'.$match[1]); $print=$this->get('/ordjakt/utskrift?puzzle='.$match[1]); $print->assertOk(); foreach ($puzzle['words'] as $word) $print->assertSee($word['display']); foreach ($puzzle['grid'] as $row) foreach ($row as $letter) $this->assertStringContainsString('>'.$letter.'</td>', $print->getContent()); $second=$this->get('/ordjakt?kategori=dyr'); $this->assertNotSame($match[1], preg_replace('/.*puzzle=([a-f0-9-]+).*/s','$1',$second->getContent())); } }

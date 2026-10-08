@@ -132,7 +132,13 @@ class CorrectionalNewsService
             return 'rejected';
         }
 
-        $hash = hash('sha256', $url);
+        $hash = hash('sha256', $url); $externalId = $this->externalId($url);
+        $existing = $externalId ? CorrectionalNewsItem::where('source_key', $source->key())->where('external_id', $externalId)->first() : null;
+        if ($existing) {
+            $existing->update(['original_title' => $title, 'normalized_title' => $this->clusterer->normalizedTitle($title), 'original_url' => $url, 'normalized_url' => $url, 'normalized_url_hash' => $hash, 'published_at' => $published, 'fetched_at' => now()]);
+            if ($existing->cluster) $this->selectPrimary($existing->cluster->fresh('items'));
+            return 'updated';
+        }
         $existing = CorrectionalNewsItem::where('normalized_url_hash', $hash)->first();
         if ($existing) {
             $existing->update([
@@ -157,7 +163,7 @@ class CorrectionalNewsService
             ]);
         }
         $item = CorrectionalNewsItem::create([
-            'correctional_news_cluster_id' => $cluster->id, 'source_key' => $source->key(), 'source_name' => $source->name(),
+            'correctional_news_cluster_id' => $cluster->id, 'source_key' => $source->key(), 'external_id' => $externalId, 'source_name' => $source->name(),
             'original_title' => $title, 'normalized_title' => $this->clusterer->normalizedTitle($title),
             'original_url' => $url, 'normalized_url' => $url, 'normalized_url_hash' => $hash,
             'published_at' => $published, 'fetched_at' => now(), 'relevance_score' => $score,
@@ -267,5 +273,6 @@ class CorrectionalNewsService
         $normalized = strtolower($parts['scheme']).'://'.strtolower($parts['host']).($parts['path'] ?? '/');
         return $query ? $normalized.'?'.http_build_query($query, '', '&', PHP_QUERY_RFC3986) : $normalized;
     }
+    private function externalId(string $url): ?string { return preg_match('/(?:^|[^0-9])(\d{5,})(?:[^0-9]|$)/', $url, $matches) ? $matches[1] : null; }
     private function failureKind(Throwable $exception): string { return $exception instanceof ConnectionException ? 'connection_failure' : ($exception instanceof RequestException ? 'http_status' : 'invalid_payload'); }
 }

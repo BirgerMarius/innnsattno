@@ -29,7 +29,7 @@
                     Ny ordjakt
                 </a>
 
-                <a href="/ordjakt/utskrift?kategori={{ $selectedCategory }}" class="btn btn-success">
+                <a href="/ordjakt/utskrift?puzzle={{ $puzzleId }}" class="btn btn-success">
                     Utskriftsversjon
                 </a>
             </div>

@@ -53,6 +53,12 @@ Viktige regler:
 
 Produksjonsdeploy skjer med prosjektets separate deployverktøy og er ikke en del av vanlig Codex-implementering. Commit og push innebærer aldri automatisk deploy.
 
+## Søkemotorer og utskrift
+
+HTML-utskriftsruter svarer med `X-Robots-Tag: noindex, follow`. De står ikke i
+`robots.txt`, fordi søkemotorer må kunne hente en side for å oppdage `noindex`.
+Dette påvirker ikke Fangenytt-PDF-er eller vanlige innholdssider.
+
 ### Sesjonscookie i produksjon
 
 Sesjonscookien er `Secure` som standard når `APP_ENV=production`; sett likevel

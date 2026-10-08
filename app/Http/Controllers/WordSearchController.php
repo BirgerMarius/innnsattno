@@ -18,6 +18,8 @@ class WordSearchController extends Controller
     {
         $category = $request->query('kategori', $this->generator->defaultCategory());
         $puzzle = $this->generator->generate($category);
+        $puzzleId = (string) \Illuminate\Support\Str::uuid();
+        $request->session()->put('wordsearch.puzzles.'.$puzzleId, $puzzle);
 
         return view('wordsearch.index', [
             'grid' => $puzzle['grid'],
@@ -25,18 +27,22 @@ class WordSearchController extends Controller
             'categories' => $this->generator->categories(),
             'selectedCategory' => $puzzle['categoryKey'],
             'categoryName' => $puzzle['category'],
+            'puzzleId' => $puzzleId,
         ]);
     }
 
     public function print(Request $request)
     {
-        $category = $request->query('kategori', $this->generator->defaultCategory());
-        $puzzle = $this->generator->generate($category);
+        $puzzleId = (string) $request->query('puzzle');
+        $puzzle = $request->session()->get('wordsearch.puzzles.'.$puzzleId);
+        if (! is_array($puzzle)) { $puzzle = $this->generator->generate($request->query('kategori', $this->generator->defaultCategory())); $puzzleId = (string) \Illuminate\Support\Str::uuid(); $request->session()->put('wordsearch.puzzles.'.$puzzleId, $puzzle); }
 
         return view('wordsearch.print', [
             'grid' => $puzzle['grid'],
             'words' => $puzzle['words'],
+            'puzzle' => $puzzle,
             'categoryName' => $puzzle['category'],
+            'puzzleId' => $puzzleId,
         ]);
     }
 }

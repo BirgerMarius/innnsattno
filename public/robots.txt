@@ -8,5 +8,4 @@ User-agent: GoogleOther
 Disallow: /
 
 User-agent: *
-Disallow: /bonnetider/utskrift
-Disallow: /bonnetider-ilseng/utskrift
+# Utskriftssider svarer med noindex og må kunne crawles for at direktivet skal oppdages.

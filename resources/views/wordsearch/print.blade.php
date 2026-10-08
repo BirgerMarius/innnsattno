@@ -2,6 +2,7 @@
 <html lang="no">
 <head>
 <meta charset="UTF-8">
+<meta name="robots" content="noindex,follow">
 <title>Ordjakt</title>
 
 <style>
@@ -111,7 +112,7 @@ td{
 
 </ul>
 
-@include('partials.print-redirect', ['fallbackUrl' => '/ordjakt?kategori='.urlencode(request('kategori', '')), 'autoPrint' => true])
+@include('partials.print-redirect', ['fallbackUrl' => '/ordjakt?kategori='.urlencode($puzzle['categoryKey']).'&puzzle='.urlencode($puzzleId), 'autoPrint' => true])
 
 </body>
 </html>
