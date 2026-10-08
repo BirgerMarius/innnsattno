@@ -319,6 +319,24 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <small>Magasin for innsatte – klar til utskrift</small>
         </a>
 
+        @if ($showPodcastRecommendation)
+            <article class="podcast-recommendation-card front-page-grid__wide" aria-labelledby="podcast-recommendation-title">
+                <img class="podcast-recommendation-card__image"
+                     src="{{ asset('img/podcast/betjenten-og-psyken.png') }}"
+                     alt="To hoder med en nøkkel i midten, illustrasjon fra podkasten Betjenten og psyken"
+                     width="1200"
+                     height="628"
+                     decoding="async">
+                <div class="podcast-recommendation-card__content">
+                    <span class="podcast-recommendation-card__label">Anbefales</span>
+                    <h2 id="podcast-recommendation-title">Betjenten og psyken</h2>
+                    <p>Samtaler om psykisk helse i fengsel med ansatte i kriminalomsorgen og terapeuter.</p>
+                    <p class="podcast-recommendation-card__publisher">En podkast fra Sykehuset Innlandet</p>
+                    <a href="https://www.sykehuset-innlandet.no/podkast/betjenten-og-psyken/" target="_blank" rel="noopener noreferrer">Les mer og lytt ↗</a>
+                </div>
+            </article>
+        @endif
+
         <a href="/premier-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Premier League 2026/27
         </a>

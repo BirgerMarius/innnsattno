@@ -94,6 +94,22 @@ class HomepageResponsiveCssTest extends TestCase
         );
     }
 
+    public function testPodcastRecommendationUsesSideBySideLayoutOnLargeScreensAndStacksOnMobile(): void
+    {
+        $this->assertMatchesRegularExpression(
+            '/\.podcast-recommendation-card\s*\{[^}]*display:\s*flex;/s',
+            $this->css
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.podcast-recommendation-card__image\s*\{[^}]*flex:\s*0\s+0\s+34%;[^}]*object-fit:\s*cover;/s',
+            $this->css
+        );
+        $this->assertMatchesRegularExpression(
+            '/@media\s*\(max-width:\s*767\.98px\).*?\.podcast-recommendation-card\s*\{\s*flex-direction:\s*column;/s',
+            $this->css
+        );
+    }
+
     public function testDateFieldsCanWrapInsideTheMobileViewport(): void
     {
         $this->assertMatchesRegularExpression(

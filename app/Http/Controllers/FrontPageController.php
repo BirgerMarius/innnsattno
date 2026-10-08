@@ -56,6 +56,7 @@ class FrontPageController extends Controller
             ),
             'showActivitiesNewBadge' => $this->showActivitiesNewBadge($today),
             'showFangenyttNewBadge' => $this->showNewBadge($today, config('fangenytt.published_at')),
+            'showPodcastRecommendation' => $this->showPodcastRecommendation($today),
         ]);
     }
 
@@ -78,5 +79,23 @@ class FrontPageController extends Controller
 
         return $now->greaterThanOrEqualTo($publishedAt)
             && $now->lessThan($publishedAt->copy()->addDays(14));
+    }
+
+    private function showPodcastRecommendation(Carbon $now): bool
+    {
+        $publishedAt = config('podcast_recommendation.published_at');
+
+        if (! is_string($publishedAt) || trim($publishedAt) === '') {
+            return false;
+        }
+
+        try {
+            $publishedAt = Carbon::parse($publishedAt, FlagDayService::TIMEZONE);
+        } catch (\Exception) {
+            return false;
+        }
+
+        return $now->greaterThanOrEqualTo($publishedAt)
+            && $now->lessThan($publishedAt->copy()->addWeeks(4));
     }
 }

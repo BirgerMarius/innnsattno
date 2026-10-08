@@ -463,6 +463,70 @@
     margin: 0;
 }
 
+.front-page-grid__wide {
+    grid-column: 1 / -1;
+}
+
+.podcast-recommendation-card {
+    align-items: stretch;
+    background: #fff;
+    border: 1px solid #d8e5dc;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(27, 54, 93, 0.08);
+    display: flex;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.podcast-recommendation-card__image {
+    flex: 0 0 34%;
+    max-width: 34%;
+    object-fit: cover;
+}
+
+.podcast-recommendation-card__content {
+    padding: 20px 22px;
+}
+
+.podcast-recommendation-card__label {
+    background: #198754;
+    border-radius: 999px;
+    color: #fff;
+    display: inline-block;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    margin-bottom: 8px;
+    padding: 3px 9px;
+}
+
+.podcast-recommendation-card h2 {
+    color: #173f72;
+    font-size: 1.35rem;
+    margin: 0 0 8px;
+}
+
+.podcast-recommendation-card p {
+    margin: 0 0 8px;
+}
+
+.podcast-recommendation-card__publisher {
+    color: #5f6b65;
+    font-size: .9rem;
+}
+
+.podcast-recommendation-card a {
+    color: #126a43;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: .15em;
+}
+
+.podcast-recommendation-card a:hover,
+.podcast-recommendation-card a:focus-visible {
+    color: #0b4f31;
+}
+
 .front-page-grid__pastimes {
     display: grid;
     gap: 8px;
@@ -884,6 +948,21 @@
     .front-page-grid__pastimes {
         grid-column: auto;
         grid-template-columns: 1fr;
+    }
+
+    .front-page-grid__wide {
+        grid-column: auto;
+    }
+
+    .podcast-recommendation-card {
+        flex-direction: column;
+    }
+
+    .podcast-recommendation-card__image {
+        flex-basis: auto;
+        height: auto;
+        max-width: 100%;
+        width: 100%;
     }
 }
 
