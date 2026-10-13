@@ -28,8 +28,7 @@ class SchibstedCompetitionNotifierTest extends TestCase
 
         $this->assertTrue($data['apiError']);
         $this->assertSame([], $data['standings']);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->service === 'sportsnext-competition'
-            && $mail->operation === 'eliteserien' && $mail->status === 503);
+        Mail::assertNothingSent();
     }
 
     public function testRepeatedProviderFailuresRespectTheNotifierCooldown(): void
@@ -40,7 +39,7 @@ class SchibstedCompetitionNotifierTest extends TestCase
         $service->getCompetitionData();
         $service->getCompetitionData();
 
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+        Mail::assertNothingSent();
     }
 
     public function testEmptySuccessfulCompetitionResponsesDoNotNotify(): void

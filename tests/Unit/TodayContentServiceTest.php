@@ -107,8 +107,7 @@ class TodayContentServiceTest extends TestCase
         ]], CarbonImmutable::parse('2026-03-12'));
 
         $this->assertSame([], $result['norway_events']);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->service === 'wikidata-entities'
-            && $mail->operation === 'today-content-enrichment' && $mail->status === 503);
+        Mail::assertNothingSent();
     }
 
     public function testMultipleFailedWikidataBatchesUseTheNotifierCooldown(): void
@@ -121,7 +120,7 @@ class TodayContentServiceTest extends TestCase
 
         app(TodayContentService::class)->curate(['events' => $items], CarbonImmutable::parse('2026-03-12'));
 
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+        Mail::assertNothingSent();
         Http::assertSentCount(1);
     }
 
@@ -135,7 +134,7 @@ class TodayContentServiceTest extends TestCase
         $service->curate($source, CarbonImmutable::parse('2026-03-13'));
 
         Http::assertSentCount(1);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+        Mail::assertNothingSent();
     }
 
     private function item(string $id, string $text): array

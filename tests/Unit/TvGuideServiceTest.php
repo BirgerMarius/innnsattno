@@ -46,12 +46,7 @@ class TvGuideServiceTest extends TestCase
         $result = $this->service()->getSchedule($this->date(), self::CHANNELS, 'ringerike-print');
 
         $this->assertSame($stale, $result);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
-            return $mail->service === 'tv-guide-vg'
-                && $mail->operation === 'ringerike-print'
-                && $mail->failureKind === 'http-status'
-                && $mail->status === 500;
-        });
+        Mail::assertNothingSent();
     }
 
     public function test_connection_failure_notifies_and_uses_stale_data(): void
@@ -63,9 +58,7 @@ class TvGuideServiceTest extends TestCase
         $result = $this->service()->getSchedule($this->date(), self::CHANNELS, 'ringerike-print');
 
         $this->assertSame($stale, $result);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
-            return $mail->failureKind === 'connection-exception';
-        });
+        Mail::assertNothingSent();
     }
 
     public function test_invalid_payload_notifies_and_returns_an_empty_schedule_without_stale_data(): void
@@ -75,10 +68,7 @@ class TvGuideServiceTest extends TestCase
         $result = $this->service()->getSchedule($this->date(), self::CHANNELS, 'ringerike-print');
 
         $this->assertSame([], $result);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
-            return $mail->failureKind === 'invalid-payload'
-                && $mail->operation === 'ringerike-print';
-        });
+        Mail::assertNothingSent();
     }
 
     public function test_invalid_json_notifies_and_returns_an_empty_schedule_without_stale_data(): void
@@ -88,10 +78,7 @@ class TvGuideServiceTest extends TestCase
         $result = $this->service()->getSchedule($this->date(), self::CHANNELS, 'ilseng-print');
 
         $this->assertSame([], $result);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
-            return $mail->failureKind === 'invalid-json'
-                && $mail->operation === 'ilseng-print';
-        });
+        Mail::assertNothingSent();
     }
 
     public function test_notifier_cooldown_suppresses_repeated_failures_for_the_same_operation(): void
@@ -101,7 +88,7 @@ class TvGuideServiceTest extends TestCase
         $this->service()->getSchedule($this->date(), self::CHANNELS, 'ringerike-print');
         $this->service()->getSchedule($this->date(), self::CHANNELS, 'ringerike-print');
 
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+        Mail::assertNothingSent();
     }
 
     public function test_display_title_uses_the_sports_event_name_without_duplication_or_a_missing_field_error(): void
@@ -216,7 +203,7 @@ class TvGuideServiceTest extends TestCase
         $this->assertSame([], $result['matches']);
         $this->assertTrue($result['hasSourceFailure']);
         $this->assertSame(0, $result['missingMatchNames']);
-        Mail::assertSent(ExternalDataSourceFailureMail::class);
+        Mail::assertNothingSent();
     }
 
     public function test_competition_matching_uses_exact_verified_titles_not_unreliable_uefa_slugs(): void

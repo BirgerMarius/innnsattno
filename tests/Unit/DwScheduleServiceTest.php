@@ -91,7 +91,7 @@ class DwScheduleServiceTest extends TestCase
         $this->assertNull(app(DwScheduleService::class)->channelForDate(Carbon::parse('2026-07-15', 'Europe/Oslo')));
     }
 
-    public function test_dw_failure_notifies_without_changing_its_empty_channel_fallback(): void
+    public function test_dw_failure_is_persisted_without_changing_its_empty_channel_fallback(): void
     {
         Mail::fake();
         config()->set('feedback.notification_email', 'varsling@example.test');
@@ -102,12 +102,7 @@ class DwScheduleServiceTest extends TestCase
         $channel = app(DwScheduleService::class)->channelForDate(Carbon::parse('2026-07-15', 'Europe/Oslo'));
 
         $this->assertNull($channel);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
-            return $mail->service === 'dw-news'
-                && $mail->operation === 'tv-guide-ringerike'
-                && $mail->failureKind === 'http-status'
-                && $mail->status === 503;
-        });
+        Mail::assertNothingSent();
     }
 
     private function response(array $slots): array

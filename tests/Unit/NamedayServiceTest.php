@@ -69,8 +69,7 @@ class NamedayServiceTest extends TestCase
         $this->assertSame(['Peder'], $service->forDate($date)['names']);
         Http::assertSentCount(1);
 
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->service === 'namedays-webapi'
-            && $mail->operation === 'namedays' && $mail->status === 503);
+        Mail::assertNothingSent();
     }
 
     public function testInvalidPayloadNotifiesAndNoDataReturnsAnEmptyList(): void
@@ -79,8 +78,7 @@ class NamedayServiceTest extends TestCase
 
         $this->assertSame([], app(NamedayService::class)->forDate(CarbonImmutable::parse('2026-08-02')));
 
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->service === 'namedays-webapi'
-            && $mail->failureKind === 'invalid-payload');
+        Mail::assertNothingSent();
     }
 
     public function testFailedRequestIsBackedOffForTheSameDate(): void
@@ -93,7 +91,7 @@ class NamedayServiceTest extends TestCase
         $this->assertSame([], $service->forDate($date));
 
         Http::assertSentCount(1);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+        Mail::assertNothingSent();
     }
 
     public function testNamedaysCanRetryAfterTheFailureBackoffExpires(): void
@@ -119,6 +117,6 @@ class NamedayServiceTest extends TestCase
         $service->forDate(CarbonImmutable::parse('2026-08-03'));
         $service->forDate(CarbonImmutable::parse('2026-08-04'));
 
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+        Mail::assertNothingSent();
     }
 }

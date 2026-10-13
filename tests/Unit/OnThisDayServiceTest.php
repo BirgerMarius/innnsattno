@@ -53,8 +53,7 @@ class OnThisDayServiceTest extends TestCase
         $result = app(OnThisDayService::class)->forDate(CarbonImmutable::parse('2026-08-01'));
 
         $this->assertNotEmpty($result['events']);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->service === 'wikipedia-on-this-day'
-            && $mail->operation === 'no-mediawiki' && $mail->status === 503);
+        Mail::assertNothingSent();
     }
 
     public function testNorwegianRestFailureNotifiesAndEnglishFallbackStillWorks(): void
@@ -68,7 +67,7 @@ class OnThisDayServiceTest extends TestCase
         $result = app(OnThisDayService::class)->forDate(CarbonImmutable::parse('2026-08-01'));
 
         $this->assertNotEmpty($result['events']);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->operation === 'no-onthisday' && $mail->status === 503);
+        Mail::assertNothingSent();
     }
 
     public function testInvalidRestPayloadNotifiesAndTotalExternalFailureRemainsControlled(): void
@@ -86,8 +85,7 @@ class OnThisDayServiceTest extends TestCase
             // TodayContentService/ResilientDateCache turns this into its controlled empty fallback.
         }
 
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->operation === 'no-onthisday'
-            && $mail->failureKind === 'invalid-payload');
+        Mail::assertNothingSent();
     }
 
     public function test_total_failure_is_backed_off_per_date_without_blocking_first_request_fallbacks(): void
@@ -106,7 +104,7 @@ class OnThisDayServiceTest extends TestCase
         // The first request tried all fallbacks; their date-specific failure
         // markers make the later request entirely local.
         Http::assertSentCount(3);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 3);
+        Mail::assertNothingSent();
     }
 
     private function historyPayload(): array

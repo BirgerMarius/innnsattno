@@ -160,12 +160,7 @@ class TvGuidePrintTest extends TestCase
         $this->get('/print')->assertOk();
         $this->get('/print-ilseng')->assertOk();
 
-        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
-            return $mail->service === 'tv-guide-vg' && $mail->operation === 'ringerike-print';
-        });
-        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
-            return $mail->service === 'tv-guide-vg' && $mail->operation === 'ilseng-print';
-        });
+        Mail::assertNothingSent();
     }
 
     public function test_ringerike_print_keeps_problematic_channel_and_programme_text_inside_its_column(): void

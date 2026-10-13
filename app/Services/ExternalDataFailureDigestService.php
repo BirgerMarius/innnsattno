@@ -68,10 +68,15 @@ class ExternalDataFailureDigestService
     {
         $key = $end->format('Y-m-d');
         return DB::transaction(function () use ($end, $key) {
-            $digest = ExternalDataFailureDigest::lockForUpdate()->firstOrCreate(
-                ['digest_key' => $key],
-                ['period_starts_at' => $end->copy()->subDay(), 'period_ends_at' => $end, 'status' => 'pending']
-            );
+            // A failed delivery always wins over a new daily period. Its original
+            // window is retained, so source failures are never silently dropped.
+            $digest = ExternalDataFailureDigest::where('status', 'failed')->orderBy('period_ends_at')->lockForUpdate()->first();
+            if (! $digest) {
+                $digest = ExternalDataFailureDigest::lockForUpdate()->firstOrCreate(
+                    ['digest_key' => $key],
+                    ['period_starts_at' => $end->copy()->subDay(), 'period_ends_at' => $end, 'status' => 'pending']
+                );
+            }
             $digest->refresh();
             if ($digest->status === 'sent') {
                 return null;

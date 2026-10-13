@@ -88,4 +88,20 @@ class ExternalDataFailureNotifierTest extends TestCase
         $this->assertDatabaseCount('external_data_source_events', 1);
         $this->assertSame('failed', ExternalDataFailureDigest::firstOrFail()->status);
     }
+
+    public function test_retry_sends_the_original_failed_window_after_the_next_day_has_started(): void
+    {
+        app(ExternalDataFailureNotifier::class)->report('met-weather', 'Kilden svarte ikke.', ['operation' => 'ilseng', 'failure_kind' => 'connection_failure']);
+        Mail::shouldReceive('to')->once()->andThrow(new RuntimeException('Transportfeil'));
+        $service = app(ExternalDataFailureDigestService::class);
+        $this->assertFalse($service->send());
+
+        Carbon::setTestNow(Carbon::parse('2026-10-14 06:45:00', 'Europe/Oslo'));
+        Mail::fake();
+        $this->assertTrue($service->send());
+        Mail::assertSent(ExternalDataFailureDigestMail::class, function ($mail) {
+            $this->assertSame('2026-10-13 06:45:00 CEST', $mail->periodEnd);
+            return $mail->groups[0]['service'] === 'met-weather';
+        });
+    }
 }

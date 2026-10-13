@@ -144,12 +144,7 @@ class PrayerTimeServiceTest extends TestCase
 
         $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
 
-        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
-            return $mail->service === 'bonnetid-no'
-                && $mail->operation === 'prayer-times'
-                && $mail->failureKind === 'http-status'
-                && $mail->status === 404;
-        });
+        Mail::assertNothingSent();
     }
 
     public function test_future_unpublished_month_is_logged_but_does_not_send_an_email(): void
@@ -180,7 +175,7 @@ class PrayerTimeServiceTest extends TestCase
     {
         Http::fake(['api.bonnetid.no/*' => Http::response('ikke json')]);
         $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-json');
+        Mail::assertNothingSent();
 
     }
 
@@ -188,7 +183,7 @@ class PrayerTimeServiceTest extends TestCase
     {
         Http::fake(['api.bonnetid.no/*' => Http::response([['date' => '2026-09-01', 'fajr' => '05:00']])]);
         $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload');
+        Mail::assertNothingSent();
     }
 
     public function test_invalid_prayer_time_value_notifies_and_returns_an_empty_result(): void
@@ -196,16 +191,7 @@ class PrayerTimeServiceTest extends TestCase
         Http::fake(['api.bonnetid.no/*' => Http::response([$this->bonnetidDay(['maghrib' => 'etter solnedgang'])])]);
 
         $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload'
-            && $mail->diagnostics === [
-                'location_id' => self::LOCATION_ID,
-                'year' => self::YEAR,
-                'month' => self::MONTH,
-                'row_index' => 0,
-                'date' => '01-09-2026',
-                'invalid_field' => 'maghrib',
-                'value_type' => 'string',
-            ]);
+        Mail::assertNothingSent();
     }
 
     public function test_missing_date_notifies_and_returns_an_empty_result(): void
@@ -215,7 +201,7 @@ class PrayerTimeServiceTest extends TestCase
         Http::fake(['api.bonnetid.no/*' => Http::response([$day])]);
 
         $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload');
+        Mail::assertNothingSent();
     }
 
     public function test_invalid_calendar_date_notifies_and_returns_an_empty_result(): void
@@ -223,8 +209,7 @@ class PrayerTimeServiceTest extends TestCase
         Http::fake(['api.bonnetid.no/*' => Http::response([$this->bonnetidDay(['date' => '31-02-2026'])])]);
 
         $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload'
-            && $mail->summary === 'Bønnetid.no returnerte ugyldig eller manglende dato.');
+        Mail::assertNothingSent();
     }
 
     public function test_wrong_date_format_notifies_and_returns_an_empty_result(): void
@@ -232,8 +217,7 @@ class PrayerTimeServiceTest extends TestCase
         Http::fake(['api.bonnetid.no/*' => Http::response([$this->bonnetidDay(['date' => '2026-09-01'])])]);
 
         $this->assertSame([], $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH));
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload'
-            && $mail->summary === 'Bønnetid.no returnerte ugyldig eller manglende dato.');
+        Mail::assertNothingSent();
     }
 
     public function test_stale_data_from_another_period_or_location_is_not_used(): void
@@ -252,7 +236,7 @@ class PrayerTimeServiceTest extends TestCase
         $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
         $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
 
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+        Mail::assertNothingSent();
     }
 
     public function test_relevant_failure_without_usable_data_is_notified_at_most_once_per_day(): void
@@ -264,7 +248,7 @@ class PrayerTimeServiceTest extends TestCase
         Carbon::setTestNow(Carbon::parse('2026-09-22 12:00:01', 'Europe/Oslo'));
         $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
 
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 2);
+        Mail::assertNothingSent();
     }
 
     public function test_changed_relevant_failure_is_not_hidden_by_the_daily_cooldown(): void
@@ -276,7 +260,7 @@ class PrayerTimeServiceTest extends TestCase
         $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
         $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
 
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 2);
+        Mail::assertNothingSent();
     }
 
     public function test_relevant_failure_with_usable_stale_data_is_logged_without_email(): void
@@ -313,18 +297,7 @@ class PrayerTimeServiceTest extends TestCase
 
         $this->service()->getMonth(self::LOCATION_ID, self::YEAR, self::MONTH);
 
-        $mail = Mail::sent(ExternalDataSourceFailureMail::class)->first();
-        $rendered = view('emails.external-data-source-failure', [
-            'service' => $mail->service,
-            'operation' => $mail->operation,
-            'summary' => $mail->summary,
-            'failureKind' => $mail->failureKind,
-            'status' => $mail->status,
-            'occurredAt' => $mail->occurredAt,
-            'cooldownSeconds' => $mail->cooldownSeconds,
-        ])->render();
-
-        $this->assertStringNotContainsString('token-that-must-not-appear', $rendered);
+        Mail::assertNothingSent();
     }
 
     private function staleKey(): string

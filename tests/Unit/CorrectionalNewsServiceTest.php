@@ -250,16 +250,15 @@ class CorrectionalNewsServiceTest extends TestCase
         $this->assertNotNull($invalid['error']);
     }
 
-    public function testRepeatedHttpFailureUsesTheExistingNotifierCooldown(): void
+    public function testRepeatedHttpFailureCreatesPersistentEventsWithoutIndividualMail(): void
     {
         Http::fake(['https://kommunikasjon.ntb.no/rss/releases/latest?publisherId=17847130' => Http::response('slow down', 429)]);
         $service = app(CorrectionalNewsService::class);
         $service->refresh('kdi');
         $service->refresh('kdi');
-        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
-            return $mail->service === 'correctional-news' && $mail->operation === 'kdi' && $mail->status === 429;
-        });
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+        $this->assertDatabaseCount('external_data_source_events', 2);
+        $this->assertDatabaseHas('external_data_source_events', ['service' => 'correctional-news', 'operation' => 'kdi', 'status' => 429]);
+        Mail::assertNothingSent();
     }
 
     private function fakeFeeds(array $overrides = []): void

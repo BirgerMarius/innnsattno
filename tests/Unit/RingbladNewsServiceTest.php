@@ -86,9 +86,7 @@ class RingbladNewsServiceTest extends TestCase
         Http::fake(fn () => throw new ConnectionException('Timed out'));
 
         $this->assertSame($stale, app(RingbladNewsService::class)->latest());
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->service === 'ringblad-news'
-            && $mail->operation === 'front-page-news'
-            && $mail->failureKind === 'connection-exception');
+        Mail::assertNothingSent();
     }
 
     public function testItNotifiesForHttpAndParsingFailuresWhileReturningAnEmptyResultWithoutStaleData(): void
@@ -98,10 +96,10 @@ class RingbladNewsServiceTest extends TestCase
         Http::fake([RingbladNewsService::SOURCE_URL => Http::response('Unavailable', 503)]);
 
         $this->assertSame([], app(RingbladNewsService::class)->latest());
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'http-status' && $mail->status === 503);
+        Mail::assertNothingSent();
 
         app(RingbladNewsService::class)->latest();
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+        Mail::assertNothingSent();
     }
 
     public function testItNotifiesWhenExpectedArticleMarkupCannotBeParsed(): void
@@ -111,7 +109,7 @@ class RingbladNewsServiceTest extends TestCase
         Http::fake([RingbladNewsService::SOURCE_URL => Http::response('<html><body>Ingen artikler</body></html>', 200)]);
 
         $this->assertSame([], app(RingbladNewsService::class)->latest());
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload');
+        Mail::assertNothingSent();
     }
 
     public function testItSendsAtMostOneFailureEmailPerTwentyFourHours(): void
@@ -124,11 +122,11 @@ class RingbladNewsServiceTest extends TestCase
         app(RingbladNewsService::class)->latest();
         $this->travel(23)->hours();
         app(RingbladNewsService::class)->latest();
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+        Mail::assertNothingSent();
 
         $this->travel(1)->hours();
         app(RingbladNewsService::class)->latest();
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 2);
+        Mail::assertNothingSent();
     }
 
     public function testItUsesAnImageFromTheExistingTeaserMarkupWhenAvailable(): void

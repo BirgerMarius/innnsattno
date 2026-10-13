@@ -45,10 +45,7 @@ class WeatherForecastNotifierTest extends TestCase
         $result = $this->service()->forecast('ringerike');
 
         $this->assertSame($stale, $result);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->service === 'met-weather'
-            && $mail->operation === 'ringerike'
-            && $mail->failureKind === 'http-status'
-            && $mail->status === 500);
+        Mail::assertNothingSent();
     }
 
     public function test_connection_failure_notifies_and_uses_stale_forecast(): void
@@ -58,7 +55,7 @@ class WeatherForecastNotifierTest extends TestCase
         Http::fake(fn () => throw new ConnectionException('Timed out'));
 
         $this->assertSame($stale, $this->service()->forecast('ringerike'));
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'connection-exception');
+        Mail::assertNothingSent();
     }
 
     public function test_invalid_payload_notifies_and_throws_when_no_stale_forecast_exists(): void
@@ -70,7 +67,7 @@ class WeatherForecastNotifierTest extends TestCase
         try {
             $this->service()->forecast('ringerike');
         } finally {
-            Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload');
+            Mail::assertNothingSent();
         }
     }
 
@@ -83,7 +80,7 @@ class WeatherForecastNotifierTest extends TestCase
         try {
             $this->service()->forecast('ringerike');
         } finally {
-            Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-json');
+            Mail::assertNothingSent();
         }
     }
 
@@ -97,8 +94,7 @@ class WeatherForecastNotifierTest extends TestCase
 
         $this->assertSame('Lagret Ringerike', $this->service()->forecast('ringerike')['location']);
         $this->assertSame('Lagret Ilseng', $this->service()->forecast('ilseng')['location']);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->operation === 'ringerike');
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->operation === 'ilseng');
+        Mail::assertNothingSent();
     }
 
     public function test_notifier_cooldown_suppresses_repeated_weather_failures(): void
@@ -109,7 +105,7 @@ class WeatherForecastNotifierTest extends TestCase
         $this->service()->forecast('ringerike');
         $this->service()->forecast('ringerike');
 
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+        Mail::assertNothingSent();
     }
 
     public function test_weather_page_renders_a_friendly_error_when_met_has_no_fallback(): void

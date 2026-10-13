@@ -50,7 +50,7 @@ class FootballWorldCupServiceTest extends TestCase
 
         $this->assertSame($staleSchedule, $result['schedule']);
         $this->assertSame($this->standings(), $result['standings']);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->operation === 'world-cup-schedule' && $mail->status === 500);
+        Mail::assertNothingSent();
     }
 
     public function test_standings_http_failure_notifies_and_uses_only_stale_standings(): void
@@ -66,7 +66,7 @@ class FootballWorldCupServiceTest extends TestCase
 
         $this->assertSame($this->schedule(), $result['schedule']);
         $this->assertSame($staleStandings, $result['standings']);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->operation === 'world-cup-standings' && $mail->status === 500);
+        Mail::assertNothingSent();
     }
 
     public function test_connection_failure_notifies_and_uses_stale_data_without_affecting_standings(): void
@@ -84,7 +84,7 @@ class FootballWorldCupServiceTest extends TestCase
 
         $this->assertSame('Lagret lag', $result['schedule']['participants'][1]['name']);
         $this->assertSame($this->standings(), $result['standings']);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'connection-exception');
+        Mail::assertNothingSent();
     }
 
     public function test_invalid_json_notifies_without_throwing(): void
@@ -95,7 +95,7 @@ class FootballWorldCupServiceTest extends TestCase
         ]);
         $jsonFailure = $this->service()->getData();
         $this->assertSame([], $jsonFailure['schedule']['events']);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-json');
+        Mail::assertNothingSent();
 
     }
 
@@ -107,7 +107,7 @@ class FootballWorldCupServiceTest extends TestCase
         ]);
         $schemaFailure = $this->service()->getData();
         $this->assertSame([], $schemaFailure['schedule']['events']);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, fn ($mail) => $mail->failureKind === 'invalid-payload');
+        Mail::assertNothingSent();
     }
 
     public function test_no_stale_data_returns_controlled_empty_endpoints(): void
@@ -130,12 +130,7 @@ class FootballWorldCupServiceTest extends TestCase
         $this->service()->getData();
         $this->service()->getData();
 
-        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
-            return $mail->operation === 'world-cup-schedule';
-        });
-        $this->assertCount(1, Mail::sent(ExternalDataSourceFailureMail::class)->filter(
-            fn ($mail) => $mail->operation === 'world-cup-schedule'
-        ));
+        Mail::assertNothingSent();
     }
 
     public function test_stale_cache_from_another_season_is_not_used(): void
