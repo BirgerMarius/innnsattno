@@ -1,5 +1,5 @@
 <?php
 
 return [
-    'cooldown_seconds' => env('EXTERNAL_DATA_FAILURE_COOLDOWN_SECONDS', 3600),
+    'retention_days' => env('EXTERNAL_DATA_EVENT_RETENTION_DAYS', 90),
 ];

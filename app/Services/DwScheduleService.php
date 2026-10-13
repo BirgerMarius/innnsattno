@@ -106,6 +106,7 @@ class DwScheduleService
             }
 
             Cache::put(self::CACHE_KEY, $slots, now()->addMinutes(10));
+            $this->failureNotifier->reportSuccess('dw-news', 'tv-guide-ringerike');
 
             return $slots;
         } catch (\Throwable $exception) {

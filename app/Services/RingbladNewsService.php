@@ -47,6 +47,7 @@ class RingbladNewsService
 
             Cache::put(self::CACHE_KEY, $articles, self::CACHE_TTL_SECONDS);
             Cache::put(self::STALE_CACHE_KEY, $articles, self::STALE_CACHE_TTL_SECONDS);
+            $this->failureNotifier->reportSuccess('ringblad-news', 'front-page-news');
 
             return $articles;
         } catch (Throwable $exception) {

@@ -105,6 +105,7 @@ class CorrectionalNewsService
                 }
             }
             Cache::put('correctional-news.source-success:'.$source->key(), now()->toIso8601String(), now()->addDay());
+            $this->notifier->reportSuccess('correctional-news', $source->key());
         } catch (Throwable $exception) {
             $report['error'] = mb_substr($exception->getMessage(), 0, 500);
             $context = ['operation' => $source->key(), 'failure_kind' => $this->failureKind($exception)];

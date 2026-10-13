@@ -40,6 +40,7 @@ class PrayerTimeService
 
             Cache::put($keys['fresh'], $days, now()->addSeconds(self::FRESH_TTL_SECONDS));
             Cache::put($keys['stale'], $days, now()->addSeconds(self::STALE_TTL_SECONDS));
+            $this->failureNotifier->reportSuccess('bonnetid-no', $operation);
 
             return $days;
         } catch (Throwable $exception) {

@@ -2,10 +2,9 @@
 
 namespace App\Services;
 
-use App\Mail\ExternalDataSourceFailureMail;
-use Illuminate\Support\Facades\Cache;
+use App\ExternalDataSourceEvent;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 class ExternalDataFailureNotifier
@@ -24,24 +23,7 @@ class ExternalDataFailureNotifier
                 'diagnostics' => $details['diagnostics'],
             ]);
 
-            $recipient = config('feedback.notification_email');
-            if (! $details['send_notification'] || ! is_string($recipient) || trim($recipient) === '') {
-                return;
-            }
-
-            if (! Cache::add($this->cooldownKey($details), true, now()->addSeconds($details['cooldown_seconds']))) {
-                return;
-            }
-
-            try {
-                Mail::to($recipient)->send(new ExternalDataSourceFailureMail($details));
-            } catch (Throwable $exception) {
-                Log::warning('External data failure notification email could not be sent.', [
-                    'service' => $details['service'],
-                    'operation' => $details['operation'],
-                    'exception' => get_class($exception),
-                ]);
-            }
+            $this->record(ExternalDataSourceEvent::OUTCOME_FAILURE, $details);
         } catch (Throwable $exception) {
             // A notifier failure must never affect the request that observed the source failure.
             try {
@@ -51,6 +33,19 @@ class ExternalDataFailureNotifier
             } catch (Throwable $ignored) {
                 // Logging infrastructure may itself be unavailable.
             }
+        }
+    }
+
+    /** Record a completed, validated source refresh so the digest can show recovery. */
+    public function reportSuccess(string $service, string $operation = 'default'): void
+    {
+        try {
+            $this->record(ExternalDataSourceEvent::OUTCOME_SUCCESS, [
+                'service' => $this->identifier($service, 'unknown-service'),
+                'operation' => $this->identifier($operation, 'default'),
+            ]);
+        } catch (Throwable $exception) {
+            Log::warning('External data source success could not be recorded.', ['exception' => get_class($exception)]);
         }
     }
 
@@ -69,21 +64,21 @@ class ExternalDataFailureNotifier
             'summary' => $this->sanitizeText($summary),
             'diagnostics' => $this->diagnostics($context),
             'occurred_at' => now('Europe/Oslo')->format('Y-m-d H:i:s T'),
-            // Individual callers may explicitly opt in to a longer cooldown;
-            // the global default must remain suitable for active sources.
-            'cooldown_seconds' => max(1, (int) ($context['notification_cooldown_seconds'] ?? config('external_data.cooldown_seconds', 3600))),
-            'send_notification' => ($context['send_notification'] ?? true) !== false,
-            'notification_key' => isset($context['notification_key'])
-                ? $this->sanitizeText((string) $context['notification_key'])
-                : null,
         ];
     }
 
-    private function cooldownKey(array $details): string
+    private function record(string $outcome, array $details): void
     {
-        return 'external-data-failure-notified:'.sha1(
-            $details['service'].'|'.$details['operation'].'|'.($details['notification_key'] ?? '')
-        );
+        // Deployment is safe even if the migration has not yet been run.
+        if (! Schema::hasTable('external_data_source_events')) {
+            return;
+        }
+        ExternalDataSourceEvent::create([
+            'service' => $details['service'], 'operation' => $details['operation'], 'outcome' => $outcome,
+            'failure_kind' => $details['failure_kind'] ?? null, 'status' => $details['status'] ?? null,
+            'summary' => $details['summary'] ?? null, 'diagnostics' => $details['diagnostics'] ?? null,
+            'occurred_at' => now(),
+        ]);
     }
 
     private function diagnostics(array $context): array

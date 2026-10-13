@@ -8,6 +8,8 @@ use App\Console\Commands\ProbeSchibstedFootball;
 use App\Console\Commands\FetchNews;
 use App\Console\Commands\FetchCorrectionalNews;
 use App\Console\Commands\PruneNewsArticles;
+use App\Console\Commands\SendExternalDataFailureDigest;
+use App\Console\Commands\PruneExternalDataSourceEvents;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -25,6 +27,8 @@ class Kernel extends ConsoleKernel
         FetchNews::class,
         FetchCorrectionalNews::class,
         PruneNewsArticles::class,
+        SendExternalDataFailureDigest::class,
+        PruneExternalDataSourceEvents::class,
     ];
 
     /**
@@ -35,11 +39,14 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('correctional-news:fetch --source=kdi')->everyFifteenMinutes()->withoutOverlapping();
-        $schedule->command('correctional-news:fetch --source=nff')->everyThirtyMinutes()->withoutOverlapping();
-        $schedule->command('correctional-news:fetch --source=ky')->everyThirtyMinutes()->withoutOverlapping();
-        $schedule->command('correctional-news:fetch --source=sivilombudet')->everyThirtyMinutes()->withoutOverlapping();
+        // RSS feeds are not time-critical enough to justify polling every 15/30 minutes.
+        $schedule->command('correctional-news:fetch --source=kdi')->hourly()->withoutOverlapping();
+        $schedule->command('correctional-news:fetch --source=nff')->hourly()->withoutOverlapping();
+        $schedule->command('correctional-news:fetch --source=ky')->hourly()->withoutOverlapping();
+        $schedule->command('correctional-news:fetch --source=sivilombudet')->hourly()->withoutOverlapping();
         $schedule->command('news:prune')->hourly()->withoutOverlapping();
+        $schedule->command('external-data:send-failure-digest')->dailyAt('06:45')->timezone('Europe/Oslo')->withoutOverlapping();
+        $schedule->command('external-data:prune-events')->dailyAt('07:05')->timezone('Europe/Oslo')->withoutOverlapping();
     }
 
     /**

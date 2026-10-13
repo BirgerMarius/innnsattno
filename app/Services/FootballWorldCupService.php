@@ -42,6 +42,7 @@ class FootballWorldCupService
 
             Cache::put($keys['fresh'], $data, now()->addSeconds(self::FRESH_TTL_SECONDS));
             Cache::put($keys['stale'], $data, now()->addSeconds(self::STALE_TTL_SECONDS));
+            $this->failureNotifier->reportSuccess('sportsnext-football', 'world-cup-'.$endpoint);
 
             return $data;
         } catch (Throwable $exception) {

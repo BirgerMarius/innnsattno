@@ -53,6 +53,19 @@ Viktige regler:
 
 Produksjonsdeploy skjer med prosjektets separate deployverktøy og er ikke en del av vanlig Codex-implementering. Commit og push innebærer aldri automatisk deploy.
 
+### Eksterne datakilder
+
+Feil fra eksterne kilder lagres varig og samles i én e-post kl. 06:45
+`Europe/Oslo` (inkludert sommer- og vintertid). Laravels scheduler må fortsatt
+bli startet av serveren hvert minutt, for eksempel:
+
+```bash
+* * * * * cd /path/to/innsatt.no && php artisan schedule:run >> /dev/null 2>&1
+```
+
+Prosjektet kan ikke bekrefte eller endre serverens faktiske crontab. Ved deploy
+av denne endringen må migrasjonen kjøres før scheduler-prosessen får ny kode.
+
 ## Søkemotorer og utskrift
 
 HTML-utskriftsruter svarer med `X-Robots-Tag: noindex, follow`. De står ikke i

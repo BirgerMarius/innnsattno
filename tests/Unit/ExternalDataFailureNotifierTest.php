@@ -2,146 +2,90 @@
 
 namespace Tests\Unit;
 
-use App\Mail\ExternalDataSourceFailureMail;
+use App\ExternalDataFailureDigest;
+use App\Mail\ExternalDataFailureDigestMail;
+use App\Services\ExternalDataFailureDigestService;
 use App\Services\ExternalDataFailureNotifier;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use RuntimeException;
 use Tests\TestCase;
 
 class ExternalDataFailureNotifierTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected function setUp(): void
     {
         parent::setUp();
-
-        Cache::flush();
         Mail::fake();
         config()->set('feedback.notification_email', 'varsling@example.test');
-        config()->set('external_data.cooldown_seconds', 3600);
+        Carbon::setTestNow(Carbon::parse('2026-10-13 06:45:00', 'Europe/Oslo'));
     }
 
     protected function tearDown(): void
     {
         Carbon::setTestNow();
-
         parent::tearDown();
     }
 
-    public function test_first_failure_sends_an_email(): void
+    public function test_failures_are_persisted_but_do_not_send_individual_email(): void
     {
-        $this->report('dw-news', 'tv-guide-ringerike');
+        app(ExternalDataFailureNotifier::class)->report('correctional-news', 'Kilden svarte ikke.', [
+            'operation' => 'kdi', 'failure_kind' => 'connection_failure',
+        ]);
 
-        Mail::assertSent(ExternalDataSourceFailureMail::class, function ($mail) {
-            return $mail->hasTo('varsling@example.test')
-                && $mail->service === 'dw-news'
-                && $mail->operation === 'tv-guide-ringerike'
-                && $mail->failureKind === 'http-status'
-                && $mail->status === 503;
+        $this->assertDatabaseHas('external_data_source_events', ['service' => 'correctional-news', 'operation' => 'kdi', 'outcome' => 'failure']);
+        Mail::assertNothingSent();
+    }
+
+    public function test_digest_groups_failures_uses_oslo_window_and_shows_recovery(): void
+    {
+        $notifier = app(ExternalDataFailureNotifier::class);
+        Carbon::setTestNow(Carbon::parse('2026-10-12 06:44:59', 'Europe/Oslo'));
+        $notifier->report('weather', 'For gammel.', ['operation' => 'ringerike', 'failure_kind' => 'http_status']);
+        Carbon::setTestNow(Carbon::parse('2026-10-12 08:00:00', 'Europe/Oslo'));
+        $notifier->report('correctional-news', 'RSS kunne ikke hentes.', ['operation' => 'kdi', 'failure_kind' => 'connection_failure']);
+        Carbon::setTestNow(Carbon::parse('2026-10-13 05:00:00', 'Europe/Oslo'));
+        $notifier->report('correctional-news', 'RSS kunne ikke hentes.', ['operation' => 'kdi', 'failure_kind' => 'connection_failure']);
+        $notifier->reportSuccess('correctional-news', 'kdi');
+        Carbon::setTestNow(Carbon::parse('2026-10-13 06:45:00', 'Europe/Oslo'));
+
+        $this->assertTrue(app(ExternalDataFailureDigestService::class)->send());
+        Mail::assertSent(ExternalDataFailureDigestMail::class, function ($mail) {
+            $this->assertCount(1, $mail->groups);
+            $this->assertSame(2, $mail->groups[0]['count']);
+            $this->assertSame('Vellykket oppdatering etter siste feil', $mail->groups[0]['recovery']);
+            $this->assertSame('RSS kunne ikke hentes.', $mail->groups[0]['summary']);
+            $this->assertStringContainsString('CEST', $mail->periodEnd);
+            return $mail->hasTo('varsling@example.test');
         });
     }
 
-    public function test_same_service_and_operation_are_suppressed_during_cooldown(): void
+    public function test_empty_digest_is_not_sent(): void
     {
-        $this->report('dw-news', 'tv-guide-ringerike');
-        $this->report('dw-news', 'tv-guide-ringerike');
-
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
+        $this->assertFalse(app(ExternalDataFailureDigestService::class)->send());
+        Mail::assertNothingSent();
     }
 
-    public function test_another_service_or_operation_can_send_its_own_email(): void
+    public function test_same_daily_digest_is_sent_once(): void
     {
-        $this->report('dw-news', 'tv-guide-ringerike');
-        $this->report('dw-news', 'tv-guide-ilseng');
-        $this->report('weather', 'ringerike');
-
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 3);
+        app(ExternalDataFailureNotifier::class)->report('tv-guide-vg', 'Kilden svarte ikke.', ['operation' => 'ringerike', 'failure_kind' => 'http_status']);
+        $service = app(ExternalDataFailureDigestService::class);
+        $this->assertTrue($service->send());
+        $this->assertFalse($service->send());
+        Mail::assertSent(ExternalDataFailureDigestMail::class, 1);
+        $this->assertSame('sent', ExternalDataFailureDigest::firstOrFail()->status);
     }
 
-    public function test_a_new_email_can_be_sent_after_the_cooldown(): void
+    public function test_failed_mail_keeps_events_and_allows_retry(): void
     {
-        Carbon::setTestNow(Carbon::parse('2026-09-08 10:00:00', 'Europe/Oslo'));
-        $this->report('dw-news', 'tv-guide-ringerike');
-
-        Carbon::setTestNow(Carbon::parse('2026-09-08 11:00:01', 'Europe/Oslo'));
-        $this->report('dw-news', 'tv-guide-ringerike');
-
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 2);
-    }
-
-    public function test_mail_failures_are_not_thrown_to_the_caller(): void
-    {
-        Mail::shouldReceive('to')
-            ->once()
-            ->with('varsling@example.test')
-            ->andThrow(new RuntimeException('Mail transport failed'));
-
-        $notifier = app(ExternalDataFailureNotifier::class);
-        $notifier->report('dw-news', 'DW News kunne ikke hentes', ['operation' => 'tv-guide-ringerike']);
-
-        $this->addToAssertionCount(1);
-    }
-
-    public function test_sensitive_data_is_not_included_in_the_email(): void
-    {
-        app(ExternalDataFailureNotifier::class)->report(
-            'dw-news',
-            'Authorization: Bearer top-secret-token https://dw.example/api?api_key=also-secret',
-            ['operation' => 'tv-guide-ringerike', 'api_key' => 'never-include-this']
-        );
-
-        $mail = Mail::sent(ExternalDataSourceFailureMail::class)->first();
-        $rendered = view('emails.external-data-source-failure', [
-            'service' => $mail->service,
-            'operation' => $mail->operation,
-            'summary' => $mail->summary,
-            'failureKind' => $mail->failureKind,
-            'status' => $mail->status,
-            'occurredAt' => $mail->occurredAt,
-            'cooldownSeconds' => $mail->cooldownSeconds,
-        ])->render();
-
-        $this->assertStringNotContainsString('top-secret-token', $rendered);
-        $this->assertStringNotContainsString('also-secret', $rendered);
-        $this->assertStringNotContainsString('never-include-this', $rendered);
-        $this->assertStringNotContainsString('https://dw.example', $rendered);
-        $this->assertStringContainsString('[skjult]', $rendered);
-    }
-
-    public function test_safe_diagnostics_are_included_without_changing_the_cooldown_key(): void
-    {
-        $notifier = app(ExternalDataFailureNotifier::class);
-        $context = [
-            'operation' => 'prayer-times',
-            'location_id' => 146,
-            'year' => 2026,
-            'month' => 10,
-            'row_index' => 3,
-            'missing_field' => 'isha',
-            'api_token' => 'must-not-be-included',
-        ];
-
-        $notifier->report('bonnetid-no', 'Mangler bønnetid.', $context);
-        $notifier->report('bonnetid-no', 'Mangler bønnetid.', array_replace($context, ['month' => 11]));
-
-        $mail = Mail::sent(ExternalDataSourceFailureMail::class)->first();
-        $this->assertSame([
-            'location_id' => 146,
-            'year' => 2026,
-            'month' => 10,
-            'row_index' => 3,
-            'missing_field' => 'isha',
-        ], $mail->diagnostics);
-        Mail::assertSent(ExternalDataSourceFailureMail::class, 1);
-    }
-
-    private function report(string $service, string $operation): void
-    {
-        app(ExternalDataFailureNotifier::class)->report($service, 'Datakilden svarte ikke.', [
-            'operation' => $operation,
-            'failure_kind' => 'http_status',
-            'status' => 503,
-        ]);
+        app(ExternalDataFailureNotifier::class)->report('met-weather', 'Kilden svarte ikke.', ['operation' => 'ilseng', 'failure_kind' => 'connection_failure']);
+        Mail::shouldReceive('to')->once()->andThrow(new RuntimeException('Transportfeil'));
+        $service = app(ExternalDataFailureDigestService::class);
+        $this->assertFalse($service->send());
+        $this->assertDatabaseCount('external_data_source_events', 1);
+        $this->assertSame('failed', ExternalDataFailureDigest::firstOrFail()->status);
     }
 }

@@ -114,7 +114,9 @@ class OnThisDayService
                 ];
             }
 
-            return $this->attachWikibaseIds($groups);
+            $result = $this->attachWikibaseIds($groups);
+            $this->notifier->reportSuccess('wikipedia-on-this-day', 'no-mediawiki');
+            return $result;
         } catch (Throwable $exception) {
             $this->recordFailure('no-mediawiki', $date);
             $this->reportFailure('no-mediawiki', $exception, $date);
@@ -173,6 +175,7 @@ class OnThisDayService
                 throw new RuntimeException('Wikimedia mangler forventet historikkstruktur.');
             }
 
+            $this->notifier->reportSuccess('wikipedia-on-this-day', $operation);
             return $payload;
         } catch (Throwable $exception) {
             $this->recordFailure($operation, $date);

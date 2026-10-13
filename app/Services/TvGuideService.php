@@ -77,6 +77,7 @@ class TvGuideService
 
             Cache::put($keys['fresh'], $schedule, now()->addSeconds(self::FRESH_TTL_SECONDS));
             Cache::put($keys['stale'], $schedule, now()->addSeconds(self::STALE_TTL_SECONDS));
+            $this->failureNotifier->reportSuccess('tv-guide-vg', $operation);
 
             return $schedule;
         } catch (Throwable $exception) {
@@ -218,6 +219,7 @@ class TvGuideService
             if ($result['schedule'] !== null) {
                 Cache::put($keys['fresh'], $result['schedule'], now()->addSeconds(self::FRESH_TTL_SECONDS));
                 Cache::put($keys['stale'], $result['schedule'], now()->addSeconds(self::STALE_TTL_SECONDS));
+                $this->failureNotifier->reportSuccess('tv-guide-vg', $operation);
                 $schedules[] = $result['schedule'];
                 continue;
             }

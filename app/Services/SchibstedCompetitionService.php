@@ -34,6 +34,7 @@ abstract class SchibstedCompetitionService
             $data = $this->normalizeCompetitionData($schedule, $standings);
 
             Cache::put($this->lastGoodCacheKey($seasonId), $data, now()->addDays(7));
+            ($this->notifier ?? app(ExternalDataFailureNotifier::class))->reportSuccess('sportsnext-competition', $this->cachePrefix());
 
             return $data;
         } catch (Throwable $exception) {

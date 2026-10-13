@@ -49,6 +49,7 @@ class NewsFeedService
                 NewsArticle::create($clean+['news_source_id'=>$source->id,'status'=>NewsArticle::STATUS_PENDING,'fetched_at'=>$fetchedAt]); $report['new']++;
             }
             $source->update(['last_success_at'=>now(),'last_error'=>null]);
+            $this->notifier->reportSuccess('news-feed', $source->slug);
         } catch(Throwable $e) {
             $message=mb_substr($e->getMessage(),0,2000); $source->update(['last_error'=>$message]); $report['error']=$message;
             $context = [

@@ -37,6 +37,7 @@ class WeatherForecastService
 
             Cache::put($location['cache_key'], $forecast, now()->addSeconds((int) config('services.weather.cache_ttl', 1800)));
             Cache::put($this->staleCacheKey($location), $forecast, now()->addSeconds(self::STALE_TTL_SECONDS));
+            $this->failureNotifier->reportSuccess('met-weather', $locationKey);
 
             return $forecast;
         } catch (Throwable $exception) {

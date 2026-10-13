@@ -51,6 +51,7 @@ class NamedayService
                         is_array($day['names'] ?? null) ? $day['names'] : []
                     ))));
 
+                    $this->notifier->reportSuccess('namedays-webapi', 'namedays');
                     return ['names' => $names, 'source_url' => 'https://webapi.no/'];
                 }
 
