@@ -28,7 +28,7 @@ class RingbladNewsHomepageTest extends TestCase
 
         $this->get(route('tv'))
             ->assertOk()
-            ->assertSee('Aktuelt fra kriminalomsorgen')
+            ->assertSee('Lokale nyheter om Ringerike fengsel')
             ->assertSee('Ringerikes Blad')
             ->assertSee('Nyhet om Ringerike fengsel')
             ->assertSee('class="local-news-section"', false)

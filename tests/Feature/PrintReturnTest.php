@@ -27,7 +27,9 @@ class PrintReturnTest extends TestCase
             'return_to' => '/ordjakt/utskrift?kategori=dyr',
         ]))
             ->assertOk()
-            ->assertSee('const returnUrl = "/ordjakt?kategori=dyr";', false)
+            // The rejected print URL falls back to the relevant ordinary
+            // word-search page; the generated puzzle identifier is preserved.
+            ->assertSee('const returnUrl = "/ordjakt?kategori=dyr&puzzle=', false)
             ->assertDontSee('const returnUrl = "/ordjakt/utskrift', false);
     }
 }
