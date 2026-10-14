@@ -342,7 +342,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
         <a href="{{ route('weekly-football-tv.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             <span class="front-page-btn-title">⚽ Fotball på TV @if($showWeeklyFootballTvNewBadge)<span class="front-page-new-badge" aria-label="Nyhet">Nyhet</span>@endif</span>
-            <small class="front-page-btn-subtitle">Ukeoversikt og plakat</small>
+            <small>Ukeoversikt og plakat</small>
         </a>
 
         <a href="/premier-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">

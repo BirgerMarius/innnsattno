@@ -7,6 +7,16 @@ use Illuminate\Support\Str;
 
 class WeeklyFootballTeamLogoService
 {
+    private const ALIASES = [
+        'kfum oslo' => 'kfum',
+        'kfum-kameratene oslo' => 'kfum',
+        'kfum kameratene oslo' => 'kfum',
+        'vålerenga fotball' => 'vålerenga',
+        'vålerenga if' => 'vålerenga',
+        'viking fk' => 'viking',
+        'fredrikstad fk' => 'fredrikstad',
+        'aston villa fc' => 'aston villa',
+    ];
     public function __construct(
         private PremierLeagueService $premierLeague,
         private EliteserienService $eliteserien,
@@ -67,6 +77,8 @@ class WeeklyFootballTeamLogoService
 
     private function key(string $name): string
     {
-        return Str::lower(trim(preg_replace('/\s+/u', ' ', $name) ?? $name));
+        $key = Str::lower(trim(preg_replace('/\s+/u', ' ', $name) ?? $name));
+
+        return self::ALIASES[$key] ?? $key;
     }
 }

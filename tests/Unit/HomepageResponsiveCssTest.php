@@ -70,6 +70,22 @@ class HomepageResponsiveCssTest extends TestCase
         );
     }
 
+    public function testFootballTvButtonKeepsItsTitleBadgeAndSubtitleOnSeparateCenteredLines(): void
+    {
+        $this->assertMatchesRegularExpression(
+            '/\.front-page-btn--football\s*\{[^}]*flex-direction:\s*column;[^}]*gap:\s*4px;/s',
+            $this->css
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.front-page-btn--football\s+\.front-page-btn-title\s*\{[^}]*align-items:\s*center;[^}]*display:\s*inline-flex;/s',
+            $this->css
+        );
+        $this->assertMatchesRegularExpression(
+            '/\.front-page-btn--football\s+small\s*\{[^}]*display:\s*block;[^}]*margin-top:\s*\.45rem;[^}]*text-align:\s*center;/s',
+            $this->css
+        );
+    }
+
     public function testPrisonColumnsRemainResponsiveWithoutChangingDesktopLayout(): void
     {
         $this->assertMatchesRegularExpression(

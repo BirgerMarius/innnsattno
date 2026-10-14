@@ -15,5 +15,6 @@ class SchibstedCommandRegistrationTest extends TestCase
         $this->assertContains('football:schibsted-discover', $commands);
         $this->assertContains('football:schibsted-explore', $commands);
         $this->assertContains('football:schibsted-probe', $commands);
+        $this->assertContains('football:precache-teams', $commands);
     }
 }

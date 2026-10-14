@@ -593,6 +593,8 @@
     --front-page-btn-bg: #176b46;
     --front-page-btn-border: #125436;
     --front-page-btn-color: #fff;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .front-page-btn--football:hover,
@@ -603,7 +605,7 @@
 }
 
 .front-page-btn--football .front-page-btn-title { align-items: center; display: inline-flex; gap: .35rem; }
-.front-page-btn--football .front-page-btn-subtitle { display: block; font-size: .82em; margin-top: .45rem; opacity: .92; }
+.front-page-btn--football small { display: block; font-size: .82em; margin-top: .45rem; opacity: .92; text-align: center; }
 
 .weekly-football-page { max-width: 980px; }
 .weekly-football-back { color: #176b46; font-weight: 600; }

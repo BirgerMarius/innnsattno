@@ -89,6 +89,11 @@ abstract class SchibstedCompetitionService
         return is_array($cached) && is_array($cached['teams'] ?? null) ? $cached['teams'] : [];
     }
 
+    public function competitionNameForCache(): string
+    {
+        return $this->competitionLogName();
+    }
+
     /** Return all scheduled matches in the ISO calendar week (Monday–Sunday). */
     public function matchesForCalendarWeek(array $matches, ?Carbon $now = null): array
     {

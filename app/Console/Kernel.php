@@ -10,6 +10,7 @@ use App\Console\Commands\FetchCorrectionalNews;
 use App\Console\Commands\PruneNewsArticles;
 use App\Console\Commands\SendExternalDataFailureDigest;
 use App\Console\Commands\PruneExternalDataSourceEvents;
+use App\Console\Commands\PrecacheFootballTeams;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -29,6 +30,7 @@ class Kernel extends ConsoleKernel
         PruneNewsArticles::class,
         SendExternalDataFailureDigest::class,
         PruneExternalDataSourceEvents::class,
+        PrecacheFootballTeams::class,
     ];
 
     /**
@@ -47,6 +49,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('news:prune')->hourly()->withoutOverlapping();
         $schedule->command('external-data:send-failure-digest')->dailyAt('06:45')->timezone('Europe/Oslo')->withoutOverlapping();
         $schedule->command('external-data:prune-events')->dailyAt('07:05')->timezone('Europe/Oslo')->withoutOverlapping();
+        $schedule->command('football:precache-teams')->dailyAt('04:30')->timezone('Europe/Oslo')->withoutOverlapping();
     }
 
     /**

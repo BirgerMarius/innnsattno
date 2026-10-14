@@ -109,10 +109,12 @@ class WeeklyFootballTvTest extends TestCase
 
         $this->get('/ukens-fotball-pa-tv/utskrift?fengsel=ilseng')->assertOk()
             ->assertHeader('X-Robots-Tag', 'noindex, follow')
-            ->assertSee('@page { size: A4 portrait;', false)
+            ->assertSee('@page { size: A4 landscape;', false)
+            ->assertSee('UKAS KAMPER')
+            ->assertSee('football-watermark.svg', false)
             ->assertSee('Kanalutvalg: Ilseng fengsel')
             ->assertSee('Sist dataoppdatering:')
-            ->assertSee('break-inside: avoid', false)
+            ->assertSee('break-inside:avoid', false)
             ->assertSee('window.print()', false);
     }
 
@@ -130,10 +132,10 @@ class WeeklyFootballTvTest extends TestCase
         });
 
         $this->get('/ukens-fotball-pa-tv/utskrift')->assertOk()
-            ->assertSee('days--two-columns', false)
+            ->assertSee('days--three', false)
             ->assertSee('days--dense', false)
             ->assertSee('Lag 17')
-            ->assertSee('break-inside: avoid', false);
+            ->assertSee('break-inside:avoid', false);
     }
 
     private function listing(string $title, string $name, string $startsAt, int $id): array
