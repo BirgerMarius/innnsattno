@@ -52,9 +52,9 @@ class WeeklyFootballTvTest extends TestCase
             ->assertSee('Uke 42')
             ->assertSee('Mandag 12. oktober')
             ->assertSee('Søndag 18. oktober')
-            ->assertSee('West Ham – Arsenal')
-            ->assertSee('Barcelona – Sevilla')
-            ->assertSee('Bayern – Dortmund')
+            ->assertSee('West Ham')->assertSee('Arsenal')
+            ->assertSee('Barcelona')->assertSee('Sevilla')
+            ->assertSee('Bayern')->assertSee('Dortmund')
             ->assertSee('La Liga')
             ->assertSee('TV3+ · V sport 1')
             ->assertDontSee('Studio – Magasin')
@@ -67,8 +67,40 @@ class WeeklyFootballTvTest extends TestCase
         Http::fake(['tvguide.vg.no/*' => Http::response([], 503)]);
 
         $this->get('/ukens-fotball-pa-tv')->assertOk()
-            ->assertSee('TV-guiden dekker ikke hele denne uken ennå eller kunne ikke hentes')
+            ->assertSee('TV-guiden kunne ikke hentes for 7 av 7 dager')
             ->assertDontSee('Ingen direktesendte kamper fra de valgte ligaene');
+    }
+
+    public function test_next_week_keeps_prison_selection_and_crosses_the_year_boundary(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-12-30 12:00:00', 'Europe/Oslo'));
+        Http::fake(['tvguide.vg.no/*' => Http::response([['channel' => ['name' => 'TV3+'], 'listings' => []]])]);
+
+        $this->get('/ukens-fotball-pa-tv?fengsel=ilseng&uke=neste')->assertOk()
+            ->assertSee('Neste ukes TV-sendte fotballkamper')
+            ->assertSee('Uke 1')
+            ->assertSee('4. januar–10. januar 2027')
+            ->assertSee('Ilseng fengsel')
+            ->assertSee('uke=neste', false)
+            ->assertSee('fengsel=ilseng', false);
+    }
+
+    public function test_exact_cached_sportsnext_names_add_logos_but_missing_teams_do_not_render_empty_images(): void
+    {
+        Cache::put('schibsted_sports.premier_league.9186.last_good', ['teams' => [
+            1 => ['teamId' => 1, 'teamName' => 'West Ham', 'emblemUrl' => 'https://example.test/west-ham.png'],
+            2 => ['teamId' => 2, 'teamName' => 'Arsenal', 'emblemUrl' => 'https://example.test/arsenal.png'],
+        ]], now()->addDay());
+        Http::fake(function ($request) {
+            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+            $listings = ($query['date'] ?? '') === '2026-10-12' ? [$this->listing('Premier League', 'West Ham - Arsenal', '2026-10-12T17:00:00Z', 22)] : [];
+            return Http::response([['channel' => ['name' => 'TV3+'], 'listings' => $listings]]);
+        });
+
+        $this->get('/ukens-fotball-pa-tv')->assertOk()
+            ->assertSee('https://example.test/west-ham.png', false)
+            ->assertSee('https://example.test/arsenal.png', false)
+            ->assertDontSee('src=""', false);
     }
 
     public function test_print_has_a4_layout_noindex_and_selected_prison(): void
@@ -82,6 +114,26 @@ class WeeklyFootballTvTest extends TestCase
             ->assertSee('Sist dataoppdatering:')
             ->assertSee('break-inside: avoid', false)
             ->assertSee('window.print()', false);
+    }
+
+    public function test_dense_print_uses_columns_before_reducing_type_size(): void
+    {
+        Http::fake(function ($request) {
+            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+            $listings = [];
+            if (($query['date'] ?? '') === '2026-10-12') {
+                foreach (range(1, 17) as $number) {
+                    $listings[] = $this->listing('Premier League', 'Lag '.$number.' - Motstander '.$number, sprintf('2026-10-12T%02d:00:00Z', $number % 20), $number + 100);
+                }
+            }
+            return Http::response([['channel' => ['name' => 'TV3+'], 'listings' => $listings]]);
+        });
+
+        $this->get('/ukens-fotball-pa-tv/utskrift')->assertOk()
+            ->assertSee('days--two-columns', false)
+            ->assertSee('days--dense', false)
+            ->assertSee('Lag 17')
+            ->assertSee('break-inside: avoid', false);
     }
 
     private function listing(string $title, string $name, string $startsAt, int $id): array

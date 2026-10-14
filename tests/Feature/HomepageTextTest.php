@@ -79,7 +79,7 @@ class HomepageTextTest extends TestCase
             ->assertDontSee('TEST')
             ->assertSee('front-page-btn--test', false)
             ->assertSeeInOrder([
-                'Ukens fotball på TV',
+                'Fotball på TV',
                 'Premier League',
                 'Eliteserien',
                 'Champions League',
@@ -137,6 +137,21 @@ class HomepageTextTest extends TestCase
 
         Carbon::setTestNow(Carbon::parse('2026-10-23 09:00:00', 'Europe/Oslo'));
         $this->get(route('tv'))->assertOk()->assertDontSee('>Nyhet<', false)->assertSee('Under utvikling');
+        Carbon::setTestNow();
+    }
+
+    public function test_weekly_football_tv_new_badge_uses_its_own_configured_oslo_publication_time(): void
+    {
+        Config::set('weekly_football_tv.published_at', '2026-10-09 09:00:00');
+
+        Carbon::setTestNow(Carbon::parse('2026-10-09 08:59:59', 'Europe/Oslo'));
+        $this->get(route('tv'))->assertOk()->assertDontSee('>Nyhet<', false);
+
+        Carbon::setTestNow(Carbon::parse('2026-10-23 08:59:59', 'Europe/Oslo'));
+        $this->get(route('tv'))->assertOk()->assertSee('>Nyhet<', false);
+
+        Carbon::setTestNow(Carbon::parse('2026-10-23 09:00:00', 'Europe/Oslo'));
+        $this->get(route('tv'))->assertOk()->assertDontSee('>Nyhet<', false);
         Carbon::setTestNow();
     }
 }

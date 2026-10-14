@@ -56,6 +56,7 @@ class FrontPageController extends Controller
             ),
             'showActivitiesNewBadge' => $this->showActivitiesNewBadge($today),
             'showFangenyttNewBadge' => $this->showNewBadge($today, config('fangenytt.published_at')),
+            'showWeeklyFootballTvNewBadge' => $this->showNewBadge($today, config('weekly_football_tv.published_at')),
             'showPodcastRecommendation' => $this->showPodcastRecommendation($today),
         ]);
     }

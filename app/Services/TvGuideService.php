@@ -319,16 +319,18 @@ class TvGuideService
      * $now.  Unlike the small competition boxes, past days remain included so
      * the public page is a real week overview rather than a rolling window.
      */
-    public function getWeeklyFootballMatches(CarbonInterface $now, string $prison, string $operation): array
+    public function getWeeklyFootballMatches(CarbonInterface $now, string $prison, string $operation, int $weekOffset = 0): array
     {
         $now = $now->copy()->setTimezone(self::TIMEZONE);
-        $weekStart = $now->copy()->startOfWeek(\Carbon\Carbon::MONDAY);
-        $weekEnd = $now->copy()->endOfWeek(\Carbon\Carbon::SUNDAY);
+        $weekOffset = $weekOffset === 1 ? 1 : 0;
+        $weekStart = $now->copy()->startOfWeek(\Carbon\Carbon::MONDAY)->addWeeks($weekOffset);
+        $weekEnd = $weekStart->copy()->endOfWeek(\Carbon\Carbon::SUNDAY);
         $channels = $prison === 'ilseng' ? self::ilsengChannels() : self::ringerikeChannels();
         $dates = collect(range(0, 6))->map(fn (int $offset) => $weekStart->copy()->addDays($offset))->all();
         $matches = [];
         $availableDates = [];
         $failedDates = [];
+        $unpublishedDates = [];
         $usingStaleData = false;
 
         foreach ($dates as $date) {
@@ -362,7 +364,7 @@ class TvGuideService
             // window. It is a valid payload, but not evidence that no match is
             // on TV, so report it as unavailable coverage instead.
             if ($schedule === []) {
-                $failedDates[] = $date;
+                $unpublishedDates[] = $date;
                 continue;
             }
 
@@ -413,9 +415,12 @@ class TvGuideService
             'weekEnd' => $weekEnd,
             'matches' => $matches,
             'availableDates' => $availableDates,
-            'unavailableDates' => $failedDates,
+            'sourceFailureDates' => $failedDates,
+            'unpublishedDates' => $unpublishedDates,
             'hasSourceFailure' => $failedDates !== [],
+            'hasUnpublishedDates' => $unpublishedDates !== [],
             'usingStaleData' => $usingStaleData,
+            'weekOffset' => $weekOffset,
             'channelSelection' => $prison === 'ilseng' ? 'Ilseng fengsel' : 'Ringerike fengsel',
             'lastUpdated' => now(self::TIMEZONE),
         ];

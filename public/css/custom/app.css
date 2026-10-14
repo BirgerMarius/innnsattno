@@ -602,6 +602,9 @@
     --front-page-btn-color: #fff;
 }
 
+.front-page-btn--football .front-page-btn-title { align-items: center; display: inline-flex; gap: .35rem; }
+.front-page-btn--football .front-page-btn-subtitle { display: block; font-size: .82em; margin-top: .45rem; opacity: .92; }
+
 .weekly-football-page { max-width: 980px; }
 .weekly-football-back { color: #176b46; font-weight: 600; }
 .weekly-football-header { align-items: flex-end; border-bottom: 2px solid #176b46; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; margin: 1rem 0; padding-bottom: 1rem; }
@@ -609,12 +612,16 @@
 .weekly-football-header p { color: #536173; margin: .35rem 0 0; }
 .weekly-football-kicker { color: #176b46 !important; font-size: .9rem; font-weight: 700; text-transform: uppercase; }
 .weekly-football-selector { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }
+.weekly-football-week-tabs { display: flex; gap: .5rem; margin: 0 0 1rem; }
+.weekly-football-week-tabs a { border: 1px solid #176b46; border-radius: .3rem; color: #176b46; font-weight: 600; padding: .45rem .7rem; text-decoration: none; }
+.weekly-football-week-tabs a.active { background: #176b46; color: #fff; }
 .weekly-football-selector select { border: 1px solid #9aa8b5; border-radius: .25rem; min-height: 2.2rem; padding: .25rem .5rem; }
 .weekly-football-warning, .weekly-football-empty { background: #fff8e5; border: 1px solid #d3ad55; border-radius: .35rem; margin: 1rem 0; padding: .9rem 1rem; }
 .weekly-football-day { border: 1px solid #d9e2ec; border-radius: .4rem; margin: 1rem 0; overflow: hidden; }
 .weekly-football-day h2 { background: #edf5ef; color: #173f2a; font-size: 1.15rem; margin: 0; padding: .6rem .85rem; }
 .weekly-football-match { align-items: center; border-top: 1px solid #e2e8f0; display: grid; gap: .75rem; grid-template-columns: 105px minmax(0, 1fr) 180px; padding: .75rem .85rem; }
 .weekly-football-match time strong, .weekly-football-match > div strong { display: block; }
+.weekly-football-teams img { height: 1.25em; margin: 0 .3em 0 0; object-fit: contain; vertical-align: -.22em; width: 1.25em; }
 .weekly-football-match time span, .weekly-football-match > div span, .weekly-football-channels, .weekly-football-no-matches, .weekly-football-note { color: #536173; font-size: .9rem; }
 .weekly-football-channels { overflow-wrap: anywhere; text-align: right; }
 .weekly-football-no-matches { font-style: italic; margin: .75rem .85rem; }

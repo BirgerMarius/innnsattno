@@ -73,6 +73,22 @@ abstract class SchibstedCompetitionService
         return $this->getCompetitionData()['lastUpdated'];
     }
 
+    /**
+     * Existing SportsNext data is reused by the TV poster without triggering
+     * a new request. Names and IDs originate in the same cached season payload.
+     */
+    public function cachedTeams(): array
+    {
+        $seasonId = $this->seasonId();
+        if (! $seasonId) {
+            return [];
+        }
+
+        $cached = Cache::get($this->lastGoodCacheKey($seasonId));
+
+        return is_array($cached) && is_array($cached['teams'] ?? null) ? $cached['teams'] : [];
+    }
+
     /** Return all scheduled matches in the ISO calendar week (Monday–Sunday). */
     public function matchesForCalendarWeek(array $matches, ?Carbon $now = null): array
     {
