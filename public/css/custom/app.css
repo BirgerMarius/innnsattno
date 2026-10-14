@@ -602,6 +602,31 @@
     --front-page-btn-color: #fff;
 }
 
+.weekly-football-page { max-width: 980px; }
+.weekly-football-back { color: #176b46; font-weight: 600; }
+.weekly-football-header { align-items: flex-end; border-bottom: 2px solid #176b46; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; margin: 1rem 0; padding-bottom: 1rem; }
+.weekly-football-header h1 { color: #173f2a; font-size: clamp(1.7rem, 4vw, 2.3rem); margin: 0; }
+.weekly-football-header p { color: #536173; margin: .35rem 0 0; }
+.weekly-football-kicker { color: #176b46 !important; font-size: .9rem; font-weight: 700; text-transform: uppercase; }
+.weekly-football-selector { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }
+.weekly-football-selector select { border: 1px solid #9aa8b5; border-radius: .25rem; min-height: 2.2rem; padding: .25rem .5rem; }
+.weekly-football-warning, .weekly-football-empty { background: #fff8e5; border: 1px solid #d3ad55; border-radius: .35rem; margin: 1rem 0; padding: .9rem 1rem; }
+.weekly-football-day { border: 1px solid #d9e2ec; border-radius: .4rem; margin: 1rem 0; overflow: hidden; }
+.weekly-football-day h2 { background: #edf5ef; color: #173f2a; font-size: 1.15rem; margin: 0; padding: .6rem .85rem; }
+.weekly-football-match { align-items: center; border-top: 1px solid #e2e8f0; display: grid; gap: .75rem; grid-template-columns: 105px minmax(0, 1fr) 180px; padding: .75rem .85rem; }
+.weekly-football-match time strong, .weekly-football-match > div strong { display: block; }
+.weekly-football-match time span, .weekly-football-match > div span, .weekly-football-channels, .weekly-football-no-matches, .weekly-football-note { color: #536173; font-size: .9rem; }
+.weekly-football-channels { overflow-wrap: anywhere; text-align: right; }
+.weekly-football-no-matches { font-style: italic; margin: .75rem .85rem; }
+.weekly-football-note { border-top: 1px solid #d9e2ec; margin-top: 1.5rem; padding-top: .75rem; }
+
+@media (max-width: 575.98px) {
+    .weekly-football-header { align-items: stretch; }
+    .weekly-football-header .btn { width: 100%; }
+    .weekly-football-match { align-items: start; grid-template-columns: 82px minmax(0, 1fr); }
+    .weekly-football-channels { grid-column: 2; text-align: left; }
+}
+
 .front-page-btn--test {
     --front-page-btn-bg: #5b6f35;
     --front-page-btn-border: #5b6f35;

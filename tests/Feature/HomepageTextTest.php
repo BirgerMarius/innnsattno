@@ -79,6 +79,7 @@ class HomepageTextTest extends TestCase
             ->assertDontSee('TEST')
             ->assertSee('front-page-btn--test', false)
             ->assertSeeInOrder([
+                'Ukens fotball på TV',
                 'Premier League',
                 'Eliteserien',
                 'Champions League',
@@ -104,7 +105,7 @@ class HomepageTextTest extends TestCase
         $content = (string) $response->getContent();
         $this->assertSame(2, substr_count($content, 'front-page-btn--test'));
         $this->assertSame(3, substr_count($content, 'front-page-quiz-badges'));
-        $this->assertSame(6, substr_count($content, 'front-page-btn--football'));
+        $this->assertSame(7, substr_count($content, 'front-page-btn--football'));
         $this->assertSame(0, preg_match('/href="\/(?:tidsfordriv|ordjakt)"[^>]*front-page-btn--football/', $content));
         $this->assertSame(0, preg_match('/href="\/ordjakt"[^>]*front-page-btn--wide/', $content));
         $this->assertSame(1, preg_match('/front-page-btn--wide" role="button">\s*<i class="far fa-calendar-alt">/s', $content));

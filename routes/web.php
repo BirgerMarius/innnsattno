@@ -31,6 +31,7 @@ use App\Http\Controllers\FrontPageController;
 use App\Http\Controllers\TvPrintController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\FangenyttController;
+use App\Http\Controllers\WeeklyFootballTvController;
 use App\Http\Controllers\Admin\NewsAdminController;
 use App\Http\Controllers\Admin\NewsSourceAdminController;
 
@@ -175,6 +176,8 @@ Route::get('/test', function () {
 Route::get('/fotball', [FootballController::class, 'index']);
 Route::get('/football', [FootballController::class, 'index']);
 Route::get('/fotball-utskrift', [FootballController::class, 'print']);
+Route::get('/ukens-fotball-pa-tv', [WeeklyFootballTvController::class, 'index'])->name('weekly-football-tv.index');
+Route::get('/ukens-fotball-pa-tv/utskrift', [WeeklyFootballTvController::class, 'print'])->name('weekly-football-tv.print');
 Route::get('/eliteserien', [EliteserienController::class, 'index'])->name('eliteserien.index');
 Route::get('/eliteserien/utskrift', [EliteserienController::class, 'print'])->name('eliteserien.print');
 Route::get('/eliteserien/lag/{teamId}', [EliteserienController::class, 'team'])->whereNumber('teamId')->middleware('throttle:football-team-pages')->name('eliteserien.team');
