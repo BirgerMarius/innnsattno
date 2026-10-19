@@ -25,6 +25,7 @@ class PrecacheFootballTeams extends Command
         NationsLeagueService $nationsLeague,
     ): int {
         foreach ([$premierLeague, $eliteserien, $championsLeague, $europaLeague, $conferenceLeague, $nationsLeague] as $service) {
+            $service->refreshCompetitionData();
             $data = $service->getCompetitionData();
             $this->line($service->competitionNameForCache().': '.count($data['teams'] ?? []).' lag');
         }

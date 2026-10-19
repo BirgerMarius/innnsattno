@@ -47,6 +47,8 @@ class WeeklyFootballTvTest extends TestCase
             ]);
         });
 
+        $this->warmTv(now('Europe/Oslo')->startOfWeek(), 7);
+
         $this->get('/ukens-fotball-pa-tv')
             ->assertOk()
             ->assertSee('Uke 42')
@@ -97,6 +99,8 @@ class WeeklyFootballTvTest extends TestCase
             return Http::response([['channel' => ['name' => 'TV3+'], 'listings' => $listings]]);
         });
 
+        $this->warmTv(now('Europe/Oslo')->startOfWeek(), 7);
+
         $this->get('/ukens-fotball-pa-tv')->assertOk()
             ->assertSee('https://example.test/west-ham.png', false)
             ->assertSee('https://example.test/arsenal.png', false)
@@ -130,6 +134,8 @@ class WeeklyFootballTvTest extends TestCase
             }
             return Http::response([['channel' => ['name' => 'TV3+'], 'listings' => $listings]]);
         });
+
+        $this->warmTv(now('Europe/Oslo')->startOfWeek(), 7);
 
         $this->get('/ukens-fotball-pa-tv/utskrift')->assertOk()
             ->assertSee('days--three', false)

@@ -47,7 +47,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('correctional-news:fetch --source=ky')->hourly()->withoutOverlapping();
         $schedule->command('correctional-news:fetch --source=sivilombudet')->hourly()->withoutOverlapping();
         $schedule->command('news:prune')->hourly()->withoutOverlapping();
-        $schedule->command('external-data:send-failure-digest')->dailyAt('06:45')->timezone('Europe/Oslo')->withoutOverlapping();
+        $schedule->command('external-data:refresh tv')->everyFiveMinutes()->withoutOverlapping();
+        $schedule->command('external-data:refresh football')->everyFiveMinutes()->withoutOverlapping();
+        $schedule->command('external-data:evaluate')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('external-data:prune-events')->dailyAt('07:05')->timezone('Europe/Oslo')->withoutOverlapping();
         $schedule->command('football:precache-teams')->dailyAt('04:30')->timezone('Europe/Oslo')->withoutOverlapping();
     }

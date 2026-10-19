@@ -245,6 +245,8 @@ class FootballTeamPageTest extends TestCase
             "*/tournaments/seasons/{$seasonId}/standings" => Http::response(['participants' => $participants, 'standings' => [['teamStandings' => $standings]]], 200),
             'tvguide.vg.no/*' => Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $tvListings]], $tvStatus),
         ]);
+        $this->warmCompetition($seasonId);
+        $this->warmTv(now('Europe/Oslo'), 7);
     }
 
     private function fakeFullTeamSeason(int $seasonId, int $matchCount): void
@@ -261,6 +263,7 @@ class FootballTeamPageTest extends TestCase
             "*/tournaments/seasons/{$seasonId}/schedule" => Http::response(['participants' => $participants, 'events' => $events], 200),
             "*/tournaments/seasons/{$seasonId}/standings" => Http::response(['participants' => $participants, 'standings' => [['teamStandings' => [['teamId' => 1, 'rank' => 1]]]]], 200),
         ]);
+        $this->warmCompetition($seasonId);
     }
 
     private function fakeStatisticsCompetition(int $seasonId): void
@@ -286,6 +289,7 @@ class FootballTeamPageTest extends TestCase
             "*/tournaments/seasons/{$seasonId}/schedule" => Http::response(['participants' => $participants, 'events' => $events], 200),
             "*/tournaments/seasons/{$seasonId}/standings" => Http::response(['participants' => $participants, 'standings' => [['teamStandings' => [$standing]]]], 200),
         ]);
+        $this->warmCompetition($seasonId);
     }
 
     private function fakeNoFinishedCompetition(int $seasonId): void
@@ -301,6 +305,7 @@ class FootballTeamPageTest extends TestCase
             "*/tournaments/seasons/{$seasonId}/schedule" => Http::response(['participants' => $participants, 'events' => $events], 200),
             "*/tournaments/seasons/{$seasonId}/standings" => Http::response(['participants' => $participants, 'standings' => [['teamStandings' => [['teamId' => 1, 'rank' => 1]]]]], 200),
         ]);
+        $this->warmCompetition($seasonId);
     }
 
     private function getFromIp(string $url, string $ip)

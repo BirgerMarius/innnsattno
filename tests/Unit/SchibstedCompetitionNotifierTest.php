@@ -24,6 +24,7 @@ class SchibstedCompetitionNotifierTest extends TestCase
     {
         Http::fake(['*/tournaments/seasons/8766/schedule' => Http::response([], 503)]);
 
+        $this->warmCompetition(8766);
         $data = app(EliteserienService::class)->getCompetitionData();
 
         $this->assertTrue($data['apiError']);
@@ -36,22 +37,23 @@ class SchibstedCompetitionNotifierTest extends TestCase
         Http::fake(['*/tournaments/seasons/8766/schedule' => Http::response([], 503)]);
         $service = app(EliteserienService::class);
 
-        $service->getCompetitionData();
-        $service->getCompetitionData();
+        $service->refreshCompetitionData();
+        $service->refreshCompetitionData();
 
         Mail::assertNothingSent();
     }
 
-    public function testEmptySuccessfulCompetitionResponsesDoNotNotify(): void
+    public function testEmptyCompetitionResponsesAreUnavailableButDoNotImmediatelyNotify(): void
     {
         Http::fake([
-            '*/tournaments/seasons/8766/schedule' => Http::response([]),
-            '*/tournaments/seasons/8766/standings' => Http::response([]),
+            '*/tournaments/seasons/8766/schedule' => Http::response(['events' => []]),
+            '*/tournaments/seasons/8766/standings' => Http::response(['standings' => []]),
         ]);
 
+        $this->warmCompetition(8766);
         $data = app(EliteserienService::class)->getCompetitionData();
 
-        $this->assertFalse($data['apiError']);
+        $this->assertTrue($data['apiError']);
         Mail::assertNothingSent();
     }
 }

@@ -19,6 +19,8 @@ class EliteserienControllerTest extends TestCase
             '*/tournaments/seasons/8766/standings' => Http::response($this->standingsPayload(), 200),
         ]);
 
+        $this->warmCompetition(8766);
+
         $response = $this->get('/eliteserien');
 
         $response->assertOk();
@@ -42,6 +44,8 @@ class EliteserienControllerTest extends TestCase
             '*/tournaments/seasons/8766/schedule' => Http::response($this->schedulePayload(), 200),
             '*/tournaments/seasons/8766/standings' => Http::response($this->standingsPayload(), 200),
         ]);
+
+        $this->warmCompetition(8766);
 
         $response = $this->get('/eliteserien/test');
 

@@ -14,7 +14,6 @@ class FootballWorldCupService
 {
     private const SEASON_ID = 7767;
     private const FRESH_TTL_SECONDS = 900;
-    private const STALE_TTL_SECONDS = 604800;
 
     public function __construct(private ExternalDataFailureNotifier $failureNotifier)
     {
@@ -31,20 +30,30 @@ class FootballWorldCupService
     private function endpoint(string $endpoint): array
     {
         $keys = $this->cacheKeys($endpoint);
-        $fresh = Cache::get($keys['fresh']);
+        $data = Cache::get($keys['fresh'], Cache::get($keys['stale']));
+        return is_array($data) ? $data : $this->emptyEndpoint($endpoint);
+    }
 
-        if (is_array($fresh)) {
-            return $fresh;
+    public function refreshEndpoint(string $endpoint): bool
+    {
+        if (! in_array($endpoint, ['schedule', 'standings'], true)) {
+            return false;
         }
-
+        $keys = $this->cacheKeys($endpoint);
+        $key = 'world-cup-'.$endpoint;
+        $lock = Cache::lock('fetch.sportsnext.'.$key, 45);
+        if (! $lock->get()) {
+            return false;
+        }
+        $stale = Cache::get($keys['stale']);
         try {
             $data = $this->fetch($endpoint);
 
             Cache::put($keys['fresh'], $data, now()->addSeconds(self::FRESH_TTL_SECONDS));
-            Cache::put($keys['stale'], $data, now()->addSeconds(self::STALE_TTL_SECONDS));
+            Cache::forever($keys['stale'], $data);
             $this->failureNotifier->reportSuccess('sportsnext-football', 'world-cup-'.$endpoint);
-
-            return $data;
+            app(ExternalDataMonitor::class)->checked('sportsnext', $key, 'football', 'Fotball-VM – '.$endpoint, true, true, true);
+            return true;
         } catch (Throwable $exception) {
             $this->failureNotifier->report('sportsnext-football', $this->summary($endpoint, $exception), [
                 'operation' => 'world-cup-'.$endpoint,
@@ -52,9 +61,10 @@ class FootballWorldCupService
                 'status' => $exception instanceof RequestException ? $exception->response?->status() : null,
             ]);
 
-            $stale = Cache::get($keys['stale']);
-
-            return is_array($stale) ? $stale : $this->emptyEndpoint($endpoint);
+            app(ExternalDataMonitor::class)->checked('sportsnext', $key, 'football', 'Fotball-VM – '.$endpoint, true, false, is_array($stale), $this->summary($endpoint, $exception));
+            return false;
+        } finally {
+            $lock->release();
         }
     }
 

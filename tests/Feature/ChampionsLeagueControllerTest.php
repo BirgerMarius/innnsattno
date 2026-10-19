@@ -18,6 +18,8 @@ class ChampionsLeagueControllerTest extends TestCase
             '*/tournaments/seasons/9168/standings' => Http::response($this->standingsPayload(), 200),
         ]);
 
+        $this->warmCompetition(9168);
+
         $this->get('/champions-league')->assertOk()->assertSee('Champions League')->assertSee('Bodø/Glimt')->assertSee('Tabell / ligafase')
             ->assertSee('Trykk på et lagnavn i tabellen for å se lagets kamper.')->assertDontSee('Beta');
         $this->get('/champions-league/print')->assertOk()
@@ -36,6 +38,8 @@ class ChampionsLeagueControllerTest extends TestCase
             '*/tournaments/seasons/9168/schedule' => Http::response($this->teamSchedulePayload(), 200),
             '*/tournaments/seasons/9168/standings' => Http::response($this->teamStandingsPayload(), 200),
         ]);
+
+        $this->warmCompetition(9168);
 
         $this->get('/champions-league')
             ->assertOk()
@@ -77,6 +81,8 @@ class ChampionsLeagueControllerTest extends TestCase
         ]);
 
         try {
+
+        $this->warmCompetition(9168);
             $this->get('/champions-league/print')->assertOk()
                 ->assertViewHas('printFixtures', function (array $matches) {
                     $this->assertStringStartsWith('https://example.test/bodo.png', $matches[0]['homeEmblemUrl']);

@@ -33,12 +33,16 @@ class TvPrintController extends Controller
         $tvChannels = $tvGuideService->withDisplayTitles(
             $tvGuideService->getSchedule($date, $channels, $prison.'-print'),
         );
+        $tvAvailable = $tvChannels !== [];
+        $tvLastUpdated = $tvGuideService->lastUpdated($date, $channels);
 
         if ($prison === 'ilseng') {
             return view('pdf-ilseng', [
                 'channels' => $tvChannels,
                 'printDate' => $date,
                 'isSelectedDate' => $isSelectedDate,
+                'tvAvailable' => $tvAvailable,
+                'tvLastUpdated' => $tvLastUpdated,
             ]);
         }
 
@@ -70,6 +74,8 @@ class TvPrintController extends Controller
             'channels' => $tvChannels,
             'printDate' => $date,
             'isSelectedDate' => $isSelectedDate,
+            'tvAvailable' => $tvAvailable,
+            'tvLastUpdated' => $tvLastUpdated,
         ]);
     }
 }

@@ -55,16 +55,39 @@ Produksjonsdeploy skjer med prosjektets separate deployverktøy og er ikke en de
 
 ### Eksterne datakilder
 
-Feil fra eksterne kilder lagres varig og samles i én e-post kl. 06:45
-`Europe/Oslo` (inkludert sommer- og vintertid). Laravels scheduler må fortsatt
-bli startet av serveren hvert minutt, for eksempel:
+Kildekontroller for VG TV-guide og SportsNext kjøres av Laravels scheduler;
+sidene leser lokal cache og venter ikke på disse kildene. TV-data for begge
+fengsler og datovinduet åtte dager tilbake til tretten dager frem hentes omtrent hver time i avgrensede
+puljer. SportsNext hentes hvert 30. minutt, og hvert femte minutt rundt kamper.
+Ved feil prøves manglende, sentrale data på nytt hvert femte minutt; andre
+feilkontroller normalt hvert kvarter. DW-programmet hentes omtrent hver time.
+Et opphold på mer enn én time mellom kontroller starter feilserien på nytt;
+manglende kontroller er ikke bevis på vedvarende nedetid.
+
+Den gamle døgnrapporten er erstattet av kildevise kritiske varsler. Minst fem
+mislykkede kildekontroller over en time kreves normalt, sammen med manglende
+eller for gamle data. Helt manglende sentrale data varsles etter tre feil over
+minst ti minutter. Standardgrensene for TV/fotball er seks timer, vær tre timer,
+bønnetider sju dager og nyheter ett døgn; de konfigureres i `config/external_data.php`.
+Bare VG TV-guide og SportsNext er koblet til de nye planlagte kontrollene i
+denne omgangen. Andre tjenester logger fortsatt feil, men sender ikke kritiske
+varsler før de også er koblet til kontroller og datadekning. Et varslet utfall
+følges opp høyst én gang i døgnet og avsluttes først etter vellykket kontroll av
+alle berørte data. Ingen e-post sendes for kortvarige feil.
+
+Scheduleren må startes av serveren hvert minutt, for eksempel:
 
 ```bash
 * * * * * cd /path/to/innsatt.no && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-Prosjektet kan ikke bekrefte eller endre serverens faktiske crontab. Ved deploy
-av denne endringen må migrasjonen kjøres før scheduler-prosessen får ny kode.
+Kjør migreringene før de nye jobbene starter. Cache og låser må være felles for
+web- og schedulerprosessene, og begge må kunne skrive til cachelagringen. Ved
+flere servere må cache og låser deles mellom dem. Jobbene kjører direkte i
+scheduleren og krever ingen ny køarbeider. Ved tom cache bygges dataene gradvis
+opp; sider kan vise manglende data inntil første vellykkede henting. Overvåk
+selve scheduler/cron separat: manglende kontroller kan ikke bevise kildeutfall.
+Prosjektet kan ikke bekrefte serverens faktiske crontab.
 
 ## Søkemotorer og utskrift
 

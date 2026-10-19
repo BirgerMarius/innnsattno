@@ -20,6 +20,8 @@ class NationsLeagueControllerTest extends TestCase
             'tvguide.vg.no/*' => Http::response([], 200),
         ]);
 
+        $this->warmCompetition(8889);
+
         $this->get('/nations-league')->assertOk()
             ->assertSee('UEFA Nations League')->assertSee('League A, Group 4')
             ->assertSee('Norge')->assertSee('Danmark')->assertSee('Portugal')
@@ -66,6 +68,9 @@ class NationsLeagueControllerTest extends TestCase
         ]);
 
         try {
+
+        $this->warmCompetition(8889);
+        $this->warmTv(now('Europe/Oslo')->startOfWeek(), 8);
             $response = $this->get('/nations-league')->assertOk()
                 ->assertSee('🇳🇴 Norge', false)
                 ->assertSee('Danmark – Wales');
@@ -91,6 +96,8 @@ class NationsLeagueControllerTest extends TestCase
         ]);
 
         try {
+
+        $this->warmCompetition(8889);
             $this->get('/nations-league')->assertOk()
                 ->assertSee('https://example.test/norge.png', false)
                 ->assertSee('https://example.test/danmark.png', false);
@@ -151,6 +158,9 @@ class NationsLeagueControllerTest extends TestCase
         ]);
 
         try {
+
+        $this->warmCompetition(8889);
+        $this->warmTv(now('Europe/Oslo')->startOfWeek(), 8);
             $this->get('/nations-league')->assertOk()
                 ->assertSeeInOrder(['Sverige – Romania', 'Norge – Danmark', 'Tsjekkia – Kroatia', 'Norge – Portugal'])
                 ->assertDontSee('Studio')->assertDontSee('Utenfor uke')->assertDontSee('Kanalutvalg: Ringerike fengsel');

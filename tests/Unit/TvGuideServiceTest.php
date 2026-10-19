@@ -29,6 +29,7 @@ class TvGuideServiceTest extends TestCase
         $schedule = [$this->channel('NRK1')];
         Http::fake(['tvguide.vg.no/*' => Http::response($schedule)]);
 
+        $this->service()->refreshSchedule($this->date(), self::CHANNELS, 'ringerike');
         $first = $this->service()->getSchedule($this->date(), self::CHANNELS, 'ringerike-print');
         $second = $this->service()->getSchedule($this->date(), self::CHANNELS, 'ringerike-print');
 
@@ -175,6 +176,8 @@ class TvGuideServiceTest extends TestCase
             return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
         });
 
+        $this->warmTv($now, 7);
+
         $result = $this->service()->getUpcomingPremierLeagueOnTv3Plus($now, 'premier-league-tv3-plus-print', 3);
 
         $this->assertSame('Brentford – Chelsea', $result['matches'][0]['name']);
@@ -222,6 +225,8 @@ class TvGuideServiceTest extends TestCase
             return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
         });
 
+        $this->warmTv($now, 7);
+
         $europa = $this->service()->getUpcomingCompetitionMatches($now, 'europa-league', 'europa-test', 3);
         $eliteserien = $this->service()->getUpcomingCompetitionMatches($now, 'eliteserien', 'eliteserien-test', 3);
 
@@ -247,6 +252,8 @@ class TvGuideServiceTest extends TestCase
             return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
         });
 
+        $this->warmTv($now->copy()->startOfWeek(), 7);
+
         $result = $this->service()->getUpcomingCompetitionMatches($now, 'nations-league', 'nations-league-test', 3);
         $this->assertSame('Nations League', $result['competitionLabel']);
         $this->assertSame(['Norge – Danmark', 'Norge – Portugal'], array_column($result['matches'], 'name'));
@@ -269,6 +276,8 @@ class TvGuideServiceTest extends TestCase
             ] : [];
             return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
         });
+
+        $this->warmTv($now->copy()->startOfWeek(), 7);
 
         $result = $this->service()->getUpcomingCompetitionMatches($now, 'nations-league', 'nations-league-week-test', 0);
         $this->assertSame(['Sverige – Romania', 'Norge – Danmark', 'Tsjekkia – Kroatia', 'Norge – Portugal'], array_column($result['matches'], 'name'));
@@ -295,6 +304,8 @@ class TvGuideServiceTest extends TestCase
 
             return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
         });
+
+        $this->warmTv($now, 8);
 
         $result = $this->service()->getUpcomingCompetitionMatches($now, 'nations-league', 'nations-league-rolling-test', 0, true);
 

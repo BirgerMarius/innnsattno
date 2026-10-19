@@ -23,33 +23,64 @@ abstract class SchibstedCompetitionService
     public function getCompetitionData(): array
     {
         $seasonId = $this->seasonId();
-
         if (!$seasonId) {
             return $this->emptyCompetitionData(false, false);
         }
+        $cached = Cache::get($this->lastGoodCacheKey($seasonId));
+        if (! is_array($cached)) {
+            return $this->emptyCompetitionData(true, false);
+        }
+        if (! is_string($cached['sourceFetchedAt'] ?? null)) {
+            $cached['lastUpdated'] = null;
+            $cached['usingStaleData'] = true;
+            $cached['apiError'] = true;
+        } elseif (Carbon::parse($cached['sourceFetchedAt'])->lte(now()->subMinutes((int) config('external_data.max_age_minutes.football', 360)))) {
+            $cached['usingStaleData'] = true;
+            $cached['apiError'] = true;
+        }
+        return $cached;
+    }
 
+    /** Only scheduler calls this: a refresh must actually check both endpoints. */
+    public function refreshCompetitionData(): bool
+    {
+        $seasonId = $this->seasonId();
+        if (! $seasonId) {
+            return false;
+        }
+        $key = $this->cachePrefix().'-'.$seasonId;
+        $lock = Cache::lock('fetch.sportsnext.'.$key, 60);
+        if (! $lock->get()) {
+            return false;
+        }
+        $cached = Cache::get($this->lastGoodCacheKey($seasonId));
         try {
-            $schedule = $this->fetchSeasonEndpoint($seasonId, 'schedule');
-            $standings = $this->fetchSeasonEndpoint($seasonId, 'standings');
+            $schedule = $this->fetchSeasonEndpoint($seasonId, 'schedule', true);
+            $standings = $this->fetchSeasonEndpoint($seasonId, 'standings', true);
+            if (! is_array($schedule['events'] ?? null) || ! is_array($standings['standings'] ?? null)) {
+                throw new UnexpectedValueException('SportsNext mangler kamp- eller tabelldata.');
+            }
+            if ($schedule['events'] === [] && $standings['standings'] === []) {
+                throw new UnexpectedValueException('SportsNext mangler brukbare kamp- og tabelldata.');
+            }
             $data = $this->normalizeCompetitionData($schedule, $standings);
-
-            Cache::put($this->lastGoodCacheKey($seasonId), $data, now()->addDays(7));
+            $data['lastUpdated'] = now(self::TIMEZONE);
+            $data['sourceFetchedAt'] = now()->toIso8601String();
+            Cache::forever($this->lastGoodCacheKey($seasonId), $data);
             ($this->notifier ?? app(ExternalDataFailureNotifier::class))->reportSuccess('sportsnext-competition', $this->cachePrefix());
-
-            return $data;
+            app(ExternalDataMonitor::class)->checked('sportsnext', $key, 'football', $this->competitionLogName().' – kamper og tabell', true, true, true);
+            return true;
         } catch (Throwable $exception) {
             $this->logApiFailure($exception);
-
-            $cached = Cache::get($this->lastGoodCacheKey($seasonId));
-
+            app(ExternalDataMonitor::class)->checked('sportsnext', $key, 'football', $this->competitionLogName().' – kamper og tabell', true, false, is_array($cached), $exception->getMessage());
             if (is_array($cached)) {
                 $cached['apiError'] = true;
                 $cached['usingStaleData'] = true;
-
-                return $cached;
+                Cache::forever($this->lastGoodCacheKey($seasonId), $cached);
             }
-
-            return $this->emptyCompetitionData(true, false);
+            return false;
+        } finally {
+            $lock->release();
         }
     }
 
@@ -92,6 +123,11 @@ abstract class SchibstedCompetitionService
     public function competitionNameForCache(): string
     {
         return $this->competitionLogName();
+    }
+
+    public function competitionKey(): string
+    {
+        return $this->cachePrefix().'-'.$this->seasonId();
     }
 
     /** Return all scheduled matches in the ISO calendar week (Monday–Sunday). */
@@ -365,12 +401,12 @@ abstract class SchibstedCompetitionService
         ];
     }
 
-    private function fetchSeasonEndpoint(int $seasonId, string $endpoint): array
+    private function fetchSeasonEndpoint(int $seasonId, string $endpoint, bool $force = false): array
     {
         $cacheKey = sprintf('schibsted_sports.%s.%d.%s', $this->cachePrefix(), $seasonId, $endpoint);
         $ttl = (int) config('services.schibsted_sports.cache_ttl', 900);
 
-        if (Cache::has($cacheKey)) {
+        if (! $force && Cache::has($cacheKey)) {
             $cached = Cache::get($cacheKey);
 
             if (is_array($cached)) {
@@ -380,10 +416,13 @@ abstract class SchibstedCompetitionService
 
         try {
             $response = Http::acceptJson()
+                ->connectTimeout(3)
                 ->timeout((int) config('services.schibsted_sports.timeout', 10))
                 ->retry(
                     (int) config('services.schibsted_sports.retry_times', 1),
-                    (int) config('services.schibsted_sports.retry_sleep', 250)
+                    (int) config('services.schibsted_sports.retry_sleep', 250),
+                    fn (Throwable $exception) => $exception instanceof ConnectionException
+                        || ($exception instanceof RequestException && $exception->response?->serverError())
                 )
                 ->get($this->seasonEndpointUrl($seasonId, $endpoint))
                 ->throw();

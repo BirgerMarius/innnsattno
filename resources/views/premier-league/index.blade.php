@@ -195,6 +195,8 @@
             @endif
             @if($tv3Plus['hasSourceFailure'] && (count($tv3Plus['matches']) || $tv3Plus['missingMatchNames']))
                 <p class="pl-tv3-plus-note">TV-oversikten kan være ufullstendig{{ $tv3Plus['usingStaleData'] ? '; sist lagrede data vises der det finnes.' : '.' }}</p>
+            @elseif($tv3Plus['usingStaleData'])
+                <p class="pl-tv3-plus-note">Viser sist lagrede TV-data. Oppdateringen kan være forsinket.</p>
             @endif
         </section>
 

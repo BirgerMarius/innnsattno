@@ -30,6 +30,9 @@ class FootballControllerTest extends TestCase
             '*standings' => Http::response($this->worldCupStandings()),
         ]);
 
+        app(\App\Services\FootballWorldCupService::class)->refreshEndpoint('schedule');
+        app(\App\Services\FootballWorldCupService::class)->refreshEndpoint('standings');
+
         $this->get('/fotball-utskrift')->assertOk()
             ->assertDontSee('<div class="playoff-columns">', false)
             ->assertDontSee('32-delsfinaler');
@@ -50,6 +53,9 @@ class FootballControllerTest extends TestCase
             '*schedule' => Http::response($schedule),
             '*standings' => Http::response($this->worldCupStandings()),
         ]);
+
+        app(\App\Services\FootballWorldCupService::class)->refreshEndpoint('schedule');
+        app(\App\Services\FootballWorldCupService::class)->refreshEndpoint('standings');
 
         $this->get('/fotball-utskrift')->assertOk()
             ->assertSee('<div class="playoff-columns">', false)

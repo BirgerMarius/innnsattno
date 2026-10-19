@@ -61,6 +61,9 @@ class TvGuidePrintTest extends TestCase
             ]], 200),
         ]);
 
+        $this->warmTv(now('Europe/Oslo'));
+        $this->warmTv(now('Europe/Oslo'), 1, 'ilseng');
+
         $this->get('/print')
             ->assertOk()
             ->assertSee('Viasat Explore');
@@ -105,6 +108,9 @@ class TvGuidePrintTest extends TestCase
             'www.dw.com/graph-api/en/livestream/english' => Http::response($this->dwResponse([]), 200),
         ]);
 
+        $this->warmTv(now('Europe/Oslo'));
+        $this->warmTv(now('Europe/Oslo'), 1, 'ilseng');
+
         $this->get('/print')->assertOk()->assertSee('⚽ Norge – Danmark');
         $this->get('/print-ilseng')->assertOk()->assertSee('⚽ Norge – Danmark');
 
@@ -129,6 +135,10 @@ class TvGuidePrintTest extends TestCase
             ]), 200),
         ]);
 
+        $this->warmTv(now('Europe/Oslo'));
+        $this->warmTv(now('Europe/Oslo'), 1, 'ilseng');
+        app(\App\Services\DwScheduleService::class)->refresh();
+
         $this->get('/print')
             ->assertOk()
             ->assertSeeInOrder(['BBC World News', 'DW News', 'Al Jazeera English']);
@@ -140,6 +150,10 @@ class TvGuidePrintTest extends TestCase
             'tvguide.vg.no/*' => Http::response([], 200),
             'www.dw.com/graph-api/en/livestream/english' => Http::response([], 503),
         ]);
+
+        $this->warmTv(now('Europe/Oslo'));
+        $this->warmTv(now('Europe/Oslo'), 1, 'ilseng');
+        app(\App\Services\DwScheduleService::class)->refresh();
 
         $this->get('/print')->assertOk()->assertDontSee('DW News');
         $this->get('/print-ilseng')->assertOk();
@@ -184,6 +198,9 @@ class TvGuidePrintTest extends TestCase
             'www.dw.com/graph-api/en/livestream/english' => Http::response([], 503),
         ]);
 
+        $this->warmTv(now('Europe/Oslo'));
+        $this->warmTv(now('Europe/Oslo'), 1, 'ilseng');
+
         $response = $this->get('/print')->assertOk();
 
         $response
@@ -227,6 +244,9 @@ class TvGuidePrintTest extends TestCase
             'www.dw.com/graph-api/en/livestream/english' => Http::response([], 503),
         ]);
 
+        $this->warmTv(now('Europe/Oslo'));
+        $this->warmTv(now('Europe/Oslo'), 1, 'ilseng');
+
         $response = $this->get($route)->assertOk()
             ->assertSee('Premier League: Et svært langt hjemmelag med mange ord – Et svært langt bortelag med mange ord')
             ->assertSee('overflow-wrap: anywhere', false)
@@ -255,6 +275,9 @@ class TvGuidePrintTest extends TestCase
                 ],
             ], 200),
         ]);
+
+        $this->warmTv(now('Europe/Oslo'));
+        $this->warmTv(now('Europe/Oslo'), 1, 'ilseng');
 
         $response = $this->get('/print-ilseng')->assertOk();
 
@@ -338,6 +361,9 @@ class TvGuidePrintTest extends TestCase
             'www.dw.com/graph-api/en/livestream/english' => Http::response([], 503),
         ]);
 
+        $this->warmTv(now('Europe/Oslo'));
+        $this->warmTv(now('Europe/Oslo'), 1, 'ilseng');
+
         $response = $this->get($route)->assertOk();
 
         $response
@@ -370,6 +396,9 @@ class TvGuidePrintTest extends TestCase
             'tvguide.vg.no/*' => Http::response($channels, 200),
             'www.dw.com/graph-api/en/livestream/english' => Http::response([], 503),
         ]);
+
+        $this->warmTv(now('Europe/Oslo'));
+        $this->warmTv(now('Europe/Oslo'), 1, 'ilseng');
 
         $response = $this->get($route)->assertOk();
 

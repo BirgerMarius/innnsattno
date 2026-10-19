@@ -2,18 +2,18 @@
 
 namespace App\Console\Commands;
 
-use App\Services\ExternalDataFailureDigestService;
+use App\Services\ExternalDataMonitor;
 use Illuminate\Console\Command;
 
 class SendExternalDataFailureDigest extends Command
 {
     protected $signature = 'external-data:send-failure-digest';
-    protected $description = 'Sender samlet døgnoversikt over eksterne datakildefeil';
+    protected $description = 'Bakoverkompatibel kommando for vurdering av kritiske datakilfeil';
 
-    public function handle(ExternalDataFailureDigestService $service): int
+    public function handle(ExternalDataMonitor $service): int
     {
-        $sent = $service->send();
-        $this->info($sent ? 'Feiloversikt sendt.' : 'Ingen ny feiloversikt å sende.');
+        $service->evaluate();
+        $this->info('Kritiske datakilder er vurdert.');
         return self::SUCCESS;
     }
 }

@@ -29,6 +29,7 @@ class DwScheduleServiceTest extends TestCase
             ]), 200),
         ]);
 
+        app(DwScheduleService::class)->refresh();
         $channel = app(DwScheduleService::class)->channelForDate(Carbon::parse('2026-07-15', 'Europe/Oslo'));
 
         $this->assertSame('DW News', $channel['channel']['name']);
@@ -53,6 +54,7 @@ class DwScheduleServiceTest extends TestCase
         ]);
 
         $service = app(DwScheduleService::class);
+        $service->refresh();
 
         $winter = $service->channelForDate(Carbon::parse('2026-01-16', 'Europe/Oslo'));
         $summer = $service->channelForDate(Carbon::parse('2026-07-15', 'Europe/Oslo'));

@@ -74,14 +74,15 @@ class EliteserienServiceTest extends TestCase
         Cache::flush();
 
         Http::fake([
-            '*/tournaments/seasons/8766/schedule' => Http::response([], 200),
-            '*/tournaments/seasons/8766/standings' => Http::response([], 200),
+            '*/tournaments/seasons/8766/schedule' => Http::response(['events' => []], 200),
+            '*/tournaments/seasons/8766/standings' => Http::response(['standings' => []], 200),
         ]);
 
+        $this->warmCompetition(8766);
         $data = (new EliteserienService())->getCompetitionData();
 
         $this->assertTrue($data['apiConfigured']);
-        $this->assertFalse($data['apiError']);
+        $this->assertTrue($data['apiError']);
         $this->assertFalse($data['usingStaleData']);
         $this->assertSame([], $data['standings']);
         $this->assertSame([], $data['upcomingFixtures']);
@@ -98,6 +99,7 @@ class EliteserienServiceTest extends TestCase
             '*/tournaments/seasons/8766/standings' => Http::response($this->standingsPayload(16), 200),
         ]);
 
+        $this->warmCompetition(8766);
         $data = (new EliteserienService())->getCompetitionData();
 
         $this->assertTrue($data['apiConfigured']);
@@ -140,11 +142,12 @@ class EliteserienServiceTest extends TestCase
             },
         ]);
 
-        (new EliteserienService())->getCompetitionData();
+        $this->warmCompetition(8766);
 
         Cache::forget('schibsted_sports.eliteserien.8766.schedule');
         Cache::forget('schibsted_sports.eliteserien.8766.standings');
 
+        $this->warmCompetition(8766);
         $data = (new EliteserienService())->getCompetitionData();
 
         $this->assertTrue($data['apiError']);

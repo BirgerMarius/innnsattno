@@ -133,6 +133,7 @@ class PremierLeagueServiceTest extends TestCase
             '*/tournaments/seasons/9186/standings' => Http::response($standings, 200),
         ]);
 
+        $this->warmCompetition(9186);
         $data = (new PremierLeagueService())->getCompetitionData();
 
         $this->assertTrue($data['apiConfigured']);

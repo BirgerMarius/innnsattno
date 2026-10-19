@@ -18,6 +18,7 @@ class UefaCompetitionControllerTest extends TestCase
 
         $this->fakeCompetition(9170, 8);
 
+        $this->warmCompetition(9170);
         $this->get('/europa-league')->assertOk()
             ->assertSee('Europa League')
             ->assertSee('Direktesendt Europa League på TV')
@@ -48,6 +49,7 @@ class UefaCompetitionControllerTest extends TestCase
 
         $this->fakeCompetition(9171, 6);
 
+        $this->warmCompetition(9171);
         $this->get('/conference-league')->assertOk()
             ->assertSee('Conference League')
             ->assertSee('Direktesendt Conference League på TV')

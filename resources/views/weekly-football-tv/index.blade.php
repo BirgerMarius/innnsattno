@@ -35,6 +35,8 @@
         <div class="weekly-football-warning" role="status">
             TV-guiden kunne ikke hentes for {{ count($weeklyFootball['sourceFailureDates']) }} av 7 dager. Listen kan derfor være ufullstendig{{ $weeklyFootball['usingStaleData'] ? '; sist lagrede data vises der de finnes.' : '.' }}
         </div>
+    @elseif($weeklyFootball['usingStaleData'])
+        <div class="weekly-football-warning" role="status">Viser sist lagrede TV-data. Oppdateringen kan være forsinket.</div>
     @endif
     @if($weeklyFootball['hasUnpublishedDates'])
         <div class="weekly-football-warning" role="status">TV-programmet er foreløpig ikke publisert for {{ count($weeklyFootball['unpublishedDates']) }} av 7 dager. Det er ikke det samme som dager uten oppførte kamper.</div>
@@ -70,6 +72,6 @@
             </section>
         @endforeach
     @endif
-    <p class="weekly-football-note">Tidspunktet er TV-sendingens starttid fra VG TV-guide. Avspark vises ikke når det ikke er oppgitt i TV-dataene. Sist kontrollert {{ $weeklyFootball['lastUpdated']->locale('nb')->translatedFormat('j. F Y \k\l. H.i') }}.</p>
+    <p class="weekly-football-note">Tidspunktet er TV-sendingens starttid fra VG TV-guide. Avspark vises ikke når det ikke er oppgitt i TV-dataene. Sist oppdatert: {{ $weeklyFootball['lastUpdated'] ? $weeklyFootball['lastUpdated']->locale('nb')->translatedFormat('j. F Y \k\l. H.i') : 'ukjent' }}.</p>
 </main>
 @endsection

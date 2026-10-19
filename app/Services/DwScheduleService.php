@@ -68,12 +68,13 @@ class DwScheduleService
         ];
     }
 
-    private function slots(): ?array
+    private function slots(bool $refresh = false): ?array
     {
         $cached = Cache::get(self::CACHE_KEY);
 
-        if (is_array($cached)) {
-            return $cached;
+        if (! $refresh) {
+            $stale = Cache::get(self::CACHE_KEY.'.last-good');
+            return is_array($cached) ? $cached : (is_array($stale) ? $stale : null);
         }
 
         try {
@@ -106,6 +107,7 @@ class DwScheduleService
             }
 
             Cache::put(self::CACHE_KEY, $slots, now()->addMinutes(10));
+            Cache::forever(self::CACHE_KEY.'.last-good', $slots);
             $this->failureNotifier->reportSuccess('dw-news', 'tv-guide-ringerike');
 
             return $slots;
@@ -116,6 +118,19 @@ class DwScheduleService
             ]);
 
             return null;
+        }
+    }
+
+    public function refresh(): void
+    {
+        $lock = Cache::lock('fetch.dw-news', 15);
+        if (! $lock->get()) {
+            return;
+        }
+        try {
+            $this->slots(true);
+        } finally {
+            $lock->release();
         }
     }
 }

@@ -163,6 +163,7 @@ class CompetitionPrintTest extends TestCase
             "*/tournaments/seasons/{$seasonId}/schedule" => Http::response(['participants' => $participants, 'events' => $events]),
             "*/tournaments/seasons/{$seasonId}/standings" => Http::response($standings),
         ]);
+        $this->warmCompetition($seasonId);
     }
 
     private function fakeRollingWindowCompetition(int $seasonId): void
@@ -196,6 +197,7 @@ class CompetitionPrintTest extends TestCase
             "*/tournaments/seasons/{$seasonId}/schedule" => Http::response(['participants' => $participants, 'events' => $events]),
             "*/tournaments/seasons/{$seasonId}/standings" => Http::response($standings),
         ]);
+        $this->warmCompetition($seasonId);
     }
 
     private function event(int $id, string $date, array $teams, bool $finished): array

@@ -22,6 +22,11 @@
     {{ $printDate->copy()->locale('nb_NO')->dayName }}
     {{ $printDate->format('d.m.Y') }}
 </p>
+@if (! $tvAvailable)
+    <p role="status">TV-programmet er ikke tilgjengelig eller er ennå ikke publisert.</p>
+@elseif ($tvLastUpdated)
+    <p>Sist oppdatert: {{ $tvLastUpdated->format('d.m.Y H:i') }}</p>
+@endif
     
     
 <br />

@@ -22,5 +22,7 @@
     @endif
     @if($tvMatches['hasSourceFailure'] && (count($tvMatches['matches']) || $tvMatches['missingMatchNames']))
         <p class="football-tv-box__note">TV-oversikten kan være ufullstendig{{ $tvMatches['usingStaleData'] ? '; sist lagrede data vises der det finnes.' : '.' }}</p>
+    @elseif($tvMatches['usingStaleData'])
+        <p class="football-tv-box__note">Viser sist lagrede TV-data. Oppdateringen kan være forsinket.</p>
     @endif
 </section>

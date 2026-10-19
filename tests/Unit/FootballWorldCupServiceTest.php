@@ -28,6 +28,9 @@ class FootballWorldCupServiceTest extends TestCase
             '*standings' => Http::response($this->standings()),
         ]);
 
+        $this->service()->refreshEndpoint('schedule');
+        $this->service()->refreshEndpoint('standings');
+
         $first = $this->service()->getData();
         $second = $this->service()->getData();
 
@@ -46,6 +49,9 @@ class FootballWorldCupServiceTest extends TestCase
             '*standings' => Http::response($this->standings()),
         ]);
 
+        $this->service()->refreshEndpoint('schedule');
+        $this->service()->refreshEndpoint('standings');
+
         $result = $this->service()->getData();
 
         $this->assertSame($staleSchedule, $result['schedule']);
@@ -61,6 +67,9 @@ class FootballWorldCupServiceTest extends TestCase
             '*schedule' => Http::response($this->schedule()),
             '*standings' => Http::response([], 500),
         ]);
+
+        $this->service()->refreshEndpoint('schedule');
+        $this->service()->refreshEndpoint('standings');
 
         $result = $this->service()->getData();
 
@@ -80,6 +89,9 @@ class FootballWorldCupServiceTest extends TestCase
             return Http::response($this->standings());
         });
 
+        $this->service()->refreshEndpoint('schedule');
+        $this->service()->refreshEndpoint('standings');
+
         $result = $this->service()->getData();
 
         $this->assertSame('Lagret lag', $result['schedule']['participants'][1]['name']);
@@ -93,6 +105,9 @@ class FootballWorldCupServiceTest extends TestCase
             '*schedule' => Http::response('ikke json'),
             '*standings' => Http::response($this->standings()),
         ]);
+
+        $this->service()->refreshEndpoint('schedule');
+        $this->service()->refreshEndpoint('standings');
         $jsonFailure = $this->service()->getData();
         $this->assertSame([], $jsonFailure['schedule']['events']);
         Mail::assertNothingSent();
@@ -105,6 +120,9 @@ class FootballWorldCupServiceTest extends TestCase
             '*schedule' => Http::response(['participants' => [], 'events' => []]),
             '*standings' => Http::response($this->standings()),
         ]);
+
+        $this->service()->refreshEndpoint('schedule');
+        $this->service()->refreshEndpoint('standings');
         $schemaFailure = $this->service()->getData();
         $this->assertSame([], $schemaFailure['schedule']['events']);
         Mail::assertNothingSent();
@@ -113,6 +131,9 @@ class FootballWorldCupServiceTest extends TestCase
     public function test_no_stale_data_returns_controlled_empty_endpoints(): void
     {
         Http::fake(['*' => Http::response([], 500)]);
+
+        $this->service()->refreshEndpoint('schedule');
+        $this->service()->refreshEndpoint('standings');
 
         $result = $this->service()->getData();
 
@@ -127,6 +148,9 @@ class FootballWorldCupServiceTest extends TestCase
             '*standings' => Http::response($this->standings()),
         ]);
 
+        $this->service()->refreshEndpoint('schedule');
+        $this->service()->refreshEndpoint('standings');
+
         $this->service()->getData();
         $this->service()->getData();
 
@@ -140,6 +164,9 @@ class FootballWorldCupServiceTest extends TestCase
             '*schedule' => Http::response([], 500),
             '*standings' => Http::response($this->standings()),
         ]);
+
+        $this->service()->refreshEndpoint('schedule');
+        $this->service()->refreshEndpoint('standings');
 
         $result = $this->service()->getData();
 

@@ -19,6 +19,8 @@ class PremierLeagueControllerTest extends TestCase
             '*/tournaments/seasons/9186/standings' => Http::response($this->standingsPayload(), 200),
         ]);
 
+        $this->warmCompetition(9186);
+
         $response = $this->get('/premier-league/test');
 
         $response->assertOk();
@@ -54,6 +56,9 @@ class PremierLeagueControllerTest extends TestCase
             '*/tournaments/seasons/9186/standings' => Http::response($this->standingsPayload(), 200),
             'tvguide.vg.no/*' => Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]], 200),
         ]);
+
+        $this->warmCompetition(9186);
+        $this->warmTv(now('Europe/Oslo'), 7);
 
         $response = $this->get('/premier-league')->assertOk()
             ->assertSeeInOrder(['Direktesendt Premier League på TV', 'Tabell'])

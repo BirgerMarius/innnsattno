@@ -50,6 +50,8 @@ class AdminTvPrintTest extends TestCase
             'www.dw.com/graph-api/en/livestream/english' => Http::response($this->dwResponse(), 200),
         ]);
 
+        $this->warmTv(Carbon::parse('2026-09-24', 'Europe/Oslo'));
+
         $this->adminGet('2026-09-24', 'ringerike')
             ->assertOk()
             ->assertSee('24.09.2026');
@@ -68,6 +70,8 @@ class AdminTvPrintTest extends TestCase
     public function test_selected_date_is_sent_to_ilseng_print_with_its_known_channel_list(): void
     {
         Http::fake(['tvguide.vg.no/*' => Http::response([], 200)]);
+
+        $this->warmTv(Carbon::parse('2026-09-27', 'Europe/Oslo'), 1, 'ilseng');
 
         $this->adminGet('2026-09-27', 'ilseng')
             ->assertOk()
@@ -109,6 +113,8 @@ class AdminTvPrintTest extends TestCase
             'www.dw.com/graph-api/en/livestream/english' => Http::response($this->dwResponse(), 200),
         ]);
 
+        $this->warmTv(Carbon::parse('2026-09-24', 'Europe/Oslo'));
+
         $this->adminGet('2026-09-24', 'ringerike')->assertOk()->assertSee('⚽ Norge – Danmark');
 
     }
@@ -119,6 +125,8 @@ class AdminTvPrintTest extends TestCase
             'channel' => ['name' => 'TV 2 Direkte', 'slug' => 'tv2-direkte'],
             'listings' => [$this->norwayMatch('Norge - Portugal', '2026-09-27T18:35:00+00:00')],
         ]], 200)]);
+
+        $this->warmTv(Carbon::parse('2026-09-27', 'Europe/Oslo'), 1, 'ilseng');
 
         $this->adminGet('2026-09-27', 'ilseng')->assertOk()->assertSee('⚽ Norge – Portugal');
     }

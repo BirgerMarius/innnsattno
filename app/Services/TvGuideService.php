@@ -4,9 +4,7 @@ namespace App\Services;
 
 use Carbon\CarbonInterface;
 use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\Pool;
 use Illuminate\Http\Client\RequestException;
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -17,8 +15,7 @@ use UnexpectedValueException;
 class TvGuideService
 {
     private const ENDPOINT = 'https://tvguide.vg.no/backend/api/tv-schedule';
-    private const FRESH_TTL_SECONDS = 600;
-    private const STALE_TTL_SECONDS = 259200;
+    private const FRESH_TTL_SECONDS = 3900;
     private const TIMEZONE = 'Europe/Oslo';
     private const UPCOMING_DAYS = 7;
 
@@ -89,30 +86,65 @@ class TvGuideService
     {
         $date = $date->copy()->setTimezone(self::TIMEZONE);
         $keys = $this->cacheKeys($date, $channels);
+        $schedule = Cache::get($keys['fresh'], Cache::get($keys['stale']));
+        return is_array($schedule) ? $schedule : [];
+    }
 
-        $fresh = Cache::get($keys['fresh']);
-        if (is_array($fresh)) {
-            return $fresh;
+    public function lastUpdated(CarbonInterface $date, array $channels): ?\Carbon\Carbon
+    {
+        $value = Cache::get($this->cacheKeys($date, $channels)['updated']);
+        return is_string($value) ? \Carbon\Carbon::parse($value)->setTimezone(self::TIMEZONE) : null;
+    }
+
+    public function refreshDeferred(CarbonInterface $date, array $channels): bool
+    {
+        $date = $date->copy()->setTimezone(self::TIMEZONE);
+        return Cache::has($this->cacheKeys($date, $channels)['updated'].'.unpublished');
+    }
+
+    /** A scheduled source check; the same lock protects all users of this data key. */
+    public function refreshSchedule(CarbonInterface $date, array $channels, string $selection): bool
+    {
+        $date = $date->copy()->setTimezone(self::TIMEZONE)->startOfDay();
+        $keys = $this->cacheKeys($date, $channels);
+        $key = $selection.'-'.$date->format('Y-m-d');
+        $lock = Cache::lock('fetch.'.$keys['stale'], 45);
+        if (! $lock->get()) {
+            return false;
         }
-
         try {
-            $schedule = $this->fetch($date, $channels);
-
-            Cache::put($keys['fresh'], $schedule, now()->addSeconds(self::FRESH_TTL_SECONDS));
-            Cache::put($keys['stale'], $schedule, now()->addSeconds(self::STALE_TTL_SECONDS));
-            $this->failureNotifier->reportSuccess('tv-guide-vg', $operation);
-
-            return $schedule;
-        } catch (Throwable $exception) {
-            $this->failureNotifier->report('tv-guide-vg', $this->summary($exception), [
-                'operation' => $operation,
-                'failure_kind' => $this->failureKind($exception),
-                'status' => $exception instanceof RequestException ? $exception->response?->status() : null,
-            ]);
-
-            $stale = Cache::get($keys['stale']);
-
-            return is_array($stale) ? $stale : [];
+            $existing = Cache::get($keys['stale']);
+            $essential = $date->isSameDay(now(self::TIMEZONE));
+            try {
+                $schedule = $this->fetch($date, $channels);
+                // VG returns [] for dates not yet published. A missing current day is not usable.
+                if ($essential && $schedule === []) {
+                    throw new UnexpectedValueException('VG TV-guide mangler programmer for i dag.');
+                }
+                if ($schedule === [] && is_array($existing) && $existing !== []) {
+                    // An unpublished future date does not supersede previously usable data.
+                    // Back off without counting this response as a successful coverage refresh.
+                    Cache::put($keys['updated'].'.unpublished', true, now()->addMinutes(15));
+                    return true;
+                }
+                Cache::forget($keys['updated'].'.unpublished');
+                Cache::put($keys['fresh'], $schedule, now()->addSeconds(self::FRESH_TTL_SECONDS));
+                Cache::forever($keys['stale'], $schedule);
+                Cache::forever($keys['updated'], now()->toIso8601String());
+                $this->failureNotifier->reportSuccess('tv-guide-vg', $key);
+                app(ExternalDataMonitor::class)->checked('tv-guide-vg', $key, 'tv', $selection.' – '.$date->format('Y-m-d').' (TV og fotball)', $essential, true, $schedule !== [], null, $date->copy()->endOfDay()->setTimezone(config('app.timezone')));
+                return true;
+            } catch (Throwable $exception) {
+                $this->failureNotifier->report('tv-guide-vg', $this->summary($exception), [
+                    'operation' => $key, 'date' => $date->format('Y-m-d'),
+                    'failure_kind' => $this->failureKind($exception),
+                    'status' => $exception instanceof RequestException ? $exception->response?->status() : null,
+                ]);
+                app(ExternalDataMonitor::class)->checked('tv-guide-vg', $key, 'tv', $selection.' – '.$date->format('Y-m-d').' (TV og fotball)', $essential, false, is_array($existing) && $existing !== [], $this->summary($exception), $date->copy()->endOfDay()->setTimezone(config('app.timezone')));
+                return false;
+            }
+        } finally {
+            $lock->release();
         }
     }
 
@@ -223,7 +255,6 @@ class TvGuideService
             ->all();
         $channels = self::ringerikeChannels();
         $schedules = [];
-        $missing = [];
         $hasSourceFailure = false;
         $usingStaleData = false;
 
@@ -234,30 +265,12 @@ class TvGuideService
                 $schedules[] = $fresh;
                 continue;
             }
-            $missing[$date->format('Y-m-d')] = ['date' => $date, 'keys' => $keys];
-        }
-
-        foreach ($this->fetchMany(array_column($missing, 'date'), $channels) as $dateKey => $result) {
-            $keys = $missing[$dateKey]['keys'];
-            if ($result['schedule'] !== null) {
-                Cache::put($keys['fresh'], $result['schedule'], now()->addSeconds(self::FRESH_TTL_SECONDS));
-                Cache::put($keys['stale'], $result['schedule'], now()->addSeconds(self::STALE_TTL_SECONDS));
-                $this->failureNotifier->reportSuccess('tv-guide-vg', $operation);
-                $schedules[] = $result['schedule'];
-                continue;
-            }
-
-            $hasSourceFailure = true;
-            $exception = $result['exception'];
-            $this->failureNotifier->report('tv-guide-vg', $this->summary($exception), [
-                'operation' => $operation,
-                'failure_kind' => $this->failureKind($exception),
-                'status' => $exception instanceof RequestException ? $exception->response?->status() : null,
-            ]);
             $stale = Cache::get($keys['stale']);
             if (is_array($stale)) {
                 $schedules[] = $stale;
                 $usingStaleData = true;
+            } else {
+                $hasSourceFailure = true;
             }
         }
 
@@ -332,6 +345,7 @@ class TvGuideService
         $failedDates = [];
         $unpublishedDates = [];
         $usingStaleData = false;
+        $updatedAt = [];
 
         foreach ($dates as $date) {
             $keys = $this->cacheKeys($date, $channels);
@@ -339,25 +353,18 @@ class TvGuideService
             $fromStale = false;
 
             if (! is_array($schedule)) {
-                try {
-                    $schedule = $this->fetch($date, $channels);
-                    Cache::put($keys['fresh'], $schedule, now()->addSeconds(self::FRESH_TTL_SECONDS));
-                    Cache::put($keys['stale'], $schedule, now()->addSeconds(self::STALE_TTL_SECONDS));
-                    $this->failureNotifier->reportSuccess('tv-guide-vg', $operation);
-                } catch (Throwable $exception) {
-                    $this->failureNotifier->report('tv-guide-vg', $this->summary($exception), [
-                        'operation' => $operation,
-                        'failure_kind' => $this->failureKind($exception),
-                        'status' => $exception instanceof RequestException ? $exception->response?->status() : null,
-                    ]);
-                    $schedule = Cache::get($keys['stale']);
-                    $fromStale = is_array($schedule);
-                    $usingStaleData = $usingStaleData || $fromStale;
-                    if (! $fromStale) {
-                        $failedDates[] = $date;
-                        continue;
-                    }
+                $schedule = Cache::get($keys['stale']);
+                $fromStale = is_array($schedule);
+                $usingStaleData = $usingStaleData || $fromStale;
+                if (! $fromStale) {
+                    $failedDates[] = $date;
+                    continue;
                 }
+            }
+
+            $timestamp = Cache::get($keys['updated']);
+            if (is_string($timestamp)) {
+                $updatedAt[] = \Carbon\Carbon::parse($timestamp)->setTimezone(self::TIMEZONE);
             }
 
             // VG answers with an empty root array outside its published date
@@ -422,7 +429,7 @@ class TvGuideService
             'usingStaleData' => $usingStaleData,
             'weekOffset' => $weekOffset,
             'channelSelection' => $prison === 'ilseng' ? 'Ilseng fengsel' : 'Ringerike fengsel',
-            'lastUpdated' => now(self::TIMEZONE),
+            'lastUpdated' => $failedDates === [] && count($updatedAt) === count($availableDates) + count($unpublishedDates) && $updatedAt !== [] ? collect($updatedAt)->min() : null,
         ];
     }
 
@@ -470,67 +477,6 @@ class TvGuideService
         }
 
         return $payload;
-    }
-
-    private function fetchMany(array $dates, array $channels): array
-    {
-        $pending = [];
-        foreach ($dates as $date) {
-            $pending[$date->format('Y-m-d')] = $date;
-        }
-        $results = [];
-
-        for ($attempt = 1; $attempt <= 2 && $pending !== []; $attempt++) {
-            $responses = Http::pool(function (Pool $pool) use ($pending, $channels) {
-                foreach ($pending as $key => $date) {
-                    $pool->as($key)
-                        ->acceptJson()
-                        ->connectTimeout(3)
-                        ->timeout(10)
-                        ->get(self::ENDPOINT, [
-                            'channels' => implode(',', $channels),
-                            'date' => $date->format('Y-m-d'),
-                            'tz' => self::TIMEZONE,
-                        ]);
-                }
-            });
-
-            $retry = [];
-            foreach ($pending as $key => $date) {
-                $response = $responses[$key] ?? null;
-                try {
-                    if (!$response instanceof Response) {
-                        if ($attempt < 2) {
-                            $retry[$key] = $date;
-                            continue;
-                        }
-                        throw new ConnectionException('VG TV-guide svarte ikke.');
-                    }
-                    if ($response->serverError() && $attempt < 2) {
-                        $retry[$key] = $date;
-                        continue;
-                    }
-
-                    $response->throw();
-                    $payload = json_decode($response->body(), true, 512, JSON_THROW_ON_ERROR);
-                    if (!$this->isValidSchedule($payload)) {
-                        throw new UnexpectedValueException('VG TV-guide mangler forventede programdata.');
-                    }
-                    $results[$key] = ['schedule' => $payload, 'exception' => null];
-                } catch (JsonException $exception) {
-                    $results[$key] = ['schedule' => null, 'exception' => new UnexpectedValueException('VG TV-guide returnerte ugyldig JSON.', 0, $exception)];
-                } catch (Throwable $exception) {
-                    $results[$key] = ['schedule' => null, 'exception' => $exception];
-                }
-            }
-
-            if ($retry !== [] && $attempt < 2) {
-                usleep(250000);
-            }
-            $pending = $retry;
-        }
-
-        return $results;
     }
 
     private function isCompetitionBroadcast(mixed $listing, array $definition): bool
@@ -629,6 +575,7 @@ class TvGuideService
         return [
             'fresh' => 'tv-guide-vg.fresh.'.$suffix,
             'stale' => 'tv-guide-vg.stale.'.$suffix,
+            'updated' => 'tv-guide-vg.updated.'.$suffix,
         ];
     }
 
