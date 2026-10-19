@@ -6,6 +6,9 @@
 @php
     $matchesByDay = collect($weeklyFootball['matches'])->groupBy(fn (array $match) => $match['startsAt']->format('Y-m-d'));
 @endphp
+<div class="container page-container">
+    @include('partials.header')
+
 <main class="weekly-football-page container my-4 my-md-5">
     <a class="weekly-football-back" href="{{ route('tv') }}">← Til forsiden</a>
     <header class="weekly-football-header">
@@ -74,4 +77,6 @@
     @endif
     <p class="weekly-football-note">Tidspunktet er TV-sendingens starttid fra VG TV-guide. Avspark vises ikke når det ikke er oppgitt i TV-dataene. Sist oppdatert: {{ $weeklyFootball['lastUpdated'] ? $weeklyFootball['lastUpdated']->locale('nb')->translatedFormat('j. F Y \k\l. H.i') : 'ukjent' }}.</p>
 </main>
+    @include('partials.footer')
+</div>
 @endsection

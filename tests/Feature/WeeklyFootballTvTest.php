@@ -51,6 +51,10 @@ class WeeklyFootballTvTest extends TestCase
 
         $this->get('/ukens-fotball-pa-tv')
             ->assertOk()
+            ->assertSee('class="site-logo"', false)
+            ->assertSee('aria-label="Gå til forsiden"', false)
+            ->assertSee('class="site-footer ', false)
+            ->assertSee('mailto:innsatt@innsatt.no', false)
             ->assertSee('Uke 42')
             ->assertSee('Mandag 12. oktober')
             ->assertSee('Søndag 18. oktober')
@@ -119,6 +123,8 @@ class WeeklyFootballTvTest extends TestCase
             ->assertSee('Kanalutvalg: Ilseng fengsel')
             ->assertSee('Sist dataoppdatering:')
             ->assertSee('break-inside:avoid', false)
+            ->assertDontSee('class="site-logo"', false)
+            ->assertDontSee('class="site-footer ', false)
             ->assertSee('window.print()', false);
     }
 
