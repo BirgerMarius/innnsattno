@@ -14,6 +14,7 @@ use Throwable;
 /** Fetches source material. Selection and presentation belong to TodayContentService. */
 class OnThisDayService
 {
+    private bool $forceChecks = false;
     public function __construct(
         private ExternalDataFailureNotifier $notifier,
         private TodayDateNotificationPolicy $notificationPolicy,
@@ -21,7 +22,17 @@ class OnThisDayService
     {
     }
 
-    public function forDate(CarbonInterface $date): array
+    public function forDate(CarbonInterface $date, bool $force = false): array
+    {
+        $this->forceChecks = $force;
+        try {
+            return $this->loadDate($date);
+        } finally {
+            $this->forceChecks = false;
+        }
+    }
+
+    private function loadDate(CarbonInterface $date): array
     {
         $datePage = $this->norwegianDatePage($date);
         if (array_filter($datePage)) {
@@ -55,6 +66,29 @@ class OnThisDayService
         }
 
         return $result;
+    }
+
+    /** Independently probe every fallback, including one not needed by today's page. */
+    public function checkSources(CarbonInterface $date): void
+    {
+        $this->forceChecks = true;
+        try {
+            $usable = $this->cachedHistoryExists($date);
+            $no = $this->norwegianDatePage($date);
+            app(ExternalDataMonitor::class)->checked('wikipedia-on-this-day', 'no-mediawiki', 'calendar', 'Dagen i dag – norsk Wikipedia', false, (bool) array_filter($no), $usable, 'Norsk Wikipedia mangler brukbare data.');
+            foreach (['no-onthisday' => 'services.today.wikimedia_url', 'en-onthisday' => 'services.today.wikimedia_fallback_url'] as $operation => $url) {
+                $payload = $this->fetch(config($url), $date, $operation);
+                $success = $payload !== null && $this->hasHistory($payload);
+                app(ExternalDataMonitor::class)->checked('wikipedia-on-this-day', $operation, 'calendar', 'Dagen i dag – '.$operation, false, $success, $usable, 'Wikimedia mangler brukbare data.');
+            }
+        } finally { $this->forceChecks = false; }
+    }
+
+    private function cachedHistoryExists(CarbonInterface $date): bool
+    {
+        $key = sprintf('today.stale.curated.v3.%02d-%02d', $date->month, $date->day);
+        $data = Cache::get($key, []);
+        return is_array($data) && (bool) array_filter(array_intersect_key($data, array_flip(['norway_events', 'world_events', 'births', 'deaths'])));
     }
 
     private function norwegianDatePage(CarbonInterface $date): array
@@ -274,7 +308,7 @@ class OnThisDayService
 
     private function isBackedOff(string $operation, CarbonInterface $date): bool
     {
-        return Cache::has($this->failureKey($operation, $date));
+        return ! $this->forceChecks && Cache::has($this->failureKey($operation, $date));
     }
 
     private function recordFailure(string $operation, CarbonInterface $date): void

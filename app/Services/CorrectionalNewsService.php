@@ -80,6 +80,11 @@ class CorrectionalNewsService
             'source' => $source->key(), 'found' => 0, 'stored' => 0, 'updated' => 0, 'duplicates' => 0,
             'rejected' => 0, 'clusters_created' => 0, 'clusters_updated' => 0, 'error' => null,
         ];
+        $lock = Cache::lock('fetch.correctional-news.'.$source->key(), 300);
+        if (! $lock->get()) {
+            $report['error'] = 'Kilden oppdateres allerede.';
+            return $report;
+        }
         try {
             $response = Http::withHeaders([
                 'User-Agent' => 'innsatt.no correctional-news/1.0 (+https://innsatt.no)',
@@ -106,6 +111,7 @@ class CorrectionalNewsService
             }
             Cache::put('correctional-news.source-success:'.$source->key(), now()->toIso8601String(), now()->addDay());
             $this->notifier->reportSuccess('correctional-news', $source->key());
+            app(ExternalDataMonitor::class)->checked('correctional-news-'.$source->key(), 'front-page', 'news', 'Forsiden – '.$source->name(), false, true, CorrectionalNewsItem::where('source_key', $source->key())->exists());
         } catch (Throwable $exception) {
             $report['error'] = mb_substr($exception->getMessage(), 0, 500);
             $context = ['operation' => $source->key(), 'failure_kind' => $this->failureKind($exception)];
@@ -113,6 +119,10 @@ class CorrectionalNewsService
                 $context['status'] = $exception->response->status();
             }
             $this->notifier->report('correctional-news', 'Forsidens nyhetskilde kunne ikke hentes eller leses.', $context);
+            $usable = CorrectionalNewsItem::where('source_key', $source->key())->exists();
+            app(ExternalDataMonitor::class)->checked('correctional-news-'.$source->key(), 'front-page', 'news', 'Forsiden – '.$source->name(), false, false, $usable, 'Nyhetskilden kunne ikke hentes eller leses.');
+        } finally {
+            $lock->release();
         }
         return $report;
     }

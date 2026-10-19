@@ -19,7 +19,7 @@ class WeatherForecastService
     {
     }
 
-    public function forecast(string $locationKey = 'ringerike'): array
+    public function forecast(string $locationKey = 'ringerike', bool $check = false): array
     {
         $location = config("services.weather.locations.{$locationKey}");
 
@@ -28,16 +28,20 @@ class WeatherForecastService
         }
 
         $fresh = Cache::get($location['cache_key']);
-        if (is_array($fresh)) {
+        if (! $check && is_array($fresh)) {
             return $fresh;
         }
 
         try {
             $forecast = $this->fetchForecast($location);
+            if ($check && ! $this->coversToday($forecast)) {
+                throw new RuntimeException('Værvarselet dekker ikke i dag.');
+            }
 
             Cache::put($location['cache_key'], $forecast, now()->addSeconds((int) config('services.weather.cache_ttl', 1800)));
             Cache::put($this->staleCacheKey($location), $forecast, now()->addSeconds(self::STALE_TTL_SECONDS));
             $this->failureNotifier->reportSuccess('met-weather', $locationKey);
+            if ($check) app(ExternalDataMonitor::class)->checked('met-weather', $locationKey, 'weather', 'Værmelding '.$locationKey, false, true, true);
 
             return $forecast;
         } catch (Throwable $exception) {
@@ -48,12 +52,30 @@ class WeatherForecastService
             ]);
 
             $stale = Cache::get($this->staleCacheKey($location));
+            if ($check) app(ExternalDataMonitor::class)->checked('met-weather', $locationKey, 'weather', 'Værmelding '.$locationKey, false, false, is_array($stale) && $this->coversToday($stale), $this->failureSummary($exception));
             if (is_array($stale)) {
                 return $stale;
             }
 
             throw $exception;
         }
+    }
+
+    public function refresh(string $locationKey): void
+    {
+        $lock = Cache::lock('fetch.weather.'.$locationKey, 30);
+        if (! $lock->get()) return;
+        try { $this->forecast($locationKey, true); } catch (Throwable $exception) {
+            // forecast has already logged and recorded the failed source check.
+        } finally { $lock->release(); }
+    }
+
+    private function coversToday(array $forecast): bool
+    {
+        foreach ($forecast['days'] ?? [] as $day) {
+            try { if (Carbon::parse($day['date'])->isSameDay(now('Europe/Oslo'))) return true; } catch (Throwable $ignored) {}
+        }
+        return false;
     }
 
     private function fetchForecast(array $location): array

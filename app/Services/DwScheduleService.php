@@ -90,6 +90,7 @@ class DwScheduleService
                     'failure_kind' => 'http_status',
                     'status' => $response->status(),
                 ]);
+                $this->recordCheck(false, 'HTTP '.$response->status());
 
                 return null;
             }
@@ -102,13 +103,30 @@ class DwScheduleService
                     'operation' => 'tv-guide-ringerike',
                     'failure_kind' => 'invalid_payload',
                 ]);
+                $this->recordCheck(false, 'Ugyldige programdata.');
 
+                return null;
+            }
+
+            if ($slots === [] && is_array(Cache::get(self::CACHE_KEY.'.last-good')) && Cache::get(self::CACHE_KEY.'.last-good') !== []) {
+                $this->failureNotifier->report('dw-news', 'DW News returnerte tomme programdata.', [
+                    'operation' => 'tv-guide-ringerike', 'failure_kind' => 'invalid_payload',
+                ]);
+                $this->recordCheck(false, 'DW News returnerte tomme programdata.');
                 return null;
             }
 
             Cache::put(self::CACHE_KEY, $slots, now()->addMinutes(10));
             Cache::forever(self::CACHE_KEY.'.last-good', $slots);
-            $this->failureNotifier->reportSuccess('dw-news', 'tv-guide-ringerike');
+            $covered = $this->channelForDate(now('Europe/Oslo')) !== null;
+            if ($covered) {
+                $this->failureNotifier->reportSuccess('dw-news', 'tv-guide-ringerike');
+            } else {
+                $this->failureNotifier->report('dw-news', 'DW News mangler programmer for i dag.', [
+                    'operation' => 'tv-guide-ringerike', 'failure_kind' => 'invalid_payload',
+                ]);
+            }
+            $this->recordCheck($covered);
 
             return $slots;
         } catch (\Throwable $exception) {
@@ -116,9 +134,16 @@ class DwScheduleService
                 'operation' => 'tv-guide-ringerike',
                 'failure_kind' => 'request_exception',
             ]);
+            $this->recordCheck(false, 'Kildehenting feilet.');
 
             return null;
         }
+    }
+
+    private function recordCheck(bool $success, ?string $error = null): void
+    {
+        $usable = $this->channelForDate(now('Europe/Oslo')) !== null;
+        app(ExternalDataMonitor::class)->checked('dw-news', 'tv-guide-ringerike', 'tv_optional', 'DW News i TV-guiden', false, $success && $usable, $usable, $error ?: 'DW News mangler programmer for i dag.');
     }
 
     public function refresh(): void

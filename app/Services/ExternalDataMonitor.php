@@ -109,11 +109,15 @@ class ExternalDataMonitor
         if ($missing && $row->essential && $row->failure_count >= (int) config('external_data.missing_count', 3) && $duration >= (int) config('external_data.missing_minutes', 10)) {
             return true;
         }
+        // Prayer times are date-specific, rather than rendered obsolete by age.
+        if (in_array($row->datatype, ['prayer', 'calendar'], true)) {
+            return $missing && $row->failure_count >= (int) config('external_data.failure_count', 5) && $duration >= (int) config('external_data.failure_minutes', 60);
+        }
         $maxAge = config('external_data.max_age_minutes.'.$row->datatype);
-        if ($maxAge === null || (! $row->essential && $missing)) {
+        if ($maxAge === null || (! $row->essential && $missing && $row->datatype === 'tv')) {
             return false;
         }
-        $old = ! $row->last_success_at || Carbon::parse($row->last_success_at)->lte(now()->subMinutes((int) $maxAge));
+        $old = $missing || ! $row->last_success_at || Carbon::parse($row->last_success_at)->lte(now()->subMinutes((int) $maxAge));
         return $old && $row->failure_count >= (int) config('external_data.failure_count', 5) && $duration >= (int) config('external_data.failure_minutes', 60);
     }
 

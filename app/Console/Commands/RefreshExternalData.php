@@ -40,9 +40,9 @@ class RefreshExternalData extends Command
 
     private function refreshTv(TvGuideService $tv): void
     {
-        if (! \Illuminate\Support\Facades\Cache::has('dw-news.last-refresh')) {
+        $dw = DB::table('external_data_checks')->where('service', 'dw-news')->first();
+        if (! $dw || ! $dw->last_check_at || Carbon::parse($dw->last_check_at)->lte(now()->subMinutes($dw->failure_count ? 15 : 60))) {
             app(DwScheduleService::class)->refresh();
-            \Illuminate\Support\Facades\Cache::put('dw-news.last-refresh', true, now()->addHour());
         }
         $today = now('Europe/Oslo')->startOfDay();
         // Admin print supports eight days back and thirteen ahead; this also covers both weekly views.

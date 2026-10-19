@@ -6,6 +6,7 @@ use Carbon\CarbonInterface;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use JsonException;
 use RuntimeException;
 use Throwable;
@@ -20,14 +21,15 @@ class NamedayService
     {
     }
 
-    public function forDate(CarbonInterface $date): array
+    public function forDate(CarbonInterface $date, bool $check = false): array
     {
         $key = sprintf('namedays.%02d-%02d', $date->month, $date->day);
 
-        return $this->cache->remember(
+        $success = false;
+        $result = $this->cache->remember(
             $key,
             (int) config('services.today.namedays_cache_ttl', 86400),
-            function () use ($date) {
+            function () use ($date, &$success) {
                 $response = Http::acceptJson()
                     ->withHeaders(['User-Agent' => config('services.today.user_agent')])
                     ->timeout((int) config('services.today.timeout', 5))
@@ -52,6 +54,7 @@ class NamedayService
                     ))));
 
                     $this->notifier->reportSuccess('namedays-webapi', 'namedays');
+                    $success = true;
                     return ['names' => $names, 'source_url' => 'https://webapi.no/'];
                 }
 
@@ -60,7 +63,17 @@ class NamedayService
             [],
             fn (Throwable $exception) => $this->reportFailure($exception, $date),
             (int) config('services.today.namedays_failure_cache_ttl', 86400),
+            $check,
         );
+        if ($check) app(ExternalDataMonitor::class)->checked('namedays-webapi', 'today', 'calendar', 'Navnedager '.$date->format('d.m.'), false, $success, array_key_exists('names', $result), 'Navnedager kunne ikke hentes.');
+        return $result;
+    }
+
+    public function refresh(CarbonInterface $date): void
+    {
+        $lock = Cache::lock('fetch.namedays.'.$date->format('m-d'), 20);
+        if (! $lock->get()) return;
+        try { $this->forDate($date, true); } finally { $lock->release(); }
     }
 
     private function reportFailure(Throwable $exception, CarbonInterface $date): void

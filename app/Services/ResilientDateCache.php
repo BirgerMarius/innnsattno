@@ -15,20 +15,21 @@ class ResilientDateCache
         array $fallback = [],
         ?Closure $onFailure = null,
         int $failureTtl = 0,
+        bool $force = false,
     ): array
     {
         $freshKey = 'today.fresh.'.$key;
         $staleKey = 'today.stale.'.$key;
         $failureKey = 'today.failure.'.$key;
 
-        if (Cache::has($freshKey)) {
+        if (! $force && Cache::has($freshKey)) {
             return Cache::get($freshKey, $fallback);
         }
 
         // A failed source should not be retried on every page view.  The key is
         // derived from the caller's date-specific key, so data from another
         // date can never become this date's fallback.
-        if ($failureTtl > 0 && Cache::has($failureKey)) {
+        if (! $force && $failureTtl > 0 && Cache::has($failureKey)) {
             return Cache::get($staleKey, $fallback);
         }
 

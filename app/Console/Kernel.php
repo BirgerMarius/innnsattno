@@ -42,10 +42,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // RSS feeds are not time-critical enough to justify polling every 15/30 minutes.
-        $schedule->command('correctional-news:fetch --source=kdi')->hourly()->withoutOverlapping();
-        $schedule->command('correctional-news:fetch --source=nff')->hourly()->withoutOverlapping();
-        $schedule->command('correctional-news:fetch --source=ky')->hourly()->withoutOverlapping();
-        $schedule->command('correctional-news:fetch --source=sivilombudet')->hourly()->withoutOverlapping();
+        $schedule->command('external-data:check-others')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('news:prune')->hourly()->withoutOverlapping();
         $schedule->command('external-data:refresh tv')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('external-data:refresh football')->everyFiveMinutes()->withoutOverlapping();

@@ -13,6 +13,8 @@ use Throwable;
 
 class TodayContentService
 {
+    private bool $checking = false;
+    private bool $checkFailed = false;
     private const NORWAY = 'Q20';
     private const LIMITS = ['norway_events' => 5, 'world_events' => 3, 'births' => 5, 'deaths' => 5];
 
@@ -25,20 +27,27 @@ class TodayContentService
     {
     }
 
-    public function forDate(CarbonInterface $date): array
+    public function forDate(CarbonInterface $date, bool $check = false): array
     {
         $key = sprintf('curated.v3.%02d-%02d', $date->month, $date->day);
 
-        return $this->cache->remember(
+        $this->checking = $check;
+        $this->checkFailed = false;
+        try { return $this->cache->remember(
             $key,
             (int) config('services.today.cache_ttl', 86400),
-            function () use ($date) {
-                return $this->curate($this->source->forDate($date), $date);
+            function () use ($date, $check) {
+                $result = $this->curate($this->source->forDate($date, $check), $date);
+                if ($check && ($this->checkFailed || ! array_filter(array_intersect_key($result, array_flip(['norway_events', 'world_events', 'births', 'deaths']))))) {
+                    throw new RuntimeException('Dagen i dag mangler brukbart innhold.');
+                }
+                return $result;
             },
             $this->emptyResult($date),
             fn (Throwable $exception) => $this->reportSourceFailure($exception, $date),
             (int) config('services.today.failure_cache_ttl', 86400),
-        );
+            $check,
+        ); } finally { $this->checking = false; }
     }
 
     public function curate(array $source, CarbonInterface $date): array
@@ -149,11 +158,14 @@ class TodayContentService
         }
 
         $entities = [];
+        $attempted = false;
+        $failed = false;
         foreach (array_chunk($ids, 20) as $chunk) {
-            if (Cache::has('today.failure.wikidata-entities')) {
+            if (! $this->checking && Cache::has('today.failure.wikidata-entities')) {
                 break;
             }
             try {
+                $attempted = true;
                 $response = Http::acceptJson()->withHeaders(['User-Agent' => config('services.today.user_agent')])
                     ->timeout((int) config('services.today.timeout', 5))
                     ->get(config('services.today.wikidata_url'), [
@@ -169,9 +181,17 @@ class TodayContentService
                 $batch = $payload['entities'];
                 $entities = array_merge($entities, $batch);
             } catch (Throwable $exception) {
+                $failed = true;
+                $this->checkFailed = true;
                 Cache::put('today.failure.wikidata-entities', true, (int) config('services.today.failure_cache_ttl', 86400));
                 $this->reportWikidataFailure($exception, $date);
             }
+        }
+
+        if ($this->checking && $attempted) {
+            $old = Cache::get(sprintf('today.stale.curated.v3.%02d-%02d', $date->month, $date->day), []);
+            $usable = is_array($old) && (bool) array_filter(array_intersect_key($old, array_flip(['norway_events', 'world_events', 'births', 'deaths'])));
+            app(ExternalDataMonitor::class)->checked('wikidata-entities', 'today-content-enrichment', 'calendar', 'Dagen i dag – Wikidata', false, ! $failed, $usable, 'Wikidata-berikelse feilet.');
         }
 
         return collect($entities)->filter(fn ($entity) => isset($entity['id']))->keyBy('id')->all();

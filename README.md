@@ -67,11 +67,12 @@ manglende kontroller er ikke bevis på vedvarende nedetid.
 Den gamle døgnrapporten er erstattet av kildevise kritiske varsler. Minst fem
 mislykkede kildekontroller over en time kreves normalt, sammen med manglende
 eller for gamle data. Helt manglende sentrale data varsles etter tre feil over
-minst ti minutter. Standardgrensene for TV/fotball er seks timer, vær tre timer,
-bønnetider sju dager og nyheter ett døgn; de konfigureres i `config/external_data.php`.
-Bare VG TV-guide og SportsNext er koblet til de nye planlagte kontrollene i
-denne omgangen. Andre tjenester logger fortsatt feil, men sender ikke kritiske
-varsler før de også er koblet til kontroller og datadekning. Et varslet utfall
+minst ti minutter. Standardgrensene for TV/fotball er seks timer, vær tre timer
+og nyheter ett døgn; de konfigureres i `config/external_data.php`. Bønnetider og
+kalenderdata vurderes etter datodekning: eldre data er brukbare for dagene de
+dekker. Bønnetider kontrolleres for i dag og sju dager frem for begge fengslene.
+VG, SportsNext, DW, MET, Bønnetid.no, Ringblad, navnedager, Wikipedia/Wikimedia,
+Wikidata og aktive nyhetskilder kontrolleres uavhengig av sidebesøk. Et varslet utfall
 følges opp høyst én gang i døgnet og avsluttes først etter vellykket kontroll av
 alle berørte data. Ingen e-post sendes for kortvarige feil.
 
@@ -88,6 +89,22 @@ scheduleren og krever ingen ny køarbeider. Ved tom cache bygges dataene gradvis
 opp; sider kan vise manglende data inntil første vellykkede henting. Overvåk
 selve scheduler/cron separat: manglende kontroller kan ikke bevise kildeutfall.
 Prosjektet kan ikke bekrefte serverens faktiske crontab.
+
+Etter deploy og migrering kan TV- og fotballdata fylles med
+`php artisan external-data:warm`. Kommandoen viser resultat per dato og turnering,
+beholder reservedata ved feil og avslutter med status 1 ved feil eller manglende
+nødvendige data for i dag/tidligere. Fremtidige TV-programmer kan være upubliserte.
+Scheduleren fortsetter med nye forsøk.
+
+Datakopiene ligger i standard-cachelageret, ikke i databasens kontrolltabeller.
+`cache:clear` og `optimize:clear` sletter siste brukbare data og kan fjerne låser.
+Bruk heller målrettet `config:clear`, `route:clear` eller `view:clear` når det er
+disse cachene som må fornyes. Hvis deployverktøyet likevel tømmer datacachen,
+kjør `external-data:warm` etter siste tømming. Ved `CACHE_DRIVER=file` må web og
+scheduler bruke samme vedvarende `storage/framework/cache/data`, samme
+cacheprefiks og ha skrivetilgang. Flere servere trenger felles cache og atomiske
+låser. Repositoryet dokumenterer ikke deployverktøyets script eller produksjonens
+faktiske cacheoppsett; dette må kontrolleres på serveren.
 
 ## Søkemotorer og utskrift
 
@@ -108,7 +125,7 @@ Sesjonscookien er `Secure` som standard når `APP_ENV=production`; sett likevel
 `SESSION_SECURE_COOKIE=true` eksplisitt i produksjonens `.env`. Lokale miljøer
 som kjøres over HTTP kan beholde `SESSION_SECURE_COOKIE=false`. Etter endring
 av `.env` eller konfigurasjon må Laravels konfigurasjonscache tømmes med
-`php artisan optimize:clear` før responsheadere kontrolleres.
+`php artisan config:clear` før responsheadere kontrolleres.
 
 ## Fangenytt-arkiv
 

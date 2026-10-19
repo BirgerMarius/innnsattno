@@ -21,11 +21,11 @@ class RingbladNewsService
     {
     }
 
-    public function latest(): array
+    public function latest(bool $check = false): array
     {
         $cached = Cache::get(self::CACHE_KEY);
 
-        if (is_array($cached) && $this->hasImageFields($cached)) {
+        if (! $check && is_array($cached) && $this->hasImageFields($cached)) {
             return $cached;
         }
 
@@ -48,6 +48,7 @@ class RingbladNewsService
             Cache::put(self::CACHE_KEY, $articles, self::CACHE_TTL_SECONDS);
             Cache::put(self::STALE_CACHE_KEY, $articles, self::STALE_CACHE_TTL_SECONDS);
             $this->failureNotifier->reportSuccess('ringblad-news', 'front-page-news');
+            if ($check) app(ExternalDataMonitor::class)->checked('ringblad-news', 'front-page-news', 'news', 'Lokale nyheter på forsiden', false, true, true);
 
             return $articles;
         } catch (Throwable $exception) {
@@ -59,9 +60,17 @@ class RingbladNewsService
             ]);
 
             $stale = Cache::get(self::STALE_CACHE_KEY);
+            if ($check) app(ExternalDataMonitor::class)->checked('ringblad-news', 'front-page-news', 'news', 'Lokale nyheter på forsiden', false, false, is_array($stale) && $stale !== [], $this->failureSummary($exception));
 
             return is_array($stale) ? $stale : [];
         }
+    }
+
+    public function refresh(): void
+    {
+        $lock = Cache::lock('fetch.ringblad-news', 15);
+        if (! $lock->get()) return;
+        try { $this->latest(true); } finally { $lock->release(); }
     }
 
     public function parse(string $html): array

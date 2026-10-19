@@ -5,6 +5,7 @@ namespace App\Services\News;
 use App\NewsArticle;
 use App\NewsSource;
 use App\Services\ExternalDataFailureNotifier;
+use App\Services\ExternalDataMonitor;
 use App\Services\News\Parsers\Corrections1HtmlParser;
 use App\Services\News\Parsers\SekoHtmlParser;
 use App\Services\News\Parsers\XmlFeedParser;
@@ -12,6 +13,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 use Throwable;
 
 class NewsFeedService
@@ -29,8 +31,10 @@ class NewsFeedService
     public function fetch(NewsSource $source): array
     {
         $report=['source'=>$source->name,'slug'=>$source->slug,'found'=>0,'new'=>0,'duplicates'=>0,'error'=>null];
-        $source->update(['last_fetched_at'=>now()]);
+        $lock=Cache::lock('fetch.news-feed.'.$source->slug,300);
+        if(!$lock->get()) { $report['error']='Kilden oppdateres allerede.'; return $report; }
         try {
+            $source->update(['last_fetched_at'=>now()]);
             $parser=collect($this->parsers)->first(function($p) use($source){ return $p->supports($source); });
             if(!$parser) throw new \RuntimeException('Ingen parser er konfigurert for kilden.');
             $url=$source->feed_url ?: $source->website_url;
@@ -50,6 +54,7 @@ class NewsFeedService
             }
             $source->update(['last_success_at'=>now(),'last_error'=>null]);
             $this->notifier->reportSuccess('news-feed', $source->slug);
+            app(ExternalDataMonitor::class)->checked('news-feed-'.$source->slug, 'news', 'news', 'Nyheter – '.$source->name, false, true, $source->articles()->exists());
         } catch(Throwable $e) {
             $message=mb_substr($e->getMessage(),0,2000); $source->update(['last_error'=>$message]); $report['error']=$message;
             $context = [
@@ -64,6 +69,9 @@ class NewsFeedService
                 $context['status'] = $e->response->status();
             }
             $this->notifier->report('news-feed', 'Nyhetskilden kunne ikke hentes eller leses.', $context);
+            app(ExternalDataMonitor::class)->checked('news-feed-'.$source->slug, 'news', 'news', 'Nyheter – '.$source->name, false, false, $source->articles()->exists(), 'Nyhetskilden kunne ikke hentes eller leses.');
+        } finally {
+            $lock->release();
         }
         return $report;
     }

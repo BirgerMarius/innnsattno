@@ -26,26 +26,38 @@ class PrayerTimeService
     {
     }
 
-    public function getMonth(int $locationId, int $year, int $month, string $operation = 'prayer-times'): array
+    public function getMonth(int $locationId, int $year, int $month, string $operation = 'prayer-times', bool $check = false): array
     {
         $keys = $this->cacheKeys($locationId, $year, $month);
 
         $fresh = Cache::get($keys['fresh']);
-        if (is_array($fresh)) {
+        if (! $check && is_array($fresh)) {
             return $fresh;
         }
 
         try {
             $days = $this->fetch($locationId, $year, $month);
 
+            $old = Cache::get($keys['stale'], []);
+            if ($check) {
+                $this->recordCoverage($locationId, $year, $month, $days, true, is_array($old) ? $old : []);
+            }
+            // A partial response must not discard previously available dates.
+            $byDate = [];
+            foreach (array_merge(is_array($old) ? $old : [], $days) as $day) $byDate[$day['date']] = $day;
+            $days = array_values($byDate);
+
             Cache::put($keys['fresh'], $days, now()->addSeconds(self::FRESH_TTL_SECONDS));
-            Cache::put($keys['stale'], $days, now()->addSeconds(self::STALE_TTL_SECONDS));
+            Cache::forever($keys['stale'], $days);
             $this->failureNotifier->reportSuccess('bonnetid-no', $operation);
 
             return $days;
         } catch (Throwable $exception) {
             $stale = Cache::get($keys['stale']);
             $hasUsableStaleData = is_array($stale) && $stale !== [];
+            if ($check) {
+                $this->recordCoverage($locationId, $year, $month, $hasUsableStaleData ? $stale : [], false);
+            }
             $context = [
                 'operation' => $operation,
                 'failure_kind' => $this->failureKind($exception),
@@ -68,6 +80,36 @@ class PrayerTimeService
             $this->failureNotifier->report('bonnetid-no', $this->summary($exception), $context);
 
             return $hasUsableStaleData ? $stale : [];
+        }
+    }
+
+    public function refreshMonth(int $locationId, int $year, int $month): void
+    {
+        $lock = Cache::lock("fetch.prayer.{$locationId}.{$year}.{$month}", 45);
+        if (! $lock->get()) return;
+        try {
+            $this->getMonth($locationId, $year, $month, 'prayer-times', true);
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function recordCoverage(int $locationId, int $year, int $month, array $days, bool $sourceSuccess, array $fallback = []): void
+    {
+        $period = \Carbon\Carbon::create($year, $month, 1, 0, 0, 0, 'Europe/Oslo');
+        $today = now('Europe/Oslo')->startOfDay();
+        $incident = \Illuminate\Support\Facades\DB::table('external_data_incidents')->where('service', 'bonnetid-no')->first();
+        $alerted = $incident ? (json_decode($incident->affected_keys, true) ?: []) : [];
+        $first = $period;
+        $dates = array_fill_keys(array_column($days, 'date'), true);
+        $available = array_fill_keys(array_column(array_merge($fallback, $days), 'date'), true);
+        for ($date = $first->copy(); $date->lte($period->copy()->endOfMonth()); $date->addDay()) {
+            $coverageKey = $locationId.'-'.$date->toDateString();
+            if (($date->lt($today) || $date->gt($today->copy()->addDays(7))) && ! in_array($coverageKey, $alerted, true)) continue;
+            $covered = isset($dates[$date->format('d-m-Y')]);
+            $usable = isset($available[$date->format('d-m-Y')]);
+            // One actual month request controls each date; old but date-correct times remain usable.
+            app(ExternalDataMonitor::class)->checked('bonnetid-no', $coverageKey, 'prayer', 'Bønnetider '.$locationId.' – '.$date->toDateString(), $date->isSameDay($today), $sourceSuccess && $covered, $usable, $sourceSuccess ? 'Dato mangler i kildesvaret.' : 'Kildehenting feilet.', $date->copy()->endOfDay()->setTimezone(config('app.timezone')));
         }
     }
 
