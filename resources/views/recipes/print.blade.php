@@ -1,0 +1,4 @@
+<!doctype html><html lang="no"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ count($recipes) === 1 ? $recipes[0]['title'] : 'Valgte oppskrifter' }}</title><link rel="icon" type="image/png" href="{{ asset('favicon.png') }}"><link href="{{ asset('css/custom/app.css') }}?v={{ filemtime(public_path('css/custom/app.css')) }}" rel="stylesheet"></head><body class="recipe-print-page"><div class="recipe-print-actions no-print"><button type="button" onclick="window.print()">Skriv ut</button><a href="{{ $returnUrl ?? route('recipes.index') }}">Tilbake</a></div>
+@foreach($recipes as $recipe)<div class="recipe-print-item">@include('recipes.partials.recipe')</div>@endforeach
+@if(isset($returnUrl))@include('partials.print-redirect', ['fallbackUrl' => $returnUrl, 'autoPrint' => true])@endif
+</body></html>

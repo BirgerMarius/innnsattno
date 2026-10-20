@@ -398,6 +398,10 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <i class="far fa-lightbulb" aria-hidden="true"></i> Lær noe nytt
             <span class="front-page-quiz-badges" aria-label="Under utvikling"><span>Under utvikling</span></span>
         </a>
+
+        <a href="{{ route('recipes.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--test" role="button">
+            🍲 Mat/oppskrifter
+        </a>
         </div>
 
         <a href="/oppdrag" class="btn btn-lg front-page-btn front-page-btn--task-wheel">
