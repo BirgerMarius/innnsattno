@@ -107,7 +107,7 @@ class HomepageTextTest extends TestCase
 
         $content = (string) $response->getContent();
         $this->assertSame(3, substr_count($content, 'front-page-btn--test'));
-        $this->assertSame(3, substr_count($content, 'front-page-quiz-badges'));
+        $this->assertSame(4, substr_count($content, 'front-page-quiz-badges'));
         $this->assertSame(7, substr_count($content, 'front-page-btn--football'));
         $this->assertSame(1, preg_match('/href="[^"]*\/ukens-fotball-pa-tv"[^>]*front-page-btn--football[^>]*>\s*<span class="front-page-btn-title">⚽ Fotball på TV.*?<\/span>\s*<small>Ukeoversikt og plakat<\/small>/s', $content));
         $this->assertSame(0, preg_match('/href="\/(?:tidsfordriv|ordjakt)"[^>]*front-page-btn--football/', $content));

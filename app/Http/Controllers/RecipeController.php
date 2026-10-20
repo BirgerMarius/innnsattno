@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class RecipeController extends Controller
 {
-    public function index(RecipeCatalog $catalog) { return view('recipes.index', ['recipes' => $catalog->all()]); }
+    public function index(RecipeCatalog $catalog) { return view('recipes.index', ['recipes' => collect($catalog->all())]); }
     public function show(string $recipe, RecipeCatalog $catalog) { return view('recipes.show', ['recipe' => $this->recipe($recipe, $catalog)]); }
     public function print(string $recipe, RecipeCatalog $catalog) { return view('recipes.print', ['recipes' => [$this->recipe($recipe, $catalog)], 'returnUrl' => route('recipes.show', $recipe, false)]); }
     public function printSelected(Request $request, RecipeCatalog $catalog)

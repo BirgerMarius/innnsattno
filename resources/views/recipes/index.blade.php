@@ -4,18 +4,15 @@
 <div class="container page-container recipe-page">@include('partials.header')
 <main class="recipe-shell">
     <a class="recipe-back" href="{{ route('tv') }}">← Tilbake til forsiden</a>
-    <header class="recipe-intro"><p class="recipe-kicker">Mat på enkelt vis</p><h1>Mat og oppskrifter</h1><p>Enkle, raske og rimelige oppskrifter som kan skrives ut. De er laget for vanlige dagligvarer, kort kjøkkentid og lite oppvask.</p></header>
-    <form id="recipe-filter" class="recipe-filter no-print" onsubmit="return false">
-        <label for="recipe-search">Søk på navn eller ingrediens</label><input id="recipe-search" class="form-control" type="search" placeholder="For eksempel pasta, egg eller havre">
-        <fieldset><legend>Filtrer</legend><div class="recipe-filter-options"><label><input type="checkbox" data-filter="category" value="Matretter"> Matretter</label><label><input type="checkbox" data-filter="category" value="Brød og rundstykker"> Brød og rundstykker</label><label><input type="checkbox" data-filter="category" value="Enkel bakst og kaker"> Enkel bakst og kaker</label><label><input type="checkbox" data-filter="quick"> Maks 15 minutter</label><label><input type="checkbox" data-filter="one-pan"> Én gryte/panne</label><label><input type="checkbox" data-filter="vegetarian"> Uten kjøtt og fisk</label></div></fieldset><button type="reset" class="btn btn-outline-secondary btn-sm">Nullstill filter</button>
-    </form>
+    <header class="recipe-intro"><p class="recipe-kicker">Enkel bakst</p><h1>Mat og oppskrifter</h1><p>Her finner du enkle oppskrifter på brød, rundstykker og bakst. Oppskriftene kan leses på skjerm eller skrives ut.</p></header>
     <form method="get" action="{{ route('recipes.print-selected') }}" class="recipe-selection">
-        <div class="recipe-selection-head no-print"><p id="recipe-count" aria-live="polite">Velg oppskrifter for samlet utskrift.</p><button class="btn btn-primary" type="submit">Skriv ut valgte</button></div>
-        <div id="recipe-empty" class="recipe-empty" hidden>Ingen oppskrifter passer med dette søket eller filteret. Prøv å nullstille filteret.</div>
-        <div class="recipe-grid">@foreach($recipes as $recipe)<article class="recipe-card" data-category="{{ $recipe['category'] }}" data-quick="{{ $recipe['quick'] ? '1' : '0' }}" data-one-pan="{{ $recipe['onePan'] ? '1' : '0' }}" data-vegetarian="{{ $recipe['vegetarian'] ? '1' : '0' }}" data-search="{{ strtolower($recipe['title'].' '.implode(' ', $recipe['ingredients'])) }}"><div><p class="recipe-card-category">{{ $recipe['category'] }}</p><h2><a href="{{ route('recipes.show', $recipe['slug']) }}">{{ $recipe['title'] }}</a></h2><p>{{ $recipe['description'] }}</p><p class="recipe-card-meta">{{ $recipe['total'] }} · {{ $recipe['yield'] }}</p></div><label class="recipe-select"><input type="checkbox" name="oppskrift[]" value="{{ $recipe['slug'] }}"> Velg til utskrift</label></article>@endforeach</div>
+        <div class="recipe-selection-head"><p>Velg oppskrifter du vil skrive ut samlet.</p><button class="btn btn-primary" type="submit">Skriv ut valgte</button></div>
+        @foreach($recipes->groupBy('category') as $category => $categoryRecipes)
+            <section class="recipe-list-section" aria-labelledby="category-{{ \Illuminate\Support\Str::slug($category) }}">
+                <h2 id="category-{{ \Illuminate\Support\Str::slug($category) }}">{{ $category }}</h2>
+                <ul class="recipe-list">@foreach($categoryRecipes as $recipe)<li><div><a href="{{ route('recipes.show', $recipe['slug']) }}">{{ $recipe['title'] }}</a><span>{{ $recipe['total'] }} · {{ $recipe['yield'] }}</span></div><label><input type="checkbox" name="oppskrift[]" value="{{ $recipe['slug'] }}"> Velg til utskrift</label></li>@endforeach</ul>
+            </section>
+        @endforeach
     </form>
 </main>@include('partials.footer')</div>
-@push('scripts')<script>
-(() => { const cards=[...document.querySelectorAll('.recipe-card')], search=document.querySelector('#recipe-search'), checks=[...document.querySelectorAll('#recipe-filter input[type=checkbox]')], empty=document.querySelector('#recipe-empty'), count=document.querySelector('#recipe-count'); function update(){const q=search.value.toLowerCase(); const categories=checks.filter(x=>x.dataset.filter==='category'&&x.checked).map(x=>x.value); let shown=0; cards.forEach(c=>{const ok=(!q||c.dataset.search.includes(q))&&(!categories.length||categories.includes(c.dataset.category))&&(!checks.find(x=>x.dataset.filter==='quick'&&x.checked)||c.dataset.quick==='1')&&(!checks.find(x=>x.dataset.filter==='one-pan'&&x.checked)||c.dataset.onePan==='1')&&(!checks.find(x=>x.dataset.filter==='vegetarian'&&x.checked)||c.dataset.vegetarian==='1');c.hidden=!ok;if(ok)shown++;});empty.hidden=shown!==0;const selected=document.querySelectorAll('.recipe-select input:checked').length;count.textContent=selected ? selected+' oppskrift'+(selected===1?'':'er')+' valgt for utskrift.' : 'Velg oppskrifter for samlet utskrift.';} search.addEventListener('input',update);checks.forEach(x=>x.addEventListener('change',update));document.querySelector('#recipe-filter').addEventListener('reset',()=>setTimeout(update));document.querySelectorAll('.recipe-select input').forEach(x=>x.addEventListener('change',update)); update(); })();
-</script>@endpush
 @endsection
