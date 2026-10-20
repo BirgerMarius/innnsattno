@@ -68,13 +68,17 @@ class WeeklyFootballTvTest extends TestCase
             ->assertSee('Avspark vises ikke');
     }
 
-    public function test_weekly_page_reports_incomplete_source_instead_of_claiming_no_matches(): void
+    public function test_weekly_page_reports_missing_local_data_without_claiming_the_source_fetch_failed(): void
     {
         Http::fake(['tvguide.vg.no/*' => Http::response([], 503)]);
 
         $this->get('/ukens-fotball-pa-tv')->assertOk()
-            ->assertSee('TV-guiden kunne ikke hentes for 7 av 7 dager')
+            ->assertSee('Lokale TV-data mangler for 7 av 7 dager')
+            ->assertDontSee('TV-guiden kunne ikke hentes')
             ->assertDontSee('Ingen direktesendte kamper fra de valgte ligaene');
+
+        // A page view is cache-only, even when the source would fail.
+        Http::assertNothingSent();
     }
 
     public function test_next_week_keeps_prison_selection_and_crosses_the_year_boundary(): void

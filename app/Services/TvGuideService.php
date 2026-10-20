@@ -342,7 +342,7 @@ class TvGuideService
         $dates = collect(range(0, 6))->map(fn (int $offset) => $weekStart->copy()->addDays($offset))->all();
         $matches = [];
         $availableDates = [];
-        $failedDates = [];
+        $missingLocalDataDates = [];
         $unpublishedDates = [];
         $usingStaleData = false;
         $updatedAt = [];
@@ -357,7 +357,9 @@ class TvGuideService
                 $fromStale = is_array($schedule);
                 $usingStaleData = $usingStaleData || $fromStale;
                 if (! $fromStale) {
-                    $failedDates[] = $date;
+                    // A page view only reads local data.  A missing cache entry
+                    // does not prove that the source fetch for this date failed.
+                    $missingLocalDataDates[] = $date;
                     continue;
                 }
             }
@@ -422,14 +424,17 @@ class TvGuideService
             'weekEnd' => $weekEnd,
             'matches' => $matches,
             'availableDates' => $availableDates,
-            'sourceFailureDates' => $failedDates,
+            'missingLocalDataDates' => $missingLocalDataDates,
             'unpublishedDates' => $unpublishedDates,
-            'hasSourceFailure' => $failedDates !== [],
+            'hasMissingLocalData' => $missingLocalDataDates !== [],
             'hasUnpublishedDates' => $unpublishedDates !== [],
             'usingStaleData' => $usingStaleData,
             'weekOffset' => $weekOffset,
             'channelSelection' => $prison === 'ilseng' ? 'Ilseng fengsel' : 'Ringerike fengsel',
-            'lastUpdated' => $failedDates === [] && count($updatedAt) === count($availableDates) + count($unpublishedDates) && $updatedAt !== [] ? collect($updatedAt)->min() : null,
+            // With partial coverage this is the oldest timestamp of the data
+            // being shown.  The separate coverage warning makes clear that it
+            // does not describe dates which are missing locally.
+            'lastUpdated' => $updatedAt !== [] ? collect($updatedAt)->min() : null,
         ];
     }
 

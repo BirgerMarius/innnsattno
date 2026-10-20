@@ -34,9 +34,9 @@
         <a class="{{ $weekOffset === 1 ? 'active' : '' }}" href="{{ route('weekly-football-tv.index', ['fengsel' => $prison, 'uke' => 'neste']) }}">Neste uke</a>
     </nav>
 
-    @if($weeklyFootball['hasSourceFailure'])
+    @if($weeklyFootball['hasMissingLocalData'])
         <div class="weekly-football-warning" role="status">
-            TV-guiden kunne ikke hentes for {{ count($weeklyFootball['sourceFailureDates']) }} av 7 dager. Listen kan derfor være ufullstendig{{ $weeklyFootball['usingStaleData'] ? '; sist lagrede data vises der de finnes.' : '.' }}
+            Lokale TV-data mangler for {{ count($weeklyFootball['missingLocalDataDates']) }} av 7 dager. Listen kan derfor være ufullstendig{{ $weeklyFootball['usingStaleData'] ? '; sist lagrede data vises der de finnes.' : '.' }}
         </div>
     @elseif($weeklyFootball['usingStaleData'])
         <div class="weekly-football-warning" role="status">Viser sist lagrede TV-data. Oppdateringen kan være forsinket.</div>
@@ -45,7 +45,7 @@
         <div class="weekly-football-warning" role="status">TV-programmet er foreløpig ikke publisert for {{ count($weeklyFootball['unpublishedDates']) }} av 7 dager. Det er ikke det samme som dager uten oppførte kamper.</div>
     @endif
 
-    @if($weeklyFootball['matches'] === [] && ! $weeklyFootball['hasSourceFailure'] && ! $weeklyFootball['hasUnpublishedDates'])
+    @if($weeklyFootball['matches'] === [] && ! $weeklyFootball['hasMissingLocalData'] && ! $weeklyFootball['hasUnpublishedDates'])
         <p class="weekly-football-empty">Ingen direktesendte kamper fra de valgte ligaene og turneringene er oppført på TV denne uken.</p>
     @else
         @foreach(range(0, 6) as $offset)
@@ -56,8 +56,8 @@
                 @if($dayMatches->isEmpty())
                     @if(collect($weeklyFootball['unpublishedDates'])->contains(fn ($unpublishedDate) => $unpublishedDate->isSameDay($date)))
                         <p class="weekly-football-no-matches">TV-programmet er foreløpig ikke publisert.</p>
-                    @elseif(collect($weeklyFootball['sourceFailureDates'])->contains(fn ($failedDate) => $failedDate->isSameDay($date)))
-                        <p class="weekly-football-no-matches">TV-guiden kunne ikke hentes.</p>
+                    @elseif(collect($weeklyFootball['missingLocalDataDates'])->contains(fn ($missingDate) => $missingDate->isSameDay($date)))
+                        <p class="weekly-football-no-matches">Lokale TV-data mangler.</p>
                     @else
                         <p class="weekly-football-no-matches">Ingen oppført kamp.</p>
                     @endif
