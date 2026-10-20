@@ -38,4 +38,17 @@ class ChangeHistoryServiceTest extends TestCase
         $this->assertContains('Rett tidsperioder for fotballutskrift', $messages);
         $this->assertNotContains('Fix rolling football print windows', $messages);
     }
+
+    public function testItShowsTheTvCacheCorrectionWithPublicFacingDetails(): void
+    {
+        config(['change-history.repository_path' => base_path()]);
+        Cache::flush();
+
+        $history = $this->app->make(ChangeHistoryService::class)->get();
+        $changes = collect($history['groups'])->flatten(1);
+        $change = $changes->firstWhere('message', 'Mer robust TV-guide: Manglende lokale TV-data bygges automatisk opp igjen, og varsler om manglende data er gjort tydeligere.');
+
+        $this->assertNotNull($change);
+        $this->assertSame('2026-10-20', $change['date']->format('Y-m-d'));
+    }
 }

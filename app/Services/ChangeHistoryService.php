@@ -9,7 +9,7 @@ use Throwable;
 
 class ChangeHistoryService
 {
-    private const CACHE_KEY = 'public-change-history.v3';
+    private const CACHE_KEY = 'public-change-history.v4';
 
     private const MESSAGE_TRANSLATIONS = [
         'Final changes' => 'Siste endringer',
@@ -93,6 +93,7 @@ class ChangeHistoryService
         'Fix rolling football print windows' => 'Rett tidsperioder for fotballutskrift',
         'Fix print route' => 'Rett utskriftsrute',
         'Fix print route and channel list' => 'Rett utskriftsrute og kanalliste',
+        'Sikre TV-cache ved oppdatering' => 'Mer robust TV-guide: Manglende lokale TV-data bygges automatisk opp igjen, og varsler om manglende data er gjort tydeligere.',
     ];
 
     private CacheRepository $cache;
