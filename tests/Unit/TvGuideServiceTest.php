@@ -6,9 +6,11 @@ use App\Mail\ExternalDataSourceFailureMail;
 use App\Services\TvGuideService;
 use Carbon\Carbon;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Contracts\Cache\Lock;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Mockery;
 use Tests\TestCase;
 
 class TvGuideServiceTest extends TestCase
@@ -36,6 +38,33 @@ class TvGuideServiceTest extends TestCase
         $this->assertSame($schedule, $first);
         $this->assertSame($schedule, $second);
         Http::assertSentCount(1);
+    }
+
+    public function test_a_failed_cache_write_is_not_reported_as_a_successful_schedule_refresh(): void
+    {
+        $date = $this->date();
+        $schedule = [$this->channel('NRK1')];
+        $identity = $date->format('Y-m-d').'|Europe/Oslo|'.implode(',', self::CHANNELS);
+        $suffix = $date->format('Y-m-d').'.'.sha1($identity);
+        $staleKey = 'tv-guide-vg.stale.'.$suffix;
+        $originalCache = Cache::getFacadeRoot();
+        $lock = Mockery::mock(Lock::class);
+        $lock->shouldReceive('get')->once()->andReturnTrue();
+        $lock->shouldReceive('release')->once();
+        $cache = Mockery::mock();
+        $cache->shouldReceive('lock')->once()->andReturn($lock);
+        $cache->shouldReceive('get')->with($staleKey)->once()->andReturn(null);
+        $cache->shouldReceive('forget')->once()->andReturnTrue();
+        $cache->shouldReceive('put')->once()->andReturnFalse();
+        $cache->shouldReceive('forever')->twice()->andReturnTrue();
+        Cache::swap($cache);
+        Http::fake(['tvguide.vg.no/*' => Http::response($schedule)]);
+
+        try {
+            $this->assertFalse($this->service()->refreshSchedule($date, self::CHANNELS, 'ringerike'));
+        } finally {
+            Cache::swap($originalCache);
+        }
     }
 
     public function test_http_failure_notifies_and_uses_stale_data_for_the_same_date_and_channels(): void

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use JsonException;
+use RuntimeException;
 use Throwable;
 use UnexpectedValueException;
 
@@ -102,6 +103,15 @@ class TvGuideService
         return Cache::has($this->cacheKeys($date, $channels)['updated'].'.unpublished');
     }
 
+    /** True when the page can read a date-specific local schedule without fetching. */
+    public function hasCachedSchedule(CarbonInterface $date, array $channels): bool
+    {
+        $date = $date->copy()->setTimezone(self::TIMEZONE);
+        $keys = $this->cacheKeys($date, $channels);
+
+        return is_array(Cache::get($keys['fresh'])) || is_array(Cache::get($keys['stale']));
+    }
+
     /** A scheduled source check; the same lock protects all users of this data key. */
     public function refreshSchedule(CarbonInterface $date, array $channels, string $selection): bool
     {
@@ -128,9 +138,7 @@ class TvGuideService
                     return true;
                 }
                 Cache::forget($keys['updated'].'.unpublished');
-                Cache::put($keys['fresh'], $schedule, now()->addSeconds(self::FRESH_TTL_SECONDS));
-                Cache::forever($keys['stale'], $schedule);
-                Cache::forever($keys['updated'], now()->toIso8601String());
+                $this->storeSchedule($keys, $schedule);
                 $this->failureNotifier->reportSuccess('tv-guide-vg', $key);
                 app(ExternalDataMonitor::class)->checked('tv-guide-vg', $key, 'tv', $selection.' – '.$date->format('Y-m-d').' (TV og fotball)', $essential, true, $schedule !== [], null, $date->copy()->endOfDay()->setTimezone(config('app.timezone')));
                 return true;
@@ -582,6 +590,23 @@ class TvGuideService
             'stale' => 'tv-guide-vg.stale.'.$suffix,
             'updated' => 'tv-guide-vg.updated.'.$suffix,
         ];
+    }
+
+    /**
+     * A successful source response is only a successful refresh once every
+     * local value needed by readers has been persisted. Cache stores may
+     * signal a write failure by returning false rather than throwing.
+     */
+    private function storeSchedule(array $keys, array $schedule): void
+    {
+        $updatedAt = now()->toIso8601String();
+        $freshStored = Cache::put($keys['fresh'], $schedule, now()->addSeconds(self::FRESH_TTL_SECONDS));
+        $staleStored = Cache::forever($keys['stale'], $schedule);
+        $updatedStored = Cache::forever($keys['updated'], $updatedAt);
+
+        if (! $freshStored || ! $staleStored || ! $updatedStored || Cache::get($keys['stale']) !== $schedule) {
+            throw new RuntimeException('TV-guide-data kunne ikke lagres i lokal cache.');
+        }
     }
 
     private function failureKind(Throwable $exception): string

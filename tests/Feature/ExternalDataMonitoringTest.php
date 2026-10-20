@@ -206,6 +206,36 @@ class ExternalDataMonitoringTest extends TestCase
         Mail::assertSent(ExternalDataIncidentMail::class, fn ($mail) => $mail->service === 'tv-guide-vg' && count($mail->coverages) === 2);
     }
 
+    public function test_scheduled_tv_refresh_rebuilds_a_missing_cache_even_when_its_database_check_is_fresh(): void
+    {
+        config()->set('external_data.tv_batch_size', 1);
+        $tv = app(TvGuideService::class);
+        Http::fake(['tvguide.vg.no/*' => Http::response($this->schedule())]);
+
+        $dates = collect(range(-8, 13))->map(fn (int $offset) => now('Europe/Oslo')->startOfDay()->addDays($offset));
+        foreach (['ringerike' => TvGuideService::ringerikeChannels(), 'ilseng' => TvGuideService::ilsengChannels()] as $selection => $channels) {
+            foreach ($dates as $date) {
+                $this->assertTrue($tv->refreshSchedule($date, $channels, $selection));
+            }
+        }
+
+        $date = now('Europe/Oslo')->startOfDay();
+        foreach ($this->tvCacheKeys($date, TvGuideService::ringerikeChannels()) as $key) {
+            Cache::forget($key);
+        }
+        Cache::put($this->tvUnpublishedKey($date, TvGuideService::ringerikeChannels()), true, now()->addMinutes(15));
+        $this->assertFalse($tv->hasCachedSchedule($date, TvGuideService::ringerikeChannels()));
+
+        $this->artisan('external-data:refresh', ['type' => 'tv'])->assertExitCode(0);
+
+        $this->assertTrue($tv->hasCachedSchedule($date, TvGuideService::ringerikeChannels()));
+        $this->assertDatabaseHas('external_data_checks', [
+            'service' => 'tv-guide-vg',
+            'coverage_key' => 'ringerike-'.$date->format('Y-m-d'),
+            'failure_count' => 0,
+        ]);
+    }
+
     public function test_football_cache_reads_do_not_reset_failures_or_refresh_the_source_timestamp(): void
     {
         config()->set('external_data.max_age_minutes.football', 60);
@@ -254,5 +284,24 @@ class ExternalDataMonitoringTest extends TestCase
     private function schedule(): array
     {
         return [['channel' => ['name' => 'NRK1', 'slug' => 'nrk1'], 'listings' => []]];
+    }
+
+    private function tvCacheKeys(Carbon $date, array $channels): array
+    {
+        $identity = $date->format('Y-m-d').'|Europe/Oslo|'.implode(',', $channels);
+        $suffix = $date->format('Y-m-d').'.'.sha1($identity);
+
+        return [
+            'tv-guide-vg.fresh.'.$suffix,
+            'tv-guide-vg.stale.'.$suffix,
+            'tv-guide-vg.updated.'.$suffix,
+        ];
+    }
+
+    private function tvUnpublishedKey(Carbon $date, array $channels): string
+    {
+        $identity = $date->format('Y-m-d').'|Europe/Oslo|'.implode(',', $channels);
+
+        return 'tv-guide-vg.updated.'.$date->format('Y-m-d').'.'.sha1($identity).'.unpublished';
     }
 }

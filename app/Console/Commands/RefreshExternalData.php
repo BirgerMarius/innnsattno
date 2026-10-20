@@ -52,13 +52,17 @@ class RefreshExternalData extends Command
         $pending = [];
         foreach (['ringerike' => TvGuideService::ringerikeChannels(), 'ilseng' => TvGuideService::ilsengChannels()] as $selection => $channels) {
             for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
-                if ($tv->refreshDeferred($date, $channels)) {
+                if ($tv->refreshDeferred($date, $channels) && $tv->hasCachedSchedule($date, $channels)) {
                     continue;
                 }
                 $key = $selection.'-'.$date->format('Y-m-d');
                 $row = $checks[$key] ?? null;
                 $interval = $row && $row->failure_count > 0 ? ((! $row->usable && $date->isSameDay($today)) ? 5 : 15) : 60;
-                if (! $row || ! $row->last_check_at || Carbon::parse($row->last_check_at)->lte(now()->subMinutes($interval))) {
+                // The database records a source check, not the cache itself.
+                // Rebuild a missing local value even while the source check is
+                // still fresh, for example after a cache clear or a failed write.
+                if (! $tv->hasCachedSchedule($date, $channels)
+                    || ! $row || ! $row->last_check_at || Carbon::parse($row->last_check_at)->lte(now()->subMinutes($interval))) {
                     $pending[] = ['selection' => $selection, 'channels' => $channels, 'date' => $date->copy(), 'today' => $date->isSameDay($today), 'checked' => $row->last_check_at ?? ''];
                 }
             }
@@ -73,7 +77,7 @@ class RefreshExternalData extends Command
             $date = Carbon::parse($matches[2], 'Europe/Oslo')->startOfDay();
             $channels = $matches[1] === 'ilseng' ? TvGuideService::ilsengChannels() : TvGuideService::ringerikeChannels();
             if (! $row || ((int) $row->failure_count === 0 && $row->usable) || $date->betweenIncluded($start, $end)
-                || $tv->refreshDeferred($date, $channels)
+                || ($tv->refreshDeferred($date, $channels) && $tv->hasCachedSchedule($date, $channels))
                 || ($row->last_check_at && Carbon::parse($row->last_check_at)->gt(now()->subMinutes(15)))) {
                 continue;
             }
