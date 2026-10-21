@@ -1,6 +1,6 @@
 # Statistikksammendrag for adminportalen
 
-Adminportalen leser bare det begrensede JSON-sammendraget; Laravel åpner aldri historikkdatabasen eller Nginx-loggene. Ny innsamling bruker schema 4 med klassifiserer versjon 7, som skiller anslått menneskelig bruk fra kjent automatisert/teknisk og uklassifisert trafikk, og viser nøyaktig hvilke dager som faktisk har logggrunnlag. JSON-filen inneholder ingen IP-adresser.
+Adminportalen leser bare det begrensede JSON-sammendraget; Laravel åpner aldri historikkdatabasen eller Nginx-loggene. Ny innsamling bruker schema 5 med klassifiserer versjon 8, som skiller anslått menneskelig bruk fra kjent automatisert/teknisk og uklassifisert trafikk, og viser nøyaktig hvilke dager som faktisk har logggrunnlag. JSON-filen inneholder ingen IP-adresser.
 
 ## Produksjonsarkitektur
 
@@ -43,13 +43,14 @@ Uptime Kuma klassifiseres normalt som `monitoring`. Hvis den kommer fra samme IP
 
 Det er ingen Nginx-endring nødvendig så lenge nettstedets vanlige `access_log` fortsatt skriver alle statuskoder til `/var/log/nginx/innsatt.no-access.log`. Ved produksjonsoppdateringen skal driftsansvarlig kontrollere at `/root/innsatt-statistikk/oppdater-rapport.sh` ikke filtrerer bort `3xx`-linjer før GoAccess, og at GoAccess ikke startes med en `--ignore-status=302`-regel eller en sti-ekskludering som dekker `/podkast/betjenten-og-psyken/`. Hvis en slik filtrering finnes, skal den fjernes for disse rutene og rapporten regenereres fra de samme Nginx-loggene.
 
-## Schema 4 og adminvisningen
+## Schema 5 og adminvisningen
 
-Schema 4 har tre hoveddeler:
+Schema 5 har fire hoveddeler:
 
 - `periods`: ferdiggenererte aggregater for `1`, `7` og `30` dager.
 - `daily`: 60 ferdiggenererte daglige aggregater med nøkkeltall og siderangering.
 - `top_pages`: siderangering for periodene `1`, `7` og `30` dager.
+- `calendar_weeks`: fire eksakte, avsluttede mandag–søndag-uker med dedupliserte nettverk, alle menneskelige sider og utskriftsåpninger per fengsel. Denne delen brukes av ukesrapporten.
 
 Hver daglig oppføring inneholder filtrerte sidevisninger, anslåtte besøksøkter, unike besøksnettverk, utskriftsvisninger, mest brukte sider/funksjoner, kjent automatisert/teknisk trafikk, uklassifisert trafikk og loggdekning. Unike nettverk er ikke personer: et institusjonsnett kan representere flere brukere. Ingen IP-adresser eksporteres.
 
@@ -136,11 +137,23 @@ For 17.08.2026 viste schema 3-sammendraget:
 | Enkeltstående sidekandidater | 15 |
 | Råforespørsler | 2 447 |
 
+## Ukesrapportens datagrunnlag
+
+Den root-eide `innsatt-statistikk.timer` kjører generatoren hvert kvarter. Når
+den kjører etter at søndag 25.10.2026 er ferdig, eksporterer schema 5 nøkkelen
+`calendar_weeks.2026-10-19` for 19.–25. oktober. Laravel-scheduleren forsøker
+første ordinære e-post mandag 26.10.2026 kl. 00:05 Europe/Oslo. Den sender bare
+når JSON-filen er generert etter `26.10.2026 00:00` og alle syv dager har
+dekning; hvis 00:00-jobben ikke er ferdig, forsøker den videre hvert femte
+minutt mandag. Dette forutsetter fortsatt at `oppdater-rapport.sh` peker på
+repoets `scripts/generate_admin_statistics.py`, som kontrollert i
+produksjonsprosedyren over.
+
 ## Driftssjekk
 
 Ved kontroll av en ny generering skal minst følgende være sant:
 
-- `schema_version` er `4`, og `daily_statistics_coverage.classifier_version` er `7` etter at ny samler har kjørt.
+- `schema_version` er `5`, og `daily_statistics_coverage.classifier_version` er `8` etter at ny samler har kjørt.
 - `daily` inneholder bare datoer med faktisk logggrunnlag; perioder viser om de er fullstendige eller delvise.
 - `periods` inneholder `1`, `7` og `30`.
 - `admin-summary.json` inneholder ingen IP-adresser.

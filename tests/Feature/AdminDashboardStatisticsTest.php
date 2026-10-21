@@ -204,7 +204,10 @@ class AdminDashboardStatisticsTest extends TestCase
 
     public function testReadRejectsInvalidOrUnknownSchemaFourClassifierVersions(): void
     {
-        foreach ([[3], [8], ['5'], [5.0]] as $versions) {
+        // v8 is the active production classifier and is covered by the
+        // acceptance test above. Keep this test focused on genuinely unknown
+        // versions and invalid JSON types.
+        foreach ([[3], [9], ['5'], [5.5]] as $versions) {
             $this->writeSummary([
                 'schema_version' => 4,
                 'periods' => $this->currentPeriods($versions),
