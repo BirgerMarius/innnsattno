@@ -49,6 +49,20 @@ class CollectPageVisitorsTest(unittest.TestCase):
             self.assertEqual(1, traffic[('2026-09-24', 'human', 'sessions')])
             self.assertFalse(any(ip == '66.249.73.172' for _, _, ip in pages))
 
+    def test_self_declared_email_extractor_is_bot_without_a_generic_go_rule(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(
+                line('203.0.113.70', '04/Aug/2026', '/dagen-i-dag/2026-08-04', 'GO kevincobain2000/email_extractor')
+                + line('203.0.113.70', '04/Aug/2026', '/dagen-i-dag/2026-08-05', 'GO kevincobain2000/email_extractor', time='12:00:01')
+                + line('203.0.113.71', '04/Aug/2026', '/tv', 'Go ordinary-client', time='12:01:00')
+                + line('203.0.113.71', '04/Aug/2026', '/quiz', 'Go ordinary-client', time='12:02:00')
+            )
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertEqual(2, traffic[('2026-08-04', 'bot', 'requests')])
+            self.assertEqual(2, traffic[('2026-08-04', 'human', 'pageviews')])
+            self.assertFalse(any(ip == '203.0.113.70' for _, _, ip in pages))
+
     def test_classifies_normal_browser_session_and_filters_known_automation(self):
         with tempfile.TemporaryDirectory() as directory:
             log = Path(directory) / 'access.log'
@@ -118,7 +132,7 @@ class CollectPageVisitorsTest(unittest.TestCase):
             self.assertEqual(2, traffic[('2026-08-04', 'human', 'pageviews')])
             self.assertEqual(2, traffic[('2026-08-04', 'other', 'requests')])
 
-    def test_wordpress_query_scanner_and_immediate_front_page_followup_are_filtered(self):
+    def test_wordpress_query_scanner_does_not_contaminate_another_user_agent(self):
         with tempfile.TemporaryDirectory() as directory:
             log = Path(directory) / 'access.log'
             log.write_text(
@@ -129,8 +143,33 @@ class CollectPageVisitorsTest(unittest.TestCase):
             )
             pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
             self.assertNotIn(('2026-08-04', '/tv', '103.168.67.159'), pages)
-            self.assertEqual(2, traffic[('2026-08-04', 'scanner', 'requests')])
+            self.assertEqual(1, traffic[('2026-08-04', 'scanner', 'requests')])
             self.assertEqual(2, traffic[('2026-08-04', 'human', 'pageviews')])
+
+    def test_clear_private_file_scan_reclassifies_only_its_ip_agent_session(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            agent = 'Mozilla/5.0 clear-probe-browser'
+            log.write_text(
+                line('203.0.113.72', '04/Aug/2026', '/.git/config', agent, status=403, time='12:00:00')
+                + line('203.0.113.72', '04/Aug/2026', '/tv', agent, time='12:00:01')
+                + line('203.0.113.72', '04/Aug/2026', '/print', agent, time='12:00:02')
+                + line('203.0.113.72', '04/Aug/2026', '/.env', agent, status=403, time='12:00:03')
+                + line('203.0.113.72', '04/Aug/2026', '/tv', 'Mozilla/5.0 another visitor', time='12:01:00')
+                + line('203.0.113.72', '04/Aug/2026', '/quiz', 'Mozilla/5.0 another visitor', time='12:02:00')
+                + line('203.0.113.72', '04/Aug/2026', '/tv', agent, time='12:31:00')
+                + line('203.0.113.72', '04/Aug/2026', '/quiz', agent, time='12:32:00')
+            )
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertEqual(4, traffic[('2026-08-04', 'scanner', 'requests')])
+            self.assertEqual(4, traffic[('2026-08-04', 'human', 'pageviews')])
+            self.assertNotIn(('2026-08-04', '/print', '203.0.113.72'), pages)
+            self.assertEqual(2, pages[('2026-08-04', '/tv', '203.0.113.72')])
+
+    def test_web_config_200_is_not_a_public_pageview(self):
+        event = COLLECTOR.parse_event(line('203.0.113.73', '04/Aug/2026', '/web.config'))
+        self.assertIsNone(event.path)
+        self.assertEqual('other', event.kind)
 
     def test_rebuild_preserves_uncovered_days_inside_retention(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -144,7 +183,7 @@ class CollectPageVisitorsTest(unittest.TestCase):
             COLLECTOR.replace_database_rows(database, pages, traffic, first, latest)
             connection = sqlite3.connect(database)
             self.assertEqual(7, connection.execute("SELECT pageviews FROM daily_page_ip_stats WHERE date = '2026-08-02'").fetchone()[0])
-            self.assertEqual([('2026-08-04', 6)], connection.execute('SELECT date,classifier_version FROM daily_statistics_coverage').fetchall())
+            self.assertEqual([('2026-08-04', 7)], connection.execute('SELECT date,classifier_version FROM daily_statistics_coverage').fetchall())
             connection.close()
 
     def test_fast_broad_tour_with_browser_agent_is_scanner_not_human(self):

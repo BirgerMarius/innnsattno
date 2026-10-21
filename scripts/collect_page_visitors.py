@@ -25,6 +25,9 @@ BOT_PATTERN = re.compile(
     r'wp-safe-scanner|bot|crawler|spider|scanner|slurp|headless|lighthouse|preview|'
     r'curl|wget|python|go-http-client|libwww|httpclient|nikto|sqlmap|masscan|zgrab', re.I,
 )
+# Exact identifier observed for the self-declared address harvester.  Do not
+# generalise this to "Go": that is not an automation signal by itself.
+EMAIL_EXTRACTOR_AGENT_PATTERN = re.compile(r'\bGO kevincobain2000/email_extractor\b', re.I)
 MONITOR_PATTERN = re.compile(r'uptime[ _-]?kuma|uptime|monitor', re.I)
 TECHNICAL_PREFIXES = (
     '/admin', '/adm', '/api', '/statistikk', '/storage', '/vendor', '/_debugbar',
@@ -54,6 +57,12 @@ CANONICAL_PATHS = {
 SESSION_GAP = dt.timedelta(minutes=30)
 OSLO_TIMEZONE = ZoneInfo('Europe/Oslo')
 SUDOKU_PRINT_PATH = '/tidsfordriv/sudoku/print'
+TECHNICAL_PUBLIC_PATHS = frozenset({
+    # There is no Laravel route or repository file for this IIS configuration
+    # filename. Nginx can still return the application's 200 page for it.
+    # Keep this exact; public downloads can legitimately use other extensions.
+    '/web.config',
+})
 
 
 @dataclass
@@ -82,6 +91,8 @@ def canonical_public_path(target):
         return None
     path = re.sub(r'/+', '/', path).rstrip('/') or '/'
     lower = path.lower()
+    if lower in TECHNICAL_PUBLIC_PATHS:
+        return None
     if lower == '/index.php' or lower.startswith('/index.php/'):
         return None
     if any(lower == prefix or lower.startswith(prefix + '/') for prefix in TECHNICAL_PREFIXES):
@@ -100,6 +111,15 @@ def is_static(target):
 
 def has_malformed_absolute_path(target):
     return bool(MALFORMED_ABSOLUTE_PATH_PATTERN.match(target_path(target) or ''))
+
+
+def is_clear_security_scan(event):
+    """Return true only for an unambiguous private-file scan probe."""
+    path = (target_path(event.target) or '').lower()
+    return event.kind == 'scanner' and (
+        '/.git' in path or '.env' in path or '/wp-' in path or '/wp-json' in path
+        or '/xmlrpc.php' in path or '/vendor/phpunit' in path or '/phpmyadmin' in path
+    )
 
 
 def parse_event(line):
@@ -126,7 +146,7 @@ def parse_event(line):
     raw_query = urlsplit(target).query.lower()
     if MONITOR_PATTERN.search(agent):
         kind = 'monitoring'
-    elif BOT_PATTERN.search(agent):
+    elif EMAIL_EXTRACTOR_AGENT_PATTERN.search(agent) or BOT_PATTERN.search(agent):
         kind = 'bot'
     elif (SCANNER_PATH_PATTERN.search(raw_path) or SCANNER_QUERY_PATTERN.search(raw_query)
           or (status >= 400 and any(raw_path.startswith(prefix) for prefix in TECHNICAL_PREFIXES))):
@@ -156,12 +176,9 @@ def configured_ips(admin_ip=None, excluded_ips=None):
 def sessionize(events, excluded=None):
     """Return candidate event ids confirmed as human and one session start per session."""
     groups = defaultdict(list)
-    scanner_times_by_ip = defaultdict(list)
     for index, event in enumerate(events):
         if event.ip not in (excluded or set()) and event.agent:
             groups[(event.ip, event.agent)].append((index, event))
-            if event.kind == 'scanner':
-                scanner_times_by_ip[event.ip].append(event.when)
     human_ids, sessions, scanner_ids = set(), [], set()
     for group in groups.values():
         group.sort(key=lambda item: item[1].when)
@@ -175,14 +192,19 @@ def sessionize(events, excluded=None):
             chunks.append(current)
         for chunk in chunks:
             candidates = [(index, event) for index, event in chunk if event.kind == 'candidate']
-            # A WordPress/PHP scan may be redirected to /tv.  Treat only an
-            # immediate /tv follow-up from the same IP as scanner residue; this
-            # limits the rule so a shared institutional IP is not broadly
-            # penalised for ordinary browsing later in the session.
+            # Browser-looking scanners can interleave public pages and print
+            # pages with private-file probes. Two clear probes identify only
+            # this IP+UA session; a lone 404 and later sessions stay untouched.
+            if sum(is_clear_security_scan(event) for _, event in chunk) >= 2:
+                scanner_ids.update(index for index, _ in chunk)
+                continue
+            # A WordPress/PHP scan may be redirected to /tv. Treat only an
+            # immediate /tv follow-up in the same IP+UA session as scanner
+            # residue; another user behind a shared public IP stays separate.
             for index, event in candidates:
                 if event.path == '/tv' and any(
-                    dt.timedelta(0) <= event.when - scanner_when <= dt.timedelta(minutes=2)
-                    for scanner_when in scanner_times_by_ip[event.ip]
+                    dt.timedelta(0) <= event.when - scanner_event.when <= dt.timedelta(minutes=2)
+                    for _, scanner_event in chunk if scanner_event.kind == 'scanner'
                 ):
                     scanner_ids.add(index)
             candidates = [(index, event) for index, event in candidates if index not in scanner_ids]
@@ -354,7 +376,7 @@ def replace_database_rows(database, pages, traffic, first, latest):
             connection.executemany('INSERT INTO daily_traffic_classification_stats(date,category,metric,count) VALUES (?,?,?,?)',
                                    [(day, category, metric, count) for (day, category, metric), count in traffic.items()])
             connection.executemany('INSERT INTO daily_statistics_coverage(date,classifier_version,updated_at) VALUES (?,?,?)',
-                                   [(day, 6, dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()) for day in covered_days])
+                                   [(day, 7, dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()) for day in covered_days])
             connection.execute('DELETE FROM daily_page_ip_stats WHERE date < ?', (first.isoformat(),))
             connection.execute('DELETE FROM daily_traffic_classification_stats WHERE date < ?', (first.isoformat(),))
     finally:
