@@ -11,6 +11,7 @@ use App\Console\Commands\PruneNewsArticles;
 use App\Console\Commands\SendExternalDataFailureDigest;
 use App\Console\Commands\PruneExternalDataSourceEvents;
 use App\Console\Commands\PrecacheFootballTeams;
+use App\Console\Commands\SendWeeklyStatisticsReport;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -31,6 +32,7 @@ class Kernel extends ConsoleKernel
         SendExternalDataFailureDigest::class,
         PruneExternalDataSourceEvents::class,
         PrecacheFootballTeams::class,
+        SendWeeklyStatisticsReport::class,
     ];
 
     /**
@@ -49,6 +51,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('external-data:evaluate')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('external-data:prune-events')->dailyAt('07:05')->timezone('Europe/Oslo')->withoutOverlapping();
         $schedule->command('football:precache-teams')->dailyAt('04:30')->timezone('Europe/Oslo')->withoutOverlapping();
+        // The reporting command refuses incomplete post-midnight JSON and retries
+        // every five minutes for the rest of Monday.
+        $schedule->command('statistics:weekly-report')->cron('5-59/5 * * * 1')->timezone('Europe/Oslo')->withoutOverlapping();
     }
 
     /**

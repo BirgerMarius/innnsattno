@@ -200,5 +200,38 @@ sudo -u forge python3 scripts/collect_page_visitors.py storage/app/statistikk/hi
 sudo -u forge python3 scripts/generate_admin_statistics.py storage/app/statistikk/historikk.sqlite3 storage/app/statistikk/admin-summary.json
 ```
 
+## Ukentlig statistikkrapport
+
+Laravel leser bare `admin-summary.json`; den åpner aldri Nginx-loggene eller den
+root-eide SQLite-filen. Loggjobben og JSON-generatoren må derfor fortsatt kjøres
+hvert kvarter, også rett etter midnatt. Scheduleren forsøker rapporten hver mandag
+fra 00:05 (Europe/Oslo) og venter til JSON-en er regenerert etter ukeslutt med
+komplett søndagsdekning. Den tar ikke igjen gamle uker ved første deploy.
+
+Konfigurer uten hemmeligheter i driftsmiljøet:
+
+```dotenv
+WEEKLY_STATISTICS_REPORT_ENABLED=true
+WEEKLY_STATISTICS_REPORT_RECIPIENT=innsatt@innsatt.no
+```
+
+Eksisterende `MAIL_*`/Brevo-oppsett brukes uendret. Rapporten registreres per
+kalenderuke og låses under sending. Ved transportfeil prøves den igjen neste femte
+minutt, og den markeres først sendt når transporten svarer uten feil. Et uklart
+nettverkssvar fra Brevo kan i sjeldne tilfeller ha akseptert e-posten før klienten
+ser feilen; da finnes en gjenværende risiko for dobbeltutsending ved retry.
+
+Forhåndsvisning sender aldri e-post:
+
+```bash
+php artisan statistics:weekly-report:preview 2026-10-12 --output=/tmp/ukesrapport.html
+```
+
+Kontrollert, uttrykkelig testsending (påvirker ikke ordinær sendestatus):
+
+```bash
+php artisan statistics:weekly-report:test-send 2026-10-12 --to=innsatt@innsatt.no
+```
+
 Sjekk alltid hvilke faktiske `access_log`-filer nettstedet bruker før kjøring,
 for eksempel med `sudo nginx -T`. Ikke kopier rålogger til repositoryet.

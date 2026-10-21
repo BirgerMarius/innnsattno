@@ -21,15 +21,15 @@ class AdminStatisticsSummary
             return null;
         }
 
-        if (! is_array($data) || ! in_array($data['schema_version'] ?? null, [1, 2, 3, 4], true)) {
+        if (! is_array($data) || ! in_array($data['schema_version'] ?? null, [1, 2, 3, 4, 5], true)) {
             return null;
         }
 
-        if (in_array($data['schema_version'], [3, 4], true)) {
+        if (in_array($data['schema_version'], [3, 4, 5], true)) {
             if (! $this->validTimestamp($data['generated_at'] ?? null) || ! is_bool($data['test_data'] ?? null)) {
                 return null;
             }
-            $currentMethodology = $data['schema_version'] === 4;
+            $currentMethodology = in_array($data['schema_version'], [4, 5], true);
             $periods = $this->validHumanPeriods($data['periods'] ?? null, $currentMethodology);
             if ($periods === null) {
                 return null;
@@ -42,6 +42,11 @@ class AdminStatisticsSummary
             if (($data['daily'] ?? null) !== null && $daily === null) {
                 return null;
             }
+            $calendarWeeks = $data['schema_version'] === 5
+                ? $this->validCalendarWeeks($data['calendar_weeks'] ?? null) : [];
+            if ($calendarWeeks === null) {
+                return null;
+            }
 
             return [
                 'human_traffic' => true,
@@ -51,6 +56,7 @@ class AdminStatisticsSummary
                 'periods' => $periods,
                 'top_pages' => $topPages,
                 'daily' => $daily,
+                'calendar_weeks' => $calendarWeeks,
             ];
         }
 
@@ -266,6 +272,46 @@ class AdminStatisticsSummary
             }
             $period['pages'] = $rankings['1']['pages'];
             $validated[$date] = $period;
+        }
+        return $validated;
+    }
+
+    private function validCalendarWeeks($weeks): ?array
+    {
+        if (! is_array($weeks)) {
+            return null;
+        }
+        $validated = [];
+        foreach ($weeks as $weekStart => $entry) {
+            if (! is_string($weekStart) || ! $this->validDate($weekStart)) {
+                return null;
+            }
+            $start = Carbon::createFromFormat('!Y-m-d', $weekStart);
+            if (! $start->isMonday()) {
+                return null;
+            }
+            $period = $this->validHumanPeriod($entry, true);
+            $rankings = $this->validTopPages([
+                '1' => ['from' => $entry['from'] ?? null, 'to' => $entry['to'] ?? null, 'pages' => $entry['pages'] ?? null],
+                '7' => ['from' => $entry['from'] ?? null, 'to' => $entry['to'] ?? null, 'pages' => $entry['pages'] ?? null],
+                '30' => ['from' => $entry['from'] ?? null, 'to' => $entry['to'] ?? null, 'pages' => $entry['pages'] ?? null],
+            ]);
+            $prints = $entry['prints_by_prison'] ?? null;
+            if ($period === null || $rankings === null || ! is_array($prints)
+                || ! $period['from']->isSameDay($start) || ! $period['to']->isSameDay($start->copy()->addDays(6))) {
+                return null;
+            }
+            foreach (['ringerike', 'ilseng', 'other'] as $key) {
+                if (! $this->validCount($prints[$key] ?? null)) {
+                    return null;
+                }
+            }
+            if (array_sum($prints) > $period['print_pageviews']) {
+                return null;
+            }
+            $period['pages'] = $rankings['1']['pages'];
+            $period['prints_by_prison'] = $prints;
+            $validated[$weekStart] = $period;
         }
         return $validated;
     }

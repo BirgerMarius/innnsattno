@@ -182,6 +182,38 @@ def feature_statistics(connection, first, latest):
     return sorted(result, key=lambda item: (-item['pageviews'], item['name']))
 
 
+def page_statistics(connection, first, latest):
+    """All public, classified human pages for a period (never identifiers)."""
+    rows = connection.execute(
+        "SELECT path, SUM(pageviews) views, COUNT(DISTINCT ip) visitors "
+        "FROM daily_page_ip_stats WHERE date BETWEEN ? AND ? "
+        "GROUP BY path ORDER BY views DESC, visitors DESC, path ASC",
+        (first.isoformat(), latest.isoformat()),
+    ).fetchall()
+    return [{'name': page_name(row['path']), 'path': row['path'],
+             'pageviews': max(0, int(row['views'] or 0)),
+             'unique_visitors': max(0, int(row['visitors'] or 0))} for row in rows]
+
+
+def print_statistics(connection, first, latest):
+    """Keep prison-specific print openings separate in the exported aggregate."""
+    paths = {
+        'ringerike': ("/print", "/bonnetider/utskrift"),
+        'ilseng': ("/print-ilseng", "/bonnetider-ilseng/utskrift"),
+    }
+    result = {}
+    for prison, values in paths.items():
+        placeholders = ','.join('?' for _ in values)
+        result[prison] = scalar(connection,
+            "SELECT SUM(pageviews) FROM daily_page_ip_stats WHERE date BETWEEN ? AND ? "
+            f"AND path IN ({placeholders})", (first.isoformat(), latest.isoformat(), *values))
+    # Football printouts have no prison association and remain part of the total.
+    result['other'] = scalar(connection,
+        "SELECT SUM(pageviews) FROM daily_page_ip_stats WHERE date BETWEEN ? AND ? AND path = '/fotball-utskrift'",
+        (first.isoformat(), latest.isoformat()))
+    return result
+
+
 def daily_human_statistics(connection, latest_date):
     """Export only observed log days; absent logs are never fabricated as zero traffic."""
     if not table_exists(connection, 'daily_statistics_coverage'):
@@ -252,6 +284,29 @@ def human_periods_for_days(connection, latest_date, days):
     }
 
 
+def calendar_weeks(connection, latest_date):
+    """Export a small rolling set of exact Monday--Monday calendar weeks.
+
+    The Laravel application only reads this JSON; it never opens the protected
+    SQLite file.  Including the preceding week also lets the 00:05 job verify
+    that Sunday was collected before it sends anything.
+    """
+    current_monday = latest_date - dt.timedelta(days=latest_date.weekday())
+    # On a Monday just after midnight the latest observed date is Sunday, which
+    # is itself the finished reporting week. On every other day, use the prior
+    # Monday--Sunday week as the newest eligible one.
+    newest_complete_monday = current_monday if latest_date.weekday() == 6 else current_monday - dt.timedelta(days=7)
+    result = {}
+    for offset in range(4):
+        first = newest_complete_monday - dt.timedelta(days=7 * offset)
+        last = first + dt.timedelta(days=6)
+        period = human_periods_for_days(connection, last, 7)
+        period['pages'] = page_statistics(connection, first, last)
+        period['prints_by_prison'] = print_statistics(connection, first, last)
+        result[first.isoformat()] = period
+    return result
+
+
 def generate(database, test_data=False):
     connection = sqlite3.connect(f"file:{Path(database).resolve()}?mode=ro", uri=True)
     connection.row_factory = sqlite3.Row
@@ -309,12 +364,13 @@ def generate(database, test_data=False):
         periods = human_periods(connection, latest_date)
         if periods is not None:
             payload = {
-                'schema_version': 4 if is_current_methodology else 3,
+                'schema_version': 5 if is_current_methodology else 3,
                 'generated_at': payload['generated_at'],
                 'test_data': payload['test_data'],
                 'periods': periods,
                 'top_pages': payload['top_pages'],
                 'daily': daily_human_statistics(connection, latest_date),
+                'calendar_weeks': calendar_weeks(connection, latest_date),
             }
         return payload
     finally:

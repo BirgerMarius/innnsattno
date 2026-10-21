@@ -136,12 +136,43 @@ class GenerateAdminStatisticsTest(unittest.TestCase):
             """)
             connection.commit(); connection.close()
             data = GENERATOR.generate(database)
-            self.assertEqual(4, data['schema_version'])
+            self.assertEqual(5, data['schema_version'])
             self.assertEqual('Forside', data['top_pages']['1']['pages'][0]['name'])
             self.assertFalse(data['periods']['7']['coverage']['complete'])
             self.assertEqual(2, data['periods']['1']['features'][1]['print_pageviews'])
             self.assertEqual('TV-utskrifter', data['periods']['1']['features'][1]['name'])
             self.assertEqual(data['periods']['1']['print_pageviews'], sum(feature['print_pageviews'] for feature in data['periods']['1']['features']))
+
+    def test_calendar_week_deduplicates_networks_and_keeps_prisons_separate(self):
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / 'history.sqlite3'
+            connection = sqlite3.connect(database)
+            connection.executescript("""
+                CREATE TABLE daily_stats (date TEXT, pageviews INTEGER, requests INTEGER);
+                CREATE TABLE daily_page_stats (date TEXT, path TEXT, pageviews INTEGER);
+                CREATE TABLE daily_ip_stats (date TEXT, ip TEXT);
+                CREATE TABLE daily_page_ip_stats (date TEXT, path TEXT, ip TEXT, pageviews INTEGER);
+                CREATE TABLE daily_traffic_classification_stats (date TEXT, category TEXT, metric TEXT, count INTEGER);
+                CREATE TABLE daily_statistics_coverage (date TEXT PRIMARY KEY, classifier_version INTEGER, updated_at TEXT);
+            """)
+            for offset in range(8):
+                day = date(2026, 1, 5) + __import__('datetime').timedelta(days=offset)
+                value = day.isoformat()
+                connection.execute("INSERT INTO daily_stats VALUES (?,?,?)", (value, 3, 3))
+                connection.execute("INSERT INTO daily_page_stats VALUES (?,?,?)", (value, '/tv', 3))
+                connection.execute("INSERT INTO daily_ip_stats VALUES (?,?)", (value, '203.0.113.10'))
+                connection.execute("INSERT INTO daily_page_ip_stats VALUES (?,?,?,?)", (value, '/tv', '203.0.113.10', 1))
+                connection.execute("INSERT INTO daily_page_ip_stats VALUES (?,?,?,?)", (value, '/print', '203.0.113.10', 1))
+                connection.execute("INSERT INTO daily_page_ip_stats VALUES (?,?,?,?)", (value, '/print-ilseng', '203.0.113.11', 1))
+                connection.executemany("INSERT INTO daily_traffic_classification_stats VALUES (?,?,?,?)", [(value, 'human', 'requests', 3), (value, 'human', 'sessions', 1)])
+                connection.execute("INSERT INTO daily_statistics_coverage VALUES (?,?,?)", (value, 8, value + 'T00:05:00+00:00'))
+            connection.commit(); connection.close()
+            week = GENERATOR.generate(database)['calendar_weeks']['2026-01-05']
+            self.assertEqual(2, week['suspected_visitors'])
+            self.assertEqual(7, week['prints_by_prison']['ringerike'])
+            self.assertEqual(7, week['prints_by_prison']['ilseng'])
+            self.assertEqual('2026-01-05', week['from'])
+            self.assertEqual('2026-01-11', week['to'])
 
     def test_feature_networks_are_deduplicated_across_pages_in_the_same_function(self):
         with tempfile.TemporaryDirectory() as directory:
