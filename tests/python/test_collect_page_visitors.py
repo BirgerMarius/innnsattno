@@ -183,7 +183,7 @@ class CollectPageVisitorsTest(unittest.TestCase):
             COLLECTOR.replace_database_rows(database, pages, traffic, first, latest)
             connection = sqlite3.connect(database)
             self.assertEqual(7, connection.execute("SELECT pageviews FROM daily_page_ip_stats WHERE date = '2026-08-02'").fetchone()[0])
-            self.assertEqual([('2026-08-04', 7)], connection.execute('SELECT date,classifier_version FROM daily_statistics_coverage').fetchall())
+            self.assertEqual([('2026-08-04', 8)], connection.execute('SELECT date,classifier_version FROM daily_statistics_coverage').fetchall())
             connection.close()
 
     def test_fast_broad_tour_with_browser_agent_is_scanner_not_human(self):
@@ -256,6 +256,93 @@ class CollectPageVisitorsTest(unittest.TestCase):
             self.assertFalse(pages)
             self.assertEqual(0, traffic[('2026-08-04', 'human', 'pageviews')])
             self.assertEqual(1, traffic[('2026-08-04', 'other', 'single_page_candidates')])
+
+    def test_fangenytt_cover_route_is_static_even_without_an_extension(self):
+        event = COLLECTOR.parse_event(line('203.0.113.57', '04/Aug/2026', '/fangenytt/18/cover?width=108'))
+        self.assertIsNone(event.path)
+        self.assertEqual('other', event.kind)
+        self.assertTrue(COLLECTOR.is_static('/fangenytt/18/cover?width=108'))
+
+    def test_fangenytt_covers_neither_count_nor_confirm_a_human_session(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(
+                line('203.0.113.57', '04/Aug/2026', '/fangenytt/18/cover')
+                + line('203.0.113.58', '04/Aug/2026', '/fangenytt', time='12:01:00')
+                + line('203.0.113.58', '04/Aug/2026', '/fangenytt/18/cover', time='12:01:01')
+                + line('203.0.113.59', '04/Aug/2026', '/tv', time='12:02:00')
+                + line('203.0.113.59', '04/Aug/2026', '/fangenytt/1/cover', time='12:02:01')
+                + line('203.0.113.59', '04/Aug/2026', '/fangenytt/2/cover?size=small', time='12:02:02')
+            )
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertFalse(pages)
+            self.assertEqual(0, traffic[('2026-08-04', 'human', 'pageviews')])
+            self.assertEqual(2, traffic[('2026-08-04', 'other', 'single_page_candidates')])
+
+    def test_fangenytt_covers_are_not_added_to_an_otherwise_human_session(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(
+                line('203.0.113.57', '04/Aug/2026', '/tv')
+                + line('203.0.113.57', '04/Aug/2026', '/fangenytt', time='12:00:01')
+                + line('203.0.113.57', '04/Aug/2026', '/fangenytt/18/cover', time='12:00:02')
+                + line('203.0.113.57', '04/Aug/2026', '/fangenytt/17/cover', time='12:00:03')
+            )
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertEqual(2, traffic[('2026-08-04', 'human', 'pageviews')])
+            self.assertEqual(1, pages[('2026-08-04', '/tv', '203.0.113.57')])
+            self.assertEqual(1, pages[('2026-08-04', '/fangenytt', '203.0.113.57')])
+            self.assertFalse(any('/cover' in path for _, path, _ in pages))
+
+    def test_rapid_broad_tour_uses_a_moving_two_minute_window(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            rapid = ''.join(
+                line('203.0.113.80', '04/Aug/2026', f'/eliteserien/lag/{team}/utskrift',
+                     time=f'12:{team * 10 // 60:02d}:{team * 10 % 60:02d}')
+                for team in range(10)
+            )
+            # The full session is longer than two minutes, but its initial
+            # broad round must still be recognised.
+            log.write_text(rapid + line('203.0.113.80', '04/Aug/2026', '/tv', time='12:10:00'))
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertFalse(pages)
+            self.assertEqual(11, traffic[('2026-08-04', 'scanner', 'requests')])
+
+    def test_rapid_broad_tour_time_boundary_and_short_team_print_use(self):
+        candidates = [(number, COLLECTOR.parse_event(line(
+            '203.0.113.81', '04/Aug/2026', f'/side-{number}', time='12:00:00' if number < 9 else '12:02:00'
+        ))) for number in range(10)]
+        self.assertTrue(COLLECTOR.has_rapid_broad_tour(candidates))
+        candidates[-1] = (9, COLLECTOR.parse_event(line('203.0.113.81', '04/Aug/2026', '/side-9', time='12:02:01')))
+        self.assertFalse(COLLECTOR.has_rapid_broad_tour(candidates))
+
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(
+                line('203.0.113.82', '04/Aug/2026', '/nations-league/lag/11477/utskrift')
+                + line('203.0.113.82', '04/Aug/2026', '/nations-league/lag/11477', time='12:00:01')
+            )
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertEqual(2, traffic[('2026-08-04', 'human', 'pageviews')])
+            self.assertEqual(0, traffic[('2026-08-04', 'scanner', 'requests')])
+
+    def test_sustained_football_print_round_is_scanner_without_identity_rules(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            requests = []
+            for team in range(139):
+                seconds = team * 2
+                requests.append(line('203.0.113.83', '04/Aug/2026', f'/nations-league/lag/{10000 + team}/utskrift',
+                                     time=f'12:{seconds // 60:02d}:{seconds % 60:02d}'))
+            requests.extend([
+                line('203.0.113.83', '04/Aug/2026', '/fangenytt', time='12:09:30'),
+                line('203.0.113.83', '04/Aug/2026', '/fangenytt/18/cover', time='12:09:31'),
+            ])
+            log.write_text(''.join(requests))
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertFalse(pages)
+            self.assertEqual(141, traffic[('2026-08-04', 'scanner', 'requests')])
 
     def test_one_malformed_absolute_link_is_not_alone_a_scanner_session(self):
         with tempfile.TemporaryDirectory() as directory:

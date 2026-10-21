@@ -182,3 +182,23 @@ fra databasebackup.
 ## Historisk dokumentasjon
 
 `PROJECT_ANALYSIS.md` er et historisk øyeblikksbilde og kan inneholde utdaterte opplysninger. Kontroller alltid gjeldende kode, tester og konfigurasjon.
+
+## Adminstatistikk fra tilgangslogger
+
+`scripts/collect_page_visitors.py` klassifiserer komplette aktive og roterte
+access-logger og lagrer bare aggregerte sider, datoer og nettverksidentiteter i
+SQLite. Klassifiserer v8 holder Fangenytt-cover-ruten
+`/fangenytt/{nummer}/cover` utenfor HTML-sidevisninger, også når URL-en har
+query-parametere. Den undersøker dessuten ethvert glidende to-minuttersvindu i
+en IP+User-Agent-økt for raske, brede siderunder; det er ikke en
+cookie-bekreftet brukerøkt.
+
+Kjør begge trinnene med alle relevante, overlappfrie aktive og roterte logger:
+
+```bash
+sudo -u forge python3 scripts/collect_page_visitors.py storage/app/statistikk/historikk.sqlite3 /var/log/nginx/innsatt-access.log /var/log/nginx/innsatt-access.log.1.gz
+sudo -u forge python3 scripts/generate_admin_statistics.py storage/app/statistikk/historikk.sqlite3 storage/app/statistikk/admin-summary.json
+```
+
+Sjekk alltid hvilke faktiske `access_log`-filer nettstedet bruker før kjøring,
+for eksempel med `sudo nginx -T`. Ikke kopier rålogger til repositoryet.

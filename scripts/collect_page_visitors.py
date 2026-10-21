@@ -50,11 +50,13 @@ STATIC_EXTENSIONS = {
     '.css', '.js', '.map', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.ico',
     '.woff', '.woff2', '.ttf', '.eot', '.pdf', '.xml', '.txt', '.json', '.zip', '.mp4',
 }
+FANGENYTT_COVER_PATH_PATTERN = re.compile(r'^/fangenytt/\d+/cover$', re.I)
 CANONICAL_PATHS = {
     '/': '/tv', '/guide': '/tv', '/tvguide': '/tv', '/tv-guide': '/tv', '/tv-guiden': '/tv',
     '/ilseng': '/print-ilseng', '/football': '/fotball',
 }
 SESSION_GAP = dt.timedelta(minutes=30)
+RAPID_BROAD_TOUR_WINDOW = dt.timedelta(minutes=2)
 OSLO_TIMEZONE = ZoneInfo('Europe/Oslo')
 SUDOKU_PRINT_PATH = '/tidsfordriv/sudoku/print'
 TECHNICAL_PUBLIC_PATHS = frozenset({
@@ -91,6 +93,12 @@ def canonical_public_path(target):
         return None
     path = re.sub(r'/+', '/', path).rstrip('/') or '/'
     lower = path.lower()
+    # This controller route returns a JPEG but deliberately has no filename
+    # extension. Access logs do not carry a response Content-Type, so retain
+    # this route-level knowledge here rather than mistaking its images for
+    # public HTML pages.
+    if is_fangenytt_cover_path(lower):
+        return None
     if lower in TECHNICAL_PUBLIC_PATHS:
         return None
     if lower == '/index.php' or lower.startswith('/index.php/'):
@@ -106,7 +114,12 @@ def canonical_public_path(target):
 
 def is_static(target):
     path = (target_path(target) or '').lower()
-    return Path(path).suffix in STATIC_EXTENSIONS or path.startswith('/favicon') or path == '/robots.txt'
+    return (is_fangenytt_cover_path(path) or Path(path).suffix in STATIC_EXTENSIONS
+            or path.startswith('/favicon') or path == '/robots.txt')
+
+
+def is_fangenytt_cover_path(path):
+    return bool(FANGENYTT_COVER_PATH_PATTERN.fullmatch(path.rstrip('/') or '/'))
 
 
 def has_malformed_absolute_path(target):
@@ -221,13 +234,12 @@ def sessionize(events, excluded=None):
             # absolute URLs are an independent, stronger signal.  Marking the
             # *session* (not the IP) preserves later ordinary visits from a
             # shared network and keeps monitoring on a separate UA identity.
-            paths = {event.path for _, event in candidates if event.path}
             malformed_links = sum(has_malformed_absolute_path(event.target) for _, event in chunk)
-            rapid_broad_tour = (
-                len(candidates) >= 10
-                and len(paths) >= 8
-                and duration <= dt.timedelta(minutes=2)
-            )
+            # Check a moving two-minute window, not the complete 30-minute
+            # session. A long session can contain a very fast broad round
+            # followed by ordinary-looking requests; using the whole session
+            # duration would hide that round.
+            rapid_broad_tour = has_rapid_broad_tour(candidates)
             repeated_bad_links = (
                 malformed_links >= 2
                 and len(candidates) >= 4
@@ -240,6 +252,7 @@ def sessionize(events, excluded=None):
             # Cached CSS/images, a Referer, or repeated loads of one page do
             # not establish human use.  Require two distinct successful public
             # HTML pages in this IP+UA session instead.
+            paths = {event.path for _, event in candidates if event.path}
             if len(paths) >= 2:
                 human_ids.update(index for index, _ in candidates)
                 sessions.append(candidates[0][1].day)
@@ -251,6 +264,25 @@ def sessionize(events, excluded=None):
                 # human-classified /tidsfordriv pageviews become unresolved.
                 human_ids.difference_update(sudoku_print_loop_pageview_ids(chunk))
     return human_ids, sessions, scanner_ids
+
+
+def has_rapid_broad_tour(candidates):
+    """Return true for any dense, broad two-minute candidate window."""
+    start = 0
+    paths = Counter()
+    for end, (_, event) in enumerate(candidates):
+        if event.path:
+            paths[event.path] += 1
+        while event.when - candidates[start][1].when > RAPID_BROAD_TOUR_WINDOW:
+            previous_path = candidates[start][1].path
+            if previous_path:
+                paths[previous_path] -= 1
+                if paths[previous_path] == 0:
+                    del paths[previous_path]
+            start += 1
+        if end - start + 1 >= 10 and len(paths) >= 8:
+            return True
+    return False
 
 
 def sudoku_print_loop_pageview_ids(chunk):
@@ -376,7 +408,7 @@ def replace_database_rows(database, pages, traffic, first, latest):
             connection.executemany('INSERT INTO daily_traffic_classification_stats(date,category,metric,count) VALUES (?,?,?,?)',
                                    [(day, category, metric, count) for (day, category, metric), count in traffic.items()])
             connection.executemany('INSERT INTO daily_statistics_coverage(date,classifier_version,updated_at) VALUES (?,?,?)',
-                                   [(day, 7, dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()) for day in covered_days])
+                                   [(day, 8, dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()) for day in covered_days])
             connection.execute('DELETE FROM daily_page_ip_stats WHERE date < ?', (first.isoformat(),))
             connection.execute('DELETE FROM daily_traffic_classification_stats WHERE date < ?', (first.isoformat(),))
     finally:

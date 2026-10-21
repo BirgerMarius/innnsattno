@@ -175,6 +175,18 @@ class AdminDashboardStatisticsTest extends TestCase
         $this->assertNotNull(app(\App\Services\AdminStatisticsSummary::class)->read());
     }
 
+    public function testReadAcceptsSchemaFourReportWithClassifierVersionEight(): void
+    {
+        $this->writeSummary([
+            'schema_version' => 4,
+            'periods' => $this->currentPeriods([8]),
+            'top_pages' => $this->topPages(),
+            'daily' => [],
+        ]);
+
+        $this->assertNotNull(app(\App\Services\AdminStatisticsSummary::class)->read());
+    }
+
     public function testReadAcceptsSchemaFourCoverageWithClassifierVersionsFourAndFive(): void
     {
         $this->writeSummary([
