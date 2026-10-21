@@ -17,6 +17,6 @@ Sider og funksjoner:
 @foreach($report['pages'] as $page){{ $page['name'] }} ({{ $page['path'] }}): {{ $page['pageviews'] }} visninger, {{ $page['unique_visitors'] }} nettverk
 @endforeach
 
-Utskriftssider: Ringerike {{ $report['prints_by_prison']['ringerike'] }}, Ilseng {{ $report['prints_by_prison']['ilseng'] }}, øvrige {{ $report['prints_by_prison']['other'] }}.
+Utskriftssider: TV-utskrift Ringerike {{ $report['prints_by_prison']['ringerike'] }}, TV-utskrift Ilseng {{ $report['prints_by_prison']['ilseng'] }}, Andre utskriftssider {{ $report['prints_by_prison']['other'] }}.
 Loggdekning: {{ $report['coverage']['covered_days'] }}/{{ $report['coverage']['expected_days'] }}. Klassifisererversjoner: {{ implode(', ', $report['classifier_versions']) }}. Oppdatert {{ $report['generated_at']->format('d.m.Y H:i') }}.
 Nettverk og økter er estimater; utskriftsåpning bekrefter ikke fysisk utskrift.

@@ -174,6 +174,31 @@ class GenerateAdminStatisticsTest(unittest.TestCase):
             self.assertEqual('2026-01-05', week['from'])
             self.assertEqual('2026-01-11', week['to'])
 
+    def test_print_categories_are_exhaustive_and_match_weekly_total(self):
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / 'history.sqlite3'
+            connection = sqlite3.connect(database)
+            connection.execute('CREATE TABLE daily_page_ip_stats (date TEXT, path TEXT, ip TEXT, pageviews INTEGER)')
+            rows = [
+                ('2026-10-12', '/print', '203.0.113.10', 62),
+                ('2026-10-13', '/print-ilseng', '203.0.113.11', 15),
+                ('2026-10-14', '/bonnetider/utskrift', '203.0.113.12', 1),
+                ('2026-10-15', '/bonnetider-ilseng/utskrift', '203.0.113.13', 2),
+                ('2026-10-16', '/fotball-utskrift', '203.0.113.14', 3),
+                ('2026-10-17', '/premier-league/lag/1/utskrift', '203.0.113.15', 2),
+            ]
+            connection.executemany('INSERT INTO daily_page_ip_stats VALUES (?,?,?,?)', rows)
+            connection.row_factory = sqlite3.Row
+            categories = GENERATOR.print_statistics(connection, date(2026, 10, 12), date(2026, 10, 18))
+            total = GENERATOR.scalar(connection,
+                "SELECT SUM(pageviews) FROM daily_page_ip_stats WHERE date BETWEEN ? AND ? "
+                "AND (path = '/print' OR path = '/print-ilseng' OR path = '/fotball-utskrift' OR path LIKE '%/utskrift')",
+                ('2026-10-12', '2026-10-18'))
+            connection.close()
+            self.assertEqual({'ringerike': 62, 'ilseng': 15, 'other': 8}, categories)
+            self.assertEqual(85, total)
+            self.assertEqual(total, sum(categories.values()))
+
     def test_feature_networks_are_deduplicated_across_pages_in_the_same_function(self):
         with tempfile.TemporaryDirectory() as directory:
             database = Path(directory) / "history.sqlite3"

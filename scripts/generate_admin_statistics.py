@@ -196,21 +196,20 @@ def page_statistics(connection, first, latest):
 
 
 def print_statistics(connection, first, latest):
-    """Keep prison-specific print openings separate in the exported aggregate."""
-    paths = {
-        'ringerike': ("/print", "/bonnetider/utskrift"),
-        'ilseng': ("/print-ilseng", "/bonnetider-ilseng/utskrift"),
+    """Return exhaustive, mutually exclusive print-opening categories."""
+    bounds = (first.isoformat(), latest.isoformat())
+    result = {
+        # These labels intentionally mean the two TV print routes only.
+        'ringerike': scalar(connection, "SELECT SUM(pageviews) FROM daily_page_ip_stats "
+                             "WHERE date BETWEEN ? AND ? AND path = '/print'", bounds),
+        'ilseng': scalar(connection, "SELECT SUM(pageviews) FROM daily_page_ip_stats "
+                          "WHERE date BETWEEN ? AND ? AND path = '/print-ilseng'", bounds),
     }
-    result = {}
-    for prison, values in paths.items():
-        placeholders = ','.join('?' for _ in values)
-        result[prison] = scalar(connection,
-            "SELECT SUM(pageviews) FROM daily_page_ip_stats WHERE date BETWEEN ? AND ? "
-            f"AND path IN ({placeholders})", (first.isoformat(), latest.isoformat(), *values))
-    # Football printouts have no prison association and remain part of the total.
+    # All remaining paths counted by is_print_path() belong here: prayer,
+    # football and every other /utskrift route.
     result['other'] = scalar(connection,
-        "SELECT SUM(pageviews) FROM daily_page_ip_stats WHERE date BETWEEN ? AND ? AND path = '/fotball-utskrift'",
-        (first.isoformat(), latest.isoformat()))
+        "SELECT SUM(pageviews) FROM daily_page_ip_stats WHERE date BETWEEN ? AND ? "
+        "AND (path = '/fotball-utskrift' OR path LIKE '%/utskrift')", bounds)
     return result
 
 

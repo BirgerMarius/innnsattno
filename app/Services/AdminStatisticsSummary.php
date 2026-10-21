@@ -306,7 +306,7 @@ class AdminStatisticsSummary
                     return null;
                 }
             }
-            if (array_sum($prints) > $period['print_pageviews']) {
+            if (array_sum($prints) !== $period['print_pageviews']) {
                 return null;
             }
             $period['pages'] = $rankings['1']['pages'];
