@@ -41,7 +41,7 @@ class AdminDashboardController extends Controller
                 $query->where('status', 'new')->orWhereNull('status');
             })->count(),
             'statistics' => $statistics->read(),
-            'plannedChanges' => array_slice($plannedSiteChanges->upcoming(), 0, 6),
+            'plannedChanges' => $plannedSiteChanges->upcoming(),
             'manualTheme' => $plannedSiteChanges->manualTheme(),
             'trafficPeriod' => $period,
             'trafficDate' => $trafficDate,

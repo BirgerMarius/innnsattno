@@ -8,10 +8,15 @@ use App\Services\FrontPageThemeResolver;
 use App\Services\NamedayService;
 use App\Services\RingbladNewsService;
 use App\Services\CorrectionalNewsService;
+use App\Services\TimedVisibilityService;
 use Illuminate\Support\Carbon;
 
 class FrontPageController extends Controller
 {
+    public function __construct(private TimedVisibilityService $timedVisibility)
+    {
+    }
+
     public function index(RingbladNewsService $ringbladNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory, FrontPageThemeResolver $themeResolver)
     {
         return $this->frontPage(
@@ -51,9 +56,10 @@ class FrontPageController extends Controller
             'isThemePreview' => $isThemePreview,
             'theme' => $theme,
             'todayNamedays' => $namedays->forDate($today)['names'] ?? [],
-            'showNationsLeagueNewBadge' => $today->betweenIncluded(
-                Carbon::create(2026, 9, 21, 0, 0, 0, FlagDayService::TIMEZONE),
-                Carbon::create(2026, 9, 27, 23, 59, 59, FlagDayService::TIMEZONE),
+            'showNationsLeagueNewBadge' => $this->timedVisibility->isVisible(
+                config('nations_league_badge.starts_at'),
+                (int) config('nations_league_badge.duration_days', 7),
+                $today,
             ),
             'showActivitiesNewBadge' => $this->showActivitiesNewBadge($today),
             'showFangenyttNewBadge' => $this->showNewBadge($today, config('fangenytt.published_at')),
@@ -69,35 +75,13 @@ class FrontPageController extends Controller
 
     private function showNewBadge(Carbon $now, mixed $publishedAt): bool
     {
-        if (! is_string($publishedAt) || trim($publishedAt) === '') {
-            return false;
-        }
-
-        try {
-            $publishedAt = Carbon::parse($publishedAt, FlagDayService::TIMEZONE);
-        } catch (\Exception) {
-            return false;
-        }
-
-        return $now->greaterThanOrEqualTo($publishedAt)
-            && $now->lessThan($publishedAt->copy()->addDays(14));
+        return $this->timedVisibility->isVisible($publishedAt, 14, $now);
     }
 
     private function showPodcastRecommendation(Carbon $now): bool
     {
         $publishedAt = config('podcast_recommendation.published_at');
 
-        if (! is_string($publishedAt) || trim($publishedAt) === '') {
-            return false;
-        }
-
-        try {
-            $publishedAt = Carbon::parse($publishedAt, FlagDayService::TIMEZONE);
-        } catch (\Exception) {
-            return false;
-        }
-
-        return $now->greaterThanOrEqualTo($publishedAt)
-            && $now->lessThan($publishedAt->copy()->addWeeks(4));
+        return $this->timedVisibility->isVisible($publishedAt, 28, $now);
     }
 }

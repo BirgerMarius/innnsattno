@@ -83,11 +83,12 @@
             @endif
             @if (count($plannedChanges))
                 <div class="table-responsive"><table class="table admin-ranking-table align-middle mb-0">
-                    <thead><tr><th scope="col">Dato</th><th scope="col">Endring</th><th scope="col">Tid igjen</th></tr></thead>
+                    <thead><tr><th scope="col">Tidspunkt</th><th scope="col">Endring</th><th scope="col">Tid igjen</th></tr></thead>
                     <tbody>@foreach ($plannedChanges as $change)
-                        @php($daysUntil = $change['date']->diffInDays(now('Europe/Oslo')->startOfDay()))
+                        @php($now = now('Europe/Oslo'))
+                        @php($daysUntil = $change['date']->startOfDay()->diffInDays($now->copy()->startOfDay()))
                         <tr>
-                            <td class="text-nowrap">{{ $change['date']->format('d.m.Y') }}</td>
+                            <td class="text-nowrap">{{ $change['date']->setTimezone('Europe/Oslo')->format('d.m.Y H:i') }}</td>
                             <td><strong>{{ $change['title'] }}</strong><br><span class="text-muted small">{{ $change['description'] }}</span></td>
                             <td class="text-nowrap">{{ $daysUntil === 0 ? 'I dag' : ($daysUntil === 1 ? 'I morgen' : 'Om '.$daysUntil.' dager') }}</td>
                         </tr>

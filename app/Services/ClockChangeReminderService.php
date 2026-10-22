@@ -49,4 +49,54 @@ class ClockChangeReminderService
 
         return null;
     }
+
+    /**
+     * @return array<int, array{date: CarbonImmutable, title: string, description: string, type: string}>
+     */
+    public function upcomingChanges(?DateTimeInterface $from = null): array
+    {
+        $now = $from
+            ? CarbonImmutable::instance($from)->setTimezone('Europe/Oslo')
+            : CarbonImmutable::now('Europe/Oslo');
+        $transitions = (new DateTimeZone('Europe/Oslo'))->getTransitions(
+            $now->startOfYear()->getTimestamp(),
+            $now->addYear()->endOfYear()->getTimestamp()
+        );
+        $previousOffset = $transitions[0]['offset'];
+        $changes = [];
+
+        foreach (array_slice($transitions, 1) as $transition) {
+            $change = CarbonImmutable::createFromTimestamp($transition['ts'], 'Europe/Oslo');
+            $offset = $transition['offset'];
+
+            if ($offset !== $previousOffset) {
+                $direction = $offset > $previousOffset ? 'frem' : 'tilbake';
+                $season = $direction === 'frem' ? 'sommertid' : 'normaltid';
+                $changes = array_merge($changes, [
+                    [
+                        'date' => $change->subDay()->startOfDay(),
+                        'title' => 'Påminnelse om å stille klokken vises',
+                        'description' => 'Påminnelse om å stille klokken '.$direction.' før overgang til '.$season.'.',
+                        'type' => 'clock-change',
+                    ],
+                    [
+                        'date' => $change,
+                        'title' => 'Teksten i klokkepåminnelsen endres',
+                        'description' => 'Påminnelsen opplyser at klokken ble stilt '.$direction.' én time.',
+                        'type' => 'clock-change',
+                    ],
+                    [
+                        'date' => $change->addDay()->startOfDay(),
+                        'title' => 'Påminnelse om å stille klokken skjules',
+                        'description' => 'Påminnelsen fjernes automatisk etter klokkeomstillingen.',
+                        'type' => 'clock-change',
+                    ],
+                ]);
+            }
+
+            $previousOffset = $offset;
+        }
+
+        return array_values(array_filter($changes, fn (array $change) => $change['date']->greaterThan($now)));
+    }
 }

@@ -10,6 +10,7 @@ class PlannedSiteChangesServiceTest extends TestCase
 {
     private array $originalThemeConfig;
     private array $originalMourningConfig;
+    private array $originalTimedConfigs;
 
     protected function setUp(): void
     {
@@ -17,6 +18,21 @@ class PlannedSiteChangesServiceTest extends TestCase
 
         $this->originalThemeConfig = config('front_page_themes');
         $this->originalMourningConfig = config('mourning_flag');
+        $this->originalTimedConfigs = [
+            'activities' => config('activities'),
+            'fangenytt' => config('fangenytt'),
+            'weekly_football_tv' => config('weekly_football_tv'),
+            'podcast_recommendation' => config('podcast_recommendation'),
+            'nations_league_badge' => config('nations_league_badge'),
+        ];
+
+        config([
+            'activities.published_at' => null,
+            'fangenytt.published_at' => null,
+            'weekly_football_tv.published_at' => null,
+            'podcast_recommendation.published_at' => null,
+            'nations_league_badge.starts_at' => null,
+        ]);
     }
 
     protected function tearDown(): void
@@ -24,6 +40,9 @@ class PlannedSiteChangesServiceTest extends TestCase
         Carbon::setTestNow();
         config(['front_page_themes' => $this->originalThemeConfig]);
         config(['mourning_flag' => $this->originalMourningConfig]);
+        foreach ($this->originalTimedConfigs as $key => $value) {
+            config([$key => $value]);
+        }
 
         parent::tearDown();
     }
@@ -63,7 +82,40 @@ class PlannedSiteChangesServiceTest extends TestCase
         $service = app(PlannedSiteChangesService::class);
         $changes = $service->upcoming(Carbon::parse('2026-09-09 12:00:00', 'Europe/Oslo'));
 
-        $this->assertSame(['2026-09-10'], array_map(fn (array $change) => $change['date']->toDateString(), $changes));
+        $this->assertSame('2026-09-10', $changes[0]['date']->toDateString());
+        $this->assertNotContains('2026-09-09', array_map(fn (array $change) => $change['date']->toDateString(), $changes));
         $this->assertSame('Jul', $service->manualTheme()['name']);
+    }
+
+    public function testItListsClockReminderVisibilityTextAndRemovalUsingOsloTransitions(): void
+    {
+        $changes = app(PlannedSiteChangesService::class)->upcoming(
+            Carbon::parse('2026-10-23 12:00:00', 'Europe/Oslo')
+        );
+        $clockChanges = array_values(array_filter($changes, fn (array $change) => $change['type'] === 'clock-change'));
+
+        $this->assertSame([
+            'Påminnelse om å stille klokken vises',
+            'Teksten i klokkepåminnelsen endres',
+            'Påminnelse om å stille klokken skjules',
+        ], array_column(array_slice($clockChanges, 0, 3), 'title'));
+        $this->assertSame([
+            '2026-10-24 00:00',
+            '2026-10-25 02:00',
+            '2026-10-26 00:00',
+        ], array_map(fn (array $change) => $change['date']->format('Y-m-d H:i'), array_slice($clockChanges, 0, 3)));
+    }
+
+    public function testItUsesTheSamePublicationWindowForVisibleElementsAndRemovesPassedEvents(): void
+    {
+        config(['activities.published_at' => '2026-10-25 09:00:00']);
+
+        $service = app(PlannedSiteChangesService::class);
+        $before = $service->upcoming(Carbon::parse('2026-10-24 12:00:00', 'Europe/Oslo'));
+        $after = $service->upcoming(Carbon::parse('2026-11-09 12:00:00', 'Europe/Oslo'));
+
+        $this->assertContains('Nyhet-merket vises', array_column($before, 'title'));
+        $this->assertContains('Nyhet-merket skjules', array_column($before, 'title'));
+        $this->assertNotContains('Spillforslag blir synlig automatisk.', array_column($after, 'description'));
     }
 }

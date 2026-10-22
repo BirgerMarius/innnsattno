@@ -9,7 +9,7 @@ use Throwable;
 
 class ChangeHistoryService
 {
-    private const CACHE_KEY = 'public-change-history.v4';
+    private const CACHE_KEY_PREFIX = 'public-change-history.v5.';
 
     private const MESSAGE_TRANSLATIONS = [
         'Final changes' => 'Siste endringer',
@@ -105,21 +105,27 @@ class ChangeHistoryService
 
     public function get(): array
     {
-        return $this->cache->remember(
-            self::CACHE_KEY,
-            max(1, (int) config('change-history.cache_ttl', 3600)),
-            fn () => $this->readHistory()
-        );
-    }
-
-    private function readHistory(): array
-    {
         $repositoryPath = $this->repositoryPath();
 
         if ($repositoryPath === null) {
             return $this->unavailableResult();
         }
 
+        $revision = $this->revision($repositoryPath);
+
+        if ($revision === null) {
+            return $this->unavailableResult();
+        }
+
+        return $this->cache->remember(
+            self::CACHE_KEY_PREFIX.$revision,
+            max(1, (int) config('change-history.cache_ttl', 3600)),
+            fn () => $this->readHistory($repositoryPath)
+        );
+    }
+
+    private function readHistory(string $repositoryPath): array
+    {
         try {
             $process = new Process([
                 'git', '-C', $repositoryPath, 'log', '--no-merges',
@@ -150,6 +156,25 @@ class ChangeHistoryService
             report($exception);
 
             return $this->unavailableResult();
+        }
+    }
+
+    private function revision(string $repositoryPath): ?string
+    {
+        try {
+            $process = new Process(['git', '-C', $repositoryPath, 'rev-parse', '--verify', 'HEAD']);
+            $process->setTimeout(10);
+            $process->run();
+
+            $revision = trim($process->getOutput());
+
+            return $process->isSuccessful() && preg_match('/^[0-9a-f]{40}$/i', $revision) === 1
+                ? $revision
+                : null;
+        } catch (Throwable $exception) {
+            report($exception);
+
+            return null;
         }
     }
 
