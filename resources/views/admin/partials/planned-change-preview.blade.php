@@ -3,9 +3,13 @@
     @if (($preview['kind'] ?? null) === 'clock')
         @include('partials.clock-change-reminder', ['clockChangeReminder' => $preview['reminder'], 'compact' => true])
     @elseif (($preview['kind'] ?? null) === 'theme')
-        <div class="admin-planned-preview__theme front-page-theme front-page-theme--{{ $preview['theme']['id'] ?? 'standard' }}">
-            <span>Forsiden</span><strong>{{ $preview['theme']['name'] ?? 'Standardtema' }}</strong>
-        </div>
+        @php($themeId = $preview['theme']['id'] ?? null)
+        @if ($themeId)
+            <a class="admin-theme-thumbnail" href="{{ route('design-test.preview', $themeId) }}" target="_blank" rel="noopener noreferrer" aria-label="Åpne større forhåndsvisning av {{ $preview['theme']['name'] }}">
+                <img src="{{ asset('img/theme-previews/'.$themeId.'.png') }}" width="240" height="150" loading="lazy" alt="Miniatyr av forsiden med temaet {{ $preview['theme']['name'] }}">
+                <span>Åpne større forhåndsvisning</span>
+            </a>
+        @endif
     @elseif (($preview['kind'] ?? null) === 'mourning')
         <div class="admin-planned-preview__mourning">
             <strong>{{ $preview['title'] ?? $change['title'] }}</strong>

@@ -1875,9 +1875,12 @@
 .clock-change-reminder--compact .clock-change-reminder__title { font-size: .88rem; }
 .clock-change-reminder--compact p { margin: .1rem 0; }
 .clock-change-reminder--compact span { font-size: .74rem; }
-.admin-planned-preview__theme, .admin-planned-preview__element, .admin-planned-preview__mourning { border: 1px solid #d6e3e0; border-radius: .55rem; display: flex; flex-wrap: wrap; gap: .35rem .55rem; min-height: 3.7rem; padding: .65rem; }
-.admin-planned-preview__theme { align-content: center; background: #f1f7f6; color: #1f3633; }
-.admin-planned-preview__theme span, .admin-planned-preview__mourning span { display: block; flex-basis: 100%; font-size: .75rem; }
+.admin-planned-preview__element, .admin-planned-preview__mourning { border: 1px solid #d6e3e0; border-radius: .55rem; display: flex; flex-wrap: wrap; gap: .35rem .55rem; min-height: 3.7rem; padding: .65rem; }
+.admin-planned-preview__mourning span { display: block; flex-basis: 100%; font-size: .75rem; }
+.admin-theme-thumbnail { background: #f7faf9; border: 1px solid #d6e3e0; border-radius: .55rem; color: #0b625a; display: block; height: 150px; max-width: 240px; overflow: hidden; position: relative; text-decoration: none; width: 100%; }
+.admin-theme-thumbnail:hover, .admin-theme-thumbnail:focus-visible { border-color: #0f766e; box-shadow: 0 2px 8px rgba(15,118,110,.18); color: #0b625a; }
+.admin-theme-thumbnail img { display: block; height: 100%; object-fit: cover; width: 100%; }
+.admin-theme-thumbnail > span { background: rgba(255,255,255,.92); bottom: .35rem; border-radius: 999px; font-size: .7rem; font-weight: 700; left: .35rem; padding: .15rem .4rem; position: absolute; }
 .admin-planned-preview__element { align-items: center; background: #fff; }
 .admin-planned-preview__element .front-page-new-badge { font-size: .67rem; }
 .admin-planned-preview__mourning { background: #171717; border-color: #3d3d3d; color: #fff; }
@@ -1891,6 +1894,7 @@
     .admin-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .admin-planned-change { grid-template-columns: 7rem minmax(0, 1fr); }
     .admin-planned-preview { grid-column: 1 / -1; }
+    .admin-theme-thumbnail { max-width: 240px; }
 }
 
 .front-page-admin-link a {

@@ -29,6 +29,17 @@ Vanlig testkommando:
 php artisan test
 ```
 
+### Temaminiatyrer i admin
+
+`public/img/theme-previews/` inneholder statiske, beskårne bilder av den øvre delen av hver temaforhåndsvisning. De brukes på adminoversikten og blir ikke laget når siden åpnes. Oppdater dem etter endringer i forsiden eller temadesignet ved å starte lokalappen og kjøre `scripts/generate_theme_previews.cjs` med Playwright i en midlertidig container. Eksempel med den lokale Compose-nettverksnavnet:
+
+```bash
+docker compose -f compose.local.yaml up -d innsatt-local
+docker run --rm --network innsatt-test_default -v "$PWD:/work" -w /work mcr.microsoft.com/playwright:v1.57.0-noble sh -lc 'npm install --no-save --prefix /tmp/playwright playwright@1.57.0 && NODE_PATH=/tmp/playwright/node_modules node scripts/generate_theme_previews.cjs'
+```
+
+Dette er kun et utviklingssteg og legger ikke til noen produksjonsavhengighet.
+
 Codex har generell tillatelse til å kjøre nødvendige tester, kontrollkommandoer, byggesteg og lokale restarter uten å be om godkjenning for hver enkelt kommando.
 
 ## Arbeidsregler

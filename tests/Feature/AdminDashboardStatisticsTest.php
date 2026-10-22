@@ -107,6 +107,19 @@ class AdminDashboardStatisticsTest extends TestCase
             ->assertSee('Skjules');
     }
 
+    public function testDashboardUsesTheExistingThemePreviewAsAClickableThumbnail(): void
+    {
+        Carbon::setTestNow('2026-09-08 12:00:00 Europe/Oslo');
+        config(['front_page_themes.active' => null, 'mourning_flag.enabled' => false]);
+
+        $this->withSession(['admin_authenticated' => true])->get('/adm')
+            ->assertOk()
+            ->assertSee('admin-theme-thumbnail', false)
+            ->assertSee(route('design-test.preview', 'host'), false)
+            ->assertSee('/img/theme-previews/host.png', false)
+            ->assertSee('loading="lazy"', false);
+    }
+
     public function testDashboardExplainsWhenAutomaticThemesAreManuallyPaused(): void
     {
         config(['front_page_themes.active' => 'jul']);
