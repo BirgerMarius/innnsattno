@@ -1339,6 +1339,13 @@
     overflow-x: auto;
 }
 
+.wordsearch-help {
+    font-size: 14px;
+    line-height: 1.4;
+    margin: 0 auto 12px;
+    max-width: 680px;
+}
+
 .word-grid {
     border-collapse: collapse;
     margin: 0 auto;
@@ -1406,6 +1413,35 @@
 
 .wordsearch-complete {
     display: none;
+}
+
+.wordsearch-confetti {
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    position: fixed;
+    z-index: 1100;
+}
+
+.wordsearch-confetti-piece {
+    animation: wordsearch-confetti-fall 2.35s ease-in forwards;
+    border-radius: 1px;
+    height: 10px;
+    position: absolute;
+    top: -14px;
+    width: 7px;
+}
+
+@keyframes wordsearch-confetti-fall {
+    from {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+
+    to {
+        opacity: 0;
+        transform: translate3d(var(--confetti-drift), 105vh, 0) rotate(var(--confetti-rotation));
+    }
 }
 
 @media (max-width: 991.98px) {
@@ -1515,7 +1551,9 @@
     }
 
     .wordsearch-toolbar,
-    .wordsearch-complete {
+    .wordsearch-complete,
+    .wordsearch-help,
+    .wordsearch-confetti {
         display: none !important;
     }
 

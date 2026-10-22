@@ -36,11 +36,12 @@
         </div>
 
         <div id="wordsearchComplete" class="alert alert-success wordsearch-complete" role="status">
-            Alle ordene er funnet.
+            🎉 Gratulerer! Du fant alle ordene!
         </div>
 
         <div class="wordsearch-layout">
             <div class="wordsearch-board-wrap" aria-label="Ordjaktbrett">
+                <p class="wordsearch-help text-muted">Du kan også spille direkte på skjermen! Hold museknappen inne og dra fra første til siste bokstav i ordet. På mobil og nettbrett bruker du fingeren. Ordene markeres automatisk når du finner dem.</p>
                 <table id="wordsearchGrid" class="word-grid">
                     @foreach($grid as $rowIndex => $row)
                         <tr>
@@ -86,6 +87,7 @@ const wordsearchWords = @json($words);
     const foundWords = new Set();
     let startCell = null;
     let previewCells = [];
+    let completionCelebrated = false;
 
     wordsearchWords.forEach(function (word) {
         wordsByCells.set(cellKey(word.cells), word);
@@ -166,7 +168,42 @@ const wordsearchWords = @json($words);
 
         if (foundWords.size === wordsearchWords.length) {
             completeMessage.style.display = 'block';
+            celebrateCompletion();
         }
+    }
+
+    function celebrateCompletion() {
+        if (completionCelebrated) {
+            return;
+        }
+
+        completionCelebrated = true;
+
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            return;
+        }
+
+        const confetti = document.createElement('div');
+        confetti.className = 'wordsearch-confetti';
+        confetti.setAttribute('aria-hidden', 'true');
+
+        const colors = ['#e63946', '#f4a261', '#f1c40f', '#2a9d8f', '#457b9d', '#9b5de5'];
+
+        for (let index = 0; index < 36; index++) {
+            const piece = document.createElement('span');
+            piece.className = 'wordsearch-confetti-piece';
+            piece.style.left = (5 + Math.random() * 90) + '%';
+            piece.style.backgroundColor = colors[index % colors.length];
+            piece.style.animationDelay = (Math.random() * 0.35) + 's';
+            piece.style.setProperty('--confetti-drift', ((Math.random() * 160) - 80) + 'px');
+            piece.style.setProperty('--confetti-rotation', (Math.random() * 720) + 'deg');
+            confetti.appendChild(piece);
+        }
+
+        document.body.appendChild(confetti);
+        window.setTimeout(function () {
+            confetti.remove();
+        }, 2800);
     }
 
     function cellsBetween(start, end) {
