@@ -219,6 +219,7 @@ Route::get('/bonnetider-ilseng/utskrift', [PrayerController::class, 'printIlseng
 use App\Http\Controllers\TidsfordrivController;
 
 Route::get('/tidsfordriv', [TidsfordrivController::class, 'index']);
+Route::get('/tidsfordriv/sudoku', [TidsfordrivController::class, 'onlineSudoku'])->middleware('throttle:20,1');
 Route::post('/tidsfordriv/sudoku/print', [TidsfordrivController::class, 'printSudoku']);
 
 Route::get('/wordsearch', [WordSearchController::class, 'index']);

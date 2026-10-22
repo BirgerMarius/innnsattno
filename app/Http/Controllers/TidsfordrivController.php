@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use App\Services\SudokuService;
 
 class TidsfordrivController extends Controller
 {
@@ -12,7 +12,7 @@ class TidsfordrivController extends Controller
         return view('tidsfordriv.index');
     }
 
-    public function printSudoku(Request $request)
+    public function printSudoku(Request $request, SudokuService $sudokuService)
     {
         $pages = min(
             max((int) $request->pages, 1),
@@ -26,10 +26,7 @@ try {
 
     for ($i = 0; $i < ($pages * $boardsPerPage); $i++) {
 
-        $sudoku = $this->getSudoku(
-            $request->difficulty,
-            $request->has('solution')
-        );
+        $sudoku = $sudokuService->get($request->difficulty ?: 'easy');
 
         $sudokus[] = [
             'difficulty' => $sudoku['difficulty'],
@@ -60,21 +57,18 @@ try {
         ]);
     }
 
-    private function getSudoku(string $difficulty, bool $solution = true)
+    public function onlineSudoku(Request $request, SudokuService $sudokuService)
     {
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-            'x-api-key'    => env('YOUDOSUDOKU_API_KEY'),
-        ])->post('https://www.youdosudoku.com/api', [
-            'difficulty' => $difficulty,
-            'solution'   => $solution,
-            'array'      => false,
-        ]);
+        $validated = $request->validate(['difficulty' => ['required', 'in:easy,medium,hard']]);
 
-        if (!$response->successful()) {
-    throw new \Exception('Kunne ikke hente Sudoku fra tjenesten.');
-}
+        try {
+            return response()->json($sudokuService->get($validated['difficulty']));
+        } catch (\Throwable $exception) {
+            report($exception);
 
-        return $response->json();
+            return response()->json([
+                'message' => 'Kunne ikke hente en Sudoku akkurat nå. Prøv igjen om litt.',
+            ], 503);
+        }
     }
 }

@@ -1269,6 +1269,50 @@
     margin-top: 15px;
 }
 
+.sudoku-online {
+    border-top: 2px solid #d7e2ec;
+    margin-top: 36px;
+    padding-top: 30px;
+}
+
+.sudoku-online h2 { font-size: 25px; }
+.sudoku-online-help h3 { font-size: 19px; }
+.sudoku-online-help p { line-height: 1.55; }
+.sudoku-online-controls { align-items: end; display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; }
+.sudoku-online-controls fieldset { border: 0; margin: 0; padding: 0; }
+.sudoku-online-controls legend { float: none; font-size: 16px; font-weight: 700; margin-bottom: 5px; width: auto; }
+.sudoku-online-controls label { margin: 0 12px 0 0; }
+.sudoku-board { background: #1e3448; border: 3px solid #1e3448; display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); margin: 0 auto 16px; max-width: 540px; }
+.sudoku-cell { aspect-ratio: 1; background: #fff; border: 1px solid #9caab5; color: #124c82; font-size: clamp(18px, 5vw, 29px); font-weight: 700; line-height: 1; min-height: 0; padding: 0; }
+.sudoku-cell:nth-child(3n) { border-right: 3px solid #1e3448; }
+.sudoku-cell:nth-child(9n) { border-right: 1px solid #9caab5; }
+.sudoku-cell:nth-child(n + 19):nth-child(-n + 27), .sudoku-cell:nth-child(n + 46):nth-child(-n + 54) { border-bottom: 3px solid #1e3448; }
+.sudoku-cell.is-given { background: #e9eef2; color: #172b3a; cursor: default; font-weight: 800; opacity: 1; }
+.sudoku-cell.is-selected, .sudoku-cell:focus-visible { background: #fff5c2; box-shadow: inset 0 0 0 3px #0b69b7; outline: 0; position: relative; z-index: 1; }
+.sudoku-cell.is-incorrect { background: #fbe1e3; box-shadow: inset 0 0 0 2px #b4232c; color: #9b1c25; }
+.sudoku-number-pad { display: grid; gap: 8px; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 0 auto 16px; max-width: 540px; }
+.sudoku-number-pad .btn { font-size: 18px; font-weight: 700; min-height: 44px; }
+.sudoku-number-pad .sudoku-delete { grid-column: span 2; }
+.sudoku-online-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.sudoku-confetti { inset: 0; overflow: hidden; pointer-events: none; position: fixed; z-index: 1100; }
+.sudoku-confetti-piece { animation: sudoku-confetti-fall 2.35s ease-in forwards; border-radius: 1px; height: 10px; position: absolute; top: -14px; width: 7px; }
+
+@keyframes sudoku-confetti-fall {
+    from { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg); }
+    to { opacity: 0; transform: translate3d(var(--confetti-drift), 105vh, 0) rotate(var(--confetti-rotation)); }
+}
+
+@media (max-width: 575.98px) {
+    .sudoku-online-controls { align-items: stretch; flex-direction: column; }
+    .sudoku-online-controls .btn { width: 100%; }
+    .sudoku-number-pad { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .sudoku-number-pad .sudoku-delete { grid-column: span 3; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sudoku-confetti-piece { animation: none; }
+}
+
 .calendar-choice-content {
     max-width: 700px;
     margin: 0 auto;
