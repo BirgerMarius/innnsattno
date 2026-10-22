@@ -34,15 +34,21 @@ class PlannedSiteChangesService
                 'title' => 'Grafisk tema endres',
                 'description' => $fromTheme.' → '.$toTheme,
                 'type' => 'theme',
+                'preview' => ['kind' => 'theme', 'theme' => $change['to']],
             ];
         }, $this->themes->upcomingChanges($today));
 
-        $mourningChanges = array_map(fn (array $change): array => [
-            'date' => $change['date'],
-            'title' => $change['title'],
-            'description' => $change['description'],
-            'type' => 'mourning',
-        ], $this->flagDays->upcomingMourningChanges($today));
+        $mourningChanges = array_map(function (array $change): array {
+            $notice = $this->flagDays->mourningFlagging($change['date']);
+
+            return [
+                'date' => $change['date'],
+                'title' => $change['title'],
+                'description' => $change['description'],
+                'type' => 'mourning',
+                'preview' => ['kind' => 'mourning', 'title' => $notice['title'] ?? $change['title'], 'message' => $notice['message'] ?? null, 'hidden' => $notice === null],
+            ];
+        }, $this->flagDays->upcomingMourningChanges($today));
 
         $changes = array_values(array_filter(
             array_merge($themeChanges, $mourningChanges, $this->clockChanges->upcomingChanges($now), $this->timedVisibilityChanges()),
@@ -86,8 +92,8 @@ class PlannedSiteChangesService
         }
 
         return [
-            ['date' => $window['starts_at'], 'title' => $element.' vises', 'description' => $name.' blir synlig automatisk.', 'type' => 'timed-visibility'],
-            ['date' => $window['ends_at'], 'title' => $element.' skjules', 'description' => $name.' skjules automatisk.', 'type' => 'timed-visibility'],
+            ['date' => $window['starts_at'], 'title' => $element.' vises', 'description' => $name.' blir synlig automatisk.', 'type' => 'timed-visibility', 'preview' => ['kind' => 'element', 'element' => $name]],
+            ['date' => $window['ends_at'], 'title' => $element.' skjules', 'description' => $name.' skjules automatisk.', 'type' => 'timed-visibility', 'preview' => ['kind' => 'element', 'element' => $name, 'hidden' => true]],
         ];
     }
 }

@@ -78,18 +78,21 @@ class ClockChangeReminderService
                         'title' => 'Påminnelse om å stille klokken vises',
                         'description' => 'Påminnelse om å stille klokken '.$direction.' før overgang til '.$season.'.',
                         'type' => 'clock-change',
+                        'preview' => ['kind' => 'clock', 'reminder' => $this->forDate($change->subDay()->startOfDay())],
                     ],
                     [
                         'date' => $change,
                         'title' => 'Teksten i klokkepåminnelsen endres',
                         'description' => 'Påminnelsen opplyser at klokken ble stilt '.$direction.' én time.',
                         'type' => 'clock-change',
+                        'preview' => ['kind' => 'clock', 'reminder' => $this->forDate($change)],
                     ],
                     [
                         'date' => $change->addDay()->startOfDay(),
                         'title' => 'Påminnelse om å stille klokken skjules',
                         'description' => 'Påminnelsen fjernes automatisk etter klokkeomstillingen.',
                         'type' => 'clock-change',
+                        'preview' => ['kind' => 'clock', 'reminder' => $this->forDate($change), 'hidden' => true],
                     ],
                 ]);
             }

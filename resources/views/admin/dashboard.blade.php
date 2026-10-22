@@ -82,20 +82,24 @@
                 <div class="alert alert-info mb-3" role="status">Automatisk temabytte er satt på pause – manuelt tema: {{ $manualTheme['name'] }}</div>
             @endif
             @if (count($plannedChanges))
-                <div class="table-responsive"><table class="table admin-ranking-table align-middle mb-0">
-                    <thead><tr><th scope="col">Tidspunkt</th><th scope="col">Endring</th><th scope="col">Tid igjen</th></tr></thead>
-                    <tbody>@foreach ($plannedChanges as $change)
+                <ol class="admin-planned-changes list-unstyled mb-0">
+                    @foreach ($plannedChanges as $change)
                         @php($now = now('Europe/Oslo'))
                         @php($daysUntil = $change['date']->startOfDay()->diffInDays($now->copy()->startOfDay()))
-                        <tr>
-                            <td class="text-nowrap">{{ $change['date']->setTimezone('Europe/Oslo')->format('d.m.Y H:i') }}</td>
-                            <td><strong>{{ $change['title'] }}</strong><br><span class="text-muted small">{{ $change['description'] }}</span></td>
-                            <td class="text-nowrap">{{ $daysUntil === 0 ? 'I dag' : ($daysUntil === 1 ? 'I morgen' : 'Om '.$daysUntil.' dager') }}</td>
-                        </tr>
-                    @endforeach</tbody>
-                </table></div>
+                        <li class="admin-planned-change">
+                            <time class="admin-planned-change__time" datetime="{{ $change['date']->toIso8601String() }}">{{ $change['date']->setTimezone('Europe/Oslo')->format('d.m.Y H:i') }}</time>
+                            <div class="admin-planned-change__details"><strong>{{ $change['title'] }}</strong><span>{{ $change['description'] }}</span><small>{{ $daysUntil === 0 ? 'I dag' : ($daysUntil === 1 ? 'I morgen' : 'Om '.$daysUntil.' dager') }}</small></div>
+                            @include('admin.partials.planned-change-preview')
+                        </li>
+                    @endforeach
+                </ol>
             @else
-                <div class="alert alert-light border mb-0" role="status">Ingen kommende automatiske endringer er registrert.</div>
+                <div class="alert alert-light border mb-3" role="status">Ingen planlagte endringer de neste 100 dagene.</div>
+            @endif
+            @if ($showAllPlannedChanges)
+                <a href="{{ route('admin.index', request()->except('planned_changes')) }}#planned-changes-title" class="btn btn-outline-secondary btn-sm mt-3">Vis kun neste 100 dager</a>
+            @elseif ($hasLaterPlannedChanges)
+                <a href="{{ route('admin.index', array_merge(request()->query(), ['planned_changes' => 'all'])) }}#planned-changes-title" class="btn btn-outline-secondary btn-sm mt-3">Vis alle planlagte endringer</a>
             @endif
         </div>
     </section>

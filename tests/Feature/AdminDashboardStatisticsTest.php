@@ -77,6 +77,36 @@ class AdminDashboardStatisticsTest extends TestCase
             ->assertSee('Grafisk tema endres');
     }
 
+    public function testDashboardLimitsPlannedChangesToTheNextHundredDaysUntilExpanded(): void
+    {
+        Carbon::setTestNow('2026-09-08 12:00:00 Europe/Oslo');
+        config(['front_page_themes.active' => null, 'mourning_flag.enabled' => false]);
+
+        $admin = $this->withSession(['admin_authenticated' => true]);
+        $admin->get('/adm')
+            ->assertOk()
+            ->assertSee('Vis alle planlagte endringer')
+            ->assertDontSee('29.12.2026');
+
+        $admin->get('/adm?planned_changes=all')
+            ->assertOk()
+            ->assertSee('29.12.2026')
+            ->assertSee('Vis kun neste 100 dager');
+    }
+
+    public function testDashboardShowsCompactPreviewsForClockChangesAndHiddenElements(): void
+    {
+        Carbon::setTestNow('2026-10-23 12:00:00 Europe/Oslo');
+        config(['front_page_themes.active' => null, 'mourning_flag.enabled' => false]);
+
+        $this->withSession(['admin_authenticated' => true])->get('/adm')
+            ->assertOk()
+            ->assertSee('clock-change-reminder--compact', false)
+            ->assertSee('Husk å stille klokken tilbake')
+            ->assertSee('03:00 → 02:00')
+            ->assertSee('Skjules');
+    }
+
     public function testDashboardExplainsWhenAutomaticThemesAreManuallyPaused(): void
     {
         config(['front_page_themes.active' => 'jul']);

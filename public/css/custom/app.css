@@ -1862,6 +1862,25 @@
 .admin-ranking-table a { color: #0b625a; font-weight: 700; }
 .admin-ranking-scroll { max-height: 38rem; }
 .admin-ranking-table thead th { background: #fff; position: sticky; top: 0; z-index: 1; }
+.admin-planned-changes { border-top: 1px solid #e1ebe9; }
+.admin-planned-change { align-items: center; border-bottom: 1px solid #e1ebe9; display: grid; gap: .75rem 1rem; grid-template-columns: 8.5rem minmax(11rem, 1fr) minmax(14rem, 1.25fr); padding: .8rem 0; }
+.admin-planned-change__time { color: #34524e; font-size: .9rem; font-weight: 700; }
+.admin-planned-change__details > span, .admin-planned-change__details > small { color: #60736f; display: block; font-size: .82rem; font-weight: 400; margin-top: .15rem; }
+.admin-planned-change__details > strong { display: block; }
+.admin-planned-preview { min-width: 0; position: relative; }
+.admin-planned-preview--hidden { opacity: .72; }
+.admin-planned-preview__hidden { background: #5f2525; border-radius: 999px; color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: .03em; padding: .18rem .45rem; position: absolute; right: .45rem; text-transform: uppercase; top: .45rem; }
+.clock-change-reminder--compact { font-size: .78rem; gap: .55rem; padding: .55rem .65rem; }
+.clock-change-reminder--compact .clock-change-reminder__clock { flex-basis: 34px; height: 34px; width: 34px; }
+.clock-change-reminder--compact .clock-change-reminder__title { font-size: .88rem; }
+.clock-change-reminder--compact p { margin: .1rem 0; }
+.clock-change-reminder--compact span { font-size: .74rem; }
+.admin-planned-preview__theme, .admin-planned-preview__element, .admin-planned-preview__mourning { border: 1px solid #d6e3e0; border-radius: .55rem; display: flex; flex-wrap: wrap; gap: .35rem .55rem; min-height: 3.7rem; padding: .65rem; }
+.admin-planned-preview__theme { align-content: center; background: #f1f7f6; color: #1f3633; }
+.admin-planned-preview__theme span, .admin-planned-preview__mourning span { display: block; flex-basis: 100%; font-size: .75rem; }
+.admin-planned-preview__element { align-items: center; background: #fff; }
+.admin-planned-preview__element .front-page-new-badge { font-size: .67rem; }
+.admin-planned-preview__mourning { background: #171717; border-color: #3d3d3d; color: #fff; }
 .admin-tools-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .admin-tools-grid a { border: 1px solid #d6e3e0; border-radius: 10px; color: #1f3633; padding: 16px; text-decoration: none; }
 .admin-tools-grid a:hover, .admin-tools-grid a:focus-visible { background: #f3f8f7; border-color: #0f766e; }
@@ -1870,6 +1889,8 @@
 @media (max-width: 991.98px) {
     .admin-action-grid, .admin-tools-grid { grid-template-columns: 1fr; }
     .admin-stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .admin-planned-change { grid-template-columns: 7rem minmax(0, 1fr); }
+    .admin-planned-preview { grid-column: 1 / -1; }
 }
 
 .front-page-admin-link a {
