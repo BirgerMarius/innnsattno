@@ -219,6 +219,8 @@ Route::get('/bonnetider-ilseng/utskrift', [PrayerController::class, 'printIlseng
 use App\Http\Controllers\TidsfordrivController;
 
 Route::get('/tidsfordriv', [TidsfordrivController::class, 'index']);
+Route::get('/tidsfordriv/{type}/utskrift', [\App\Http\Controllers\TidsfordrivPuzzleController::class, 'print'])->where('type', 'binaer|nonogram|tallpyramide|labyrint|minikryssord|prikker-og-streker')->name('tidsfordriv.puzzle.print');
+Route::get('/tidsfordriv/{type}', [\App\Http\Controllers\TidsfordrivPuzzleController::class, 'show'])->where('type', 'binaer|nonogram|tallpyramide|labyrint|minikryssord|prikker-og-streker')->name('tidsfordriv.puzzle');
 Route::get('/tidsfordriv/sudoku', [TidsfordrivController::class, 'onlineSudoku'])->middleware('throttle:20,1');
 Route::post('/tidsfordriv/sudoku/print', [TidsfordrivController::class, 'printSudoku']);
 

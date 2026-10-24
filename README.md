@@ -42,6 +42,16 @@ Dette er kun et utviklingssteg og legger ikke til noen produksjonsavhengighet.
 
 Codex har generell tillatelse til å kjøre nødvendige tester, kontrollkommandoer, byggesteg og lokale restarter uten å be om godkjenning for hver enkelt kommando.
 
+## Tidsfordriv
+
+/tidsfordriv samler ordjakt, sudoku, lokale papir-/skjermoppgaver og spillforslag.
+De nye oppgavene ligger i app/Services/TidsfordrivPuzzleBank.php. Hver oppgave
+har stabil ID og fasit i samme post, slik at URL-en med ?oppgave=ID alltid gir
+identisk skjerm, utskrift og fasit. Legg nye kvalitetssikrede oppgaver til i
+den aktuelle typen med unik ID, vanskelighetsgrad, oppgavetilstand og løsning.
+Ikke bruk eksterne kryssord eller API-er. Utskrift er
+/tidsfordriv/{type}/utskrift?oppgave=ID; fasit velges med &fasit=1.
+
 ## Arbeidsregler
 
 Gjeldende prosjektinstruksjoner finnes i:

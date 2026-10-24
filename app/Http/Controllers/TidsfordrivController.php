@@ -9,7 +9,7 @@ class TidsfordrivController extends Controller
 {
     public function index()
     {
-        return view('tidsfordriv.index');
+        return view('tidsfordriv.index', ['pastimes' => app(\App\Services\TidsfordrivPuzzleBank::class)->types()]);
     }
 
     public function printSudoku(Request $request, SudokuService $sudokuService)
