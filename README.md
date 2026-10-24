@@ -64,6 +64,11 @@ Viktige regler:
 
 Produksjonsdeploy skjer med prosjektets separate deployverktøy og er ikke en del av vanlig Codex-implementering. Commit og push innebærer aldri automatisk deploy.
 
+Gjeldende produksjonsmiljø og manuelle serverendringer er dokumentert i
+`docs/server-changes.md`. Produksjonsserveren kjører Laravel med debug
+deaktivert. Schedulerens registrerte cronjobb kjører hvert minutt som brukeren
+`forge`; se driftsloggen for gjeldende kommando og prosjektsti.
+
 ### Eksterne datakilder
 
 Kildekontroller for VG TV-guide og SportsNext kjøres av Laravels scheduler;
@@ -87,10 +92,11 @@ Wikidata og aktive nyhetskilder kontrolleres uavhengig av sidebesøk. Et varslet
 følges opp høyst én gang i døgnet og avsluttes først etter vellykket kontroll av
 alle berørte data. Ingen e-post sendes for kortvarige feil.
 
-Scheduleren må startes av serveren hvert minutt, for eksempel:
+Scheduleren må startes av serveren hvert minutt. Den registrerte
+produksjonsjobben er:
 
 ```bash
-* * * * * cd /path/to/innsatt.no && php artisan schedule:run >> /dev/null 2>&1
+* * * * * cd /home/forge/innsatt.no/innnsattno && /usr/bin/php artisan schedule:run >> /dev/null 2>&1
 ```
 
 Kjør migreringene før de nye jobbene starter. Cache og låser må være felles for
@@ -99,7 +105,7 @@ flere servere må cache og låser deles mellom dem. Jobbene kjører direkte i
 scheduleren og krever ingen ny køarbeider. Ved tom cache bygges dataene gradvis
 opp; sider kan vise manglende data inntil første vellykkede henting. Overvåk
 selve scheduler/cron separat: manglende kontroller kan ikke bevise kildeutfall.
-Prosjektet kan ikke bekrefte serverens faktiske crontab.
+Kontroller alltid gjeldende crontab på serveren før manuelle endringer.
 
 Etter deploy og migrering kan TV- og fotballdata fylles med
 `php artisan external-data:warm`. Kommandoen viser resultat per dato og turnering,

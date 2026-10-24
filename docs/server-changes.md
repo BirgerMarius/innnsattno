@@ -2,6 +2,57 @@
 
 Denne filen er en løpende changelog og huskeliste for endringer som gjøres direkte på produksjonsserveren og derfor ikke automatisk ligger i Git-repositoryet. Dokumenter blant annet Nginx-, systemd-, cron-/timer-, firewall- og annen manuell serverkonfigurasjon her.
 
+## 2026-10-24 – Servervedlikehold og oppdatert produksjonsstatus
+
+### Produksjonsmiljø
+
+Produksjonsserveren er en DigitalOcean VPS med Ubuntu 24.04. Prosjektet ligger i
+`/home/forge/innsatt.no/innnsattno`.
+
+| Komponent | Versjon / status |
+| --- | --- |
+| Linux-kjerne | 6.8.0-147-generic |
+| Nginx | 1.28.0 |
+| PHP | 8.3.36 |
+| MySQL | 8.0.46 |
+| Redis | 8.10.2 |
+| Node.js | 22.23.4 |
+| Laravel | 9.52.20 |
+| cloud-init | 26.2 |
+
+Laravel kjører med produksjonsmiljø og debug deaktivert. Laravel Scheduler
+startes hvert minutt fra `forge`-brukerens crontab:
+
+```cron
+* * * * * cd /home/forge/innsatt.no/innnsattno && /usr/bin/php artisan schedule:run >> /dev/null 2>&1
+```
+
+### Utført vedlikehold
+
+Ubuntu-pakker, PHP, MySQL, Redis, Node.js, cloud-init og Linux-kjernen ble
+oppdatert 24.10.2026. Serveren ble deretter startet på nytt.
+
+### Kontroller etter omstart
+
+- Den nye Linux-kjernen var aktiv.
+- SSH og nettverk fungerte.
+- Nginx, PHP-FPM, MySQL og Redis var aktive.
+- innsatt.no svarte normalt.
+- Laravel startet uten feil.
+- Laravel Scheduler var registrert og ble startet fra cron etter omstart.
+- Det ble ikke funnet feilede systemd-tjenester eller uferdige pakkeinstallasjoner.
+
+### Kjente oppfølgingspunkter
+
+- Laravel 9 må oppgraderes til en støttet versjon.
+- `nginx` og `nginx-common` er midlertidig satt på hold på grunn av forskjeller
+  mellom pakkekilder. En trygg oppgraderingsstrategi må vurderes før låsene
+  eventuelt fjernes.
+- `libgd3` er midlertidig satt på hold for å beholde Ubuntu-versjonen fremfor
+  Sury-versjonen. Vurder APT-pinning slik at sikkerhetsoppdateringer fortsatt
+  kan mottas.
+- Ikke fjern disse pakkelåsene automatisk.
+
 ## 2026-10-04 – Poppler for Fangenytt-forsider
 
 ### Produksjonsserver
