@@ -12,7 +12,7 @@
             <div class="pastime-menu">
                 <article class="pastime-card"><h2>Ordjakt</h2><p>Finn ordene i rutenettet.</p><a class="btn btn-primary" href="/ordjakt">Spill på skjermen</a> <a class="btn btn-outline-secondary" href="/ordjakt/utskrift">Skriv ut</a></article>
                 <article class="pastime-card"><h2>Sudoku</h2><p>Fyll inn tallene 1–9.</p><a class="btn btn-primary" href="#onlineSudokuHeading">Spill på skjermen</a> <a class="btn btn-outline-secondary" href="#sudokuForm">Skriv ut</a></article>
-                @foreach($pastimes as $key => $pastime)<article class="pastime-card"><h2>{{ $pastime['title'] }}</h2><p>{{ $pastime['description'] }} <small>{{ $pastime['sizes'] }}</small></p><a class="btn btn-primary" href="/tidsfordriv/{{ $key }}">Spill på skjermen</a> <a class="btn btn-outline-secondary" href="/tidsfordriv/{{ $key }}/utskrift">Skriv ut</a></article>@endforeach
+                @foreach($pastimes as $key => $pastime)<article class="pastime-card"><h2>{{ $pastime['title'] }} <span class="pastime-test-badge">Test</span></h2><p>{{ $pastime['description'] }} <small>{{ $pastime['sizes'] }}</small></p><a class="btn btn-primary" href="/tidsfordriv/{{ $key }}">Spill på skjermen</a> <a class="btn btn-outline-secondary" href="/tidsfordriv/{{ $key }}/utskrift">Skriv ut</a></article>@endforeach
                 <article class="pastime-card"><h2>Spillforslag</h2><p>Kortspill og brettspill med regler for utskrift.</p><a class="btn btn-primary" href="{{ route('activities.index') }}">Se spillforslag</a></article>
             </div>
         </section><hr class="my-5">

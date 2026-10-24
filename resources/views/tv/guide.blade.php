@@ -371,7 +371,10 @@ $isEvenWeek = $weekNumber % 2 === 0;
         </a>
 
         <div class="front-page-grid__pastimes">
-            <a href="/tidsfordriv" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared" role="button"><span class="front-page-btn-title">🧩 Tidsfordriv</span><small>Spill og oppgaver – på skjerm og papir</small></a>
+            <a href="/tidsfordriv" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--wide" role="button">
+                <span class="front-page-btn-title">🧩 Tidsfordriv @if($showTidsfordrivNewBadge)<span class="front-page-new-badge" aria-label="Nyhet">Nyhet</span>@endif</span>
+                <small>Spill og oppgaver – på skjerm og papir</small>
+            </a>
         </div>
 
         <a href="{{ route('calendar.index') }}" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--wide" role="button">

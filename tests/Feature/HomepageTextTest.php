@@ -125,6 +125,20 @@ class HomepageTextTest extends TestCase
         Carbon::setTestNow();
     }
 
+    public function test_tidsfordriv_button_is_wide_and_shows_its_fixed_new_badge_for_fourteen_days(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-10-24 17:00:00', 'Europe/Oslo'));
+        $this->get(route('tv'))->assertOk()
+            ->assertSee('🧩 Tidsfordriv')
+            ->assertSee('Spill og oppgaver – på skjerm og papir')
+            ->assertSee('front-page-btn--wide', false)
+            ->assertSee('aria-label="Nyhet"', false);
+
+        Carbon::setTestNow(Carbon::parse('2026-11-07 17:00:00', 'Europe/Oslo'));
+        $this->get(route('tv'))->assertOk()->assertDontSee('🧩 Tidsfordriv <span class="front-page-new-badge"', false);
+        Carbon::setTestNow();
+    }
+
     public function testActivitiesNewBadgeUsesTheFixedOsloPublicationTimeAndExpiresAfterFourteenDays(): void
     {
         Config::set('activities.published_at', '2026-10-09 09:00:00');

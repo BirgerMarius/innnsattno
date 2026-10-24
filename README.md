@@ -45,6 +45,9 @@ Codex har generell tillatelse til å kjøre nødvendige tester, kontrollkommando
 ## Tidsfordriv
 
 /tidsfordriv samler ordjakt, sudoku, lokale papir-/skjermoppgaver og spillforslag.
+Binærpuslespill, nonogram, tallpyramider og minikryssord er merket Test på
+nettsidene. Forsidens Nyhet-merke styres av den faste Oslo-tiden i
+config/tidsfordriv.php og varer i 14 dager.
 De nye oppgavene ligger i app/Services/TidsfordrivPuzzleBank.php. Hver oppgave
 har stabil ID og fasit i samme post, slik at URL-en med ?oppgave=ID alltid gir
 identisk skjerm, utskrift og fasit. Legg nye kvalitetssikrede oppgaver til i
