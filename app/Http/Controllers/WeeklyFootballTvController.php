@@ -38,6 +38,7 @@ class WeeklyFootballTvController extends Controller
             $weekOffset,
         );
         $weeklyFootball['matches'] = $this->withTeamLogos($weeklyFootball['matches'], $teamLogos);
+        $weeklyFootball['mondayNightMatches'] = $this->withTeamLogos($weeklyFootball['mondayNightMatches'] ?? [], $teamLogos);
 
         return view($print ? 'weekly-football-tv.print' : 'weekly-football-tv.index', compact('weeklyFootball', 'prison', 'weekOffset'));
     }

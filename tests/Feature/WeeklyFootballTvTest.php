@@ -62,7 +62,7 @@ class WeeklyFootballTvTest extends TestCase
             ->assertSee('Barcelona')->assertSee('Sevilla')
             ->assertSee('Bayern')->assertSee('Dortmund')
             ->assertSee('La Liga')
-            ->assertSee('TV3+ · V sport 1')
+            ->assertSee('TV3+')->assertSee('V sport 1')
             ->assertDontSee('Studio – Magasin')
             ->assertSee('Sendestart')
             ->assertSee('Avspark vises ikke');
@@ -154,6 +154,50 @@ class WeeklyFootballTvTest extends TestCase
             ->assertSee('break-inside:avoid', false);
     }
 
+    public function test_monday_night_uses_tv_start_time_keeps_replays_and_deduplicates_the_concrete_listing(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-10-25 12:00:00', 'Europe/Oslo'));
+        Http::fake(function ($request) {
+            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+            $date = $query['date'] ?? '';
+            $listings = match ($date) {
+                '2026-10-25', '2026-10-26' => [
+                    $this->listingWithMetadata('LaLiga EA Sports', 'Barcelona - Real Madrid', '2026-10-25T23:00:00Z', 780216, 498227512, false, false, 36804, 'la-liga'),
+                    $this->listingWithMetadata('LaLiga EA Sports', 'Real Sociedad - Levante', '2026-10-26T01:00:00Z', 780217, 498227513, false, true, 36804, 'la-liga'),
+                    $this->listingWithMetadata('LaLiga EA Sports', 'Celta - Real Betis', '2026-10-26T03:00:00Z', 780218, 498227514, false, true, 36804, 'la-liga'),
+                    $this->listingWithMetadata('LaLiga EA Sports', 'Før seks - Kamp', '2026-10-26T04:59:00Z', 780219, 498227515, true, false, 36804, 'la-liga'),
+                    $this->listingWithMetadata('LaLiga EA Sports', 'Etter seks - Kamp', '2026-10-26T05:00:00Z', 780220, 498227516, true, false, 36804, 'la-liga'),
+                    $this->listingWithMetadata('LaLiga EA Sports', 'Barcelona - Real Madrid', '2026-10-26T06:00:00Z', 780216, 498610213, false, true, 36804, 'la-liga'),
+                    $this->listingWithMetadata('OBOS-ligaen', 'Begge flagg - Kamp', '2026-10-25T13:00:00Z', 777068, 498227517, true, true, 78710, 'obos-ligaen-1'),
+                    $this->listingWithMetadata('OBOS-ligaen', 'Strømmen - Strømsgodset', '2026-10-25T11:55:00Z', 777067, 498227505, true, false, 78710, 'obos-ligaen-1'),
+                    $this->listingWithMetadata('OBOS-ligaen: Studio', 'Studio', '2026-10-25T11:40:00Z', 782360, 498227504, true, false, 35627, 'obos-ligaen-studio'),
+                    $this->listingWithMetadata('UEFA Champions League', 'Kampoppsummering', '2026-10-25T11:00:00Z', 780814, 498610330, false, true, 668379, 'uefa-champions-league-summary'),
+                ],
+                default => [],
+            };
+            return Http::response([['channel' => ['name' => 'TV 2 Sport 1', 'slug' => 'tv2-sport-1'], 'listings' => $listings]]);
+        });
+
+        $this->warmTv(Carbon::parse('2026-10-19', 'Europe/Oslo'), 8);
+        $service = app(\App\Services\TvGuideService::class);
+        $thisWeek = $service->getWeeklyFootballMatches(now('Europe/Oslo'), 'ringerike', 'weekly-test');
+        $nextWeek = $service->getWeeklyFootballMatches(now('Europe/Oslo'), 'ringerike', 'weekly-test', 1);
+
+        $this->assertSame(['Barcelona – Real Madrid', 'Real Sociedad – Levante', 'Celta – Real Betis', 'Før seks – Kamp'], array_column($thisWeek['mondayNightMatches'], 'name'));
+        $this->assertSame(['Sendetype ikke oppgitt', 'Reprise', 'Reprise', 'Direkte'], array_column($thisWeek['mondayNightMatches'], 'broadcastType'));
+        $this->assertSame(['Strømmen – Strømsgodset', 'Begge flagg – Kamp'], array_column($thisWeek['matches'], 'name'));
+        $this->assertSame('Direkte', $thisWeek['matches'][0]['broadcastType']);
+        $this->assertSame('Reprise', $thisWeek['matches'][1]['broadcastType']);
+        $this->assertSame(['Barcelona – Real Madrid', 'Real Sociedad – Levante', 'Celta – Real Betis', 'Før seks – Kamp', 'Etter seks – Kamp', 'Barcelona – Real Madrid'], array_column($nextWeek['matches'], 'name'));
+        $this->assertSame([], $nextWeek['mondayNightMatches']);
+
+        $this->get('/ringerike/ukens-fotball-pa-tv')->assertOk()
+            ->assertSee('Natt til mandag')->assertSee('Sendetype ikke oppgitt')->assertSee('Reprise')
+            ->assertDontSee('Kampoppsummering')->assertDontSee('>Studio<', false);
+        $this->get('/ringerike/ukens-fotball-pa-tv/utskrift')->assertOk()
+            ->assertSee('Natt til mandag')->assertSee('Sendetype ikke oppgitt')->assertSee('Reprise');
+    }
+
     private function listing(string $title, string $name, string $startsAt, int $id): array
     {
         return [
@@ -162,6 +206,18 @@ class WeeklyFootballTvTest extends TestCase
             'startsAt' => $startsAt,
             'isLive' => true,
             'isRerun' => false,
+        ];
+    }
+
+    private function listingWithMetadata(string $title, string $name, string $startsAt, int $eventId, int $listingId, bool $isLive, bool $isRerun, int $titleId, string $slug): array
+    {
+        return [
+            'id' => $listingId,
+            'title' => ['id' => $titleId, 'type' => 'sportsTitle', 'title' => $title, 'slug' => $slug],
+            'sportsEvent' => ['id' => $eventId, 'name' => $name],
+            'startsAt' => $startsAt,
+            'isLive' => $isLive,
+            'isRerun' => $isRerun,
         ];
     }
 }

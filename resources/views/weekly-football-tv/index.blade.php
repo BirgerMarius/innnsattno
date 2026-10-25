@@ -60,15 +60,29 @@
                             <article class="weekly-football-match">
                                 <time datetime="{{ $match['startsAt']->toIso8601String() }}"><strong>{{ $match['startsAt']->format('H.i') }}</strong><span>Sendestart</span></time>
                                 <div class="weekly-football-teams"><strong>@if($match['homeLogoUrl'])<img src="{{ $match['homeLogoUrl'] }}" alt="" onerror="this.remove()">@endif{{ preg_replace('/\s+–\s+.*/u', '', $match['name']) }} <span aria-hidden="true">–</span> @if($match['awayLogoUrl'])<img src="{{ $match['awayLogoUrl'] }}" alt="" onerror="this.remove()">@endif{{ preg_replace('/^.*\s+–\s+/u', '', $match['name']) }}</strong><span>{{ $match['competition'] }}</span></div>
-                                <div class="weekly-football-channels">{{ implode(' · ', $match['channels']) }}</div>
+                                <div class="weekly-football-channels">{{ implode(' · ', $match['channels']) }}<br><span>{{ $match['broadcastType'] }}</span></div>
                             </article>
                         @endforeach
                     </div>
                 @endif
             </section>
         @endforeach
+        @if(($weeklyFootball['mondayNightMatches'] ?? []) !== [])
+            <section class="weekly-football-day weekly-football-night" aria-labelledby="weekly-night-to-monday">
+                <h2 id="weekly-night-to-monday">Natt til mandag <small>{{ $weeklyFootball['weekEnd']->copy()->addDay()->locale('nb')->translatedFormat('j. F') }}</small></h2>
+                <div class="weekly-football-match-list">
+                    @foreach($weeklyFootball['mondayNightMatches'] as $match)
+                        <article class="weekly-football-match">
+                            <time datetime="{{ $match['startsAt']->toIso8601String() }}"><strong>{{ $match['startsAt']->format('H.i') }}</strong><span>Sendestart</span></time>
+                            <div class="weekly-football-teams"><strong>@if($match['homeLogoUrl'])<img src="{{ $match['homeLogoUrl'] }}" alt="" onerror="this.remove()">@endif{{ preg_replace('/\s+–\s+.*/u', '', $match['name']) }} <span aria-hidden="true">–</span> @if($match['awayLogoUrl'])<img src="{{ $match['awayLogoUrl'] }}" alt="" onerror="this.remove()">@endif{{ preg_replace('/^.*\s+–\s+/u', '', $match['name']) }}</strong><span>{{ $match['competition'] }}</span></div>
+                            <div class="weekly-football-channels">{{ implode(' · ', $match['channels']) }}<br><span>{{ $match['broadcastType'] }}</span></div>
+                        </article>
+                    @endforeach
+                </div>
+            </section>
+        @endif
     @endif
-    <p class="weekly-football-note">Tidspunktet er TV-sendingens starttid fra VG TV-guide. Avspark vises ikke når det ikke er oppgitt i TV-dataene. Sist oppdatert: {{ $weeklyFootball['lastUpdated'] ? $weeklyFootball['lastUpdated']->locale('nb')->translatedFormat('j. F Y \k\l. H.i') : 'ukjent' }}.</p>
+    <p class="weekly-football-note">Tidspunktet er TV-sendingens starttid fra VG TV-guide. Kalenderuken inkluderer også natt til mandag frem til kl. 06.00. Avspark vises ikke når det ikke er oppgitt i TV-dataene. Sist oppdatert: {{ $weeklyFootball['lastUpdated'] ? $weeklyFootball['lastUpdated']->locale('nb')->translatedFormat('j. F Y \k\l. H.i') : 'ukjent' }}.</p>
 </main>
     @include('partials.footer')
 </div>

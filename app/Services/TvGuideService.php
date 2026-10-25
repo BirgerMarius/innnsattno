@@ -20,15 +20,6 @@ class TvGuideService
     private const TIMEZONE = 'Europe/Oslo';
     private const UPCOMING_DAYS = 7;
 
-    /** The existing Ringerike selection used by the TV guide and football boxes. */
-    private const RINGERIKE_CHANNELS = [
-        'nrk1', 'nrk2', 'nrk3', 'tv2-direkte', 'tv2-zebra', 'tvnorge', 'tv3', 'tv3-plus',
-        'tv2-sport-1', 'tv2-sport-2', 'eurosport-norge', 'eurosport-1', 'c-more-hits',
-        'tv2-livsstil', 'rex', 'fem', 'national-geographic', 'discovery-channel',
-        'viasat-explore', 'investigation-discovery', 'bbc-world-news', 'al-jazeera-english',
-        'nickelodeon', 'dr1', 'mtv',
-    ];
-
     /**
      * Exact VG titles are intentional: slugs are not reliable for UEFA programming.
      * A fixture-shaped sportsEvent.name is still required before an item is shown.
@@ -60,9 +51,26 @@ class TvGuideService
         'Fotball-VM' => 'Fotball-VM',
         'La Liga' => 'La Liga',
         'LaLiga' => 'La Liga',
+        'LaLiga EA Sports' => 'La Liga',
         'Bundesliga' => 'Bundesliga',
         'Serie A' => 'Serie A',
         'Serie A Enilive' => 'Serie A',
+        'OBOS-ligaen' => 'OBOS-ligaen',
+    ];
+
+    /**
+     * VG changes presentation titles more often than stable title IDs/slugs.
+     * Keep verified aliases here so sport programmes cannot enter solely due to
+     * a dash in a name. IDs and slugs are used before human-readable aliases.
+     */
+    private const WEEKLY_FOOTBALL_IDENTIFIERS = [
+        36804 => 'La Liga', // LaLiga EA Sports
+        78710 => 'OBOS-ligaen',
+    ];
+
+    private const WEEKLY_FOOTBALL_SLUGS = [
+        'la-liga' => 'La Liga',
+        'obos-ligaen-1' => 'OBOS-ligaen',
     ];
 
     /**
@@ -220,30 +228,21 @@ class TvGuideService
 
     public static function ringerikeChannels(): array
     {
-        return self::RINGERIKE_CHANNELS;
+        return self::channelsForPrison('ringerike');
     }
 
     /** The existing Ilseng selection used by its TV guide printout. */
     public static function ilsengChannels(): array
     {
-        return [
-            'nrk1', 'nrk2', 'nrk3', 'tv2-direkte', 'tv2-zebra', 'tv2-livsstil', 'tv2-nyheter',
-            'tvnorge', 'tv3', 'tv3-plus', 'tv6', 'fem', 'rex', 'vox', 'discovery-channel',
-            'national-geographic', 'eurosport-1', 'eurosport-norge', 'tv2-sport-1', 'tv2-sport-2',
-            'v-sport-1', 'v-sport-2', 'v-sport-3', 'v-film-premiere', 'v-film-action', 'v-series',
-            'bbc-nordic', 'disney-channel', 'history', 'tlc',
-        ];
+        return self::channelsForPrison('ilseng');
     }
 
     public static function channelsForPrison(string $prison): array
     {
-        return match ($prison) {
-            'ringerike' => self::ringerikeChannels(),
-            'ilseng' => self::ilsengChannels(),
-            // There is deliberately no fallback selection for Kongsvinger.
-            'kongsvinger' => [],
-            default => throw new UnexpectedValueException('Ukjent fengsel for TV-guiden.'),
-        };
+        $definition = config("prisons.all.{$prison}");
+        if (! is_array($definition)) throw new UnexpectedValueException('Ukjent fengsel for TV-guiden.');
+
+        return array_values($definition['tv_channels'] ?? []);
     }
 
     /**
@@ -349,9 +348,9 @@ class TvGuideService
     }
 
     /**
-     * All verified live football broadcasts in the ISO calendar week containing
-     * $now.  Unlike the small competition boxes, past days remain included so
-     * the public page is a real week overview rather than a rolling window.
+     * Whole football matches in the ISO calendar week, plus the night to the
+     * following Monday until 06:00.  TV-guide start time is authoritative;
+     * SportsNext is deliberately not required for an entry to be shown.
      */
     public function getWeeklyFootballMatches(CarbonInterface $now, string $prison, string $operation, int $weekOffset = 0): array
     {
@@ -360,8 +359,11 @@ class TvGuideService
         $weekStart = $now->copy()->startOfWeek(\Carbon\Carbon::MONDAY)->addWeeks($weekOffset);
         $weekEnd = $weekStart->copy()->endOfWeek(\Carbon\Carbon::SUNDAY);
         $channels = self::channelsForPrison($prison);
-        if ($channels === []) return ['weekStart' => $weekStart, 'weekEnd' => $weekEnd, 'matches' => [], 'availableDates' => [], 'missingLocalDataDates' => [], 'unpublishedDates' => [], 'hasMissingLocalData' => false, 'hasUnpublishedDates' => false, 'usingStaleData' => false, 'weekOffset' => $weekOffset, 'channelSelection' => 'Kongsvinger fengsel – under klargjøring', 'lastUpdated' => null, 'tvPending' => true];
-        $dates = collect(range(0, 6))->map(fn (int $offset) => $weekStart->copy()->addDays($offset))->all();
+        if ($channels === []) return ['weekStart' => $weekStart, 'weekEnd' => $weekEnd, 'matches' => [], 'mondayNightMatches' => [], 'availableDates' => [], 'missingLocalDataDates' => [], 'unpublishedDates' => [], 'hasMissingLocalData' => false, 'hasUnpublishedDates' => false, 'usingStaleData' => false, 'weekOffset' => $weekOffset, 'channelSelection' => 'Kongsvinger fengsel – under klargjøring', 'lastUpdated' => null, 'tvPending' => true];
+        // VG overlaps adjacent calendar dates around midnight. Read Monday too
+        // so the optional night section is complete, then deduplicate a concrete
+        // listing rather than a sporting event.
+        $dates = collect(range(0, 7))->map(fn (int $offset) => $weekStart->copy()->addDays($offset))->all();
         $matches = [];
         $availableDates = [];
         $missingLocalDataDates = [];
@@ -381,7 +383,7 @@ class TvGuideService
                 if (! $fromStale) {
                     // A page view only reads local data.  A missing cache entry
                     // does not prove that the source fetch for this date failed.
-                    $missingLocalDataDates[] = $date;
+                    if ($date->lessThanOrEqualTo($weekEnd)) $missingLocalDataDates[] = $date;
                     continue;
                 }
             }
@@ -395,19 +397,20 @@ class TvGuideService
             // window. It is a valid payload, but not evidence that no match is
             // on TV, so report it as unavailable coverage instead.
             if ($schedule === []) {
-                $unpublishedDates[] = $date;
+                if ($date->lessThanOrEqualTo($weekEnd)) $unpublishedDates[] = $date;
                 continue;
             }
 
-            $availableDates[] = $date;
+            if ($date->lessThanOrEqualTo($weekEnd)) $availableDates[] = $date;
             foreach ($schedule as $channel) {
                 $channelName = trim((string) data_get($channel, 'channel.name', ''));
+                $channelSlug = trim((string) data_get($channel, 'channel.slug', ''));
                 if ($channelName === '') {
                     continue;
                 }
                 foreach (($channel['listings'] ?? []) as $listing) {
                     $competition = $this->weeklyFootballCompetition($listing);
-                    if ($competition === null || ! $this->isWeeklyLiveFixture($listing)) {
+                    if ($competition === null || ! $this->isWeeklyFootballFixture($listing)) {
                         continue;
                     }
                     $startsAtValue = data_get($listing, 'startsAt');
@@ -415,18 +418,21 @@ class TvGuideService
                         continue;
                     }
                     $startsAt = \Carbon\Carbon::parse($startsAtValue)->setTimezone(self::TIMEZONE);
-                    if ($startsAt->lessThan($weekStart) || $startsAt->greaterThan($weekEnd)) {
+                    $nightToMonday = $startsAt->isSameDay($weekEnd->copy()->addDay())
+                        && $startsAt->format('H:i:s') < '06:00:00';
+                    if (($startsAt->lessThan($weekStart) || $startsAt->greaterThan($weekEnd)) && ! $nightToMonday) {
                         continue;
                     }
                     $name = $this->formatEventName((string) data_get($listing, 'sportsEvent.name'));
-                    $key = (string) data_get($listing, 'sportsEvent.id', '');
-                    $key = $key !== '' ? 'id:'.$key : 'fixture:'.Str::lower($competition.'|'.$name);
+                    $key = $this->weeklyListingKey($listing, $channelSlug, $startsAt);
                     if (! isset($matches[$key])) {
                         $matches[$key] = [
                             'name' => $name,
                             'competition' => $competition,
                             'startsAt' => $startsAt,
                             'channels' => [],
+                            'broadcastType' => $this->broadcastType($listing),
+                            'nightToMonday' => $nightToMonday,
                         ];
                     }
                     $matches[$key]['channels'][$channelName] = $channelName;
@@ -439,12 +445,17 @@ class TvGuideService
             sort($match['channels'], SORT_NATURAL | SORT_FLAG_CASE);
             return $match;
         }, $matches));
-        usort($matches, fn (array $left, array $right) => $left['startsAt']->getTimestamp() <=> $right['startsAt']->getTimestamp());
+        usort($matches, fn (array $left, array $right) => ($left['nightToMonday'] <=> $right['nightToMonday'])
+            ?: ($left['startsAt']->getTimestamp() <=> $right['startsAt']->getTimestamp()));
+
+        $mondayNightMatches = array_values(array_filter($matches, fn (array $match) => $match['nightToMonday']));
+        $matches = array_values(array_filter($matches, fn (array $match) => ! $match['nightToMonday']));
 
         return [
             'weekStart' => $weekStart,
             'weekEnd' => $weekEnd,
             'matches' => $matches,
+            'mondayNightMatches' => $mondayNightMatches,
             'availableDates' => $availableDates,
             'missingLocalDataDates' => $missingLocalDataDates,
             'unpublishedDates' => $unpublishedDates,
@@ -522,17 +533,46 @@ class TvGuideService
             return null;
         }
 
+        $titleId = (int) data_get($listing, 'title.id', 0);
+        if (isset(self::WEEKLY_FOOTBALL_IDENTIFIERS[$titleId])) {
+            return self::WEEKLY_FOOTBALL_IDENTIFIERS[$titleId];
+        }
+
+        $slug = (string) data_get($listing, 'title.slug', '');
+        if (isset(self::WEEKLY_FOOTBALL_SLUGS[$slug])) {
+            return self::WEEKLY_FOOTBALL_SLUGS[$slug];
+        }
+
         return self::WEEKLY_FOOTBALL_TITLES[(string) data_get($listing, 'title.title', '')] ?? null;
     }
 
-    private function isWeeklyLiveFixture(array $listing): bool
+    private function isWeeklyFootballFixture(array $listing): bool
     {
         $eventName = trim((string) data_get($listing, 'sportsEvent.name', ''));
 
-        return ($listing['isLive'] ?? false) === true
-            && ($listing['isRerun'] ?? false) !== true
-            && $this->looksLikeFixtureName($eventName)
+        return $this->looksLikeFixtureName($eventName)
             && preg_match('/\b(studio|magasin|høydepunkter|highlights|oppsummering)\b/ui', $eventName) !== 1;
+    }
+
+    private function broadcastType(array $listing): string
+    {
+        if (($listing['isRerun'] ?? false) === true) return 'Reprise';
+        if (($listing['isLive'] ?? false) === true) return 'Direkte';
+
+        return 'Sendetype ikke oppgitt';
+    }
+
+    private function weeklyListingKey(array $listing, string $channelSlug, \Carbon\CarbonInterface $startsAt): string
+    {
+        $listingId = data_get($listing, 'id');
+        if (is_scalar($listingId) && (string) $listingId !== '') return 'listing:'.(string) $listingId;
+
+        $programmeId = data_get($listing, 'title.id')
+            ?? data_get($listing, 'simplyTvId')
+            ?? data_get($listing, 'sportsEvent.id')
+            ?? data_get($listing, 'title.slug', 'unknown');
+
+        return 'fallback:'.sha1($channelSlug.'|'.$startsAt->toIso8601String().'|'.(string) $programmeId);
     }
 
     private function looksLikeFixtureName(string $eventName): bool

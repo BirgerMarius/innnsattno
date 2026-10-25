@@ -151,6 +151,28 @@ opp; sider kan vise manglende data inntil første vellykkede henting. Overvåk
 selve scheduler/cron separat: manglende kontroller kan ikke bevise kildeutfall.
 Kontroller alltid gjeldende crontab på serveren før manuelle endringer.
 
+### Fotball på TV
+
+«Fotball på TV» leser bare den lokalt forhåndshentede VG-TV-guiden ved
+sidevisning; SportsNext er kun valgfri logo-berikelse. Hele kamper klassifiseres
+fra verifiserte VG `sportsTitle`-identifikatorer (ID/slug før dokumenterte
+tittelaliaser), og studio, magasin, oppsummering og høydepunkter tas ikke med.
+`isRerun=true` vises som «Reprise», ellers vises `isLive=true` som «Direkte»;
+andre tilfeller er «Sendetype ikke oppgitt». `startsAt` fra TV-guiden er alltid
+sendestarten i Europe/Oslo og erstattes aldri av SportsNext-kampstart.
+
+Kalenderuken går mandag–søndag og har i tillegg «Natt til mandag» for sendinger
+som starter 00.00–05.59 neste mandag. Den samme lokale datastrukturen brukes av
+nettsiden og plakaten. En konkret sending avdupliseres på VG `listing.id`, med
+kanal + sendestart + programidentitet som fallback; samme kamp kan derfor vises
+flere ganger når den faktisk sendes flere ganger. Kanalutvalget kommer fra
+`config/prisons.php`; Kongsvinger har bevisst en tom liste inntil den er mottatt.
+Etter siste cachetømming fylles TV-data, også den ekstra mandagsdatoen, med:
+
+```bash
+php artisan external-data:warm
+```
+
 Etter deploy og migrering kan TV- og fotballdata fylles med
 `php artisan external-data:warm`. Kommandoen viser resultat per dato og turnering,
 beholder reservedata ved feil og avslutter med status 1 ved feil eller manglende
