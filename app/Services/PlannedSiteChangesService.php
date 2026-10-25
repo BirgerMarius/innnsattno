@@ -79,8 +79,9 @@ class PlannedSiteChangesService
 
         for ($offset = 1; $offset <= 400; $offset++) {
             $date = $today->addDays($offset);
+            $replacementAt = $this->clockChanges->dailyWordReplacementAt($date);
 
-            if ($this->clockChanges->forDate($date) !== null) {
+            if ($replacementAt === null && $this->clockChanges->forDate($date) !== null) {
                 continue;
             }
 
@@ -88,7 +89,7 @@ class PlannedSiteChangesService
 
             if ($word !== null) {
                 $changes[] = [
-                    'date' => $date,
+                    'date' => $replacementAt ?? $date,
                     'title' => $word['title'],
                     'description' => $word['message'],
                     'type' => 'daily-word',

@@ -33,7 +33,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         View::composer('partials.header', function ($view) {
-            $view->with('headerMessage', app(HeaderMessageService::class)->forDate());
+            $messages = app(HeaderMessageService::class);
+            $view->with('headerMessage', $messages->forDate());
+            $view->with('headerMessageNextChangeAt', $messages->nextChangeAt());
         });
 
         View::composer('*', function ($view) {

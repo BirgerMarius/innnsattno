@@ -104,7 +104,7 @@ class PlannedSiteChangesServiceTest extends TestCase
         $this->assertSame([
             '2026-10-24 00:00',
             '2026-10-25 02:00',
-            '2026-10-26 00:00',
+            '2026-10-25 13:00',
         ], array_map(fn (array $change) => $change['date']->format('Y-m-d H:i'), array_slice($clockChanges, 0, 3)));
     }
 
@@ -114,14 +114,14 @@ class PlannedSiteChangesServiceTest extends TestCase
         $changes = app(PlannedSiteChangesService::class)->upcoming($from);
         $dailyWords = array_values(array_filter($changes, fn (array $change) => $change['type'] === 'daily-word'));
 
-        $this->assertSame('2026-10-26', $dailyWords[0]['date']->toDateString());
+        $this->assertSame('2026-10-25 13:00', $dailyWords[0]['date']->format('Y-m-d H:i'));
         $this->assertSame(
-            app(\App\Services\DailyWordService::class)->forDate(Carbon::parse('2026-10-26', 'Europe/Oslo'))['message'],
+            app(\App\Services\DailyWordService::class)->forDate(Carbon::parse('2026-10-25', 'Europe/Oslo'))['message'],
             $dailyWords[0]['description']
         );
         $this->assertSame('Dagens ord', $dailyWords[0]['title']);
         $this->assertNotContains('2026-10-24', array_map(fn (array $change) => $change['date']->toDateString(), $dailyWords));
-        $this->assertNotContains('2026-10-25', array_map(fn (array $change) => $change['date']->toDateString(), $dailyWords));
+        $this->assertSame(1, count(array_filter($dailyWords, fn (array $change) => $change['date']->toDateString() === '2026-10-25')));
     }
 
     public function testItUsesTheSamePublicationWindowForVisibleElementsAndRemovesPassedEvents(): void

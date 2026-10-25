@@ -9,7 +9,7 @@
                 class="site-logo">
         </a>
 
-        <div class="site-header__message-slot" data-header-message>
+        <div class="site-header__message-slot" data-header-message @if ($headerMessageNextChangeAt !== null) data-header-message-refresh-at="{{ $headerMessageNextChangeAt->toIso8601String() }}" @endif>
             @include('partials.header-message')
         </div>
     </div>

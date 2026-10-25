@@ -81,6 +81,11 @@
                     const response = await fetch('{{ route('header-message.show') }}', { cache: 'no-store', headers: { Accept: 'application/json' } });
                     if (!response.ok) return;
                     const message = await response.json();
+                    if (typeof message.refresh_at === 'string') {
+                        slot.dataset.headerMessageRefreshAt = message.refresh_at;
+                    } else {
+                        delete slot.dataset.headerMessageRefreshAt;
+                    }
                     if (typeof message.html === 'string') {
                         slot.innerHTML = message.html;
                         const printLink = slot.querySelector('[data-daily-word-print]');
@@ -95,22 +100,26 @@
                 }
             };
 
-            const scheduleMidnightRefresh = () => {
+            const scheduleRefresh = () => {
                 const parts = Object.fromEntries(osloTime.formatToParts(new Date())
                     .filter(({ type }) => type !== 'literal')
                     .map(({ type, value }) => [type, Number(value)]));
-                const milliseconds = ((23 - parts.hour) * 3600 + (59 - parts.minute) * 60 + (60 - parts.second)) * 1000 + 250;
+                const millisecondsUntilMidnight = ((23 - parts.hour) * 3600 + (59 - parts.minute) * 60 + (60 - parts.second)) * 1000 + 250;
+                const refreshAt = Date.parse(slot.dataset.headerMessageRefreshAt || '');
+                const milliseconds = Number.isNaN(refreshAt) || refreshAt <= Date.now()
+                    ? millisecondsUntilMidnight
+                    : Math.min(millisecondsUntilMidnight, refreshAt - Date.now() + 250);
                 window.clearTimeout(timer);
                 timer = window.setTimeout(async () => {
                     await refresh();
-                    scheduleMidnightRefresh();
+                    scheduleRefresh();
                 }, milliseconds);
             };
 
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden) refresh();
             });
-            scheduleMidnightRefresh();
+            scheduleRefresh();
         })();
     </script>
     <script>

@@ -8,6 +8,8 @@ use DateTimeZone;
 
 class ClockChangeReminderService
 {
+    private const AUTUMN_2026_REMINDER_END = '2026-10-25 13:00:00';
+
     public function forDate(?DateTimeInterface $date = null): ?array
     {
         $now = $date
@@ -28,6 +30,10 @@ class ClockChangeReminderService
             $isDayBefore = $now->isSameDay($change->subDay());
 
             if ($offset !== $previousOffset && ($isChangeDay || $isDayBefore)) {
+                if ($this->reminderEndsAt($change)->lessThanOrEqualTo($now)) {
+                    return null;
+                }
+
                 $forward = $offset > $previousOffset;
                 $direction = $forward ? 'frem' : 'tilbake';
                 $hasChanged = $now->getTimestamp() >= $transition['ts'];
@@ -72,6 +78,7 @@ class ClockChangeReminderService
             if ($offset !== $previousOffset) {
                 $direction = $offset > $previousOffset ? 'frem' : 'tilbake';
                 $season = $direction === 'frem' ? 'sommertid' : 'normaltid';
+                $reminderEnd = $this->reminderEndsAt($change);
                 $changes = array_merge($changes, [
                     [
                         'date' => $change->subDay()->startOfDay(),
@@ -88,9 +95,11 @@ class ClockChangeReminderService
                         'preview' => ['kind' => 'clock', 'reminder' => $this->forDate($change)],
                     ],
                     [
-                        'date' => $change->addDay()->startOfDay(),
+                        'date' => $reminderEnd,
                         'title' => 'Påminnelse om å stille klokken skjules',
-                        'description' => 'Påminnelsen fjernes automatisk etter klokkeomstillingen.',
+                        'description' => $reminderEnd->isSameDay($change)
+                            ? 'Påminnelsen fjernes automatisk kl. '.$reminderEnd->format('H:i').'.'
+                            : 'Påminnelsen fjernes automatisk etter klokkeomstillingen.',
                         'type' => 'clock-change',
                         'preview' => ['kind' => 'clock', 'reminder' => $this->forDate($change), 'hidden' => true],
                     ],
@@ -101,5 +110,27 @@ class ClockChangeReminderService
         }
 
         return array_values(array_filter($changes, fn (array $change) => $change['date']->greaterThan($now)));
+    }
+
+    public function dailyWordReplacementAt(CarbonImmutable $date): ?CarbonImmutable
+    {
+        $cutoff = CarbonImmutable::parse(self::AUTUMN_2026_REMINDER_END, 'Europe/Oslo');
+
+        return $date->setTimezone('Europe/Oslo')->isSameDay($cutoff) ? $cutoff : null;
+    }
+
+    public function nextMessageChangeAt(?DateTimeInterface $date = null): ?CarbonImmutable
+    {
+        $now = $date
+            ? CarbonImmutable::instance($date)->setTimezone('Europe/Oslo')
+            : CarbonImmutable::now('Europe/Oslo');
+        $cutoff = CarbonImmutable::parse(self::AUTUMN_2026_REMINDER_END, 'Europe/Oslo');
+
+        return $now->lessThan($cutoff) ? $cutoff : null;
+    }
+
+    private function reminderEndsAt(CarbonImmutable $change): CarbonImmutable
+    {
+        return $this->dailyWordReplacementAt($change) ?? $change->addDay()->startOfDay();
     }
 }

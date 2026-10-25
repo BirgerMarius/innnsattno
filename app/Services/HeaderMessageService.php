@@ -23,4 +23,9 @@ class HeaderMessageService
 
         return $this->dailyWords->forDate($date);
     }
+
+    public function nextChangeAt(?DateTimeInterface $date = null): ?\Carbon\CarbonImmutable
+    {
+        return $this->clockChanges->nextMessageChangeAt($date);
+    }
 }

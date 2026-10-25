@@ -116,6 +116,7 @@ class AdminDashboardStatisticsTest extends TestCase
 
         $this->withSession(['admin_authenticated' => true])->get('/adm')
             ->assertOk()
+            ->assertSee('25.10.2026 13:00')
             ->assertSee('clock-change-reminder--compact', false)
             ->assertSee('Husk å stille klokken tilbake')
             ->assertSee('03:00 → 02:00')
