@@ -28,6 +28,7 @@ abstract class UefaCompetitionController extends Controller
         usort($recentResults, fn (array $a, array $b) => strcmp((string) $b['sortDate'], (string) $a['sortDate']));
 
         return view('champions-league.index', array_merge($this->viewData(), [
+            'prison' => $this->prison(),
             'standings' => $competition['standings'],
             'standingsGroups' => $competition['standingsGroups'],
             'upcomingFixtures' => array_slice($upcomingFixtures, 0, 12),
@@ -49,7 +50,7 @@ abstract class UefaCompetitionController extends Controller
         $printData = $this->competitionService->getPrintData($this->competitionName());
 
         return view('champions-league.print', array_merge($printData, $this->viewData(), [
-            'returnUrl' => route($this->routePrefix().'.index', ['fengsel' => $this->prison()]),
+            'returnUrl' => '/'.$this->prison().'/'.$this->routePrefix(),
             'knockoutRounds' => $this->competitionService->buildKnockoutRounds($printData['matches']),
             'tvMatches' => $this->tvMatches(3, $this->routePrefix().'-tv-print', $this->prison()),
         ]));
@@ -66,6 +67,7 @@ abstract class UefaCompetitionController extends Controller
             'results' => $results,
             'fixtures' => $fixtures,
             'tvMatches' => $this->tvMatches(1, $this->routePrefix().'-team-tv-screen', $this->prison()),
+            'teamPrintUrl' => '/'.$this->prison().'/'.$this->routePrefix().'/lag/'.$teamId.'/print',
         ]));
     }
 
@@ -75,7 +77,8 @@ abstract class UefaCompetitionController extends Controller
         abort_unless($teamSeason, 404);
 
         return view('football.team-print', array_merge($teamSeason, $this->viewData(), [
-            'teamRoute' => $this->routePrefix().'.team',
+            'teamUrl' => '/'.$this->prison().'/'.$this->routePrefix().'/lag/'.$teamId,
+            'backUrl' => '/'.$this->prison().'/'.$this->routePrefix(),
             'tvMatches' => $this->tvMatches(1, $this->routePrefix().'-team-tv-print', $this->prison()),
         ]));
     }
@@ -89,6 +92,7 @@ abstract class UefaCompetitionController extends Controller
             'printRoute' => $this->routePrefix().'.print',
             'teamRoute' => $this->routePrefix().'.team',
             'teamPrintRoute' => $this->routePrefix().'.team.print',
+            'competitionUrl' => '/'.$this->prison().'/'.$this->routePrefix(),
         ];
     }
 
@@ -127,7 +131,7 @@ abstract class UefaCompetitionController extends Controller
         ];
     }
 
-    private function prison(): string { return in_array(request('fengsel'), ['ringerike', 'ilseng', 'kongsvinger'], true) ? request('fengsel') : 'ringerike'; }
+    private function prison(): string { return in_array(request()->route('prison'), ['ringerike', 'ilseng', 'kongsvinger'], true) ? request()->route('prison') : 'ringerike'; }
 
     private function tvMatches(int $limit, string $operation, string $prison = 'ringerike'): array
     {

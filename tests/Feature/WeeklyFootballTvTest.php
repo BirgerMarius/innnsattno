@@ -86,13 +86,13 @@ class WeeklyFootballTvTest extends TestCase
         Carbon::setTestNow(Carbon::parse('2026-12-30 12:00:00', 'Europe/Oslo'));
         Http::fake(['tvguide.vg.no/*' => Http::response([['channel' => ['name' => 'TV3+'], 'listings' => []]])]);
 
-        $this->get('/ukens-fotball-pa-tv?fengsel=ilseng&uke=neste')->assertOk()
+        $this->get('/ilseng/ukens-fotball-pa-tv?fengsel=ringerike&uke=neste')->assertOk()
             ->assertSee('Neste ukes TV-sendte fotballkamper')
             ->assertSee('Uke 1')
             ->assertSee('4. januar–10. januar 2027')
             ->assertSee('Ilseng fengsel')
-            ->assertSee('uke=neste', false)
-            ->assertSee('fengsel=ilseng', false);
+            ->assertSee('/ilseng/ukens-fotball-pa-tv?uke=neste', false)
+            ->assertDontSee('weekly-football-selector', false);
     }
 
     public function test_exact_cached_sportsnext_names_add_logos_but_missing_teams_do_not_render_empty_images(): void
@@ -119,7 +119,7 @@ class WeeklyFootballTvTest extends TestCase
     {
         Http::fake(['tvguide.vg.no/*' => Http::response([['channel' => ['name' => 'V sport 1'], 'listings' => []]])]);
 
-        $this->get('/ukens-fotball-pa-tv/utskrift?fengsel=ilseng')->assertOk()
+        $this->get('/ilseng/ukens-fotball-pa-tv/utskrift?fengsel=ringerike')->assertOk()
             ->assertHeader('X-Robots-Tag', 'noindex, follow')
             ->assertSee('@page { size: A4 landscape;', false)
             ->assertSee('UKAS KAMPER')

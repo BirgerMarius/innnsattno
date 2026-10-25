@@ -365,27 +365,27 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <small>Ukeoversikt og plakat</small>
         </a>
 
-        <a href="/premier-league?fengsel={{ $prison['slug'] }}" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+        <a href="/{{ $prison['slug'] }}/premier-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Premier League 2026/27
         </a>
 
-        <a href="/eliteserien?fengsel={{ $prison['slug'] }}" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+        <a href="/{{ $prison['slug'] }}/eliteserien" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Eliteserien 2026
         </a>
 
-        <a href="/champions-league?fengsel={{ $prison['slug'] }}" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+        <a href="/{{ $prison['slug'] }}/champions-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Champions League 2026/27
         </a>
 
-        <a href="/europa-league?fengsel={{ $prison['slug'] }}" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+        <a href="/{{ $prison['slug'] }}/europa-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Europa League 2026/27
         </a>
 
-        <a href="/conference-league?fengsel={{ $prison['slug'] }}" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+        <a href="/{{ $prison['slug'] }}/conference-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Conference League 2026/27
         </a>
 
-        <a href="/nations-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+        <a href="/{{ $prison['slug'] }}/nations-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Nations League 2026/28
             @if($showNationsLeagueNewBadge)<span class="front-page-new-badge" aria-label="Ny tjeneste">NY</span>@endif
         </a>

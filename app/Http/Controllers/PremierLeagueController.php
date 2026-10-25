@@ -22,6 +22,7 @@ class PremierLeagueController extends Controller
         $competition = $this->premierLeagueService->getCompetitionData();
 
         return view('premier-league.index', [
+            'prison' => $this->prison(),
             'standings' => $competition['standings'],
             'upcomingFixtures' => $competition['upcomingFixtures'],
             'upcomingFixturesByDate' => collect($competition['upcomingFixtures'])->groupBy('dateLabel'),
@@ -58,7 +59,7 @@ class PremierLeagueController extends Controller
         return view('football.competition-print', array_merge(
             $this->premierLeagueService->getPrintData('Premier League'),
             [
-                'returnUrl' => route('premier-league.index'),
+                'returnUrl' => '/'.$this->prison().'/premier-league',
                 'tv3Plus' => $this->tv3PlusMatches(3, 'premier-league-tv3-plus-print', $this->prison()),
             ],
         ));
@@ -70,8 +71,8 @@ class PremierLeagueController extends Controller
         abort_unless($teamSeason, 404);
 
         return view('football.team', array_merge($teamSeason, [
-            'backRoute' => 'premier-league.index',
-            'printRoute' => 'premier-league.team.print',
+            'backUrl' => '/'.$this->prison().'/premier-league',
+            'printUrl' => '/'.$this->prison().'/premier-league/lag/'.$teamId.'/utskrift',
         ]));
     }
 
@@ -81,13 +82,13 @@ class PremierLeagueController extends Controller
         abort_unless($teamSeason, 404);
 
         return view('football.team-print', array_merge($teamSeason, [
-            'backRoute' => 'premier-league.index',
-            'teamRoute' => 'premier-league.team',
-            'tv3Plus' => $this->tv3PlusMatches(1),
+            'backUrl' => '/'.$this->prison().'/premier-league',
+            'teamUrl' => '/'.$this->prison().'/premier-league/lag/'.$teamId,
+            'tv3Plus' => $this->tv3PlusMatches(1, 'premier-league-team-tv-print', $this->prison()),
         ]));
     }
 
-    private function prison(): string { return in_array(request('fengsel'), ['ringerike', 'ilseng', 'kongsvinger'], true) ? request('fengsel') : 'ringerike'; }
+    private function prison(): string { return in_array(request()->route('prison'), ['ringerike', 'ilseng', 'kongsvinger'], true) ? request()->route('prison') : 'ringerike'; }
     private function tv3PlusMatches(int $limit, string $operation = 'premier-league-tv3-plus-print', string $prison = 'ringerike'): array
     {
         return $this->tvGuideService->getUpcomingPremierLeagueOnTv3Plus(

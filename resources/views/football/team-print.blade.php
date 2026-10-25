@@ -7,8 +7,8 @@
     <link href="{{ asset('css/custom/app.css') }}?v={{ filemtime(public_path('css/custom/app.css')) }}" rel="stylesheet">
 </head>
 <body class="football-team-print-page">
-    @php($returnUrl = route($teamRoute, $team['teamId'], false))
-    <div class="football-team-print-actions no-print"><button type="button" onclick="window.print()">Skriv ut</button><a href="{{ route($teamRoute, $team['teamId']) }}">Tilbake</a></div>
+    @php($returnUrl = $teamUrl)
+    <div class="football-team-print-actions no-print"><button type="button" onclick="window.print()">Skriv ut</button><a href="{{ $teamUrl }}">Tilbake</a></div>
     <header class="football-team-print-header">
         @if($team['emblemUrl'])<img src="{{ $team['emblemUrl'] }}" alt="" onerror="this.remove()">@endif
         <div><h1>{{ $team['teamName'] }}</h1><p>{{ $leagueName }}@if($seasonName) · {{ $seasonName }}@endif</p><p>Alle seriekamper</p></div>

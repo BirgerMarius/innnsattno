@@ -19,6 +19,7 @@ class EliteserienController extends Controller
         $competition = $this->eliteserienService->getCompetitionData();
 
         return view('eliteserien.index', [
+            'prison' => $this->prison(),
             'standings' => $competition['standings'],
             'upcomingFixtures' => $competition['upcomingFixtures'],
             'upcomingFixturesByDate' => collect($competition['upcomingFixtures'])->groupBy('dateLabel'),
@@ -54,7 +55,7 @@ class EliteserienController extends Controller
     {
         return view('football.competition-print', array_merge(
             $this->eliteserienService->getPrintData('Eliteserien'),
-            ['returnUrl' => route('eliteserien.index', ['fengsel' => $this->prison()]), 'tvMatches' => $this->tvMatches(3, 'eliteserien-tv-print', $this->prison())],
+            ['returnUrl' => '/'.$this->prison().'/eliteserien', 'tvMatches' => $this->tvMatches(3, 'eliteserien-tv-print', $this->prison())],
         ));
     }
 
@@ -64,9 +65,8 @@ class EliteserienController extends Controller
         abort_unless($teamSeason, 404);
 
         return view('football.team', array_merge($teamSeason, [
-            'backRoute' => 'eliteserien.index',
-            'printRoute' => 'eliteserien.team.print',
-            'tvMatches' => $this->tvMatches(1, 'eliteserien-team-tv-screen'),
+            'backUrl' => '/'.$this->prison().'/eliteserien', 'printUrl' => '/'.$this->prison().'/eliteserien/lag/'.$teamId.'/utskrift',
+            'tvMatches' => $this->tvMatches(1, 'eliteserien-team-tv-screen', $this->prison()),
         ]));
     }
 
@@ -76,13 +76,12 @@ class EliteserienController extends Controller
         abort_unless($teamSeason, 404);
 
         return view('football.team-print', array_merge($teamSeason, [
-            'backRoute' => 'eliteserien.index',
-            'teamRoute' => 'eliteserien.team',
-            'tvMatches' => $this->tvMatches(1, 'eliteserien-team-tv-print'),
+            'backUrl' => '/'.$this->prison().'/eliteserien', 'teamUrl' => '/'.$this->prison().'/eliteserien/lag/'.$teamId,
+            'tvMatches' => $this->tvMatches(1, 'eliteserien-team-tv-print', $this->prison()),
         ]));
     }
 
-    private function prison(): string { return in_array(request('fengsel'), ['ringerike', 'ilseng', 'kongsvinger'], true) ? request('fengsel') : 'ringerike'; }
+    private function prison(): string { return in_array(request()->route('prison'), ['ringerike', 'ilseng', 'kongsvinger'], true) ? request()->route('prison') : 'ringerike'; }
     private function tvMatches(int $limit, string $operation, string $prison = 'ringerike'): array
     {
         return $this->tvGuideService->getUpcomingCompetitionMatches(

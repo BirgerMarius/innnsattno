@@ -17,12 +17,13 @@ class NationsLeagueController extends Controller
         $weekFixtures = $this->nationsLeague->matchesForCalendarWeek($competition['matches'] ?? []);
 
         return view('nations-league.index', array_merge($this->emptyViewData(), $competition, $this->pageData($competition), [
+            'prison' => $this->prison(),
             'weekFixturesByDate' => collect($weekFixtures)->groupBy('dateLabel'),
             'recentResultsByDate' => collect($competition['recentResults'])->groupBy('dateLabel'),
             // The TV box is a live schedule, unlike "Denne ukens kamper"
             // below, which deliberately remains a calendar-week overview.
             'tvMatches' => $this->withMatchEmblems(
-                $this->tvMatches(0, 'nations-league-tv-screen', true),
+                $this->tvMatches(0, 'nations-league-tv-screen', true, $this->prison()),
                 $competition['matches'] ?? [],
                 false,
             ),
@@ -47,7 +48,7 @@ class NationsLeagueController extends Controller
             'teamPhaseLabel' => 'League- og gruppespill',
             'results' => $results,
             'fixtures' => $fixtures,
-            'tvMatches' => $this->tvMatches(1, 'nations-league-team-tv-screen'),
+            'tvMatches' => $this->tvMatches(1, 'nations-league-team-tv-screen', false, $this->prison()),
         ]));
     }
 
@@ -59,9 +60,8 @@ class NationsLeagueController extends Controller
         return view('football.team-print', array_merge($teamSeason, [
             'competitionName' => 'Nations League',
             'seasonLabel' => $teamSeason['seasonName'] ?? '2026/28',
-            'backRoute' => 'nations-league.index',
-            'teamRoute' => 'nations-league.team',
-            'tvMatches' => $this->tvMatches(1, 'nations-league-team-tv-print'),
+            'backUrl' => '/'.$this->prison().'/nations-league', 'teamUrl' => '/'.$this->prison().'/nations-league/lag/'.$teamId,
+            'tvMatches' => $this->tvMatches(1, 'nations-league-team-tv-print', false, $this->prison()),
         ]));
     }
 
@@ -69,13 +69,13 @@ class NationsLeagueController extends Controller
     {
         $printData = $this->nationsLeague->getPrintData('Nations League');
         $tvMatches = $this->withMatchEmblems(
-            $this->tvMatches(0, 'nations-league-tv-print', true),
+            $this->tvMatches(0, 'nations-league-tv-print', true, $this->prison()),
             $printData['matches'] ?? [],
         );
 
         return view('nations-league.print', array_merge($this->emptyViewData(), $printData, $this->pageData($printData), [
             'tvMatches' => $tvMatches,
-            'returnUrl' => route('nations-league.index'),
+            'returnUrl' => '/'.$this->prison().'/nations-league',
         ]));
     }
 
@@ -89,10 +89,11 @@ class NationsLeagueController extends Controller
         ];
     }
 
-    private function tvMatches(int $limit, string $operation, bool $useRollingSevenDayPeriod = false): array
+    private function prison(): string { return in_array(request()->route('prison'), ['ringerike', 'ilseng', 'kongsvinger'], true) ? request()->route('prison') : 'ringerike'; }
+    private function tvMatches(int $limit, string $operation, bool $useRollingSevenDayPeriod = false, string $prison = 'ringerike'): array
     {
         return $this->tvGuideService->getUpcomingCompetitionMatches(
-            now('Europe/Oslo'), 'nations-league', $operation, $limit, $useRollingSevenDayPeriod,
+            now('Europe/Oslo'), 'nations-league', $operation, $limit, $useRollingSevenDayPeriod, $prison,
         );
     }
 

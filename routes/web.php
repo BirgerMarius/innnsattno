@@ -216,6 +216,27 @@ Route::get('/premier-league/lag/{teamId}', [PremierLeagueController::class, 'tea
 Route::get('/premier-league/lag/{teamId}/utskrift', [PremierLeagueController::class, 'teamPrint'])->whereNumber('teamId')->middleware('throttle:football-team-pages')->name('premier-league.team.print');
 Route::get('/premier-league/test', [PremierLeagueController::class, 'test']);
 
+Route::prefix('{prison}')->where(['prison' => 'ringerike|ilseng|kongsvinger'])->name('prison.')->group(function () {
+    Route::get('/premier-league', [PremierLeagueController::class, 'index'])->name('premier-league.index');
+    Route::get('/premier-league/utskrift', [PremierLeagueController::class, 'print'])->name('premier-league.print');
+    Route::get('/premier-league/lag/{teamId}', [PremierLeagueController::class, 'team'])->whereNumber('teamId')->name('premier-league.team');
+    Route::get('/premier-league/lag/{teamId}/utskrift', [PremierLeagueController::class, 'teamPrint'])->whereNumber('teamId')->name('premier-league.team.print');
+    Route::get('/eliteserien', [EliteserienController::class, 'index'])->name('eliteserien.index');
+    Route::get('/eliteserien/utskrift', [EliteserienController::class, 'print'])->name('eliteserien.print');
+    Route::get('/eliteserien/lag/{teamId}', [EliteserienController::class, 'team'])->whereNumber('teamId')->name('eliteserien.team');
+    Route::get('/eliteserien/lag/{teamId}/utskrift', [EliteserienController::class, 'teamPrint'])->whereNumber('teamId')->name('eliteserien.team.print');
+    foreach (['champions-league' => ChampionsLeagueController::class, 'europa-league' => EuropaLeagueController::class, 'conference-league' => ConferenceLeagueController::class] as $path => $controller) {
+        Route::get('/'.$path, [$controller, 'index'])->name($path.'.index');
+        Route::get('/'.$path.'/print', [$controller, 'print'])->name($path.'.print');
+        Route::get('/'.$path.'/lag/{teamId}', [$controller, 'team'])->whereNumber('teamId')->name($path.'.team');
+        Route::get('/'.$path.'/lag/{teamId}/print', [$controller, 'teamPrint'])->whereNumber('teamId')->name($path.'.team.print');
+    }
+    Route::get('/nations-league', [NationsLeagueController::class, 'index'])->name('nations-league.index');
+    Route::get('/nations-league/utskrift', [NationsLeagueController::class, 'print'])->name('nations-league.print');
+    Route::get('/nations-league/lag/{teamId}', [NationsLeagueController::class, 'team'])->whereNumber('teamId')->name('nations-league.team');
+    Route::get('/nations-league/lag/{teamId}/utskrift', [NationsLeagueController::class, 'teamPrint'])->whereNumber('teamId')->name('nations-league.team.print');
+});
+
 Route::get('/bonnetider', [PrayerController::class, 'ringerike'])->middleware('throttle:prayer-pages');
 Route::get('/bonnetider/utskrift', [PrayerController::class, 'printRingerike'])->middleware('throttle:prayer-print-pages');
 

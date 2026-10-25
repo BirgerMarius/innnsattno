@@ -7,7 +7,7 @@
     @include('partials.header')
 
     <main class="football-team-shell">
-        <a class="football-team-back" href="{{ route($backRoute) }}">← Tilbake til {{ $leagueName }}</a>
+        <a class="football-team-back" href="{{ $backUrl }}">← Tilbake til {{ $leagueName }}</a>
         <header class="football-team-header">
             @if($team['emblemUrl'])
                 <img class="football-team-emblem" src="{{ $team['emblemUrl'] }}" alt="" onerror="this.remove()">
@@ -17,7 +17,7 @@
                 <p>{{ $leagueName }}@if($seasonName) · {{ $seasonName }}@endif</p>
                 <p class="football-team-subtitle">Alle seriekamper</p>
             </div>
-            <a href="{{ route($printRoute, $team['teamId']) }}" class="btn btn-success football-team-print"><i class="far fa-print" aria-hidden="true"></i> Skriv ut kampoversikt</a>
+            <a href="{{ $printUrl }}" class="btn btn-success football-team-print"><i class="far fa-print" aria-hidden="true"></i> Skriv ut kampoversikt</a>
         </header>
 
         @if($apiError)

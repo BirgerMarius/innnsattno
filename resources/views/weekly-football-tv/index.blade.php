@@ -17,22 +17,12 @@
             <h1>{{ $weekOffset ? 'Neste ukes' : 'Denne ukens' }} TV-sendte fotballkamper</h1>
             <p>Uke {{ $weeklyFootball['weekStart']->isoWeek }} · {{ $weeklyFootball['weekStart']->locale('nb')->translatedFormat('j. F') }}–{{ $weeklyFootball['weekEnd']->locale('nb')->translatedFormat('j. F Y') }}</p>
         </div>
-        <a class="btn btn-success" href="/{{ $prison }}/ukens-fotball-pa-tv/utskrift?{{ http_build_query(['uke' => $weekOffset ? 'neste' : 'denne']) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut plakat</a>
+        <a class="btn btn-success" href="{{ route('prison.weekly-football-tv.print', ['prison' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne']) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut plakat</a>
     </header>
 
-    <form class="weekly-football-selector" method="get" action="{{ route('weekly-football-tv.index') }}">
-        <label for="fengsel">Kanalutvalg</label>
-        <select id="fengsel" name="fengsel" onchange="this.form.submit()">
-            <option value="ringerike" @selected($prison === 'ringerike')>Ringerike fengsel</option>
-            <option value="ilseng" @selected($prison === 'ilseng')>Ilseng fengsel</option>
-            <option value="kongsvinger" @selected($prison === 'kongsvinger')>Kongsvinger fengsel</option>
-        </select>
-        <button class="btn btn-outline-secondary btn-sm" type="submit">Vis</button>
-    </form>
-
     <nav class="weekly-football-week-tabs" aria-label="Velg uke">
-        <a class="{{ $weekOffset === 0 ? 'active' : '' }}" href="{{ route('weekly-football-tv.index', ['fengsel' => $prison]) }}">Denne uken</a>
-        <a class="{{ $weekOffset === 1 ? 'active' : '' }}" href="{{ route('weekly-football-tv.index', ['fengsel' => $prison, 'uke' => 'neste']) }}">Neste uke</a>
+        <a class="{{ $weekOffset === 0 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison]) }}">Denne uken</a>
+        <a class="{{ $weekOffset === 1 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'uke' => 'neste']) }}">Neste uke</a>
     </nav>
 
     @if($weeklyFootball['tvPending'] ?? false)
