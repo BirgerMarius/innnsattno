@@ -154,7 +154,7 @@
                         <p class="pl-muted mb-0">Sist oppdatert: {{ $lastUpdated->format('d.m.Y H:i') }}</p>
                     @endif
                 </div>
-                <a href="{{ route('premier-league.print') }}" class="btn btn-success mt-2 mt-md-0">
+                <a href="/{{ $prison }}/premier-league/utskrift" class="btn btn-success mt-2 mt-md-0">
                     <i class="far fa-print" aria-hidden="true"></i> Skriv ut ukeoversikt
                 </a>
             </div>
@@ -176,7 +176,7 @@
 
         <section class="pl-section p-3 p-md-4 mb-3" aria-labelledby="pl-tv3-plus-heading">
             <h2 id="pl-tv3-plus-heading" class="h4 mb-3">Direktesendt Premier League på TV</h2>
-            <p class="pl-tv3-plus-note mt-n2 mb-3">Kanalutvalg: Ringerike fengsel</p>
+            <p class="pl-tv3-plus-note mt-n2 mb-3">Kanalutvalg: {{ $tv3Plus['channelSelection'] }}</p>
             @if(count($tv3Plus['matches']))
                 <div class="pl-tv3-plus-list">
                     @foreach($tv3Plus['matches'] as $match)
@@ -228,7 +228,7 @@
                                             @if(!empty($team['emblemUrl']))
                                                 <img class="pl-emblem" src="{{ $team['emblemUrl'] }}" alt="" onerror="this.remove()">
                                             @endif
-                                            <a class="pl-team-link" href="{{ route('premier-league.team', $team['teamId']) }}">{{ $team['teamName'] }}</a>
+                                            <a class="pl-team-link" href="/{{ $prison }}/premier-league/lag/{{ $team['teamId'] }}">{{ $team['teamName'] }}</a>
                                         </span>
                                     </td>
                                     <td class="text-center">{{ $team['played'] ?? '-' }}</td>

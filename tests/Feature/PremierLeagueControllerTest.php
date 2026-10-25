@@ -74,6 +74,33 @@ class PremierLeagueControllerTest extends TestCase
         Carbon::setTestNow();
     }
 
+    /** @test */
+    public function ilseng_url_uses_its_own_tv_cache_and_ignores_a_conflicting_query_parameter(): void
+    {
+        Cache::flush();
+        Carbon::setTestNow(Carbon::parse('2026-09-10 10:00:00', 'Europe/Oslo'));
+        $listing = [[
+            'title' => ['type' => 'sportsTitle', 'title' => 'Premier League'],
+            'sportsEvent' => ['id' => 99, 'name' => 'Bare Ringerike - Ikke Ilseng'],
+            'startsAt' => '2026-09-10T18:00:00Z', 'isLive' => true, 'isRerun' => false,
+        ]];
+        Http::fake(function ($request) use ($listing) {
+            if (str_contains($request->url(), 'tvguide.vg.no')) {
+                parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+                return Http::response([['channel' => ['name' => 'Viasat Explore'], 'listings' => str_contains($query['channels'] ?? '', 'viasat-explore') ? $listing : []]]);
+            }
+            return Http::response([], 200);
+        });
+        $this->warmTv(now('Europe/Oslo'), 7, 'ringerike');
+        $this->warmTv(now('Europe/Oslo'), 7, 'ilseng');
+
+        $this->get('/ringerike/premier-league')->assertOk()->assertSee('Bare Ringerike – Ikke Ilseng')->assertSee('Kanalutvalg: Ringerike fengsel');
+        $this->get('/ilseng/premier-league?fengsel=ringerike')->assertOk()
+            ->assertDontSee('Bare Ringerike – Ikke Ilseng')
+            ->assertSee('Kanalutvalg: Ilseng fengsel');
+        Carbon::setTestNow();
+    }
+
     private function schedulePayload(): array
     {
         $participants = [];

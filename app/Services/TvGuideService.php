@@ -273,7 +273,7 @@ class TvGuideService
             ->map(fn (int $offset) => $periodStart->copy()->addDays($offset)->startOfDay())
             ->all();
         $channels = self::channelsForPrison($prison);
-        if ($channels === []) return ['competitionLabel' => $definition['label'], 'matches' => [], 'hasSourceFailure' => false, 'usingStaleData' => false, 'missingMatchNames' => 0, 'excludedNonMatchProgrammes' => 0, 'periodEnd' => $end, 'tvPending' => true];
+        if ($channels === []) return ['competitionLabel' => $definition['label'], 'channelSelection' => 'Kongsvinger fengsel – under klargjøring', 'matches' => [], 'hasSourceFailure' => false, 'usingStaleData' => false, 'missingMatchNames' => 0, 'excludedNonMatchProgrammes' => 0, 'periodEnd' => $end, 'tvPending' => true];
         $schedules = [];
         $hasSourceFailure = false;
         $usingStaleData = false;
@@ -333,6 +333,7 @@ class TvGuideService
         return [
             'competitionLabel' => $definition['label'],
             'matches' => $limit > 0 ? array_slice(array_values($matches), 0, $limit) : array_values($matches),
+            'channelSelection' => config("prisons.all.{$prison}.name", 'Ukjent fengsel'),
             'hasSourceFailure' => $hasSourceFailure,
             'usingStaleData' => $usingStaleData,
             'missingMatchNames' => $missingMatchNames,
@@ -342,9 +343,9 @@ class TvGuideService
     }
 
     /** Backwards-compatible entry point used by the existing Premier League pages. */
-    public function getUpcomingPremierLeagueOnTv3Plus(CarbonInterface $now, string $operation, int $limit): array
+    public function getUpcomingPremierLeagueOnTv3Plus(CarbonInterface $now, string $operation, int $limit, bool $useRollingSevenDayPeriod = false, string $prison = 'ringerike'): array
     {
-        return $this->getUpcomingCompetitionMatches($now, 'premier-league', $operation, $limit);
+        return $this->getUpcomingCompetitionMatches($now, 'premier-league', $operation, $limit, $useRollingSevenDayPeriod, $prison);
     }
 
     /**
