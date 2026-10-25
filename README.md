@@ -29,6 +29,12 @@ Vanlig testkommando:
 php artisan test
 ```
 
+## Felles header
+
+Den delte headeren har en dekorativ analog klokke med digital visning. Den bruker
+nettleserens innebygde tidssonehåndtering for `Europe/Oslo`, oppdateres fra
+faktisk klokkeslett og er skjult på smale skjermer og ved utskrift.
+
 ### Temaminiatyrer i admin
 
 `public/img/theme-previews/` inneholder statiske, beskårne bilder av den øvre delen av hver temaforhåndsvisning. De brukes på adminoversikten og blir ikke laget når siden åpnes. Oppdater dem etter endringer i forsiden eller temadesignet ved å starte lokalappen og kjøre `scripts/generate_theme_previews.cjs` med Playwright i en midlertidig container. Eksempel med den lokale Compose-nettverksnavnet:

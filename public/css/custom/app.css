@@ -291,10 +291,49 @@
    Header
 ======================================== */
 
+.site-header__brand-row {
+    align-items: start;
+    display: grid;
+    grid-template-columns: minmax(5.25rem, 1fr) minmax(0, 700px) minmax(5.25rem, 1fr);
+}
+.site-header__logo-link { grid-column: 2; min-width: 0; }
 .site-logo {
     display: block;
     width: 100%;
     height: auto;
+}
+.oslo-clock {
+    align-items: center;
+    align-self: center;
+    color: #173f72;
+    display: inline-flex;
+    flex-direction: column;
+    gap: .12rem;
+    grid-column: 1;
+    justify-self: start;
+    margin-bottom: .75rem;
+    text-shadow: 0 1px 1px rgba(23, 63, 114, .12);
+}
+.oslo-clock__face { filter: drop-shadow(0 2px 2px rgba(23, 63, 114, .18)); height: 4.15rem; overflow: visible; width: 4.15rem; }
+.oslo-clock__rim { fill: #eaf2f8; stroke: #173f72; stroke-width: 2; }
+.oslo-clock__dial { fill: #fff; stroke: #b8c9d8; stroke-width: 1; }
+.oslo-clock__markers { fill: none; stroke: #5c7187; stroke-linecap: round; stroke-width: 1.8; }
+.oslo-clock__hand { stroke: currentColor; stroke-linecap: round; transform: rotate(var(--clock-angle, 0deg)); transform-origin: 40px 40px; }
+.oslo-clock__hand--hour { stroke-width: 3.5; }
+.oslo-clock__hand--minute { stroke-width: 2.5; }
+.oslo-clock__hand--second { stroke: #b04a45; stroke-width: 1.15; }
+.oslo-clock__pin { fill: #173f72; stroke: #fff; stroke-width: 1; }
+.oslo-clock__digital { color: #173f72; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .73rem; font-weight: 700; letter-spacing: .04em; line-height: 1; }
+@media (max-width: 767.98px) {
+    .site-header__brand-row { grid-template-columns: minmax(0, 700px); justify-content: center; }
+    .site-header__logo-link { grid-column: 1; }
+    .oslo-clock { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .oslo-clock__hand--second { display: none; }
+}
+@media print {
+    .oslo-clock { display: none !important; }
 }
 
 .front-page-btn {
@@ -2200,13 +2239,8 @@
 
 /* Automatic clock-change reminder on the front page. */
 .site-header--clock-change {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 19rem;
-    align-items: center;
-    gap: 1.5rem;
     margin-bottom: 1rem;
 }
-.site-header--clock-change > a { min-width: 0; }
 .clock-change-reminder {
     display: flex;
     align-items: center;
@@ -2235,7 +2269,6 @@
 @keyframes clock-change-hour { from { transform: rotate(0deg); } to { transform: rotate(30deg); } }
 @keyframes clock-change-hour-back { from { transform: rotate(0deg); } to { transform: rotate(-30deg); } }
 @media (max-width: 991.98px) {
-    .site-header--clock-change { grid-template-columns: minmax(0, 1fr); gap: .5rem; }
     .clock-change-reminder { width: 100%; max-width: 32rem; margin: 0 auto; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2243,5 +2276,4 @@
 }
 @media print {
     .clock-change-reminder { display: none; }
-    .site-header--clock-change { display: block; }
 }

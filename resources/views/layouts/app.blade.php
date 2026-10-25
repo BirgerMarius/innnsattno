@@ -66,6 +66,47 @@
             });
         })();
     </script>
+    <script>
+        (() => {
+            const clock = document.querySelector('[data-oslo-clock]');
+            if (!clock || !window.Intl) return;
+
+            const formatter = new Intl.DateTimeFormat('nb-NO', {
+                timeZone: 'Europe/Oslo',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hourCycle: 'h23',
+            });
+            const digital = clock.querySelector('[data-oslo-clock-digital]');
+            const hourHand = clock.querySelector('.oslo-clock__hand--hour');
+            const minuteHand = clock.querySelector('.oslo-clock__hand--minute');
+            const secondHand = clock.querySelector('.oslo-clock__hand--second');
+            let timer;
+
+            const update = () => {
+                const parts = Object.fromEntries(formatter.formatToParts(new Date())
+                    .filter(({ type }) => type !== 'literal')
+                    .map(({ type, value }) => [type, Number(value)]));
+                const hours = parts.hour;
+                const minutes = parts.minute;
+                const seconds = parts.second;
+
+                digital.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                hourHand.style.setProperty('--clock-angle', `${(hours % 12) * 30 + minutes * .5}deg`);
+                minuteHand.style.setProperty('--clock-angle', `${minutes * 6 + seconds * .1}deg`);
+                secondHand.style.setProperty('--clock-angle', `${seconds * 6}deg`);
+
+                window.clearTimeout(timer);
+                timer = window.setTimeout(update, 1025 - (Date.now() % 1000));
+            };
+
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) update();
+            });
+            update();
+        })();
+    </script>
    
     @stack('scripts')
 
