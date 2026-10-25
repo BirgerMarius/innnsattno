@@ -35,7 +35,7 @@ Den delte headeren har en dekorativ analog klokke med digital visning. Den bruke
 nettleserens innebygde tidssonehåndtering for `Europe/Oslo`, oppdateres fra
 faktisk klokkeslett og veksler mellom fire lokale design omtrent hvert 30. sekund.
 Den er skjult på smale skjermer og ved utskrift; redusert bevegelse bruker ett
-fast design uten overgang.
+designbytte uten overgang, mens sekundviseren er skjult.
 
 ### Temaminiatyrer i admin
 

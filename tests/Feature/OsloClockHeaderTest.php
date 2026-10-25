@@ -27,7 +27,9 @@ class OsloClockHeaderTest extends TestCase
         $this->assertStringContainsString("document.addEventListener('visibilitychange'", $layout);
         $this->assertStringContainsString("['station', 'midnight', 'metal', 'retro']", $layout);
         $this->assertStringContainsString('30025 - (Date.now() % 30000)', $layout);
+        $this->assertStringNotContainsString('reducedMotion ? designs[0]', $layout);
         $this->assertStringContainsString('[data-clock-design="retro"]', $styles);
+        $this->assertStringContainsString('.oslo-clock__hand--second { display: none; }', $styles);
         $this->assertStringContainsString('.oslo-clock { display: none !important; }', $styles);
     }
 }

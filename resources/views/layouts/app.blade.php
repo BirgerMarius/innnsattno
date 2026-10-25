@@ -85,12 +85,11 @@
             let timer;
             let designTimer;
             const designs = ['station', 'midnight', 'metal', 'retro'];
-            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
             const updateDesign = () => {
-                clock.dataset.clockDesign = reducedMotion ? designs[0] : designs[Math.floor(Date.now() / 30000) % designs.length];
+                clock.dataset.clockDesign = designs[Math.floor(Date.now() / 30000) % designs.length];
                 window.clearTimeout(designTimer);
-                if (!reducedMotion) designTimer = window.setTimeout(updateDesign, 30025 - (Date.now() % 30000));
+                designTimer = window.setTimeout(updateDesign, 30025 - (Date.now() % 30000));
             };
 
             const update = () => {
