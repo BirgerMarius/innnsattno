@@ -83,6 +83,15 @@
             const minuteHand = clock.querySelector('.oslo-clock__hand--minute');
             const secondHand = clock.querySelector('.oslo-clock__hand--second');
             let timer;
+            let designTimer;
+            const designs = ['station', 'midnight', 'metal', 'retro'];
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            const updateDesign = () => {
+                clock.dataset.clockDesign = reducedMotion ? designs[0] : designs[Math.floor(Date.now() / 30000) % designs.length];
+                window.clearTimeout(designTimer);
+                if (!reducedMotion) designTimer = window.setTimeout(updateDesign, 30025 - (Date.now() % 30000));
+            };
 
             const update = () => {
                 const parts = Object.fromEntries(formatter.formatToParts(new Date())
@@ -102,9 +111,13 @@
             };
 
             document.addEventListener('visibilitychange', () => {
-                if (!document.hidden) update();
+                if (!document.hidden) {
+                    update();
+                    updateDesign();
+                }
             });
             update();
+            updateDesign();
         })();
     </script>
    

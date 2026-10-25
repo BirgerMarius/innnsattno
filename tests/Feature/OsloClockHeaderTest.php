@@ -13,6 +13,7 @@ class OsloClockHeaderTest extends TestCase
         $this->assertStringContainsString('data-oslo-clock', $header);
         $this->assertStringContainsString('aria-hidden="true"', $header);
         $this->assertStringContainsString('site-header__brand-row', $header);
+        $this->assertStringContainsString('site-header__reminder-slot', view('partials.header', ['clockChangeReminder' => ['forward' => true, 'title' => 'Test', 'message' => 'Test', 'time' => '02:00 → 03:00', 'season' => 'sommertid']])->render());
         $this->assertStringContainsString('aria-label="Gå til forsiden"', $header);
         $this->assertStringContainsString('class="site-logo"', $header);
     }
@@ -24,6 +25,9 @@ class OsloClockHeaderTest extends TestCase
 
         $this->assertStringContainsString("timeZone: 'Europe/Oslo'", $layout);
         $this->assertStringContainsString("document.addEventListener('visibilitychange'", $layout);
+        $this->assertStringContainsString("['station', 'midnight', 'metal', 'retro']", $layout);
+        $this->assertStringContainsString('30025 - (Date.now() % 30000)', $layout);
+        $this->assertStringContainsString('[data-clock-design="retro"]', $styles);
         $this->assertStringContainsString('.oslo-clock { display: none !important; }', $styles);
     }
 }

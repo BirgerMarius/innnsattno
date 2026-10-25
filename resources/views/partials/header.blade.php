@@ -8,9 +8,11 @@
                 alt="INNSATT.NO"
                 class="site-logo">
         </a>
-    </div>
 
-    @if (!empty($clockChangeReminder))
-        @include('partials.clock-change-reminder')
-    @endif
+        @if (!empty($clockChangeReminder))
+            <div class="site-header__reminder-slot">
+                @include('partials.clock-change-reminder', ['compact' => true])
+            </div>
+        @endif
+    </div>
 </div>

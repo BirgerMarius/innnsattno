@@ -297,39 +297,72 @@
     grid-template-columns: minmax(5.25rem, 1fr) minmax(0, 700px) minmax(5.25rem, 1fr);
 }
 .site-header__logo-link { grid-column: 2; min-width: 0; }
+.site-header__reminder-slot { align-self: center; grid-column: 3; justify-self: center; max-width: 100%; min-width: 0; width: 17rem; }
 .site-logo {
     display: block;
     width: 100%;
     height: auto;
 }
 .oslo-clock {
+    --clock-accent: #b04a45;
+    --clock-dial: #fff;
+    --clock-hand: #173f72;
+    --clock-marker: #5c7187;
+    --clock-pin: #173f72;
+    --clock-rim: #eaf2f8;
+    --clock-rim-stroke: #173f72;
     align-items: center;
     align-self: center;
-    color: #173f72;
+    color: var(--clock-hand);
     display: inline-flex;
     flex-direction: column;
     gap: .12rem;
     grid-column: 1;
-    justify-self: start;
+    justify-self: center;
     margin-bottom: .75rem;
     text-shadow: 0 1px 1px rgba(23, 63, 114, .12);
 }
-.oslo-clock__face { filter: drop-shadow(0 2px 2px rgba(23, 63, 114, .18)); height: 4.15rem; overflow: visible; width: 4.15rem; }
-.oslo-clock__rim { fill: #eaf2f8; stroke: #173f72; stroke-width: 2; }
-.oslo-clock__dial { fill: #fff; stroke: #b8c9d8; stroke-width: 1; }
-.oslo-clock__markers { fill: none; stroke: #5c7187; stroke-linecap: round; stroke-width: 1.8; }
+.oslo-clock__face { filter: drop-shadow(0 2px 2px rgba(23, 63, 114, .18)); height: 4.15rem; overflow: visible; transition: filter .3s ease; width: 4.15rem; }
+.oslo-clock__bezel { fill: transparent; stroke: transparent; stroke-width: 1.4; transition: fill .3s ease, stroke .3s ease; }
+.oslo-clock__rim { fill: var(--clock-rim); stroke: var(--clock-rim-stroke); stroke-width: 2; transition: fill .3s ease, stroke .3s ease; }
+.oslo-clock__dial { fill: var(--clock-dial); stroke: var(--clock-rim-stroke); stroke-opacity: .28; stroke-width: 1; transition: fill .3s ease, stroke .3s ease; }
+.oslo-clock__inner-ring { fill: none; opacity: 0; stroke: currentColor; stroke-width: .65; transition: opacity .3s ease; }
+.oslo-clock__markers { fill: none; stroke: var(--clock-marker); stroke-linecap: round; stroke-width: 1.8; transition: stroke .3s ease; }
+.oslo-clock__numerals { fill: var(--clock-marker); font-family: Georgia, serif; font-size: 7px; font-weight: 700; text-anchor: middle; transition: fill .3s ease; }
 .oslo-clock__hand { stroke: currentColor; stroke-linecap: round; transform: rotate(var(--clock-angle, 0deg)); transform-origin: 40px 40px; }
 .oslo-clock__hand--hour { stroke-width: 3.5; }
 .oslo-clock__hand--minute { stroke-width: 2.5; }
-.oslo-clock__hand--second { stroke: #b04a45; stroke-width: 1.15; }
-.oslo-clock__pin { fill: #173f72; stroke: #fff; stroke-width: 1; }
-.oslo-clock__digital { color: #173f72; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .73rem; font-weight: 700; letter-spacing: .04em; line-height: 1; }
+.oslo-clock__hand--second { stroke: var(--clock-accent); stroke-width: 1.15; transition: stroke .3s ease; }
+.oslo-clock__pin { fill: var(--clock-pin); stroke: var(--clock-dial); stroke-width: 1; transition: fill .3s ease, stroke .3s ease; }
+.oslo-clock__digital { color: var(--clock-hand); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .73rem; font-weight: 700; letter-spacing: .04em; line-height: 1; transition: color .3s ease; }
+.oslo-clock[data-clock-design="station"] { --clock-accent: #c73d3d; --clock-dial: #fffdf7; --clock-hand: #142a42; --clock-marker: #24384d; --clock-pin: #c73d3d; --clock-rim: #f8fafc; --clock-rim-stroke: #142a42; }
+.oslo-clock[data-clock-design="station"] .oslo-clock__numerals { display: none; }
+.oslo-clock[data-clock-design="midnight"] { --clock-accent: #f4aa3b; --clock-dial: #10253d; --clock-hand: #e8f3ff; --clock-marker: #9bd0e5; --clock-pin: #f4aa3b; --clock-rim: #183c5b; --clock-rim-stroke: #9bd0e5; }
+.oslo-clock[data-clock-design="midnight"] .oslo-clock__bezel { fill: #0c1b2c; stroke: #7bb5d1; }
+.oslo-clock[data-clock-design="midnight"] .oslo-clock__inner-ring { opacity: .6; }
+.oslo-clock[data-clock-design="midnight"] .oslo-clock__numerals { font-family: ui-monospace, monospace; font-size: 6px; }
+.oslo-clock[data-clock-design="metal"] { --clock-accent: #9b4338; --clock-dial: #f4f7f8; --clock-hand: #263442; --clock-marker: #526576; --clock-pin: #9b4338; --clock-rim: url(#oslo-clock-metal); --clock-rim-stroke: #67798a; }
+.oslo-clock[data-clock-design="metal"] .oslo-clock__bezel { fill: url(#oslo-clock-metal); stroke: #718293; }
+.oslo-clock[data-clock-design="metal"] .oslo-clock__inner-ring { opacity: .38; }
+.oslo-clock[data-clock-design="retro"] { --clock-accent: #c45c2c; --clock-dial: #f8e7bd; --clock-hand: #5a3425; --clock-marker: #84533b; --clock-pin: #c45c2c; --clock-rim: #d39b5a; --clock-rim-stroke: #5a3425; }
+.oslo-clock[data-clock-design="retro"] .oslo-clock__bezel { fill: #7f4d32; stroke: #4b2b20; }
+.oslo-clock[data-clock-design="retro"] .oslo-clock__inner-ring { opacity: .45; }
+.oslo-clock[data-clock-design="retro"] .oslo-clock__hand--hour { stroke-width: 4; }
+@media (min-width: 1200px) {
+    .site-header--clock-change .clock-change-reminder { margin: 0; width: 100%; }
+}
+@media (max-width: 1199.98px) {
+    .site-header--clock-change .site-header__brand-row { row-gap: .5rem; }
+    .site-header__reminder-slot { grid-column: 1 / -1; grid-row: 2; width: min(32rem, 100%); }
+}
 @media (max-width: 767.98px) {
     .site-header__brand-row { grid-template-columns: minmax(0, 700px); justify-content: center; }
     .site-header__logo-link { grid-column: 1; }
+    .site-header__reminder-slot { grid-column: 1; }
     .oslo-clock { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
+    .oslo-clock__face, .oslo-clock__bezel, .oslo-clock__rim, .oslo-clock__dial, .oslo-clock__inner-ring, .oslo-clock__markers, .oslo-clock__numerals, .oslo-clock__hand--second, .oslo-clock__pin, .oslo-clock__digital { transition: none; }
     .oslo-clock__hand--second { display: none; }
 }
 @media print {
@@ -2276,4 +2309,13 @@
 }
 @media print {
     .clock-change-reminder { display: none; }
+}
+
+/* The header uses the compact reminder at desktop widths so it fits beside the logo. */
+@media (min-width: 1200px) {
+    .site-header__reminder-slot .clock-change-reminder--compact { gap: .55rem; padding: .55rem .65rem; font-size: .78rem; }
+    .site-header__reminder-slot .clock-change-reminder__clock { flex-basis: 34px; height: 34px; width: 34px; }
+    .site-header__reminder-slot .clock-change-reminder__title { font-size: .88rem; }
+    .site-header__reminder-slot .clock-change-reminder p { margin: .1rem 0; }
+    .site-header__reminder-slot .clock-change-reminder span { font-size: .74rem; }
 }

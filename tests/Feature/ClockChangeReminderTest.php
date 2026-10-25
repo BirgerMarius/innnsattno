@@ -30,6 +30,17 @@ class ClockChangeReminderTest extends TestCase
         $this->get(route('tv'))->assertOk()->assertDontSee('Husk å stille klokken');
     }
 
+    public function testHomepageKeepsTheForwardClockChangeReminderInTheSharedHeader(): void
+    {
+        Http::fake();
+        $this->travelTo(CarbonImmutable::parse('2027-03-27 12:00:00', 'Europe/Oslo'));
+
+        $this->get(route('tv'))->assertOk()
+            ->assertSee('Husk å stille klokken frem')
+            ->assertSee('02:00 → 03:00')
+            ->assertSee('site-header__reminder-slot', false);
+    }
+
     public function testSharedHeaderWorksWithoutReminderData(): void
     {
         $this->assertStringNotContainsString('clock-change-reminder', view('partials.header')->render());
