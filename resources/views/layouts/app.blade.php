@@ -68,6 +68,53 @@
     </script>
     <script>
         (() => {
+            const slot = document.querySelector('[data-header-message]');
+            if (!slot || !window.Intl || !window.fetch) return;
+
+            const osloTime = new Intl.DateTimeFormat('en-GB', {
+                timeZone: 'Europe/Oslo', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
+            });
+            let timer;
+
+            const refresh = async () => {
+                try {
+                    const response = await fetch('{{ route('header-message.show') }}', { cache: 'no-store', headers: { Accept: 'application/json' } });
+                    if (!response.ok) return;
+                    const message = await response.json();
+                    if (typeof message.html === 'string') {
+                        slot.innerHTML = message.html;
+                        const printLink = slot.querySelector('[data-daily-word-print]');
+                        if (printLink) {
+                            const url = new URL(printLink.href, window.location.href);
+                            url.searchParams.set('return_to', window.location.pathname + window.location.search + window.location.hash);
+                            printLink.href = url.pathname + url.search + url.hash;
+                        }
+                    }
+                } catch (_) {
+                    // The current message remains visible when the connection is unavailable.
+                }
+            };
+
+            const scheduleMidnightRefresh = () => {
+                const parts = Object.fromEntries(osloTime.formatToParts(new Date())
+                    .filter(({ type }) => type !== 'literal')
+                    .map(({ type, value }) => [type, Number(value)]));
+                const milliseconds = ((23 - parts.hour) * 3600 + (59 - parts.minute) * 60 + (60 - parts.second)) * 1000 + 250;
+                window.clearTimeout(timer);
+                timer = window.setTimeout(async () => {
+                    await refresh();
+                    scheduleMidnightRefresh();
+                }, milliseconds);
+            };
+
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) refresh();
+            });
+            scheduleMidnightRefresh();
+        })();
+    </script>
+    <script>
+        (() => {
             const clock = document.querySelector('[data-oslo-clock]');
             if (!clock || !window.Intl) return;
 

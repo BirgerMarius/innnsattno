@@ -23,11 +23,13 @@ class ClockChangeReminderTest extends TestCase
             $this->get(route('tv'))->assertOk()
                 ->assertSee('Husk å stille klokken tilbake')
                 ->assertSee('03:00 → 02:00')
-                ->assertSee('site-header--clock-change', false);
+                ->assertSee('site-header--has-message', false);
         }
 
         $this->travelTo(CarbonImmutable::parse('2026-10-26 00:00:00', 'Europe/Oslo'));
-        $this->get(route('tv'))->assertOk()->assertDontSee('Husk å stille klokken');
+        $this->get(route('tv'))->assertOk()
+            ->assertDontSee('Husk å stille klokken')
+            ->assertSee('Dagens ord');
     }
 
     public function testHomepageKeepsTheForwardClockChangeReminderInTheSharedHeader(): void
@@ -38,11 +40,29 @@ class ClockChangeReminderTest extends TestCase
         $this->get(route('tv'))->assertOk()
             ->assertSee('Husk å stille klokken frem')
             ->assertSee('02:00 → 03:00')
-            ->assertSee('site-header__reminder-slot', false);
+            ->assertSee('site-header__message-slot', false);
     }
 
-    public function testSharedHeaderWorksWithoutReminderData(): void
+    public function testSharedHeaderFallsBackToDailyWordWithoutReminderData(): void
     {
-        $this->assertStringNotContainsString('clock-change-reminder', view('partials.header')->render());
+        $this->travelTo(CarbonImmutable::parse('2026-10-26 12:00:00', 'Europe/Oslo'));
+        $header = view('partials.header')->render();
+
+        $this->assertStringNotContainsString('clock-change-reminder', $header);
+        $this->assertStringContainsString('Dagens ord', $header);
+        $this->assertStringContainsString('data-daily-word-print', $header);
+    }
+
+    public function testHeaderMessageEndpointUsesTheSameClockPriorityAsTheHeader(): void
+    {
+        $this->travelTo(CarbonImmutable::parse('2026-10-25 12:00:00', 'Europe/Oslo'));
+        $this->get(route('header-message.show'))
+            ->assertOk()
+            ->assertJsonPath('html', fn (string $html) => str_contains($html, 'Husk å stille klokken tilbake'));
+
+        $this->travelTo(CarbonImmutable::parse('2026-10-26 12:00:00', 'Europe/Oslo'));
+        $this->get(route('header-message.show'))
+            ->assertOk()
+            ->assertJsonPath('html', fn (string $html) => str_contains($html, 'Dagens ord'));
     }
 }

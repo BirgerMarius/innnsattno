@@ -297,7 +297,7 @@
     grid-template-columns: minmax(5.25rem, 1fr) minmax(0, 700px) minmax(5.25rem, 1fr);
 }
 .site-header__logo-link { grid-column: 2; min-width: 0; }
-.site-header__reminder-slot { align-self: center; grid-column: 3; justify-self: center; max-width: 100%; min-width: 0; width: 17rem; }
+.site-header__message-slot { align-self: center; grid-column: 3; justify-self: center; max-width: 100%; min-width: 0; width: 17rem; }
 .site-logo {
     display: block;
     width: 100%;
@@ -349,16 +349,16 @@
 .oslo-clock[data-clock-design="retro"] .oslo-clock__inner-ring { opacity: .45; }
 .oslo-clock[data-clock-design="retro"] .oslo-clock__hand--hour { stroke-width: 4; }
 @media (min-width: 1200px) {
-    .site-header--clock-change .clock-change-reminder { margin: 0; width: 100%; }
+    .site-header--has-message .clock-change-reminder, .site-header--has-message .daily-word { margin: 0; width: 100%; }
 }
 @media (max-width: 1199.98px) {
-    .site-header--clock-change .site-header__brand-row { row-gap: .5rem; }
-    .site-header__reminder-slot { grid-column: 1 / -1; grid-row: 2; width: min(32rem, 100%); }
+    .site-header--has-message .site-header__brand-row { row-gap: .5rem; }
+    .site-header__message-slot { grid-column: 1 / -1; grid-row: 2; width: min(32rem, 100%); }
 }
 @media (max-width: 767.98px) {
     .site-header__brand-row { grid-template-columns: minmax(0, 700px); justify-content: center; }
     .site-header__logo-link { grid-column: 1; }
-    .site-header__reminder-slot { grid-column: 1; }
+    .site-header__message-slot { grid-column: 1; }
     .oslo-clock { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -2271,7 +2271,7 @@
 }
 
 /* Automatic clock-change reminder on the front page. */
-.site-header--clock-change {
+.site-header--has-message {
     margin-bottom: 1rem;
 }
 .clock-change-reminder {
@@ -2299,23 +2299,57 @@
 }
 .clock-change-reminder__hour { animation: clock-change-hour 2.5s ease-in-out 2 forwards; }
 .clock-change-reminder__clock--back .clock-change-reminder__hour { animation-name: clock-change-hour-back; }
+.daily-word {
+    display: block;
+    border: 1px solid #c8d9cf;
+    border-radius: .75rem;
+    background: #f3f8f4;
+    color: #234633;
+    font-size: .92rem;
+    line-height: 1.45;
+    padding: .75rem .85rem;
+    text-align: left;
+    text-decoration: none;
+}
+.daily-word:hover, .daily-word:focus-visible { color: #234633; text-decoration: none; }
+.daily-word:focus-visible { outline: 3px solid #173f72; outline-offset: 3px; }
+.daily-word__title, .daily-word__text, .daily-word__print-hint { display: block; }
+.daily-word__title { font-size: .88rem; letter-spacing: .01em; }
+.daily-word__text { margin-top: .2rem; }
+.daily-word__print-hint { font-size: .75rem; margin-top: .35rem; opacity: .75; }
 @keyframes clock-change-hour { from { transform: rotate(0deg); } to { transform: rotate(30deg); } }
 @keyframes clock-change-hour-back { from { transform: rotate(0deg); } to { transform: rotate(-30deg); } }
 @media (max-width: 991.98px) {
-    .clock-change-reminder { width: 100%; max-width: 32rem; margin: 0 auto; }
+    .clock-change-reminder, .daily-word { width: 100%; max-width: 32rem; margin: 0 auto; }
 }
 @media (prefers-reduced-motion: reduce) {
     .clock-change-reminder__hour { animation: none; }
 }
 @media print {
-    .clock-change-reminder { display: none; }
+    .clock-change-reminder, .daily-word, .daily-word-print-actions { display: none; }
 }
 
 /* The header uses the compact reminder at desktop widths so it fits beside the logo. */
 @media (min-width: 1200px) {
-    .site-header__reminder-slot .clock-change-reminder--compact { gap: .55rem; padding: .55rem .65rem; font-size: .78rem; }
-    .site-header__reminder-slot .clock-change-reminder__clock { flex-basis: 34px; height: 34px; width: 34px; }
-    .site-header__reminder-slot .clock-change-reminder__title { font-size: .88rem; }
-    .site-header__reminder-slot .clock-change-reminder p { margin: .1rem 0; }
-    .site-header__reminder-slot .clock-change-reminder span { font-size: .74rem; }
+    .site-header__message-slot .clock-change-reminder--compact { gap: .55rem; padding: .55rem .65rem; font-size: .78rem; }
+    .site-header__message-slot .clock-change-reminder__clock { flex-basis: 34px; height: 34px; width: 34px; }
+    .site-header__message-slot .clock-change-reminder__title { font-size: .88rem; }
+    .site-header__message-slot .clock-change-reminder p { margin: .1rem 0; }
+    .site-header__message-slot .clock-change-reminder span { font-size: .74rem; }
+    .site-header__message-slot .daily-word { font-size: .78rem; padding: .55rem .65rem; }
+    .site-header__message-slot .daily-word__title { font-size: .88rem; }
+}
+
+/* One-page printout for Dagens ord. */
+.daily-word-print-page { background: #f4f4f4; color: #111; font-family: Georgia, 'Times New Roman', serif; margin: 0; }
+.daily-word-print-actions { font-family: Arial, sans-serif; margin: 1rem; }
+.daily-word-print-actions button, .daily-word-print-actions a { color: #111; font: inherit; margin-right: .5rem; padding: .45rem .7rem; }
+.daily-word-print-sheet { align-items: center; background: #fff; border: 2px solid #222; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; margin: 1rem auto; min-height: calc(297mm - 2rem); padding: 25mm; position: relative; text-align: center; width: 210mm; }
+.daily-word-print-sheet::before { border: 1px solid #777; content: ''; inset: 8mm; pointer-events: none; position: absolute; }
+.daily-word-print-message { font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1.28; margin: 0; max-width: 130mm; position: relative; }
+.daily-word-print-sheet footer { bottom: 14mm; font-family: Arial, sans-serif; font-size: 10pt; letter-spacing: .08em; position: absolute; text-transform: lowercase; }
+@media print {
+    @page { size: A4 portrait; margin: 0; }
+    .daily-word-print-page { background: #fff; }
+    .daily-word-print-sheet { border: 0; height: 297mm; margin: 0; min-height: 297mm; width: 210mm; }
 }

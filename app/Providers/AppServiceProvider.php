@@ -6,6 +6,7 @@ use App\Services\FootballApi\Contracts\FootballProviderInterface;
 use App\Services\FootballApi\Providers\ApiFootballProvider;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
+use App\Services\HeaderMessageService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,6 +32,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        View::composer('partials.header', function ($view) {
+            $view->with('headerMessage', app(HeaderMessageService::class)->forDate());
+        });
+
         View::composer('*', function ($view) {
             $returnTo = request()->input('return_to');
 

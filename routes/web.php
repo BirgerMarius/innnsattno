@@ -28,6 +28,8 @@ use App\Http\Controllers\TodayController;
 use App\Http\Controllers\ChangeHistoryController;
 use App\Http\Controllers\LearningController;
 use App\Http\Controllers\FrontPageController;
+use App\Http\Controllers\HeaderMessageController;
+use App\Http\Controllers\DailyWordPrintController;
 use App\Http\Controllers\TvPrintController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\FangenyttController;
@@ -47,6 +49,8 @@ Route::get('/', function () {
 });
 
 Route::get('/tv', [FrontPageController::class, 'index'])->name('tv');
+Route::get('/header-message', [HeaderMessageController::class, 'show'])->name('header-message.show');
+Route::get('/dagens-ord/utskrift/{word}', [DailyWordPrintController::class, 'show'])->name('daily-word.print');
 Route::get('/podkast/betjenten-og-psyken/les-mer', function () {
     return redirect()->away('https://www.sykehuset-innlandet.no/podkast/betjenten-og-psyken/', 302)
         ->header('Cache-Control', 'no-store');

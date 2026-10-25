@@ -1,4 +1,4 @@
-<div class="container mt-4 site-header{{ !empty($clockChangeReminder) ? ' site-header--clock-change' : '' }}">
+<div class="container mt-4 site-header site-header--has-message">
     <div class="site-header__brand-row">
         @include('partials.oslo-clock')
 
@@ -9,10 +9,8 @@
                 class="site-logo">
         </a>
 
-        @if (!empty($clockChangeReminder))
-            <div class="site-header__reminder-slot">
-                @include('partials.clock-change-reminder', ['compact' => true])
-            </div>
-        @endif
+        <div class="site-header__message-slot" data-header-message>
+            @include('partials.header-message')
+        </div>
     </div>
 </div>

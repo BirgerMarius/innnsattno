@@ -49,7 +49,6 @@ class FrontPageController extends Controller
 
         return view('tv.guide', [
             'changeHistory' => $changeHistory->get(),
-            'clockChangeReminder' => app(\App\Services\ClockChangeReminderService::class)->forDate($today),
             'flagDayOverview' => $flagDays->overview(),
             'localNews' => array_slice($ringbladNews->latest(), 0, 3),
             'correctionalNews' => $correctionalNews->frontPage(),
