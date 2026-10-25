@@ -24,13 +24,13 @@ class CheckOtherExternalData extends Command
     public function handle(): int
     {
         if (! Schema::hasTable('external_data_checks')) return self::FAILURE;
-        foreach (['ringerike', 'ilseng'] as $location) {
+        foreach (['ringerike', 'ilseng', 'kongsvinger'] as $location) {
             if ($this->due('met-weather', $location)) app(WeatherForecastService::class)->refresh($location);
         }
         $today = now('Europe/Oslo')->startOfDay();
         $incident = DB::table('external_data_incidents')->where('service', 'bonnetid-no')->first();
         $alerted = $incident ? (json_decode($incident->affected_keys, true) ?: []) : [];
-        foreach ([146, 181] as $location) {
+        foreach (collect(config('prisons.all'))->pluck('prayer_location_id')->filter(fn ($id) => is_int($id) || ctype_digit((string) $id)) as $location) {
             $months = [$today->copy()->startOfMonth()];
             if ($today->copy()->startOfMonth()->addMonth()->lte($today->copy()->addDays(7))) $months[] = $today->copy()->startOfMonth()->addMonth();
             foreach ($alerted as $key) {

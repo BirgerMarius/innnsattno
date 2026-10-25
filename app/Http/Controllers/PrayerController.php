@@ -12,16 +12,12 @@ class PrayerController extends Controller
     {
     }
 
-    private array $prisons = [
-        'ringerike' => [
-            'id' => 146,
-            'name' => 'Ringerike fengsel',
-        ],
-        'ilseng' => [
-            'id' => 181,
-            'name' => 'Ilseng fengsel',
-        ],
-    ];
+    private function prisons(): array
+    {
+        return collect(config('prisons.all'))->map(fn (array $prison, string $slug) => [
+            'id' => $prison['prayer_location_id'], 'name' => $prison['name'], 'slug' => $slug,
+        ])->all();
+    }
 
     public function ringerike(Request $request)
     {
@@ -40,6 +36,16 @@ class PrayerController extends Controller
     public function printIlseng(Request $request)
     {
         return $this->showMonth('ilseng', $request, true);
+    }
+
+    public function prison(string $prison, Request $request)
+    {
+        return $this->showMonth($prison, $request);
+    }
+
+    public function prisonPrint(string $prison, Request $request)
+    {
+        return $this->showMonth($prison, $request, true);
     }
 
     private function showMonth(string $prison, Request $request, bool $print = false)
@@ -67,7 +73,15 @@ class PrayerController extends Controller
             12 => 'Desember',
         ];
 
-        $location = $this->prisons[$prison];
+        $location = $this->prisons()[$prison];
+        if (! is_int($location['id']) && ! ctype_digit((string) $location['id'])) {
+            return view($print ? 'prayer.print' : 'prayer.index', [
+                'days' => [], 'prison' => $location, 'year' => $year, 'month' => $month,
+                'monthName' => $monthNames[$month],
+                'error' => 'Bønnetider for Kongsvinger er under klargjøring. Leverandørens steds-ID må bekreftes før tjenesten kan åpnes.',
+                'returnUrl' => $print ? $this->returnUrl($request) : null,
+            ]);
+        }
 
         $days = $this->prayerTimes->getMonth(
             $location['id'],
@@ -116,7 +130,9 @@ class PrayerController extends Controller
 
     private function currentMonthUrl(string $prison, Carbon $currentMonth): string
     {
-        $path = $prison === 'ringerike' ? '/bonnetider' : '/bonnetider-ilseng';
+        $path = match ($prison) {
+            'ringerike' => '/bonnetider', 'ilseng' => '/bonnetider-ilseng', default => '/'.$prison.'/bonnetider',
+        };
 
         return $path.'?'.http_build_query([
             'year' => $currentMonth->year,

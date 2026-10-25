@@ -45,10 +45,12 @@ use App\Http\Controllers\Admin\NewsSourceAdminController;
 */
 
 Route::get('/', function () {
-    return redirect('tv');
+    return redirect('/ringerike');
 });
 
 Route::get('/tv', [FrontPageController::class, 'index'])->name('tv');
+Route::get('/{prison}', [FrontPageController::class, 'index'])
+    ->where('prison', 'ringerike|ilseng|kongsvinger')->name('prison.home');
 Route::get('/header-message', [HeaderMessageController::class, 'show'])->name('header-message.show');
 Route::get('/dagens-ord/utskrift/{word}', [DailyWordPrintController::class, 'show'])->name('daily-word.print');
 Route::get('/podkast/betjenten-og-psyken/les-mer', function () {
@@ -70,10 +72,7 @@ Route::get('/dagen-i-dag/{date?}', [TodayController::class, 'show'])
 
 Route::get('/vaer', [WeatherController::class, 'index'])->name('weather.index');
 Route::get('/vaer-ilseng', [WeatherController::class, 'ilseng'])->name('weather.ilseng');
-
-Route::get('/ilseng', function () {
-    return redirect('print-ilseng');
-});
+Route::get('/{prison}/vaer', [WeatherController::class, 'showPrison'])->where('prison', 'ringerike|ilseng|kongsvinger')->name('prison.weather');
 
 Route::get('/guide', function () {
     return redirect('tv');
@@ -177,6 +176,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
 Route::get('/print', [TvPrintController::class, 'ringerike']);
 Route::get('/print-ilseng', [TvPrintController::class, 'ilseng']);
+Route::get('/{prison}/tv-utskrift', [TvPrintController::class, 'prison'])->where('prison', 'ringerike|ilseng|kongsvinger')->name('prison.tv-print');
 
 Route::get('/test', function () {
     return '<h1>Dette er testsiden min</h1>';
@@ -187,6 +187,8 @@ Route::get('/football', [FootballController::class, 'index']);
 Route::get('/fotball-utskrift', [FootballController::class, 'print']);
 Route::get('/ukens-fotball-pa-tv', [WeeklyFootballTvController::class, 'index'])->name('weekly-football-tv.index');
 Route::get('/ukens-fotball-pa-tv/utskrift', [WeeklyFootballTvController::class, 'print'])->name('weekly-football-tv.print');
+Route::get('/{prison}/ukens-fotball-pa-tv', [WeeklyFootballTvController::class, 'prisonIndex'])->where('prison', 'ringerike|ilseng|kongsvinger')->name('prison.weekly-football-tv');
+Route::get('/{prison}/ukens-fotball-pa-tv/utskrift', [WeeklyFootballTvController::class, 'prisonPrint'])->where('prison', 'ringerike|ilseng|kongsvinger')->name('prison.weekly-football-tv.print');
 Route::get('/eliteserien', [EliteserienController::class, 'index'])->name('eliteserien.index');
 Route::get('/eliteserien/utskrift', [EliteserienController::class, 'print'])->name('eliteserien.print');
 Route::get('/eliteserien/lag/{teamId}', [EliteserienController::class, 'team'])->whereNumber('teamId')->middleware('throttle:football-team-pages')->name('eliteserien.team');
@@ -219,6 +221,8 @@ Route::get('/bonnetider/utskrift', [PrayerController::class, 'printRingerike'])-
 
 Route::get('/bonnetider-ilseng', [PrayerController::class, 'ilseng'])->middleware('throttle:prayer-pages');
 Route::get('/bonnetider-ilseng/utskrift', [PrayerController::class, 'printIlseng'])->middleware('throttle:prayer-print-pages');
+Route::get('/{prison}/bonnetider', [PrayerController::class, 'prison'])->where('prison', 'ringerike|ilseng|kongsvinger')->middleware('throttle:prayer-pages')->name('prison.prayer');
+Route::get('/{prison}/bonnetider/utskrift', [PrayerController::class, 'prisonPrint'])->where('prison', 'ringerike|ilseng|kongsvinger')->middleware('throttle:prayer-print-pages')->name('prison.prayer.print');
 
 use App\Http\Controllers\TidsfordrivController;
 

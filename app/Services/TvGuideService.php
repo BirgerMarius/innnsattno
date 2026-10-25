@@ -235,13 +235,24 @@ class TvGuideService
         ];
     }
 
+    public static function channelsForPrison(string $prison): array
+    {
+        return match ($prison) {
+            'ringerike' => self::ringerikeChannels(),
+            'ilseng' => self::ilsengChannels(),
+            // There is deliberately no fallback selection for Kongsvinger.
+            'kongsvinger' => [],
+            default => throw new UnexpectedValueException('Ukjent fengsel for TV-guiden.'),
+        };
+    }
+
     /**
      * Return direct, identifiable football matches for one supported competition.
      * The cache is shared between all football pages and printouts. Nations
      * League callers can opt into an exact rolling seven-day period; its
      * default remains the calendar week for the existing team-page use.
      */
-    public function getUpcomingCompetitionMatches(CarbonInterface $now, string $competition, string $operation, int $limit, bool $useRollingSevenDayPeriod = false): array
+    public function getUpcomingCompetitionMatches(CarbonInterface $now, string $competition, string $operation, int $limit, bool $useRollingSevenDayPeriod = false, string $prison = 'ringerike'): array
     {
         if (!isset(self::FOOTBALL_COMPETITIONS[$competition])) {
             throw new UnexpectedValueException('Ukjent fotballturnering for TV-oversikten.');
@@ -261,7 +272,8 @@ class TvGuideService
         $dates = collect(range(0, $periodStart->diffInDays($end)))
             ->map(fn (int $offset) => $periodStart->copy()->addDays($offset)->startOfDay())
             ->all();
-        $channels = self::ringerikeChannels();
+        $channels = self::channelsForPrison($prison);
+        if ($channels === []) return ['competitionLabel' => $definition['label'], 'matches' => [], 'hasSourceFailure' => false, 'usingStaleData' => false, 'missingMatchNames' => 0, 'excludedNonMatchProgrammes' => 0, 'periodEnd' => $end, 'tvPending' => true];
         $schedules = [];
         $hasSourceFailure = false;
         $usingStaleData = false;
@@ -346,7 +358,8 @@ class TvGuideService
         $weekOffset = $weekOffset === 1 ? 1 : 0;
         $weekStart = $now->copy()->startOfWeek(\Carbon\Carbon::MONDAY)->addWeeks($weekOffset);
         $weekEnd = $weekStart->copy()->endOfWeek(\Carbon\Carbon::SUNDAY);
-        $channels = $prison === 'ilseng' ? self::ilsengChannels() : self::ringerikeChannels();
+        $channels = self::channelsForPrison($prison);
+        if ($channels === []) return ['weekStart' => $weekStart, 'weekEnd' => $weekEnd, 'matches' => [], 'availableDates' => [], 'missingLocalDataDates' => [], 'unpublishedDates' => [], 'hasMissingLocalData' => false, 'hasUnpublishedDates' => false, 'usingStaleData' => false, 'weekOffset' => $weekOffset, 'channelSelection' => 'Kongsvinger fengsel – under klargjøring', 'lastUpdated' => null, 'tvPending' => true];
         $dates = collect(range(0, 6))->map(fn (int $offset) => $weekStart->copy()->addDays($offset))->all();
         $matches = [];
         $availableDates = [];
@@ -443,6 +456,7 @@ class TvGuideService
             // being shown.  The separate coverage warning makes clear that it
             // does not describe dates which are missing locally.
             'lastUpdated' => $updatedAt !== [] ? collect($updatedAt)->min() : null,
+            'tvPending' => false,
         ];
     }
 

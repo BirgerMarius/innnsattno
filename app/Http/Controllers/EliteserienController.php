@@ -28,7 +28,7 @@ class EliteserienController extends Controller
             'apiConfigured' => $competition['apiConfigured'],
             'apiError' => $competition['apiError'],
             'usingStaleData' => $competition['usingStaleData'],
-            'tvMatches' => $this->tvMatches(3, 'eliteserien-tv-screen'),
+            'tvMatches' => $this->tvMatches(3, 'eliteserien-tv-screen', $this->prison()),
         ]);
     }
 
@@ -54,7 +54,7 @@ class EliteserienController extends Controller
     {
         return view('football.competition-print', array_merge(
             $this->eliteserienService->getPrintData('Eliteserien'),
-            ['returnUrl' => route('eliteserien.index'), 'tvMatches' => $this->tvMatches(3, 'eliteserien-tv-print')],
+            ['returnUrl' => route('eliteserien.index', ['fengsel' => $this->prison()]), 'tvMatches' => $this->tvMatches(3, 'eliteserien-tv-print', $this->prison())],
         ));
     }
 
@@ -82,10 +82,11 @@ class EliteserienController extends Controller
         ]));
     }
 
-    private function tvMatches(int $limit, string $operation): array
+    private function prison(): string { return in_array(request('fengsel'), ['ringerike', 'ilseng', 'kongsvinger'], true) ? request('fengsel') : 'ringerike'; }
+    private function tvMatches(int $limit, string $operation, string $prison = 'ringerike'): array
     {
         return $this->tvGuideService->getUpcomingCompetitionMatches(
-            now('Europe/Oslo'), 'eliteserien', $operation, $limit,
+            now('Europe/Oslo'), 'eliteserien', $operation, $limit, false, $prison,
         );
     }
 }

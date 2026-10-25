@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\DwScheduleService;
 use App\Services\TvGuideService;
+use App\Services\PrisonContext;
 use Illuminate\Support\Carbon;
 
 class TvPrintController extends Controller
@@ -18,6 +19,16 @@ class TvPrintController extends Controller
         return $this->render('ilseng', now('Europe/Oslo'), false, $tvGuideService, $dwScheduleService);
     }
 
+    public function prison(string $prison, TvGuideService $tvGuideService, DwScheduleService $dwScheduleService, PrisonContext $prisons)
+    {
+        $context = $prisons->prison($prison);
+        if (! $context['tv_available']) {
+            return view('tv.pending', ['prison' => $context]);
+        }
+
+        return $this->render($prison, now('Europe/Oslo'), false, $tvGuideService, $dwScheduleService);
+    }
+
     public function adminPrint(string $prison, Carbon $date, TvGuideService $tvGuideService, DwScheduleService $dwScheduleService)
     {
         return $this->render($prison, $date, true, $tvGuideService, $dwScheduleService);
@@ -26,9 +37,7 @@ class TvPrintController extends Controller
     private function render(string $prison, Carbon $date, bool $isSelectedDate, TvGuideService $tvGuideService, DwScheduleService $dwScheduleService)
     {
         $date = $date->copy()->setTimezone('Europe/Oslo')->startOfDay();
-        $channels = $prison === 'ringerike'
-            ? TvGuideService::ringerikeChannels()
-            : TvGuideService::ilsengChannels();
+        $channels = TvGuideService::channelsForPrison($prison);
 
         $tvChannels = $tvGuideService->withDisplayTitles(
             $tvGuideService->getSchedule($date, $channels, $prison.'-print'),

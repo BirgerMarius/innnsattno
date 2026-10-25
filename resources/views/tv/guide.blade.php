@@ -163,6 +163,13 @@
 
 <div class="container my-5">
 
+    <nav class="small text-center mb-3" aria-label="Velg fengsel">
+        <strong>Du er på: {{ $prison['name'] }}</strong>
+        @foreach ($prisons as $slug => $otherPrison)
+            @if ($slug !== $prison['slug']) · <a href="/{{ $slug }}">{{ $otherPrison['name'] }}</a>@endif
+        @endforeach
+    </nav>
+
     @include('tv.partials.theme-preview')
 
     @php
@@ -289,7 +296,19 @@ $isEvenWeek = $weekNumber % 2 === 0;
         </article>
     @endif
 
-    <section class="prison-actions" aria-label="Tjenester for fengslene">
+    <section class="prison-actions" aria-label="Tjenester for {{ $prison['name'] }}">
+        @if ($prison['tv_available'])
+        <div class="prison-actions-column prison-actions-column--{{ $prison['slug'] }}">
+            <a href="/{{ $prison['slug'] }}/tv-utskrift" class="btn btn-primary btn-lg front-page-btn" role="button"><i class="far fa-print" aria-hidden="true"></i> Skriv ut TV-guide – {{ $prison['name'] }}</a>
+            <a href="/{{ $prison['slug'] }}/bonnetider" class="btn btn-primary btn-lg front-page-btn" role="button">🕌 Bønnetider – {{ $prison['name'] }}</a>
+            <a href="/{{ $prison['slug'] }}/vaer" class="btn btn-primary btn-lg front-page-btn" role="button">🌦️ Værmelding – {{ $prison['name'] }}</a>
+            <a href="{{ $prison['official_url'] }}" target="_blank" rel="noopener" class="btn btn-primary btn-lg front-page-btn" role="button">ℹ️ {{ $prison['name'] }}</a>
+        </div>
+        @else
+        <div class="prison-actions-column"><a href="/{{ $prison['slug'] }}/tv-utskrift" class="btn btn-secondary btn-lg front-page-btn" role="button">TV-guiden er under klargjøring</a><a href="/{{ $prison['slug'] }}/bonnetider" class="btn btn-primary btn-lg front-page-btn" role="button">🕌 Bønnetider – {{ $prison['name'] }}</a><a href="/{{ $prison['slug'] }}/vaer" class="btn btn-primary btn-lg front-page-btn" role="button">🌦️ Værmelding – {{ $prison['name'] }}</a></div>
+        @endif
+        {{-- Legacy two-prison button layout kept below only for visual CSS compatibility. --}}
+        <div class="d-none">
         <div class="prison-actions-column prison-actions-column--ringerike">
             <a href="/print" class="btn btn-primary btn-lg front-page-btn front-page-btn--ringerike" role="button">
                 <i class="far fa-print" aria-hidden="true"></i> Skriv ut TV-guide – Ringerike fengsel
@@ -331,6 +350,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
                 ℹ️ Ilseng fengsel
             </a>
         </div>
+        </div>
     </section>
 
     <section class="shared-actions" aria-label="Sport, tidsfordriv og utskrift">
@@ -340,28 +360,28 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <small>Magasin for innsatte – klar til utskrift</small>
         </a>
 
-        <a href="{{ route('weekly-football-tv.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+        <a href="/{{ $prison['slug'] }}/ukens-fotball-pa-tv" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             <span class="front-page-btn-title">⚽ Fotball på TV @if($showWeeklyFootballTvNewBadge)<span class="front-page-new-badge" aria-label="Nyhet">Nyhet</span>@endif</span>
             <small>Ukeoversikt og plakat</small>
         </a>
 
-        <a href="/premier-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+        <a href="/premier-league?fengsel={{ $prison['slug'] }}" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Premier League 2026/27
         </a>
 
-        <a href="/eliteserien" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+        <a href="/eliteserien?fengsel={{ $prison['slug'] }}" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Eliteserien 2026
         </a>
 
-        <a href="/champions-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+        <a href="/champions-league?fengsel={{ $prison['slug'] }}" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Champions League 2026/27
         </a>
 
-        <a href="/europa-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+        <a href="/europa-league?fengsel={{ $prison['slug'] }}" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Europa League 2026/27
         </a>
 
-        <a href="/conference-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+        <a href="/conference-league?fengsel={{ $prison['slug'] }}" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Conference League 2026/27
         </a>
 

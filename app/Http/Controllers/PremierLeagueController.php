@@ -31,7 +31,7 @@ class PremierLeagueController extends Controller
             'apiConfigured' => $competition['apiConfigured'],
             'apiError' => $competition['apiError'],
             'usingStaleData' => $competition['usingStaleData'],
-            'tv3Plus' => $this->tv3PlusMatches(3, 'premier-league-tv3-plus-screen'),
+            'tv3Plus' => $this->tv3PlusMatches(3, 'premier-league-tv3-plus-screen', $this->prison()),
         ]);
     }
 
@@ -59,7 +59,7 @@ class PremierLeagueController extends Controller
             $this->premierLeagueService->getPrintData('Premier League'),
             [
                 'returnUrl' => route('premier-league.index'),
-                'tv3Plus' => $this->tv3PlusMatches(3),
+                'tv3Plus' => $this->tv3PlusMatches(3, 'premier-league-tv3-plus-print', $this->prison()),
             ],
         ));
     }
@@ -87,12 +87,13 @@ class PremierLeagueController extends Controller
         ]));
     }
 
-    private function tv3PlusMatches(int $limit, string $operation = 'premier-league-tv3-plus-print'): array
+    private function prison(): string { return in_array(request('fengsel'), ['ringerike', 'ilseng', 'kongsvinger'], true) ? request('fengsel') : 'ringerike'; }
+    private function tv3PlusMatches(int $limit, string $operation = 'premier-league-tv3-plus-print', string $prison = 'ringerike'): array
     {
         return $this->tvGuideService->getUpcomingPremierLeagueOnTv3Plus(
             now('Europe/Oslo'),
             $operation,
-            $limit,
+            $limit, false, $prison,
         );
     }
 }

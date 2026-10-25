@@ -10,7 +10,7 @@ class WeeklyFootballTvController extends Controller
 {
     public function index(Request $request, TvGuideService $tvGuideService, WeeklyFootballTeamLogoService $teamLogos)
     {
-        $prison = $request->query('fengsel') === 'ilseng' ? 'ilseng' : 'ringerike';
+        $prison = in_array($request->query('fengsel'), ['ringerike', 'ilseng', 'kongsvinger'], true) ? $request->query('fengsel') : 'ringerike';
         $weekOffset = $request->query('uke') === 'neste' ? 1 : 0;
         $weeklyFootball = $tvGuideService->getWeeklyFootballMatches(
             now('Europe/Oslo'),
@@ -23,9 +23,15 @@ class WeeklyFootballTvController extends Controller
         return view('weekly-football-tv.index', compact('weeklyFootball', 'prison', 'weekOffset'));
     }
 
+    public function prisonIndex(string $prison, Request $request, TvGuideService $tvGuideService, WeeklyFootballTeamLogoService $teamLogos)
+    {
+        $request->merge(['fengsel' => $prison]);
+        return $this->index($request, $tvGuideService, $teamLogos);
+    }
+
     public function print(Request $request, TvGuideService $tvGuideService, WeeklyFootballTeamLogoService $teamLogos)
     {
-        $prison = $request->query('fengsel') === 'ilseng' ? 'ilseng' : 'ringerike';
+        $prison = in_array($request->query('fengsel'), ['ringerike', 'ilseng', 'kongsvinger'], true) ? $request->query('fengsel') : 'ringerike';
         $weekOffset = $request->query('uke') === 'neste' ? 1 : 0;
         $weeklyFootball = $tvGuideService->getWeeklyFootballMatches(
             now('Europe/Oslo'),
@@ -36,6 +42,12 @@ class WeeklyFootballTvController extends Controller
         $weeklyFootball['matches'] = $this->withTeamLogos($weeklyFootball['matches'], $teamLogos);
 
         return view('weekly-football-tv.print', compact('weeklyFootball', 'prison', 'weekOffset'));
+    }
+
+    public function prisonPrint(string $prison, Request $request, TvGuideService $tvGuideService, WeeklyFootballTeamLogoService $teamLogos)
+    {
+        $request->merge(['fengsel' => $prison]);
+        return $this->print($request, $tvGuideService, $teamLogos);
     }
 
     private function withTeamLogos(array $matches, WeeklyFootballTeamLogoService $teamLogos): array

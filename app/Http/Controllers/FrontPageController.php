@@ -9,6 +9,7 @@ use App\Services\NamedayService;
 use App\Services\RingbladNewsService;
 use App\Services\CorrectionalNewsService;
 use App\Services\TimedVisibilityService;
+use App\Services\PrisonContext;
 use Illuminate\Support\Carbon;
 
 class FrontPageController extends Controller
@@ -17,7 +18,7 @@ class FrontPageController extends Controller
     {
     }
 
-    public function index(RingbladNewsService $ringbladNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory, FrontPageThemeResolver $themeResolver)
+    public function index(RingbladNewsService $ringbladNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory, FrontPageThemeResolver $themeResolver, PrisonContext $prisons, string $prison = 'ringerike')
     {
         return $this->frontPage(
             $ringbladNews,
@@ -25,7 +26,7 @@ class FrontPageController extends Controller
             $flagDays,
             $namedays,
             $changeHistory,
-            $themeResolver->resolve()
+            $themeResolver->resolve(), false, $prisons->prison($prison)
         );
     }
 
@@ -43,7 +44,7 @@ class FrontPageController extends Controller
         return view('design-test.index', ['themes' => config('front_page_themes.themes', [])]);
     }
 
-    private function frontPage(RingbladNewsService $ringbladNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory, ?array $theme = null, bool $isThemePreview = false)
+    private function frontPage(RingbladNewsService $ringbladNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory, ?array $theme = null, bool $isThemePreview = false, ?array $prison = null)
     {
         $today = Carbon::now(FlagDayService::TIMEZONE);
 
@@ -54,6 +55,8 @@ class FrontPageController extends Controller
             'correctionalNews' => $correctionalNews->frontPage(),
             'isThemePreview' => $isThemePreview,
             'theme' => $theme,
+            'prison' => $prison ?? app(PrisonContext::class)->prison(),
+            'prisons' => config('prisons.all'),
             'todayNamedays' => $namedays->forDate($today)['names'] ?? [],
             'showNationsLeagueNewBadge' => $this->timedVisibility->isVisible(
                 config('nations_league_badge.starts_at'),

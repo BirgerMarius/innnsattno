@@ -10,14 +10,14 @@
     @include('partials.header')
 
 <main class="weekly-football-page container my-4 my-md-5">
-    <a class="weekly-football-back" href="{{ route('tv') }}">← Til forsiden</a>
+    <a class="weekly-football-back" href="/{{ $prison }}">← Til forsiden</a>
     <header class="weekly-football-header">
         <div>
             <p class="weekly-football-kicker">{{ $weeklyFootball['channelSelection'] }}</p>
             <h1>{{ $weekOffset ? 'Neste ukes' : 'Denne ukens' }} TV-sendte fotballkamper</h1>
             <p>Uke {{ $weeklyFootball['weekStart']->isoWeek }} · {{ $weeklyFootball['weekStart']->locale('nb')->translatedFormat('j. F') }}–{{ $weeklyFootball['weekEnd']->locale('nb')->translatedFormat('j. F Y') }}</p>
         </div>
-        <a class="btn btn-success" href="{{ route('weekly-football-tv.print', ['fengsel' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne']) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut plakat</a>
+        <a class="btn btn-success" href="/{{ $prison }}/ukens-fotball-pa-tv/utskrift?{{ http_build_query(['uke' => $weekOffset ? 'neste' : 'denne']) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut plakat</a>
     </header>
 
     <form class="weekly-football-selector" method="get" action="{{ route('weekly-football-tv.index') }}">
@@ -25,6 +25,7 @@
         <select id="fengsel" name="fengsel" onchange="this.form.submit()">
             <option value="ringerike" @selected($prison === 'ringerike')>Ringerike fengsel</option>
             <option value="ilseng" @selected($prison === 'ilseng')>Ilseng fengsel</option>
+            <option value="kongsvinger" @selected($prison === 'kongsvinger')>Kongsvinger fengsel</option>
         </select>
         <button class="btn btn-outline-secondary btn-sm" type="submit">Vis</button>
     </form>
@@ -34,7 +35,9 @@
         <a class="{{ $weekOffset === 1 ? 'active' : '' }}" href="{{ route('weekly-football-tv.index', ['fengsel' => $prison, 'uke' => 'neste']) }}">Neste uke</a>
     </nav>
 
-    @if($weeklyFootball['hasMissingLocalData'])
+    @if($weeklyFootball['tvPending'] ?? false)
+        <div class="weekly-football-warning" role="status">TV-guiden for Kongsvinger er under klargjøring fordi kanallisten ikke er mottatt. Andre fengslers kanaler brukes ikke.</div>
+    @elseif($weeklyFootball['hasMissingLocalData'])
         <div class="weekly-football-warning" role="status">
             Lokale TV-data mangler for {{ count($weeklyFootball['missingLocalDataDates']) }} av 7 dager. Listen kan derfor være ufullstendig{{ $weeklyFootball['usingStaleData'] ? '; sist lagrede data vises der de finnes.' : '.' }}
         </div>

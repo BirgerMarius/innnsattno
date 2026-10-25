@@ -103,6 +103,14 @@ return [
                 'longitude' => env('WEATHER_ILSENG_LONGITUDE', 11.2281577),
                 'cache_key' => 'weather.ilseng.forecast',
             ],
+            'kongsvinger' => [
+                'name' => 'Kongsvinger fengsel – Vardåsveien 190',
+                // Official address: Vardåsveien 190, 2214 Kongsvinger. The
+                // coordinate is the address point (OpenStreetMap/Nominatim).
+                'latitude' => env('WEATHER_KONGSVINGER_LATITUDE', 60.2102457),
+                'longitude' => env('WEATHER_KONGSVINGER_LONGITUDE', 11.9851459),
+                'cache_key' => 'weather.kongsvinger.forecast',
+            ],
         ],
     ],
 

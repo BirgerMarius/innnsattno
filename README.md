@@ -29,6 +29,29 @@ Vanlig testkommando:
 php artisan test
 ```
 
+## Fengselsuavhengige startsider
+
+Forsidene er `/ringerike`, `/ilseng` og `/kongsvinger`; `/` videresender til
+Ringerike. Én felles forsidevisning (`resources/views/tv/guide.blade.php`) og
+samme kontrollere brukes for alle. Fengselsspesifikke navn, offisielle lenker,
+TV-status, værnøkkel og Bønnetid-ID ligger sentralt i `config/prisons.php`.
+Værkoordinater og separate cache-nøkler ligger i `config/services.php`.
+
+Oppdater en felles komponent eller controller én gang, og åpne alle tre
+startsider for å verifisere endringen. Ved nytt fengsel: legg først en post i
+`config/prisons.php`, en separat værkonfigurasjon/cache-nøkkel i
+`config/services.php`, verifiser Bønnetid.no-steds-ID og kanalutvalg, og bruk
+deretter `/{slug}/...` i lenker og utskrifter. Fengsel velges alltid fra URL-en;
+lokale lenker og utskrifter skal beholde samme prefix, og cache-/monitorerings-
+nøkler skal inneholde sluggen. `AGENTS.md` er den korte føringen for fremtidige
+endringer.
+
+Kongsvingers offisielle avdelinger har samme besøksadresse, Vardåsveien 190,
+2214 Kongsvinger. Værstedet bruker adressepunktet 60.2102457, 11.9851459.
+TV-guiden er uttrykkelig under klargjøring til en verifisert kanalliste er
+mottatt. Bønnetid.no sitt lokasjonsregister krever tilgang; sett den verifiserte
+`BONNETID_KONGSVINGER_LOCATION_ID` før bønnetidene for Kongsvinger åpnes.
+
 ## Felles header
 
 Den delte headeren har en dekorativ analog klokke med digital visning. Den bruker

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\WeatherForecastService;
+use App\Services\PrisonContext;
 use Throwable;
 
 class WeatherController extends Controller
@@ -15,6 +16,13 @@ class WeatherController extends Controller
     public function ilseng(WeatherForecastService $weather)
     {
         return $this->show($weather, 'ilseng', 'Værmelding – Ilseng fengsel');
+    }
+
+    public function showPrison(string $prison, WeatherForecastService $weather, PrisonContext $prisons)
+    {
+        $context = $prisons->prison($prison);
+
+        return $this->show($weather, $context['weather_key'], 'Værmelding – '.$context['name']);
     }
 
     private function show(WeatherForecastService $weather, string $locationKey, string $heading)
