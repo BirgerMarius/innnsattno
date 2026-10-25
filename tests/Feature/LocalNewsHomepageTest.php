@@ -29,16 +29,26 @@ class LocalNewsHomepageTest extends TestCase
             $this->get('/'.$prison)
                 ->assertOk()
                 ->assertSee('Lokale nyheter om '.$name)
-                ->assertSee('Lokale nyheter om '.$name.' fra '.$source)
+                ->assertSee($prison === 'kongsvinger'
+                    ? 'Nyheter fra Glåmdalen om Kongsvinger fengsel og Kriminalomsorgen Innlandet.'
+                    : 'Lokale nyheter om '.$name.' fra '.$source)
                 ->assertSee($title)
                 ->assertSee($url, false)
-                ->assertSee('Se flere lokale nyheter hos '.$source)
+                ->assertSee($prison === 'kongsvinger'
+                    ? 'Flere saker hos Glåmdalen – emneknagg: Kongsvinger fengsel'
+                    : 'Se flere lokale nyheter hos '.$source)
                 ->assertSee('Abonnement');
         }
 
         $this->get('/ilseng')->assertDontSee('Ringerike-sak')->assertDontSee('Kongsvinger-sak');
-        $this->get('/kongsvinger')->assertDontSee('Ringerike-sak')->assertDontSee('Ilseng-sak');
-        $this->get('/kongsvinger')->assertSee('https://www.glomdalen.no/tag/kriminalomsorgen-innlandet', false);
+        $this->get('/kongsvinger')
+            ->assertDontSee('Ringerike-sak')
+            ->assertDontSee('Ilseng-sak')
+            ->assertSee('Nyheter fra Glåmdalen om Kongsvinger fengsel og Kriminalomsorgen Innlandet.')
+            ->assertSee('Flere saker hos Glåmdalen – emneknagg: Kongsvinger fengsel')
+            ->assertSee('Flere saker hos Glåmdalen – emneknagg: Kriminalomsorgen Innlandet')
+            ->assertSee('class="local-news-more-list"', false)
+            ->assertSee('https://www.glomdalen.no/tag/kriminalomsorgen-innlandet', false);
     }
 
     public function testSchedulerRefreshesEveryConfiguredLocalSourceSeparately(): void

@@ -428,7 +428,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
         <section class="local-news-section" aria-labelledby="local-news-heading">
             <header class="local-news-section-header">
                 <h2 id="local-news-heading">Lokale nyheter om {{ $prison['name'] }}</h2>
-                <p>Lokale nyheter om {{ $prison['name'] }} fra {{ $localNewsSource['source_name'] }}</p>
+                <p>{{ $localNewsSource['description'] ?? 'Lokale nyheter om '.$prison['name'].' fra '.$localNewsSource['source_name'] }}</p>
             </header>
             @if (!empty($localNews))
                 <h3 class="front-page-news-group-heading">Lokalt</h3>
@@ -497,9 +497,11 @@ $isEvenWeek = $weekNumber % 2 === 0;
                 </div>
             @endif
             @if (!empty($localNews))
-                @foreach ($localNewsSource['sources'] as $source)
-                    <a class="local-news-more" href="{{ $source['url'] }}" target="_blank" rel="noopener noreferrer">Se flere lokale nyheter hos {{ $localNewsSource['source_name'] }}@if (count($localNewsSource['sources']) > 1) ({{ $source['label'] ?? 'inngang '.$loop->iteration }})@endif</a>
-                @endforeach
+                <div @class(['local-news-more-list' => count($localNewsSource['sources']) > 1])>
+                    @foreach ($localNewsSource['sources'] as $source)
+                        <a class="local-news-more" href="{{ $source['url'] }}" target="_blank" rel="noopener noreferrer">{{ $source['more_label'] ?? 'Se flere lokale nyheter hos '.$localNewsSource['source_name'] }}</a>
+                    @endforeach
+                </div>
             @endif
         </section>
     @endif
