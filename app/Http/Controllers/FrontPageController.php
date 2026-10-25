@@ -6,7 +6,7 @@ use App\Services\ChangeHistoryService;
 use App\Services\FlagDayService;
 use App\Services\FrontPageThemeResolver;
 use App\Services\NamedayService;
-use App\Services\RingbladNewsService;
+use App\Services\LocalNewsService;
 use App\Services\CorrectionalNewsService;
 use App\Services\TimedVisibilityService;
 use App\Services\PrisonContext;
@@ -18,10 +18,10 @@ class FrontPageController extends Controller
     {
     }
 
-    public function index(RingbladNewsService $ringbladNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory, FrontPageThemeResolver $themeResolver, PrisonContext $prisons, string $prison = 'ringerike')
+    public function index(LocalNewsService $localNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory, FrontPageThemeResolver $themeResolver, PrisonContext $prisons, string $prison = 'ringerike')
     {
         return $this->frontPage(
-            $ringbladNews,
+            $localNews,
             $correctionalNews,
             $flagDays,
             $namedays,
@@ -30,13 +30,13 @@ class FrontPageController extends Controller
         );
     }
 
-    public function preview(string $theme, RingbladNewsService $ringbladNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory)
+    public function preview(string $theme, LocalNewsService $localNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory)
     {
         $themes = config('front_page_themes.themes', []);
 
         abort_unless(isset($themes[$theme]), 404);
 
-        return $this->frontPage($ringbladNews, $correctionalNews, $flagDays, $namedays, $changeHistory, $themes[$theme], true);
+        return $this->frontPage($localNews, $correctionalNews, $flagDays, $namedays, $changeHistory, $themes[$theme], true);
     }
 
     public function overview()
@@ -44,18 +44,20 @@ class FrontPageController extends Controller
         return view('design-test.index', ['themes' => config('front_page_themes.themes', [])]);
     }
 
-    private function frontPage(RingbladNewsService $ringbladNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory, ?array $theme = null, bool $isThemePreview = false, ?array $prison = null)
+    private function frontPage(LocalNewsService $localNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory, ?array $theme = null, bool $isThemePreview = false, ?array $prison = null)
     {
         $today = Carbon::now(FlagDayService::TIMEZONE);
+        $prison ??= app(PrisonContext::class)->prison();
 
         return view('tv.guide', [
             'changeHistory' => $changeHistory->get(),
             'flagDayOverview' => $flagDays->overview(),
-            'localNews' => array_slice($ringbladNews->latest(), 0, 3),
+            'localNews' => array_slice($localNews->latest($prison['slug']), 0, 3),
+            'localNewsSource' => $prison['local_news'],
             'correctionalNews' => $correctionalNews->frontPage(),
             'isThemePreview' => $isThemePreview,
             'theme' => $theme,
-            'prison' => $prison ?? app(PrisonContext::class)->prison(),
+            'prison' => $prison,
             'prisons' => config('prisons.all'),
             'todayNamedays' => $namedays->forDate($today)['names'] ?? [],
             'showNationsLeagueNewBadge' => $this->timedVisibility->isVisible(

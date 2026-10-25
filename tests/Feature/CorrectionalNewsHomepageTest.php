@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\CorrectionalNewsCluster;
 use App\CorrectionalNewsItem;
-use App\Services\RingbladNewsService;
+use App\Services\LocalNewsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
@@ -21,7 +21,7 @@ class CorrectionalNewsHomepageTest extends TestCase
 
     public function testHomepageKeepsHighSignificanceUnionNewsOutOfAnEmptyNationalGroup(): void
     {
-        Cache::put(RingbladNewsService::CACHE_KEY, [[
+        Cache::put(app(LocalNewsService::class)->cacheKey('ringerike'), [[
             'title' => 'Lokal sak om Ringerike fengsel',
             'url' => 'https://www.ringblad.no/lokal/s/5-45-1',
             'published_at' => '16. sep 2026',

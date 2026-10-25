@@ -427,8 +427,8 @@ $isEvenWeek = $weekNumber % 2 === 0;
     @if (!empty($localNews) || !empty($correctionalNews['national']))
         <section class="local-news-section" aria-labelledby="local-news-heading">
             <header class="local-news-section-header">
-                <h2 id="local-news-heading">Lokale nyheter om Ringerike fengsel</h2>
-                <p>Lokale nyheter om Ringerike fengsel fra Ringerikes Blad</p>
+                <h2 id="local-news-heading">Lokale nyheter om {{ $prison['name'] }}</h2>
+                <p>Lokale nyheter om {{ $prison['name'] }} fra {{ $localNewsSource['source_name'] }}</p>
             </header>
             @if (!empty($localNews))
                 <h3 class="front-page-news-group-heading">Lokalt</h3>
@@ -445,7 +445,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
                             <div class="local-news-card-content">
                                 @if (!empty($article['published_at']) || !empty($article['is_subscription']))
                                     <div class="local-news-meta">
-                                        <span>Ringerikes Blad</span>
+                                        <span>{{ $localNewsSource['source_name'] }}</span>
                                         @if (!empty($article['published_at']))
                                             <time>{{ $article['published_at'] }}</time>
                                         @endif
@@ -497,7 +497,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
                 </div>
             @endif
             @if (!empty($localNews))
-                <a class="local-news-more" href="https://www.ringblad.no/ringerike-fengsel/" target="_blank" rel="noopener noreferrer">Se flere lokale nyheter hos Ringerikes Blad</a>
+                <a class="local-news-more" href="{{ $localNewsSource['source_url'] }}" target="_blank" rel="noopener noreferrer">Se flere lokale nyheter hos {{ $localNewsSource['source_name'] }}</a>
             @endif
         </section>
     @endif

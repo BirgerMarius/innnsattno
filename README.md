@@ -131,7 +131,7 @@ minst ti minutter. Standardgrensene for TV/fotball er seks timer, vær tre timer
 og nyheter ett døgn; de konfigureres i `config/external_data.php`. Bønnetider og
 kalenderdata vurderes etter datodekning: eldre data er brukbare for dagene de
 dekker. Bønnetider kontrolleres for i dag og sju dager frem for begge fengslene.
-VG, SportsNext, DW, MET, Bønnetid.no, Ringblad, navnedager, Wikipedia/Wikimedia,
+VG, SportsNext, DW, MET, Bønnetid.no, lokale nyhetskilder, navnedager, Wikipedia/Wikimedia,
 Wikidata og aktive nyhetskilder kontrolleres uavhengig av sidebesøk. Et varslet utfall
 følges opp høyst én gang i døgnet og avsluttes først etter vellykket kontroll av
 alle berørte data. Ingen e-post sendes for kortvarige feil.
@@ -177,8 +177,25 @@ Dette påvirker ikke Fangenytt-PDF-er eller vanlige innholdssider.
 
 KDI- og Sivilombudet-feeder hentes og caches separat, men vises bare når en fersk
 sak oppfyller de eksplisitte relevans- og nasjonalitetskriteriene. Forsidens
-Ringblad-blokk beskriver derfor kun lokale nyheter; fagforeningsnyheter og den
+lokalnyhetsblokk beskriver derfor kun lokale nyheter; fagforeningsnyheter og den
 separate `/nyheter`-siden er uavhengige av dette utvalget.
+
+## Lokale nyheter på fengselsforsidene
+
+Lokale nyheter hentes av én felles `LocalNewsService`, med kilde per fengsel i
+`config/prisons.php`. Ringerike bruker Ringerikes Blads emneside, Ilseng bruker
+Hamar Arbeiderblads emneside og Kongsvinger bruker Glåmdalens emneside. Tjenesten
+henter bare offentlig tilgjengelige teasere: tittel, dato, abonnementsmerking,
+original artikkellenke og eventuelt teaserbilde. Artikkeltekst og sammendrag
+hentes aldri.
+
+Når en kilde vedlikeholdes eller et fengsel legges til, oppdater
+`local_news.source_name`, `source_url` og den eksplisitte `article_hosts`-
+listen i den aktuelle fengselsposten. Emnesiden skal filtrere på det konkrete
+fengselet; ikke bruk brede fritekstsøk. Hver kilde får egne cache-,
+reservecache-, låse- og driftskontrollnøkler med fengselssluggen, slik at en
+feil aldri kan vise et annet fengsels nyheter. Scheduleren oppdaterer alle
+konfigurerte fengselskilder omtrent hver time.
 
 ### Sesjonscookie i produksjon
 

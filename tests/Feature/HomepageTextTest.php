@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Services\RingbladNewsService;
+use App\Services\LocalNewsService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Config;
@@ -59,7 +59,7 @@ class HomepageTextTest extends TestCase
 
     public function testHomepageMarksQuizAsUnderDevelopment(): void
     {
-        Cache::put(RingbladNewsService::CACHE_KEY, [[
+        Cache::put(app(LocalNewsService::class)->cacheKey('ringerike'), [[
             'title' => 'Lokal sak for rekkefølgetest',
             'url' => 'https://www.ringblad.no/lokal-sak/s/5-45-600',
             'published_at' => null,
