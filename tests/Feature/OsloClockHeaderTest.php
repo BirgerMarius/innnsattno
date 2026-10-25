@@ -30,6 +30,11 @@ class OsloClockHeaderTest extends TestCase
         $this->assertStringContainsString('30025 - (Date.now() % 30000)', $layout);
         $this->assertStringNotContainsString('reducedMotion ? designs[0]', $layout);
         $this->assertStringContainsString('[data-clock-design="retro"]', $styles);
+        $this->assertStringContainsString('.oslo-clock__digital { background: #142a42;', $styles);
+        $this->assertStringContainsString('color: #fff;', $styles);
+        $this->assertStringContainsString('text-shadow: none;', $styles);
+        $this->assertStringContainsString('transition: none;', $styles);
+        $this->assertStringNotContainsString('.oslo-clock__digital { color: var(--clock-hand);', $styles);
         $this->assertStringContainsString('.oslo-clock__hand--second { display: none; }', $styles);
         $this->assertStringContainsString('.oslo-clock { display: none !important; }', $styles);
         $this->assertStringContainsString('.site-header__message-slot { grid-column: 1 / -1;', $styles);

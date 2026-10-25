@@ -334,7 +334,7 @@
 .oslo-clock__hand--minute { stroke-width: 2.5; }
 .oslo-clock__hand--second { stroke: var(--clock-accent); stroke-width: 1.15; transition: stroke .3s ease; }
 .oslo-clock__pin { fill: var(--clock-pin); stroke: var(--clock-dial); stroke-width: 1; transition: fill .3s ease, stroke .3s ease; }
-.oslo-clock__digital { color: var(--clock-hand); font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .73rem; font-weight: 700; letter-spacing: .04em; line-height: 1; transition: color .3s ease; }
+.oslo-clock__digital { background: #142a42; border-radius: .14rem; color: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .73rem; font-weight: 700; letter-spacing: .04em; line-height: 1; text-shadow: none; transition: none; }
 .oslo-clock[data-clock-design="station"] { --clock-accent: #c73d3d; --clock-dial: #fffdf7; --clock-hand: #142a42; --clock-marker: #24384d; --clock-pin: #c73d3d; --clock-rim: #f8fafc; --clock-rim-stroke: #142a42; }
 .oslo-clock[data-clock-design="station"] .oslo-clock__numerals { display: none; }
 .oslo-clock[data-clock-design="midnight"] { --clock-accent: #f4aa3b; --clock-dial: #10253d; --clock-hand: #e8f3ff; --clock-marker: #9bd0e5; --clock-pin: #f4aa3b; --clock-rim: #183c5b; --clock-rim-stroke: #9bd0e5; }
