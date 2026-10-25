@@ -1943,6 +1943,8 @@
 .admin-planned-change__time { color: #34524e; font-size: .9rem; font-weight: 700; }
 .admin-planned-change__details > span, .admin-planned-change__details > small { color: #60736f; display: block; font-size: .82rem; font-weight: 400; margin-top: .15rem; }
 .admin-planned-change__details > strong { display: block; }
+.admin-planned-change__daily-word { color: #0b625a; display: block; font-size: .82rem; font-weight: 400; margin-top: .15rem; text-decoration: underline; text-underline-offset: .15em; }
+.admin-planned-change__daily-word:hover, .admin-planned-change__daily-word:focus-visible { color: #074842; }
 .admin-planned-preview { min-width: 0; position: relative; }
 .admin-planned-preview--hidden { opacity: .72; }
 .admin-planned-preview__hidden { background: #5f2525; border-radius: 999px; color: #fff; font-size: .72rem; font-weight: 800; letter-spacing: .03em; padding: .18rem .45rem; position: absolute; right: .45rem; text-transform: uppercase; top: .45rem; }

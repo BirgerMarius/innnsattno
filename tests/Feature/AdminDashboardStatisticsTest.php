@@ -94,6 +94,21 @@ class AdminDashboardStatisticsTest extends TestCase
             ->assertSee('Vis kun neste 100 dager');
     }
 
+    public function testDashboardShowsPlannedDailyWordAsALinkToItsPrintPage(): void
+    {
+        Carbon::setTestNow('2026-01-01 12:00:00 Europe/Oslo');
+        config(['front_page_themes.active' => null, 'mourning_flag.enabled' => false]);
+
+        $word = app(\App\Services\DailyWordService::class)->forDate(Carbon::parse('2026-01-02', 'Europe/Oslo'));
+
+        $this->withSession(['admin_authenticated' => true])->get('/adm')
+            ->assertOk()
+            ->assertSee('02.01.2026 00:00')
+            ->assertSee('Dagens ord')
+            ->assertSee($word['message'])
+            ->assertSee(route('daily-word.print', ['word' => $word['id']]), false);
+    }
+
     public function testDashboardShowsCompactPreviewsForClockChangesAndHiddenElements(): void
     {
         Carbon::setTestNow('2026-10-23 12:00:00 Europe/Oslo');

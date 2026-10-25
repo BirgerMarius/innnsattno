@@ -61,12 +61,14 @@ class PlannedSiteChangesServiceTest extends TestCase
             Carbon::parse('2026-09-08 12:00:00', 'Europe/Oslo')
         );
 
+        $nonDailyChanges = array_values(array_filter($changes, fn (array $change) => $change['type'] !== 'daily-word'));
+
         $this->assertSame(['2026-09-09', '2026-09-10', '2026-09-16'], array_map(
             fn (array $change) => $change['date']->toDateString(),
-            array_slice($changes, 0, 3)
+            array_slice($nonDailyChanges, 0, 3)
         ));
-        $this->assertSame(['mourning', 'mourning', 'theme'], array_column(array_slice($changes, 0, 3), 'type'));
-        $this->assertSame('Tidlig høst → Høst', $changes[2]['description']);
+        $this->assertSame(['mourning', 'mourning', 'theme'], array_column(array_slice($nonDailyChanges, 0, 3), 'type'));
+        $this->assertSame('Tidlig høst → Høst', $nonDailyChanges[2]['description']);
     }
 
     public function testItFiltersPassedChangesAndExposesManualThemeStatus(): void
@@ -104,6 +106,22 @@ class PlannedSiteChangesServiceTest extends TestCase
             '2026-10-25 02:00',
             '2026-10-26 00:00',
         ], array_map(fn (array $change) => $change['date']->format('Y-m-d H:i'), array_slice($clockChanges, 0, 3)));
+    }
+
+    public function testItListsDailyWordsWithTheSharedRotationButSkipsClockOverrideDays(): void
+    {
+        $from = Carbon::parse('2026-10-23 12:00:00', 'Europe/Oslo');
+        $changes = app(PlannedSiteChangesService::class)->upcoming($from);
+        $dailyWords = array_values(array_filter($changes, fn (array $change) => $change['type'] === 'daily-word'));
+
+        $this->assertSame('2026-10-26', $dailyWords[0]['date']->toDateString());
+        $this->assertSame(
+            app(\App\Services\DailyWordService::class)->forDate(Carbon::parse('2026-10-26', 'Europe/Oslo'))['message'],
+            $dailyWords[0]['description']
+        );
+        $this->assertSame('Dagens ord', $dailyWords[0]['title']);
+        $this->assertNotContains('2026-10-24', array_map(fn (array $change) => $change['date']->toDateString(), $dailyWords));
+        $this->assertNotContains('2026-10-25', array_map(fn (array $change) => $change['date']->toDateString(), $dailyWords));
     }
 
     public function testItUsesTheSamePublicationWindowForVisibleElementsAndRemovesPassedEvents(): void

@@ -88,8 +88,8 @@
                         @php($daysUntil = $change['date']->startOfDay()->diffInDays($now->copy()->startOfDay()))
                         <li class="admin-planned-change">
                             <time class="admin-planned-change__time" datetime="{{ $change['date']->toIso8601String() }}">{{ $change['date']->setTimezone('Europe/Oslo')->format('d.m.Y H:i') }}</time>
-                            <div class="admin-planned-change__details"><strong>{{ $change['title'] }}</strong><span>{{ $change['description'] }}</span><small>{{ $daysUntil === 0 ? 'I dag' : ($daysUntil === 1 ? 'I morgen' : 'Om '.$daysUntil.' dager') }}</small></div>
-                            @include('admin.partials.planned-change-preview')
+                            <div class="admin-planned-change__details"><strong>{{ $change['title'] }}</strong>@if (($change['type'] ?? null) === 'daily-word')<a class="admin-planned-change__daily-word" href="{{ route('daily-word.print', ['word' => $change['word_id']]) }}">{{ $change['description'] }}</a>@else<span>{{ $change['description'] }}</span>@endif<small>{{ $daysUntil === 0 ? 'I dag' : ($daysUntil === 1 ? 'I morgen' : 'Om '.$daysUntil.' dager') }}</small></div>
+                            @if (!empty($change['preview']))@include('admin.partials.planned-change-preview')@endif
                         </li>
                     @endforeach
                 </ol>

@@ -20,7 +20,12 @@ og krever ingen lagret plan. Test gjerne datoen du er opptatt av med
 Klokkestillingsmeldingen har høyere prioritet enn Dagens ord. Når den ikke
 lenger er aktiv, velges Dagens ord automatisk igjen.
 
+Administrasjonens «Planlagte endringer» viser Dagens ord i samme 400-dagers
+planhorisont som de automatiske temaskiftene. Dager der klokkestillingsmeldingen
+har prioritet, tas ikke med som planlagte Dagens ord. Mottoet der lenker til
+utskriften med den samme stabile tekst-ID-en.
+
 Hvert Dagens ord er en vanlig tastaturtilgjengelig lenke til en stående
-A4-utskrift. Den automatiske utskrifts- og returfunkjsonen er den samme som
+A4-utskrift. Den automatiske utskrifts- og returfunksjonen er den samme som
 for nettstedets øvrige utskrifter. Selve utskriften inneholder bare mottoet og
 den lille avsenderen «innsatt.no».

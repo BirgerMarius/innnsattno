@@ -11,6 +11,7 @@ class PlannedSiteChangesService
         private FrontPageThemeResolver $themes,
         private FlagDayService $flagDays,
         private ClockChangeReminderService $clockChanges,
+        private DailyWordService $dailyWords,
         private TimedVisibilityService $timedVisibility,
     ) {
     }
@@ -51,7 +52,7 @@ class PlannedSiteChangesService
         }, $this->flagDays->upcomingMourningChanges($today));
 
         $changes = array_values(array_filter(
-            array_merge($themeChanges, $mourningChanges, $this->clockChanges->upcomingChanges($now), $this->timedVisibilityChanges()),
+            array_merge($themeChanges, $mourningChanges, $this->dailyWordChanges($today), $this->clockChanges->upcomingChanges($now), $this->timedVisibilityChanges()),
             fn (array $change) => $change['date']->greaterThan($now)
         ));
 
@@ -63,6 +64,40 @@ class PlannedSiteChangesService
     public function manualTheme(): ?array
     {
         return $this->themes->manualTheme();
+    }
+
+    /**
+     * Use the same 400-day planning horizon as FrontPageThemeResolver.
+     * Clock-change notices replace Dagens ord in the shared header, so those
+     * calendar days are intentionally absent from this public-visibility list.
+     *
+     * @return array<int, array{date: CarbonImmutable, title: string, description: string, type: string, word_id: string}>
+     */
+    private function dailyWordChanges(CarbonImmutable $today): array
+    {
+        $changes = [];
+
+        for ($offset = 1; $offset <= 400; $offset++) {
+            $date = $today->addDays($offset);
+
+            if ($this->clockChanges->forDate($date) !== null) {
+                continue;
+            }
+
+            $word = $this->dailyWords->forDate($date);
+
+            if ($word !== null) {
+                $changes[] = [
+                    'date' => $date,
+                    'title' => $word['title'],
+                    'description' => $word['message'],
+                    'type' => 'daily-word',
+                    'word_id' => $word['id'],
+                ];
+            }
+        }
+
+        return $changes;
     }
 
     /**
