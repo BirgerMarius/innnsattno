@@ -584,6 +584,10 @@
     margin-top: 24px;
 }
 
+.prison-actions--with-task-wheel + .shared-actions {
+    margin-top: 8px;
+}
+
 .front-page-grid {
     display: grid;
     gap: 8px;
@@ -808,6 +812,11 @@
     position: relative;
     isolation: isolate;
     width: 190px;
+}
+
+.prison-actions--with-task-wheel .front-page-btn--task-wheel {
+    align-self: start;
+    margin: 0 auto;
 }
 
 .front-page-btn--task-wheel::before {
@@ -1126,6 +1135,10 @@
 
     .prison-actions-placeholder {
         display: none;
+    }
+
+    .prison-actions--with-task-wheel {
+        gap: 8px;
     }
 
     .front-page-btn--wide {

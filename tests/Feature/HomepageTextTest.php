@@ -55,6 +55,10 @@ class HomepageTextTest extends TestCase
             '/Værmelding – Ilseng fengsel.*prison-actions-placeholder.*ℹ️ Ilseng fengsel/s',
             (string) $response->getContent()
         );
+        $this->assertMatchesRegularExpression(
+            '/prison-actions--with-task-wheel.*?ℹ️ Ringerike fengsel.*?href="\/oppdrag".*?Spinn hjulet.*?<\/section>.*?Fangenytt/s',
+            (string) $response->getContent()
+        );
     }
 
     public function testHomepageMarksQuizAsUnderDevelopment(): void
@@ -81,6 +85,7 @@ class HomepageTextTest extends TestCase
             ->assertSee('⚽ Fotball på TV')
             ->assertSee('Ukeoversikt og plakat')
             ->assertSeeInOrder([
+                'Spinn hjulet',
                 'Fotball på TV',
                 'Premier League',
                 'Eliteserien',
@@ -93,7 +98,6 @@ class HomepageTextTest extends TestCase
                 'Lag en quiz',
                 'Lær noe nytt',
                 'Mat/oppskrifter',
-                'Spinn hjulet',
             ]);
 
         $response->assertSeeInOrder([

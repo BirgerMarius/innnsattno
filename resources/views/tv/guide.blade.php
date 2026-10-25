@@ -296,7 +296,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
         </article>
     @endif
 
-    <section class="prison-actions" aria-label="Tjenester for {{ $prison['name'] }}">
+    <section class="prison-actions prison-actions--with-task-wheel" aria-label="Tjenester for {{ $prison['name'] }}">
         @if ($prison['tv_available'])
         <div class="prison-actions-column prison-actions-column--{{ $prison['slug'] }}">
             <a href="/{{ $prison['slug'] }}/tv-utskrift" class="btn btn-primary btn-lg front-page-btn" role="button"><i class="far fa-print" aria-hidden="true"></i> Skriv ut TV-guide – {{ $prison['name'] }}</a>
@@ -307,6 +307,13 @@ $isEvenWeek = $weekNumber % 2 === 0;
         @else
         <div class="prison-actions-column"><a href="/{{ $prison['slug'] }}/tv-utskrift" class="btn btn-secondary btn-lg front-page-btn" role="button">TV-guiden er under klargjøring</a><a href="/{{ $prison['slug'] }}/bonnetider" class="btn btn-primary btn-lg front-page-btn" role="button">🕌 Bønnetider – {{ $prison['name'] }}</a><a href="/{{ $prison['slug'] }}/vaer" class="btn btn-primary btn-lg front-page-btn" role="button">🌦️ Værmelding – {{ $prison['name'] }}</a></div>
         @endif
+
+        <a href="/oppdrag" class="btn btn-lg front-page-btn front-page-btn--task-wheel">
+            <span>🎲</span>
+            <span>Spinn hjulet</span>
+            <small>Hvem får oppdraget?</small>
+        </a>
+
         {{-- Legacy two-prison button layout kept below only for visual CSS compatibility. --}}
         <div class="d-none">
         <div class="prison-actions-column prison-actions-column--ringerike">
@@ -417,11 +424,6 @@ $isEvenWeek = $weekNumber % 2 === 0;
         </a>
         </div>
 
-        <a href="/oppdrag" class="btn btn-lg front-page-btn front-page-btn--task-wheel">
-            <span>🎲</span>
-            <span>Spinn hjulet</span>
-            <small>Hvem får oppdraget?</small>
-        </a>
     </section>
 
     @if (!empty($localNews) || !empty($correctionalNews['national']))
