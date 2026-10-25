@@ -115,13 +115,13 @@ class OtherExternalDataMonitoringTest extends TestCase
     public function test_missing_optional_data_does_not_wait_for_the_age_limit_after_five_failures(): void
     {
         $monitor = app(ExternalDataMonitor::class);
-        $monitor->checked('local-news-ringerike', 'front-page-news-ringerike', 'news', 'Lokale nyheter', false, true, true);
+        $monitor->checked('local-news-ringerike-source-0', 'front-page-news-ringerike-source-0', 'news', 'Lokale nyheter', false, true, true);
         for ($i = 1; $i <= 5; $i++) {
             Carbon::setTestNow(Carbon::parse('2026-10-19 08:00:00', 'Europe/Oslo')->addMinutes($i * 15));
-            $monitor->checked('local-news-ringerike', 'front-page-news-ringerike', 'news', 'Lokale nyheter', false, false, false, 'Kilden feilet.');
+            $monitor->checked('local-news-ringerike-source-0', 'front-page-news-ringerike-source-0', 'news', 'Lokale nyheter', false, false, false, 'Kilden feilet.');
         }
         $monitor->evaluate();
-        Mail::assertSent(ExternalDataIncidentMail::class, fn ($mail) => $mail->service === 'local-news-ringerike' && $mail->state === 'critical');
+        Mail::assertSent(ExternalDataIncidentMail::class, fn ($mail) => $mail->service === 'local-news-ringerike-source-0' && $mail->state === 'critical');
     }
 
     public function test_wikipedia_fallbacks_are_checked_independently_and_cache_alone_cannot_recover(): void

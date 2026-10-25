@@ -41,6 +41,7 @@ class LocalNewsServiceTest extends TestCase
             'https://www.glomdalen.no/kongsvinger-fengsel/' => Http::response($this->html(
                 $this->teaser('/kongsvinger/s/80-19-1', 'Kongsvinger-sak').$this->teaser('https://user@www.glomdalen.no/feil', 'Brukernavn')
             ), 200),
+            'https://www.glomdalen.no/tag/kriminalomsorgen-innlandet' => Http::response($this->html($this->teaser('/tag/s/80-19-2', 'Innlandet-sak')), 200),
         ]);
 
         $service = app(LocalNewsService::class);
@@ -49,8 +50,42 @@ class LocalNewsServiceTest extends TestCase
 
         $this->assertSame(['Ilseng-sak'], array_column($ilseng, 'title'));
         $this->assertSame('https://www.h-a.no/ilseng/s/5-139-1', $ilseng[0]['url']);
-        $this->assertSame(['Kongsvinger-sak'], array_column($kongsvinger, 'title'));
+        $this->assertSame(['Kongsvinger-sak', 'Innlandet-sak'], array_column($kongsvinger, 'title'));
         $this->assertSame('https://www.glomdalen.no/kongsvinger/s/80-19-1', $kongsvinger[0]['url']);
+    }
+
+    public function testKongsvingerMergesDeduplicatesAndSortsArticlesByPublishedDate(): void
+    {
+        Http::fake([
+            'https://www.glomdalen.no/kongsvinger-fengsel/' => Http::response($this->html(
+                $this->teaser('/eldre/s/80-19-1', 'Eldre sak', false, '2026-01-01T12:00:00+01:00')
+                .$this->teaser('/delt/s/80-19-2?utm_source=tag', 'Delt sak', false, '2026-01-03T12:00:00+01:00')
+            ), 200),
+            'https://www.glomdalen.no/tag/kriminalomsorgen-innlandet' => Http::response($this->html(
+                $this->teaser('/nyere/s/80-19-3', 'Nyere sak', false, '2026-01-04T12:00:00+01:00')
+                .$this->teaser('/delt/s/80-19-2#kommentarer', 'Delt sak fra tagg', false, '2026-01-03T12:00:00+01:00')
+            ), 200),
+        ]);
+
+        $articles = app(LocalNewsService::class)->latest('kongsvinger');
+
+        $this->assertSame(['Nyere sak', 'Delt sak', 'Eldre sak'], array_column($articles, 'title'));
+        $this->assertCount(3, $articles);
+        $this->assertArrayNotHasKey('sort_published_at', $articles[0]);
+    }
+
+    public function testAFailedKongsvingerEntryDoesNotHideArticlesFromTheOtherEntry(): void
+    {
+        Http::fake([
+            'https://www.glomdalen.no/kongsvinger-fengsel/' => Http::response('', 503),
+            'https://www.glomdalen.no/tag/kriminalomsorgen-innlandet' => Http::response($this->html(
+                $this->teaser('/tag/s/80-19-4', 'Sak fra fungerende tagg')
+            ), 200),
+        ]);
+
+        $articles = app(LocalNewsService::class)->latest('kongsvinger');
+
+        $this->assertSame(['Sak fra fungerende tagg'], array_column($articles, 'title'));
     }
 
     public function testCachesStaleArticlesAndFailuresSeparatelyPerPrison(): void

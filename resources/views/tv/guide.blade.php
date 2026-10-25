@@ -497,7 +497,9 @@ $isEvenWeek = $weekNumber % 2 === 0;
                 </div>
             @endif
             @if (!empty($localNews))
-                <a class="local-news-more" href="{{ $localNewsSource['source_url'] }}" target="_blank" rel="noopener noreferrer">Se flere lokale nyheter hos {{ $localNewsSource['source_name'] }}</a>
+                @foreach ($localNewsSource['sources'] as $source)
+                    <a class="local-news-more" href="{{ $source['url'] }}" target="_blank" rel="noopener noreferrer">Se flere lokale nyheter hos {{ $localNewsSource['source_name'] }}@if (count($localNewsSource['sources']) > 1) ({{ $source['label'] ?? 'inngang '.$loop->iteration }})@endif</a>
+                @endforeach
             @endif
         </section>
     @endif

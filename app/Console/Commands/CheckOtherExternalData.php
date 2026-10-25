@@ -49,7 +49,9 @@ class CheckOtherExternalData extends Command
             }
         }
         foreach (array_keys(config('prisons.all', [])) as $prison) {
-            if ($this->due('local-news-'.$prison, 'front-page-news-'.$prison)) app(LocalNewsService::class)->refresh($prison);
+            if (app(LocalNewsService::class)->needsRefresh($prison, fn (string $service, string $key) => $this->due($service, $key))) {
+                app(LocalNewsService::class)->refresh($prison);
+            }
         }
         if ($this->due('namedays-webapi', 'today')) app(NamedayService::class)->refresh($today);
         if (! \Illuminate\Support\Facades\Cache::has('external-data.today.attempt') && ($this->due('wikipedia-on-this-day', 'no-mediawiki') || $this->due('wikipedia-on-this-day', 'no-onthisday') || $this->due('wikipedia-on-this-day', 'en-onthisday') || $this->due('wikidata-entities', 'today-content-enrichment'))) {

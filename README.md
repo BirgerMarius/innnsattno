@@ -190,12 +190,14 @@ original artikkellenke og eventuelt teaserbilde. Artikkeltekst og sammendrag
 hentes aldri.
 
 Når en kilde vedlikeholdes eller et fengsel legges til, oppdater
-`local_news.source_name`, `source_url` og den eksplisitte `article_hosts`-
-listen i den aktuelle fengselsposten. Emnesiden skal filtrere på det konkrete
-fengselet; ikke bruk brede fritekstsøk. Hver kilde får egne cache-,
-reservecache-, låse- og driftskontrollnøkler med fengselssluggen, slik at en
-feil aldri kan vise et annet fengsels nyheter. Scheduleren oppdaterer alle
-konfigurerte fengselskilder omtrent hver time.
+`local_news.source_name` og `local_news.sources`. Hver inngang skal ha `url`
+og en eksplisitt `article_hosts`-liste. Emnesiden skal filtrere på det konkrete
+fengselet; ikke bruk brede fritekstsøk. Flere innganger for samme fengsel
+slås sammen, avdupliseres på normalisert artikkellenke og sorteres etter
+offentlig publiseringsdato uten å bruke hentetidspunktet som dato. Hvert
+fengsel har egen cache, reservecache og lås med fengselssluggen, mens hver
+inngang har egen driftskontroll. Scheduleren oppdaterer alle konfigurerte
+fengselskilder omtrent hver time.
 
 ### Sesjonscookie i produksjon
 

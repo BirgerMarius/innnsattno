@@ -15,8 +15,10 @@ return [
             'official_url' => 'https://www.kriminalomsorgen.no/ringerike-fengsel.5031519-237612.html',
             'local_news' => [
                 'source_name' => 'Ringerikes Blad',
-                'source_url' => 'https://www.ringblad.no/ringerike-fengsel/',
-                'article_hosts' => ['ringblad.no', 'www.ringblad.no'],
+                'sources' => [[
+                    'url' => 'https://www.ringblad.no/ringerike-fengsel/',
+                    'article_hosts' => ['ringblad.no', 'www.ringblad.no'],
+                ]],
             ],
         ],
         'ilseng' => [
@@ -27,8 +29,10 @@ return [
             'official_url' => 'https://www.kriminalomsorgen.no/fengsel/innlandet-kriminalomsorgen-innlandet-avd-lavere-sikkerhet-ilseng',
             'local_news' => [
                 'source_name' => 'Hamar Arbeiderblad',
-                'source_url' => 'https://www.h-a.no/ilseng-fengsel/',
-                'article_hosts' => ['h-a.no', 'www.h-a.no'],
+                'sources' => [[
+                    'url' => 'https://www.h-a.no/ilseng-fengsel/',
+                    'article_hosts' => ['h-a.no', 'www.h-a.no'],
+                ]],
             ],
         ],
         'kongsvinger' => [
@@ -41,8 +45,18 @@ return [
             'official_url' => 'https://www.kriminalomsorgen.no/fengsel/innlandet-kriminalomsorgen-innlandet-avd-utenlandske-innsatte-kongsvinger',
             'local_news' => [
                 'source_name' => 'Glåmdalen',
-                'source_url' => 'https://www.glomdalen.no/kongsvinger-fengsel/',
-                'article_hosts' => ['glomdalen.no', 'www.glomdalen.no'],
+                'sources' => [
+                    [
+                        'label' => 'Kongsvinger fengsel',
+                        'url' => 'https://www.glomdalen.no/kongsvinger-fengsel/',
+                        'article_hosts' => ['glomdalen.no', 'www.glomdalen.no'],
+                    ],
+                    [
+                        'label' => 'Kriminalomsorgen Innlandet',
+                        'url' => 'https://www.glomdalen.no/tag/kriminalomsorgen-innlandet',
+                        'article_hosts' => ['glomdalen.no', 'www.glomdalen.no'],
+                    ],
+                ],
             ],
         ],
     ],
