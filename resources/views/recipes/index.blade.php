@@ -3,7 +3,7 @@
 @section('content')
 <div class="container page-container recipe-page">@include('partials.header')
 <main class="recipe-shell">
-    <a class="recipe-back" href="{{ route('tv') }}">← Tilbake til forsiden</a>
+    <a class="recipe-back" href="{{ $prisonHomeUrl }}">← Tilbake til forsiden</a>
     <header class="recipe-intro"><p class="recipe-kicker">Enkel bakst</p><h1>Mat og oppskrifter</h1><p>Her finner du enkle oppskrifter på brød, rundstykker og bakst. Oppskriftene kan leses på skjerm eller skrives ut.</p></header>
     <form method="get" action="{{ route('recipes.print-selected') }}" class="recipe-selection">
         <div class="recipe-selection-head"><p>Velg oppskrifter du vil skrive ut samlet.</p><button class="btn btn-primary" type="submit">Skriv ut valgte</button></div>

@@ -88,7 +88,7 @@ class PremierLeagueController extends Controller
         ]));
     }
 
-    private function prison(): string { return in_array(request()->route('prison'), ['ringerike', 'ilseng', 'kongsvinger'], true) ? request()->route('prison') : 'ringerike'; }
+    private function prison(): string { return app(\App\Services\PrisonContext::class)->prison()['slug']; }
     private function tv3PlusMatches(int $limit, string $operation = 'premier-league-tv3-plus-print', string $prison = 'ringerike'): array
     {
         return $this->tvGuideService->getUpcomingPremierLeagueOnTv3Plus(

@@ -80,7 +80,7 @@
         @endif
 
         <div class="text-center mt-4">
-            <a href="{{ route('tv') }}" class="btn btn-primary">Tilbake til forsiden</a>
+            <a href="{{ $prisonHomeUrl }}" class="btn btn-primary">Tilbake til forsiden</a>
         </div>
     </main>
 

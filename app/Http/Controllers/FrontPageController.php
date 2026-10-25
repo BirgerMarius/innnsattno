@@ -18,7 +18,7 @@ class FrontPageController extends Controller
     {
     }
 
-    public function index(LocalNewsService $localNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory, FrontPageThemeResolver $themeResolver, PrisonContext $prisons, string $prison = 'ringerike')
+    public function index(LocalNewsService $localNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory, FrontPageThemeResolver $themeResolver, PrisonContext $prisons, ?string $prison = null)
     {
         return $this->frontPage(
             $localNews,

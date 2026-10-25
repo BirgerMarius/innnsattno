@@ -5,7 +5,7 @@
 
 @section('content')
     <main class="container design-test-shell">
-        <a href="{{ route('tv') }}" class="design-test-back">← Til ordinær forside</a>
+        <a href="{{ $prisonHomeUrl }}" class="design-test-back">← Til ordinær forside</a>
         <header class="design-test-heading">
             <p>UTVIKLING / FORHÅNDSVISNING</p>
             <h1>Sesongtemaer for Innsatt.no</h1>

@@ -10,12 +10,12 @@
 <body class="daily-word-print-page">
     <div class="daily-word-print-actions no-print">
         <button type="button" onclick="window.print()">Skriv ut</button>
-        <a href="{{ $printReturnUrl ?? route('tv') }}">Tilbake</a>
+        <a href="{{ $printReturnUrl ?? $prisonHomeUrl }}">Tilbake</a>
     </div>
     <main class="daily-word-print-sheet">
         <p class="daily-word-print-message">{{ $dailyWord['message'] }}</p>
         <footer>innsatt.no</footer>
     </main>
-    @include('partials.print-redirect', ['fallbackUrl' => route('tv', [], false), 'autoPrint' => true])
+    @include('partials.print-redirect', ['fallbackUrl' => $prisonHomeUrl, 'autoPrint' => true])
 </body>
 </html>

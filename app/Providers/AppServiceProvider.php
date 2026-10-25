@@ -7,6 +7,7 @@ use App\Services\FootballApi\Providers\ApiFootballProvider;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use App\Services\HeaderMessageService;
+use App\Services\PrisonContext;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -39,6 +40,10 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer('*', function ($view) {
+            $prisons = app(PrisonContext::class);
+            $view->with('prisonHomeUrl', $prisons->homeUrl());
+            $view->with('prisonUrl', fn (string $url): string => $prisons->contextUrl($url));
+
             $returnTo = request()->input('return_to');
 
             if (! is_string($returnTo) || ! $this->isSafePrintReturnUrl($returnTo)) {

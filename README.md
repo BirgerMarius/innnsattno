@@ -46,6 +46,21 @@ lokale lenker og utskrifter skal beholde samme prefix, og cache-/monitorerings-
 nøkler skal inneholde sluggen. `AGENTS.md` er den korte føringen for fremtidige
 endringer.
 
+### Fengselskontekst på felles sider
+
+Felles adresser beholdes av hensyn til bokmerker. Når en lenke fra en
+fengselsforside går til en slik side, skal den derfor bære konteksten eksplisitt
+som `?prison={slug}`, for eksempel `/tidsfordriv?prison=ilseng`. Bruk den delte
+`PrisonContext`-tjenesten: `homeUrl()` bygger alltid hjemlenken, og
+`contextUrl()` legger konteksten på en felles intern lenke. Alle vanlige
+layouter viderefører også den URL-baserte konteksten for interne lenker og
+skjemaer. Dette er nødvendig for at flere fengsler kan brukes i separate faner.
+
+En `/{prison}/...`-rute er alltid autoritativ over en eventuell `prison`-query.
+Ved direktebesøk uten kontekst brukes Ringerike. Ikke erstatt denne mekanismen
+med cookie, sesjon eller Referer, og ikke cache HTML for en felles URL uten å
+la hele URL-en, inkludert querystringen, inngå i cache-nøkkelen.
+
 Kongsvingers offisielle avdelinger har samme besøksadresse, Vardåsveien 190,
 2214 Kongsvinger. Værstedet bruker adressepunktet 60.2102457, 11.9851459.
 TV-guiden er uttrykkelig under klargjøring til en verifisert kanalliste er

@@ -43,9 +43,9 @@ class HomepageTextTest extends TestCase
             ->assertSee('ℹ️ Ilseng fengsel')
             ->assertSee('class="prison-actions-placeholder"', false)
             ->assertDontSee('prison-actions-heading')
-            ->assertSee('href="/oppdrag"', false)
+            ->assertSee('href="/oppdrag?prison=ringerike"', false)
             ->assertSee('Spinn hjulet')
-            ->assertSee('href="'.route('feedback.create').'"', false)
+            ->assertSee('href="'.app(\App\Services\PrisonContext::class)->contextUrl(route('feedback.create')).'"', false)
             ->assertSee('Har du en idé?')
             ->assertDontSee(self::OFFICER_TRIBUTE);
 
@@ -56,7 +56,7 @@ class HomepageTextTest extends TestCase
             (string) $response->getContent()
         );
         $this->assertMatchesRegularExpression(
-            '/prison-actions--with-task-wheel.*?ℹ️ Ringerike fengsel.*?href="\/oppdrag".*?Spinn hjulet.*?<\/section>.*?Fangenytt/s',
+            '/prison-actions--with-task-wheel.*?ℹ️ Ringerike fengsel.*?href="\/oppdrag\?prison=ringerike".*?Spinn hjulet.*?<\/section>.*?Fangenytt/s',
             (string) $response->getContent()
         );
     }

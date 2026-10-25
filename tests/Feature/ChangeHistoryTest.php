@@ -22,7 +22,7 @@ class ChangeHistoryTest extends TestCase
 
         $this->get(route('tv'))
             ->assertOk()
-            ->assertSee('href="'.route('change-history.index').'"', false)
+            ->assertSee('href="'.app(\App\Services\PrisonContext::class)->contextUrl(route('change-history.index')).'"', false)
             ->assertSee('Siden er sist oppdatert: 01.08.2026');
 
         $this->get('/endringer')->assertOk();

@@ -131,7 +131,7 @@ abstract class UefaCompetitionController extends Controller
         ];
     }
 
-    private function prison(): string { return in_array(request()->route('prison'), ['ringerike', 'ilseng', 'kongsvinger'], true) ? request()->route('prison') : 'ringerike'; }
+    private function prison(): string { return app(\App\Services\PrisonContext::class)->prison()['slug']; }
 
     private function tvMatches(int $limit, string $operation, string $prison = 'ringerike'): array
     {

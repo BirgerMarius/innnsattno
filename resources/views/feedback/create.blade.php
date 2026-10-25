@@ -148,7 +148,7 @@
                     <button type="submit" class="btn btn-success btn-lg feedback-submit-button">
                         Send inn forslag
                     </button>
-                    <a href="{{ url('/tv') }}" class="btn btn-outline-secondary btn-lg">
+                    <a href="{{ $prisonHomeUrl }}" class="btn btn-outline-secondary btn-lg">
                         Tilbake til forsiden
                     </a>
                 </div>

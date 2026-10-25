@@ -32,7 +32,7 @@
             </div>
         @endif
 
-        <p><a href="{{ route('tv') }}">Tilbake til forsiden</a></p>
+        <p><a href="{{ $prisonHomeUrl }}">Tilbake til forsiden</a></p>
     </main>
 
     @include('partials.footer')

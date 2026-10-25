@@ -39,11 +39,36 @@
     </script>
 
 </head>
-<body class="@yield('body-class')">
+<body class="@yield('body-class')" data-prison-context="{{ app(\App\Services\PrisonContext::class)->prison()['slug'] }}">
 
     @yield('content')
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (() => {
+            const prison = document.body.dataset.prisonContext;
+            const prisonPath = /^\/(?:ringerike|ilseng|kongsvinger)(?:\/|$)/;
+            const shouldCarryContext = (url) => url.origin === window.location.origin
+                && url.pathname.startsWith('/')
+                && !prisonPath.test(url.pathname)
+                && !url.pathname.startsWith('/admin')
+                && url.pathname !== '/adm';
+
+            document.querySelectorAll('a[href]').forEach((link) => {
+                const url = new URL(link.href, window.location.href);
+                if (!shouldCarryContext(url)) return;
+                url.searchParams.set('prison', prison);
+                link.href = url.pathname + url.search + url.hash;
+            });
+
+            document.querySelectorAll('form[action]').forEach((form) => {
+                const url = new URL(form.action, window.location.href);
+                if (!shouldCarryContext(url)) return;
+                url.searchParams.set('prison', prison);
+                form.action = url.pathname + url.search + url.hash;
+            });
+        })();
+    </script>
     <script>
         (() => {
             const isPrintPath = (path) => /(?:^|\/)(?:print|utskrift|fasit)$/.test(path);

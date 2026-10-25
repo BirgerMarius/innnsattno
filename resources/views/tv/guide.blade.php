@@ -308,7 +308,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
         <div class="prison-actions-column"><a href="/{{ $prison['slug'] }}/tv-utskrift" class="btn btn-secondary btn-lg front-page-btn" role="button">TV-guiden er under klargjøring</a><a href="/{{ $prison['slug'] }}/bonnetider" class="btn btn-primary btn-lg front-page-btn" role="button">🕌 Bønnetider – {{ $prison['name'] }}</a><a href="/{{ $prison['slug'] }}/vaer" class="btn btn-primary btn-lg front-page-btn" role="button">🌦️ Værmelding – {{ $prison['name'] }}</a></div>
         @endif
 
-        <a href="/oppdrag" class="btn btn-lg front-page-btn front-page-btn--task-wheel">
+        <a href="{{ $prisonUrl('/oppdrag') }}" class="btn btn-lg front-page-btn front-page-btn--task-wheel">
             <span>🎲</span>
             <span>Spinn hjulet</span>
             <small>Hvem får oppdraget?</small>
@@ -362,7 +362,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
     <section class="shared-actions" aria-label="Sport, tidsfordriv og utskrift">
         <div class="front-page-grid">
-        <a href="{{ route('fangenytt.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--fangenytt front-page-btn--wide" role="button">
+        <a href="{{ $prisonUrl(route('fangenytt.index')) }}" class="btn btn-lg btn-block front-page-btn front-page-btn--fangenytt front-page-btn--wide" role="button">
             <span class="front-page-btn-title"><i class="far fa-newspaper" aria-hidden="true"></i> Fangenytt @if($showFangenyttNewBadge)<span class="front-page-new-badge front-page-new-badge--fangenytt" aria-label="Nyhet">Nyhet</span>@endif</span>
             <small>Magasin for innsatte – klar til utskrift</small>
         </a>
@@ -398,27 +398,27 @@ $isEvenWeek = $weekNumber % 2 === 0;
         </a>
 
         <div class="front-page-grid__pastimes">
-            <a href="/tidsfordriv" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--wide" role="button">
+            <a href="{{ $prisonUrl('/tidsfordriv') }}" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--wide" role="button">
                 <span class="front-page-btn-title">🧩 Tidsfordriv @if($showTidsfordrivNewBadge)<span class="front-page-new-badge" aria-label="Nyhet">Nyhet</span>@endif</span>
                 <small>Spill og oppgaver – på skjerm og papir</small>
             </a>
         </div>
 
-        <a href="{{ route('calendar.index') }}" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--wide" role="button">
+        <a href="{{ $prisonUrl(route('calendar.index')) }}" class="btn btn-warning btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--wide" role="button">
             <i class="far fa-calendar-alt"></i> Månedskalender – For utskrift
         </a>
 
-        <a href="{{ route('quiz.create') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--test" role="button">
+        <a href="{{ $prisonUrl(route('quiz.create')) }}" class="btn btn-lg btn-block front-page-btn front-page-btn--test" role="button">
             ❓ Lag en quiz
             <span class="front-page-quiz-badges" aria-label="Under utvikling"><span>Under utvikling</span></span>
         </a>
 
-        <a href="{{ route('learning.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--test" role="button">
+        <a href="{{ $prisonUrl(route('learning.index')) }}" class="btn btn-lg btn-block front-page-btn front-page-btn--test" role="button">
             <i class="far fa-lightbulb" aria-hidden="true"></i> Lær noe nytt
             <span class="front-page-quiz-badges" aria-label="Under utvikling"><span>Under utvikling</span></span>
         </a>
 
-        <a href="{{ route('recipes.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--test" role="button">
+        <a href="{{ $prisonUrl(route('recipes.index')) }}" class="btn btn-lg btn-block front-page-btn front-page-btn--test" role="button">
             🍲 Mat/oppskrifter
             <span class="front-page-quiz-badges" aria-label="Under utvikling"><span>Under utvikling</span></span>
         </a>
@@ -520,18 +520,18 @@ $isEvenWeek = $weekNumber % 2 === 0;
     @endif
 
     <section class="front-page-grid front-page-content-actions" aria-label="Faglig innhold">
-        <a href="{{ route('professional-resources.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--professional front-page-btn--wide" role="button">
+        <a href="{{ $prisonUrl(route('professional-resources.index')) }}" class="btn btn-lg btn-block front-page-btn front-page-btn--professional front-page-btn--wide" role="button">
             <span class="front-page-btn-title"><i class="far fa-book-open"></i> Anbefalt fagstoff</span>
             <small>Utvalgte ressurser for ansatte og andre interesserte</small>
         </a>
 
-        <a href="{{ route('news.index') }}" class="btn btn-lg btn-block front-page-btn front-page-btn--professional front-page-btn--wide" role="button">
+        <a href="{{ $prisonUrl(route('news.index')) }}" class="btn btn-lg btn-block front-page-btn front-page-btn--professional front-page-btn--wide" role="button">
             <span class="front-page-btn-title"><i class="far fa-newspaper"></i> Fagnyheter</span>
             <small>Nyheter fra kriminalomsorgen og beslektede fagområder</small>
         </a>
     </section>
 <div class="front-page-feedback">
-    <a href="{{ route('feedback.create') }}" class="btn btn-lg front-page-btn front-page-btn--feedback" role="button">
+    <a href="{{ $prisonUrl(route('feedback.create')) }}" class="btn btn-lg front-page-btn front-page-btn--feedback" role="button">
         <span class="front-page-btn-title"><i class="far fa-comment-alt"></i> Har du en idé?</span>
         <small>Har du en idé eller har du oppdaget en feil?</small>
     </a>
@@ -543,7 +543,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
 @if ($changeHistory['updated_at'])
     <p class="text-center text-muted mt-4">
-        <a href="{{ route('change-history.index') }}" class="front-page-change-history-link text-muted">
+        <a href="{{ $prisonUrl(route('change-history.index')) }}" class="front-page-change-history-link text-muted">
             Siden er sist oppdatert: {{ $changeHistory['updated_at']->format('d.m.Y') }}
         </a>
     </p>
