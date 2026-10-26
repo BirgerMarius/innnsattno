@@ -69,7 +69,7 @@ class WeeklyFootballTvTest extends TestCase
             ->assertSee('Avspark vises ikke');
     }
 
-    public function test_default_selection_only_shows_premier_league_eliteserien_and_champions_league_and_print_keeps_it(): void
+    public function test_default_selection_shows_every_supported_competition_except_la_liga_and_print_keeps_it(): void
     {
         Http::fake(function ($request) {
             parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
@@ -79,25 +79,38 @@ class WeeklyFootballTvTest extends TestCase
                 $this->listing('UEFA Champions League', 'Real Madrid - PSG', '2026-10-12T19:00:00Z', 33),
                 $this->listing('La Liga', 'Barcelona - Sevilla', '2026-10-12T20:00:00Z', 34),
                 $this->listing('Bundesliga', 'Bayern - Dortmund', '2026-10-12T21:00:00Z', 35),
+                $this->listing('UEFA Europa League', 'Roma - Porto', '2026-10-12T22:00:00Z', 36),
+                $this->listing('UEFA Conference League', 'Brugge - Basel', '2026-10-12T23:00:00Z', 37),
+                $this->listing('UEFA Nations League', 'Norge - Sverige', '2026-10-12T12:00:00Z', 38),
+                $this->listing('FIFA World Cup', 'Brasil - Japan', '2026-10-12T13:00:00Z', 39),
+                $this->listing('Serie A', 'Milan - Inter', '2026-10-12T14:00:00Z', 40),
+                $this->listing('OBOS-ligaen', 'Start - Moss', '2026-10-12T15:00:00Z', 41),
             ] : [];
             return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
         });
         $this->warmTv(now('Europe/Oslo')->startOfWeek(), 7);
 
         $this->get('/ringerike/ukens-fotball-pa-tv')->assertOk()
-            ->assertSee('West Ham')->assertSee('Brann')->assertSee('Real Madrid')
-            ->assertDontSee('Barcelona')->assertDontSee('Bayern')
+            ->assertSee('West Ham')->assertSee('Brann')->assertSee('Real Madrid')->assertSee('Bayern')
+            ->assertSee('Roma')->assertSee('Brugge')->assertSee('Norge')->assertSee('Brasil')->assertSee('Milan')->assertSee('Start')
+            ->assertDontSee('Barcelona')
             ->assertSee('name="vis_alle" value="1"', false)
             ->assertDontSee('name="vis_alle" value="1" checked', false)
+            ->assertSee('Standard: Alle turneringer unntatt La Liga. Utskriften tilpasses én A4-side.')
+            ->assertSee('Ta også med La Liga. Utskriften kan gå over flere sider.')
+            ->assertSee('data-weekly-football-print', false)
+            ->assertSee('form.submit()', false)
             ->assertSee('/ringerike/ukens-fotball-pa-tv/utskrift?uke=denne', false);
 
         $this->get('/ringerike/ukens-fotball-pa-tv/utskrift')->assertOk()
             ->assertSee('poster--standard', false)
-            ->assertSee('West Ham')->assertSee('Brann')->assertSee('Real Madrid')
-            ->assertDontSee('Barcelona')->assertDontSee('Bayern');
+            ->assertSee('West Ham')->assertSee('Brann')->assertSee('Real Madrid')->assertSee('Bayern')
+            ->assertSee('Roma')->assertSee('Brugge')->assertSee('Norge')->assertSee('Brasil')->assertSee('Milan')->assertSee('Start')
+            ->assertDontSee('Barcelona');
 
         $this->get('/ringerike/ukens-fotball-pa-tv?vis_alle=1')->assertOk()
             ->assertSee('Barcelona')->assertSee('Bayern')
+            ->assertSee('name="vis_alle" value="1" checked', false)
             ->assertSee('/ringerike/ukens-fotball-pa-tv/utskrift?uke=denne&amp;vis_alle=1', false);
         $this->get('/ringerike/ukens-fotball-pa-tv/utskrift?vis_alle=1')->assertOk()
             ->assertSee('poster--all', false)

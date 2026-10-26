@@ -17,13 +17,16 @@
             <h1>{{ $weekOffset ? 'Neste ukes' : 'Denne ukens' }} TV-sendte fotballkamper</h1>
             <p>Uke {{ $weeklyFootball['weekStart']->isoWeek }} · {{ $weeklyFootball['weekStart']->locale('nb')->translatedFormat('j. F') }}–{{ $weeklyFootball['weekEnd']->locale('nb')->translatedFormat('j. F Y') }}</p>
         </div>
-        <a class="btn btn-success" href="{{ route('prison.weekly-football-tv.print', ['prison' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne', 'vis_alle' => $showAll ? 1 : null]) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut plakat</a>
     </header>
 
-    <form class="weekly-football-selector" method="get" action="{{ route('prison.weekly-football-tv', ['prison' => $prison]) }}">
+    <form class="weekly-football-selector" method="get" action="{{ route('prison.weekly-football-tv', ['prison' => $prison]) }}" data-weekly-football-selector>
         @if($weekOffset)<input type="hidden" name="uke" value="neste">@endif
-        <label><input type="checkbox" name="vis_alle" value="1" @checked($showAll)> Vis alle kamper</label>
-        <button class="btn btn-outline-success btn-sm" type="submit">Oppdater</button>
+        <div class="weekly-football-selector__copy">
+            <label class="weekly-football-selector__label"><input type="checkbox" name="vis_alle" value="1" @checked($showAll)> Vis alle kamper</label>
+            <p class="weekly-football-selector__standard">Standard: Alle turneringer unntatt La Liga. Utskriften tilpasses én A4-side.</p>
+            <p class="weekly-football-selector__all">Ta også med La Liga. Utskriften kan gå over flere sider.</p>
+        </div>
+        <a class="btn btn-success weekly-football-selector__print" data-weekly-football-print href="{{ route('prison.weekly-football-tv.print', ['prison' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne', 'vis_alle' => $showAll ? 1 : null]) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut plakat</a>
     </form>
 
     <nav class="weekly-football-week-tabs" aria-label="Velg uke">
@@ -90,6 +93,22 @@
     @endif
     <p class="weekly-football-note">Tidspunktet er TV-sendingens starttid fra VG TV-guide. Kalenderuken inkluderer også natt til mandag frem til kl. 06.00. Avspark vises ikke når det ikke er oppgitt i TV-dataene. Sist oppdatert: {{ $weeklyFootball['lastUpdated'] ? $weeklyFootball['lastUpdated']->locale('nb')->translatedFormat('j. F Y \k\l. H.i') : 'ukjent' }}.</p>
 </main>
+<script>
+    (() => {
+        const form = document.querySelector('[data-weekly-football-selector]');
+        const checkbox = form?.querySelector('input[name="vis_alle"]');
+        const printLink = form?.querySelector('[data-weekly-football-print]');
+        if (!form || !checkbox || !printLink) return;
+
+        checkbox.addEventListener('change', () => {
+            const url = new URL(printLink.href, window.location.href);
+            if (checkbox.checked) url.searchParams.set('vis_alle', '1');
+            else url.searchParams.delete('vis_alle');
+            printLink.href = url.pathname + url.search + url.hash;
+            form.submit();
+        });
+    })();
+</script>
     @include('partials.footer')
 </div>
 @endsection

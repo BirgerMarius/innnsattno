@@ -8,7 +8,18 @@ use Illuminate\Http\Request;
 
 class WeeklyFootballTvController extends Controller
 {
-    private const STANDARD_COMPETITIONS = ['Premier League', 'Eliteserien', 'Champions League'];
+    private const STANDARD_COMPETITIONS = [
+        'Premier League',
+        'Eliteserien',
+        'Champions League',
+        'Europa League',
+        'Conference League',
+        'Nations League',
+        'Fotball-VM',
+        'Bundesliga',
+        'Serie A',
+        'OBOS-ligaen',
+    ];
 
     public function index(Request $request, TvGuideService $tvGuideService, WeeklyFootballTeamLogoService $teamLogos)
     {
