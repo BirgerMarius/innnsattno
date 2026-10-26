@@ -17,12 +17,18 @@
             <h1>{{ $weekOffset ? 'Neste ukes' : 'Denne ukens' }} TV-sendte fotballkamper</h1>
             <p>Uke {{ $weeklyFootball['weekStart']->isoWeek }} · {{ $weeklyFootball['weekStart']->locale('nb')->translatedFormat('j. F') }}–{{ $weeklyFootball['weekEnd']->locale('nb')->translatedFormat('j. F Y') }}</p>
         </div>
-        <a class="btn btn-success" href="{{ route('prison.weekly-football-tv.print', ['prison' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne']) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut plakat</a>
+        <a class="btn btn-success" href="{{ route('prison.weekly-football-tv.print', ['prison' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne', 'vis_alle' => $showAll ? 1 : null]) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut plakat</a>
     </header>
 
+    <form class="weekly-football-selector" method="get" action="{{ route('prison.weekly-football-tv', ['prison' => $prison]) }}">
+        @if($weekOffset)<input type="hidden" name="uke" value="neste">@endif
+        <label><input type="checkbox" name="vis_alle" value="1" @checked($showAll)> Vis alle kamper</label>
+        <button class="btn btn-outline-success btn-sm" type="submit">Oppdater</button>
+    </form>
+
     <nav class="weekly-football-week-tabs" aria-label="Velg uke">
-        <a class="{{ $weekOffset === 0 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison]) }}">Denne uken</a>
-        <a class="{{ $weekOffset === 1 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'uke' => 'neste']) }}">Neste uke</a>
+        <a class="{{ $weekOffset === 0 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'vis_alle' => $showAll ? 1 : null]) }}">Denne uken</a>
+        <a class="{{ $weekOffset === 1 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'uke' => 'neste', 'vis_alle' => $showAll ? 1 : null]) }}">Neste uke</a>
     </nav>
 
     @if($weeklyFootball['tvPending'] ?? false)

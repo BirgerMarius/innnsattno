@@ -176,6 +176,11 @@ tittelaliaser), og studio, magasin, oppsummering og høydepunkter tas ikke med.
 andre tilfeller er «Sendetype ikke oppgitt». `startsAt` fra TV-guiden er alltid
 sendestarten i Europe/Oslo og erstattes aldri av SportsNext-kampstart.
 
+Ukeoversikten og en direkteåpnet plakat viser som standard bare Premier League,
+Eliteserien og Champions League. Avkrysningen «Vis alle kamper» bruker samme
+lokale datasett, men tar med alle verifiserte turneringer; valget sendes videre i
+`vis_alle=1` til plakat, ukevalg og retur.
+
 Kalenderuken går mandag–søndag og har i tillegg «Natt til mandag» for sendinger
 som starter 00.00–05.59 neste mandag. Den samme lokale datastrukturen brukes av
 nettsiden og plakaten. En konkret sending avdupliseres på VG `listing.id`, med
