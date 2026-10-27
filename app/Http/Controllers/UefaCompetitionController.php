@@ -30,7 +30,10 @@ abstract class UefaCompetitionController extends Controller
         return view('champions-league.index', array_merge($this->viewData(), [
             'prison' => $this->prison(),
             'standings' => $competition['standings'],
-            'standingsGroups' => $competition['standingsGroups'],
+            // Old cache entries created before grouped standings were added
+            // still contain the flat table. Treat them as an empty group list
+            // instead of turning a public prison page into a 500 response.
+            'standingsGroups' => $competition['standingsGroups'] ?? [],
             'upcomingFixtures' => array_slice($upcomingFixtures, 0, 12),
             'upcomingFixturesByDate' => collect(array_slice($upcomingFixtures, 0, 12))->groupBy('dateLabel'),
             'recentResults' => array_slice($recentResults, 0, 12),

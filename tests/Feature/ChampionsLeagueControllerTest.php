@@ -30,6 +30,34 @@ class ChampionsLeagueControllerTest extends TestCase
             ->assertDontSee('Beta');
     }
 
+    /** @dataProvider prisonCompetitionPages */
+    public function test_prefixed_uefa_pages_handle_a_pre_grouped_standings_cache_without_a_server_error(string $prison, string $competition): void
+    {
+        Cache::flush();
+        Http::fake([
+            '*/schedule' => Http::response(['participants' => [], 'events' => []]),
+            '*/standings' => Http::response(['participants' => [], 'standings' => []]),
+        ]);
+
+        $this->get('/'.$prison.'/'.$competition)
+            ->assertOk()
+            ->assertSee('href="/'.$prison.'"', false)
+            ->assertSee('Tabell / ligafase');
+    }
+
+    public function prisonCompetitionPages(): array
+    {
+        $cases = [];
+
+        foreach (['ringerike', 'ilseng', 'kongsvinger'] as $prison) {
+            foreach (['champions-league', 'europa-league', 'conference-league'] as $competition) {
+                $cases[$prison.' '.$competition] = [$prison, $competition];
+            }
+        }
+
+        return $cases;
+    }
+
     /** @test */
     public function champions_league_team_pages_only_show_league_phase_matches(): void
     {
