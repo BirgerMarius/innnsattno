@@ -79,7 +79,9 @@ class PrayerController extends Controller
                 'days' => [], 'prison' => $location, 'year' => $year, 'month' => $month,
                 'monthName' => $monthNames[$month],
                 'error' => 'Bønnetider for Kongsvinger er under klargjøring. Leverandørens steds-ID må bekreftes før tjenesten kan åpnes.',
-                'returnUrl' => $print ? $this->returnUrl($request) : null,
+                'returnUrl' => $print ? $this->returnUrl($prison, $year, $month) : null,
+                'prayerUrl' => fn (int $targetYear, int $targetMonth): string => $this->prayerUrl($prison, $targetYear, $targetMonth),
+                'prayerPrintUrl' => fn (int $targetYear, int $targetMonth): string => $this->prayerPrintUrl($prison, $targetYear, $targetMonth),
             ]);
         }
 
@@ -99,7 +101,9 @@ class PrayerController extends Controller
             'month' => $month,
             'monthName' => $monthNames[$month],
             'error' => $days === [] ? 'Bønnetider kunne ikke hentes akkurat nå. Prøv igjen senere.' : null,
-            'returnUrl' => $print ? $this->returnUrl($request) : null,
+            'returnUrl' => $print ? $this->returnUrl($prison, $year, $month) : null,
+            'prayerUrl' => fn (int $targetYear, int $targetMonth): string => $this->prayerUrl($prison, $targetYear, $targetMonth),
+            'prayerPrintUrl' => fn (int $targetYear, int $targetMonth): string => $this->prayerPrintUrl($prison, $targetYear, $targetMonth),
         ]);
     }
 
@@ -130,21 +134,29 @@ class PrayerController extends Controller
 
     private function currentMonthUrl(string $prison, Carbon $currentMonth): string
     {
-        $path = match ($prison) {
-            'ringerike' => '/bonnetider', 'ilseng' => '/bonnetider-ilseng', default => '/'.$prison.'/bonnetider',
-        };
-
-        return $path.'?'.http_build_query([
-            'year' => $currentMonth->year,
-            'month' => $currentMonth->month,
-        ]);
+        return $this->prayerUrl($prison, $currentMonth->year, $currentMonth->month);
     }
 
-    private function returnUrl(Request $request): string
+    private function returnUrl(string $prison, int $year, int $month): string
     {
-        $path = preg_replace('#/utskrift$#', '', $request->path());
-        $query = $request->getQueryString();
+        return $this->prayerUrl($prison, $year, $month);
+    }
 
-        return '/'.ltrim($path, '/').($query ? '?'.$query : '');
+    private function prayerUrl(string $prison, int $year, int $month): string
+    {
+        return route('prison.prayer', [
+            'prison' => $prison,
+            'year' => $year,
+            'month' => $month,
+        ], false);
+    }
+
+    private function prayerPrintUrl(string $prison, int $year, int $month): string
+    {
+        return route('prison.prayer.print', [
+            'prison' => $prison,
+            'year' => $year,
+            'month' => $month,
+        ], false);
     }
 }

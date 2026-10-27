@@ -47,25 +47,25 @@
 
 <div class="toolbar">
 
-    <a href="?year={{ $month == 1 ? $year - 1 : $year }}&month={{ $month == 1 ? 12 : $month - 1 }}">
+    <a href="{{ $prayerUrl($month == 1 ? $year - 1 : $year, $month == 1 ? 12 : $month - 1) }}">
         ⬅ Forrige måned
     </a>
 
     <strong>{{ $monthName }} {{ $year }}</strong>
 
-    <a href="?year={{ $month == 12 ? $year + 1 : $year }}&month={{ $month == 12 ? 1 : $month + 1 }}">
+    <a href="{{ $prayerUrl($month == 12 ? $year + 1 : $year, $month == 12 ? 1 : $month + 1) }}">
         Neste måned ➜
     </a>
 
     <br><br>
 
-    <a href="{{ request()->path() }}/utskrift?year={{ $year }}&month={{ $month }}">
+    <a href="{{ $prayerPrintUrl($year, $month) }}">
         🖨 Skriv ut denne måneden
     </a>
 
     |
 
-    <a href="{{ request()->path() }}/utskrift?year={{ $month == 12 ? $year + 1 : $year }}&month={{ $month == 12 ? 1 : $month + 1 }}">
+    <a href="{{ $prayerPrintUrl($month == 12 ? $year + 1 : $year, $month == 12 ? 1 : $month + 1) }}">
         🖨 Skriv ut neste måned
     </a>
 

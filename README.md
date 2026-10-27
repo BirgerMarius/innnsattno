@@ -61,6 +61,13 @@ Ved direktebesøk uten kontekst brukes Ringerike. Ikke erstatt denne mekanismen
 med cookie, sesjon eller Referer, og ikke cache HTML for en felles URL uten å
 la hele URL-en, inkludert querystringen, inngå i cache-nøkkelen.
 
+Bønnetider bruker de kanoniske adressene `/{fengsel}/bonnetider` og
+`/{fengsel}/bonnetider/utskrift`. Månedvalg, utskrift og returen etter utskrift
+skal alltid bygges med de navngitte rutene; de skal ikke arve en rå request-sti
+eller en `prison`-query. De eldre bønnetidsadressene fungerer fortsatt, men
+lenker og valideringsvideresendinger peker videre til den kanoniske,
+prefiksede adressen.
+
 Kongsvingers offisielle avdelinger har samme besøksadresse, Vardåsveien 190,
 2214 Kongsvinger. Værstedet bruker adressepunktet 60.2102457, 11.9851459.
 TV-guiden er uttrykkelig under klargjøring til en verifisert kanalliste er

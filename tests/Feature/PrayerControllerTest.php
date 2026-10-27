@@ -80,7 +80,7 @@ class PrayerControllerTest extends TestCase
             '/bonnetider?year=2027&month=7',
             '/bonnetider?year=2027&month=10',
         ] as $url) {
-            $this->get($url)->assertRedirect('/bonnetider?year=2026&month=9');
+            $this->get($url)->assertRedirect('/ringerike/bonnetider?year=2026&month=9');
         }
 
         Http::assertNothingSent();
@@ -92,9 +92,9 @@ class PrayerControllerTest extends TestCase
         Http::fake();
 
         $this->get('/bonnetider?year=1927&month=9')
-            ->assertRedirect('/bonnetider?year=2026&month=9');
+            ->assertRedirect('/ringerike/bonnetider?year=2026&month=9');
         $this->get('/bonnetider-ilseng?year=1927&month=9')
-            ->assertRedirect('/bonnetider-ilseng?year=2026&month=9');
+            ->assertRedirect('/ilseng/bonnetider?year=2026&month=9');
 
         Http::assertNothingSent();
     }
@@ -104,9 +104,9 @@ class PrayerControllerTest extends TestCase
         Http::fake();
 
         $this->get('/bonnetider/utskrift?year=1927&month=9')
-            ->assertRedirect('/bonnetider?year=2026&month=9');
+            ->assertRedirect('/ringerike/bonnetider?year=2026&month=9');
         $this->get('/bonnetider-ilseng/utskrift?year=2027&month=10')
-            ->assertRedirect('/bonnetider-ilseng?year=2026&month=9');
+            ->assertRedirect('/ilseng/bonnetider?year=2026&month=9');
 
         Http::assertNothingSent();
         Mail::assertNothingSent();
@@ -151,7 +151,7 @@ class PrayerControllerTest extends TestCase
             ->assertSee('17:02')
             ->assertSee('20:30')
             ->assertSee('22:12')
-            ->assertSee('const returnUrl = "/bonnetider?month=9&year=2026";', false)
+            ->assertSee('const returnUrl = "/ringerike/bonnetider?year=2026&month=9";', false)
             ->assertSee("window.addEventListener('afterprint'", false)
             ->assertSee('window.location.replace(returnUrl);', false)
             ->assertSee('window.print();', false);
@@ -170,9 +170,65 @@ class PrayerControllerTest extends TestCase
 
         $this->get('/bonnetider-ilseng/utskrift?year=2026&month=9')
             ->assertOk()
-            ->assertSee('const returnUrl = "/bonnetider-ilseng?month=9&year=2026";', false)
+            ->assertSee('const returnUrl = "/ilseng/bonnetider?year=2026&month=9";', false)
             ->assertSee("window.addEventListener('afterprint'", false)
             ->assertSee('window.location.replace(returnUrl);', false);
+    }
+
+    public function test_ringerike_front_page_prayer_print_flow_keeps_the_prefix_when_query_context_conflicts(): void
+    {
+        Http::fake(['api.bonnetid.no/*' => Http::response([$this->bonnetidDay()])]);
+
+        $frontPage = $this->get('/ringerike')->assertOk();
+        $this->assertStringContainsString('href="/ringerike/bonnetider"', $frontPage->getContent());
+
+        $prayerPage = $this->get('/ringerike/bonnetider?prison=ilseng&year=2026&month=9')
+            ->assertOk()
+            ->assertSee('Bønnetider Ringerike fengsel')
+            ->assertDontSee('Bønnetider Ilseng fengsel');
+
+        $this->assertStringContainsString('href="/ringerike/bonnetider/utskrift?year=2026&amp;month=9"', $prayerPage->getContent());
+
+        $this->get('/ringerike/bonnetider/utskrift?prison=ilseng&year=2026&month=9')
+            ->assertOk()
+            ->assertSee('Bønnetider – Ringerike fengsel')
+            ->assertSee('const returnUrl = "/ringerike/bonnetider?year=2026&month=9";', false);
+
+        $this->get('/ringerike/bonnetider?prison=ukjent&year=2026&month=9')
+            ->assertOk()
+            ->assertSee('Bønnetider Ringerike fengsel')
+            ->assertDontSee('Bønnetider Ilseng fengsel');
+    }
+
+    /** @dataProvider prisonPrayerRoutes */
+    public function test_prefixed_prayer_pages_and_prints_keep_their_prison_and_handle_missing_data(string $prison, string $name, bool $hasProviderLocation): void
+    {
+        Http::fake(['api.bonnetid.no/*' => Http::response([$this->bonnetidDay(['location' => $name])])]);
+
+        $page = $this->get('/'.$prison.'/bonnetider?year=2026&month=9')
+            ->assertOk()
+            ->assertSee('Bønnetider '.$name);
+        $this->assertStringContainsString('href="/'.$prison.'/bonnetider/utskrift?year=2026&amp;month=9"', $page->getContent());
+
+        $print = $this->get('/'.$prison.'/bonnetider/utskrift?year=2026&month=9')
+            ->assertOk()
+            ->assertSee('Bønnetider – '.$name);
+
+        if ($hasProviderLocation) {
+            $print->assertSee('01-09-2026');
+        } else {
+            $print->assertSee('under klargjøring');
+            Http::assertNothingSent();
+        }
+    }
+
+    public function prisonPrayerRoutes(): array
+    {
+        return [
+            'Ringerike' => ['ringerike', 'Ringerike fengsel', true],
+            'Ilseng' => ['ilseng', 'Ilseng fengsel', true],
+            'Kongsvinger uten leverandør-ID' => ['kongsvinger', 'Kongsvinger fengsel', false],
+        ];
     }
 
     private function bonnetidDay(): array
