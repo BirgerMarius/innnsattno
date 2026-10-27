@@ -211,8 +211,8 @@ class FootballTeamPageTest extends TestCase
     public function leagues(): array
     {
         return [
-            'Eliteserien' => ['/eliteserien', 8766],
-            'Premier League' => ['/premier-league', 9186],
+            'Eliteserien' => ['/ringerike/eliteserien', 8766],
+            'Premier League' => ['/ringerike/premier-league', 9186],
         ];
     }
 

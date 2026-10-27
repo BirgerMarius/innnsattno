@@ -31,40 +31,34 @@ class VisitationTest extends TestCase
         }
     }
 
-    public function testFrontPageLinksToVisitationAndKeepsOtherMainChoices()
+    public function testPrisonFrontPageKeepsTheCurrentMainChoicesInItsOwnContext()
     {
-        $response = $this->get(route('tv'));
-        $content = $response->getContent();
+        $response = $this->get('/ringerike');
 
         $response
             ->assertStatus(200)
-            ->assertSee('Visitasjonsrullett – Ringerike fengsel')
-            ->assertSee('href="'.route('visitation.index').'"', false)
+            ->assertSee('Spinn hjulet')
+            ->assertSee('href="/oppdrag?prison=ringerike"', false)
             ->assertSee(
                 asset('css/custom/app.css').'?v='.filemtime(public_path('css/custom/app.css')),
                 false
             )
             ->assertDontSee('href="/fotball"', false);
 
-        $this->assertMatchesRegularExpression(
-            '/<svg\s+class="front-page-wheel-icon"\s+width="20"\s+height="20"\s+viewBox="0 0 24 24"\s+aria-hidden="true"/',
-            $content
-        );
-
         foreach ([
             'Skriv ut TV-guide – Ringerike fengsel',
-            'Skriv ut TV-guide – Ilseng fengsel',
             'Bønnetider – Ringerike fengsel',
-            'Bønnetider – Ilseng fengsel',
-            'Værmelding – Tyristrand/Ringerike fengsel',
-            'Værmelding – Ilseng fengsel',
+            'Værmelding – Ringerike fengsel',
             'Premier League 2026/27',
             'Eliteserien 2026',
-            'Tidsfordriv – Sudoku',
-            'Tidsfordriv – Ordjakt',
+            'Tidsfordriv',
             'Månedskalender – For utskrift',
         ] as $frontPageChoice) {
             $response->assertSee($frontPageChoice);
         }
+
+        $response->assertSee('href="/ringerike/ukens-fotball-pa-tv"', false)
+            ->assertSee('href="/ringerike/premier-league"', false)
+            ->assertSee('href="/tidsfordriv?prison=ringerike"', false);
     }
 }

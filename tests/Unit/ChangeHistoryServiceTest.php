@@ -23,7 +23,11 @@ class ChangeHistoryServiceTest extends TestCase
 
     public function testItReadsAllNonMergeCommitsNewestFirstWithoutInternalMetadata(): void
     {
-        config(['change-history.repository_path' => base_path()]);
+        $repository = $this->createRepository([
+            'Fix rolling football print windows',
+            'Legg til automatisk påminnelse om å stille klokken',
+        ]);
+        config(['change-history.repository_path' => $repository]);
         Cache::flush();
 
         $history = $this->app->make(ChangeHistoryService::class)->get();
@@ -43,7 +47,8 @@ class ChangeHistoryServiceTest extends TestCase
 
     public function testItShowsHistoricalEnglishCommitMessagesInNorwegian(): void
     {
-        config(['change-history.repository_path' => base_path()]);
+        $repository = $this->createRepository(['Fix rolling football print windows']);
+        config(['change-history.repository_path' => $repository]);
         Cache::flush();
 
         $history = $this->app->make(ChangeHistoryService::class)->get();
@@ -55,7 +60,11 @@ class ChangeHistoryServiceTest extends TestCase
 
     public function testItShowsTheTvCacheCorrectionWithPublicFacingDetails(): void
     {
-        config(['change-history.repository_path' => base_path()]);
+        $repository = $this->createRepository(
+            ['Sikre TV-cache ved oppdatering'],
+            ['2026-10-20T12:00:00+00:00'],
+        );
+        config(['change-history.repository_path' => $repository]);
         Cache::flush();
 
         $history = $this->app->make(ChangeHistoryService::class)->get();
@@ -101,7 +110,7 @@ class ChangeHistoryServiceTest extends TestCase
         $this->assertContains('Ny endring etter deploy', $secondMessages);
     }
 
-    private function createRepository(array $messages): string
+    private function createRepository(array $messages, array $dates = []): string
     {
         $repository = sys_get_temp_dir().DIRECTORY_SEPARATOR.'change-history-'.bin2hex(random_bytes(8));
         mkdir($repository, 0700);
@@ -111,24 +120,27 @@ class ChangeHistoryServiceTest extends TestCase
         $this->runGit(['-C', $repository, 'config', 'user.name', 'Change history test']);
         $this->runGit(['-C', $repository, 'config', 'user.email', 'change-history@example.test']);
 
-        foreach ($messages as $message) {
-            $this->commit($repository, $message);
+        foreach ($messages as $index => $message) {
+            $this->commit($repository, $message, $dates[$index] ?? null);
         }
 
         return $repository;
     }
 
-    private function commit(string $repository, string $message): void
+    private function commit(string $repository, string $message, ?string $date = null): void
     {
         $file = $repository.DIRECTORY_SEPARATOR.'changes.txt';
         file_put_contents($file, $message."\n", FILE_APPEND);
         $this->runGit(['-C', $repository, 'add', 'changes.txt']);
-        $this->runGit(['-C', $repository, 'commit', '-m', $message]);
+        $this->runGit(
+            ['-C', $repository, 'commit', '-m', $message],
+            $date === null ? [] : ['GIT_AUTHOR_DATE' => $date, 'GIT_COMMITTER_DATE' => $date],
+        );
     }
 
-    private function runGit(array $arguments): void
+    private function runGit(array $arguments, array $environment = []): void
     {
-        $process = new Process(array_merge(['git'], $arguments));
+        $process = new Process(array_merge(['git'], $arguments), null, $environment ?: null);
         $process->mustRun();
     }
 }

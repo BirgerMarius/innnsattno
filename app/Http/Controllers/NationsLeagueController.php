@@ -30,8 +30,9 @@ class NationsLeagueController extends Controller
         ]));
     }
 
-    public function team(int $teamId)
+    public function team(string|int $prisonOrTeamId, ?int $teamId = null)
     {
+        $teamId ??= (int) $prisonOrTeamId;
         $teamSeason = $this->nationsLeague->getTeamPhaseData($teamId, 'Nations League', ['group']);
         abort_unless($teamSeason, 404);
 
@@ -44,6 +45,8 @@ class NationsLeagueController extends Controller
             'seasonLabel' => $teamSeason['seasonName'] ?? '2026/28',
             'competitionRoute' => 'nations-league.index',
             'teamPrintRoute' => 'nations-league.team.print',
+            'competitionUrl' => '/'.$this->prison().'/nations-league',
+            'teamPrintUrl' => '/'.$this->prison().'/nations-league/lag/'.$teamId.'/utskrift',
             'teamGroupName' => $group['stageName'] ?? null,
             'teamPhaseLabel' => 'League- og gruppespill',
             'results' => $results,
@@ -52,8 +55,9 @@ class NationsLeagueController extends Controller
         ]));
     }
 
-    public function teamPrint(int $teamId)
+    public function teamPrint(string|int $prisonOrTeamId, ?int $teamId = null)
     {
+        $teamId ??= (int) $prisonOrTeamId;
         $teamSeason = $this->nationsLeague->getTeamPhaseData($teamId, 'Nations League', ['group']);
         abort_unless($teamSeason, 404);
 

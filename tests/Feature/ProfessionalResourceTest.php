@@ -31,7 +31,7 @@ class ProfessionalResourceTest extends TestCase
 
     public function testFrontPageLinksToProfessionalResources()
     {
-        $response = $this->get('/tv');
+        $response = $this->get('/ringerike');
 
         $response->assertStatus(200);
         $response->assertSeeInOrder([
@@ -44,7 +44,7 @@ class ProfessionalResourceTest extends TestCase
         $response->assertDontSee('https://www.yr.no/nb/innhold/1-2378693/meteogram.svg', false);
         $response->assertSee('Anbefalt fagstoff');
         $response->assertSee('Utvalgte ressurser for ansatte og andre interesserte');
-        $response->assertSee('href="' . route('professional-resources.index') . '"', false);
+        $response->assertSee('href="' . url('/fagstoff?prison=ringerike') . '"', false);
         $response->assertDontSee('Kuratert');
         $response->assertDontSee('kuratert');
         $response->assertSee('href="' . route('admin.index') . '"', false);

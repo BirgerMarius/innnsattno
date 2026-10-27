@@ -99,12 +99,12 @@ class FangenyttTest extends TestCase
 
     public function testHomepageLinksToFangenytt(): void
     {
-        $response = $this->get(route('tv'));
+        $response = $this->get('/ringerike');
 
         $response
             ->assertOk()
             ->assertSee('Fangenytt')
-            ->assertSee('href="'.route('fangenytt.index').'"', false)
+            ->assertSee('href="'.url('/fangenytt?prison=ringerike').'"', false)
             ->assertSee('front-page-btn--fangenytt', false)
             ->assertSeeInOrder([
                 'ℹ️ Ilseng fengsel',

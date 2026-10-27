@@ -15,6 +15,6 @@ class ExampleTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertRedirect('/tv');
+        $response->assertRedirect('/ringerike');
     }
 }

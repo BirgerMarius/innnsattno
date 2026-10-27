@@ -65,8 +65,9 @@ class PremierLeagueController extends Controller
         ));
     }
 
-    public function team(int $teamId)
+    public function team(string|int $prisonOrTeamId, ?int $teamId = null)
     {
+        $teamId ??= (int) $prisonOrTeamId;
         $teamSeason = $this->premierLeagueService->getTeamSeasonData($teamId, 'Premier League');
         abort_unless($teamSeason, 404);
 
@@ -76,8 +77,9 @@ class PremierLeagueController extends Controller
         ]));
     }
 
-    public function teamPrint(int $teamId)
+    public function teamPrint(string|int $prisonOrTeamId, ?int $teamId = null)
     {
+        $teamId ??= (int) $prisonOrTeamId;
         $teamSeason = $this->premierLeagueService->getTeamSeasonData($teamId, 'Premier League');
         abort_unless($teamSeason, 404);
 

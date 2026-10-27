@@ -14,6 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class CorrectionalNewsServiceTest extends TestCase
@@ -25,7 +26,15 @@ class CorrectionalNewsServiceTest extends TestCase
         parent::setUp();
         Cache::flush();
         Mail::fake();
+        Carbon::setTestNow(Carbon::parse('2026-09-16 12:00:00', 'Europe/Oslo'));
         config()->set('feedback.notification_email', 'varsling@example.test');
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+
+        parent::tearDown();
     }
 
     public function testNffUsesTheConfirmedDedicatedFeedAndParsesItsArticle(): void

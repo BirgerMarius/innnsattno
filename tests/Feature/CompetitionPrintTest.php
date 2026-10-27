@@ -27,7 +27,7 @@ class CompetitionPrintTest extends TestCase
     {
         $this->fakeRollingWindowCompetition(8766);
 
-        $response = $this->get('/eliteserien/utskrift');
+        $response = $this->get('/ringerike/eliteserien/utskrift');
 
         $response->assertOk()
             ->assertViewHas('printResults', fn (array $matches) => array_column($matches, 'id') === [1, 5])
@@ -51,7 +51,7 @@ class CompetitionPrintTest extends TestCase
     {
         $this->fakeRollingWindowCompetition(9186);
 
-        $response = $this->get('/premier-league/utskrift');
+        $response = $this->get('/ringerike/premier-league/utskrift');
 
         $response->assertOk()
             ->assertSee('Premier League')
@@ -69,7 +69,7 @@ class CompetitionPrintTest extends TestCase
     {
         $this->fakeRollingWindowCompetition(9186);
 
-        $this->get('/premier-league/utskrift')->assertOk()
+        $this->get('/ringerike/premier-league/utskrift')->assertOk()
             ->assertSee('size: A4 portrait; margin: 10mm;', false)
             ->assertSee('competition-print competition-print--compact', false)
             ->assertSee('.competition-print--compact th,', false)
@@ -83,7 +83,7 @@ class CompetitionPrintTest extends TestCase
     {
         $this->fakeRollingWindowCompetition(8766);
 
-        $this->get('/eliteserien/utskrift')->assertOk()
+        $this->get('/ringerike/eliteserien/utskrift')->assertOk()
             ->assertSee('class="competition-print"', false)
             ->assertDontSee('class="competition-print competition-print--compact"', false)
             ->assertSee('.fixture-sections { display: grid;', false)
@@ -94,15 +94,15 @@ class CompetitionPrintTest extends TestCase
     public function competition_print_returns_to_the_correct_league_after_the_print_dialog_closes(): void
     {
         $this->fakeRollingWindowCompetition(8766);
-        $this->get('/eliteserien/utskrift')->assertOk()
-            ->assertSee('const returnUrl = '.json_encode(route('eliteserien.index'), JSON_UNESCAPED_SLASHES).';', false)
+        $this->get('/ringerike/eliteserien/utskrift')->assertOk()
+            ->assertSee('const returnUrl = "/ringerike/eliteserien";', false)
             ->assertSee("window.addEventListener('afterprint'", false)
             ->assertSee('window.location.replace(returnUrl);', false);
 
         Cache::flush();
         $this->fakeRollingWindowCompetition(9186);
-        $this->get('/premier-league/utskrift')->assertOk()
-            ->assertSee('const returnUrl = '.json_encode(route('premier-league.index'), JSON_UNESCAPED_SLASHES).';', false)
+        $this->get('/ringerike/premier-league/utskrift')->assertOk()
+            ->assertSee('const returnUrl = "/ringerike/premier-league";', false)
             ->assertSee("window.addEventListener('afterprint'", false)
             ->assertSee('window.location.replace(returnUrl);', false);
     }
@@ -111,15 +111,15 @@ class CompetitionPrintTest extends TestCase
     public function league_pages_link_to_their_named_print_routes(): void
     {
         $this->fakeCompetition(8766);
-        $this->get('/eliteserien')->assertOk()
+        $this->get('/ringerike/eliteserien')->assertOk()
             ->assertSee('Skriv ut ukeoversikt')
-            ->assertSee(route('eliteserien.print'), false);
+            ->assertSee('/ringerike/eliteserien/utskrift', false);
 
         Cache::flush();
         $this->fakeCompetition(9186);
-        $this->get('/premier-league')->assertOk()
+        $this->get('/ringerike/premier-league')->assertOk()
             ->assertSee('Skriv ut ukeoversikt')
-            ->assertSee(route('premier-league.print'), false);
+            ->assertSee('/ringerike/premier-league/utskrift', false);
     }
 
     /** @test */
@@ -130,7 +130,7 @@ class CompetitionPrintTest extends TestCase
             '*/standings' => Http::response([]),
         ]);
 
-        $this->get('/eliteserien/utskrift')->assertOk()
+        $this->get('/ringerike/eliteserien/utskrift')->assertOk()
             ->assertSee('Ingen ferdigspilte kamper de siste 7 døgnene.')
             ->assertSee('Ingen kamper er satt opp de neste 7 døgnene.')
             ->assertSee('Tabellen kunne ikke lastes akkurat nå.');

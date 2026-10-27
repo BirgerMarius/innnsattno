@@ -266,8 +266,8 @@
                                                 @endif
                                             </div>
                                             <div class="pl-match-teams">
-                                                <a class="pl-team-link pl-match-team" href="{{ route('premier-league.team', $match['homeTeamId']) }}">@if($match['homeEmblemUrl'])<img class="pl-match-emblem" src="{{ $match['homeEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['homeTeam'] }}</a>
-                                                <a class="pl-team-link pl-match-team" href="{{ route('premier-league.team', $match['awayTeamId']) }}">@if($match['awayEmblemUrl'])<img class="pl-match-emblem" src="{{ $match['awayEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['awayTeam'] }}</a>
+                                                <a class="pl-team-link pl-match-team" href="/{{ $prison }}/premier-league/lag/{{ $match['homeTeamId'] }}">@if($match['homeEmblemUrl'])<img class="pl-match-emblem" src="{{ $match['homeEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['homeTeam'] }}</a>
+                                                <a class="pl-team-link pl-match-team" href="/{{ $prison }}/premier-league/lag/{{ $match['awayTeamId'] }}">@if($match['awayEmblemUrl'])<img class="pl-match-emblem" src="{{ $match['awayEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['awayTeam'] }}</a>
                                             </div>
                                         </div>
                                         <div class="pl-status text-right">{{ $match['statusLabel'] }}</div>
@@ -300,8 +300,8 @@
                                                 @endif
                                             </div>
                                             <div class="pl-match-teams">
-                                                <a class="pl-team-link pl-match-team" href="{{ route('premier-league.team', $match['homeTeamId']) }}">@if($match['homeEmblemUrl'])<img class="pl-match-emblem" src="{{ $match['homeEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['homeTeam'] }}</a>
-                                                <a class="pl-team-link pl-match-team" href="{{ route('premier-league.team', $match['awayTeamId']) }}">@if($match['awayEmblemUrl'])<img class="pl-match-emblem" src="{{ $match['awayEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['awayTeam'] }}</a>
+                                                <a class="pl-team-link pl-match-team" href="/{{ $prison }}/premier-league/lag/{{ $match['homeTeamId'] }}">@if($match['homeEmblemUrl'])<img class="pl-match-emblem" src="{{ $match['homeEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['homeTeam'] }}</a>
+                                                <a class="pl-team-link pl-match-team" href="/{{ $prison }}/premier-league/lag/{{ $match['awayTeamId'] }}">@if($match['awayEmblemUrl'])<img class="pl-match-emblem" src="{{ $match['awayEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['awayTeam'] }}</a>
                                             </div>
                                         </div>
                                         <div class="pl-score">

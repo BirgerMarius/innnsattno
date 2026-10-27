@@ -59,8 +59,9 @@ abstract class UefaCompetitionController extends Controller
         ]));
     }
 
-    public function team(int $teamId)
+    public function team(string|int $prisonOrTeamId, ?int $teamId = null)
     {
+        $teamId ??= (int) $prisonOrTeamId;
         $teamSeason = $this->competitionService->getTeamPhaseData($teamId, $this->competitionName(), ['group']);
         abort_unless($teamSeason, 404);
 
@@ -74,8 +75,9 @@ abstract class UefaCompetitionController extends Controller
         ]));
     }
 
-    public function teamPrint(int $teamId)
+    public function teamPrint(string|int $prisonOrTeamId, ?int $teamId = null)
     {
+        $teamId ??= (int) $prisonOrTeamId;
         $teamSeason = $this->competitionService->getTeamPhaseData($teamId, $this->competitionName(), ['group']);
         abort_unless($teamSeason, 404);
 
