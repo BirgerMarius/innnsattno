@@ -21,8 +21,9 @@ class TvGuideChannelHealthService
                 $first = Carbon::parse($row->first_failure_at)->setTimezone('Europe/Oslo');
                 $last = Carbon::parse($row->last_check_at)->setTimezone('Europe/Oslo');
                 $prisons = collect(config('prisons.all', []))->filter(fn (array $prison) => in_array($slug, $prison['tv_channels'] ?? [], true))->pluck('name')->all();
+                $name = config('tv_guide.strim_channels.'.$slug.'.name', $slug);
 
-                return compact('date', 'slug', 'source', 'first', 'last', 'prisons');
+                return compact('date', 'slug', 'name', 'source', 'first', 'last', 'prisons');
             })->all();
     }
 }

@@ -54,7 +54,7 @@ class AdminDashboardStatisticsTest extends TestCase
     public function test_dashboard_shows_active_vg_channel_issue_with_shared_prison_context(): void
     {
         DB::table('external_data_checks')->insert([
-            'service' => 'tv-guide-vg-channel', 'coverage_key' => '2026-10-28|tv3', 'datatype' => 'tv',
+            'service' => 'tv-guide-vg-channel', 'coverage_key' => '2026-10-28|tv3-plus', 'datatype' => 'tv',
             'description' => 'VG TV-guide tv3', 'essential' => true, 'usable' => true,
             'last_success_at' => null, 'last_check_at' => '2026-10-28 14:20:00', 'first_failure_at' => '2026-10-28 13:10:00',
             'active_until' => '2026-10-28 23:59:59', 'failure_count' => 3,
@@ -62,7 +62,7 @@ class AdminDashboardStatisticsTest extends TestCase
         ]);
 
         $this->withSession(['admin_authenticated' => true])->get('/adm')->assertOk()
-            ->assertSee('Manglende programdata hos VG')->assertSee('tv3')
+            ->assertSee('Manglende programdata hos VG')->assertSee('TV3+')->assertSee('tv3-plus')
             ->assertSee('Ringerike fengsel, Ilseng fengsel')->assertSee('Strim');
     }
 

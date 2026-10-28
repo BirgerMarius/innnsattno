@@ -19,11 +19,6 @@ class TvGuideService
     private const FRESH_TTL_SECONDS = 3900;
     private const TIMEZONE = 'Europe/Oslo';
     private const UPCOMING_DAYS = 7;
-    private const STRIM_ENDPOINT = 'https://contentsearch.rikstv.no/1/channel';
-    private const STRIM_CHANNELS = [
-        'tv3' => ['id' => 69, 'name' => 'TV3'],
-        'tv3-plus' => ['id' => 71, 'name' => 'TV3+'],
-    ];
 
     /**
      * Exact VG titles are intentional: slugs are not reliable for UEFA programming.
@@ -879,8 +874,8 @@ class TvGuideService
             if (is_array($current)) {
                 $current['programDataStatus'] = 'missing';
                 $currentBySlug[$slug] = $current;
-            } elseif (isset(self::STRIM_CHANNELS[$slug])) {
-                $currentBySlug[$slug] = ['channel' => ['slug' => $slug, 'name' => self::STRIM_CHANNELS[$slug]['name']], 'listings' => [], 'programDataStatus' => 'missing'];
+            } elseif (($definition = $this->strimChannelDefinition($slug)) !== null) {
+                $currentBySlug[$slug] = ['channel' => ['slug' => $slug, 'name' => $definition['name']], 'listings' => [], 'programDataStatus' => 'missing'];
             }
             $sources[$slug] = 'missing';
         }
@@ -910,8 +905,8 @@ class TvGuideService
     /** Return a validated, date-scoped Strim backup row for the two supported channels. */
     private function strimChannelForDate(CarbonInterface $date, string $slug): ?array
     {
-        if (! isset(self::STRIM_CHANNELS[$slug])) return null;
-        $definition = self::STRIM_CHANNELS[$slug];
+        $definition = $this->strimChannelDefinition($slug);
+        if ($definition === null) return null;
         $cacheKey = 'tv-guide-strim.'.$date->format('Y-m-d').'.'.$slug;
         $cached = Cache::get($cacheKey);
         if (is_array($cached)) return $cached === [] ? null : $cached;
@@ -925,7 +920,7 @@ class TvGuideService
             for ($attempt = 1; $attempt <= 2; $attempt++) {
                 try {
                     $response = Http::acceptJson()->connectTimeout(3)->timeout(10)
-                        ->get(self::STRIM_ENDPOINT.'/'.$definition['id'].'/epg/'.$date->format('Y-m-d'));
+                        ->get($definition['epg_url'].'/'.$date->format('Y-m-d'));
                     if (! $response->serverError() || $attempt === 2) break;
                 } catch (ConnectionException $exception) {
                     if ($attempt === 2) throw $exception;
@@ -980,6 +975,22 @@ class TvGuideService
         usort($listings, fn (array $left, array $right) => strcmp($left['startsAt'], $right['startsAt']));
 
         return ['channel' => ['slug' => $slug, 'name' => $definition['name']], 'listings' => array_values($listings)];
+    }
+
+    /** @return array{id: int, name: string, epg_url: string}|null */
+    private function strimChannelDefinition(string $slug): ?array
+    {
+        $definition = config('tv_guide.strim_channels.'.$slug);
+
+        if (! is_array($definition)
+            || ! is_int($definition['id'] ?? null)
+            || ! is_string($definition['name'] ?? null)
+            || ! is_string($definition['epg_url'] ?? null)
+            || ! str_starts_with($definition['epg_url'], 'https://contentsearch.rikstv.no/1/channel/')) {
+            return null;
+        }
+
+        return $definition;
     }
 
     /** One persistent row per channel/date, not one duplicate for each prison selection. */

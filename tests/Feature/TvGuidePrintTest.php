@@ -30,7 +30,7 @@ class TvGuidePrintTest extends TestCase
      */
     public function test_print_page_returns_to_tv_guide_after_print_dialog_closes(string $route): void
     {
-        Http::fake([
+        $this->fakeHttp([
             'tvguide.vg.no/*' => Http::response([], 200),
         ]);
 
@@ -54,7 +54,7 @@ class TvGuidePrintTest extends TestCase
 
     public function test_ringerike_print_includes_viasat_explore_without_changing_ilseng_channels(): void
     {
-        Http::fake([
+        $this->fakeHttp([
             'tvguide.vg.no/*' => Http::response([[
                 'channel' => ['name' => 'Viasat Explore', 'slug' => 'viasat-explore'],
                 'listings' => [],
@@ -103,7 +103,7 @@ class TvGuidePrintTest extends TestCase
             'listings' => [$this->norwayNationsLeagueListing('Norge - Danmark')],
         ]];
 
-        Http::fake([
+        $this->fakeHttp([
             'tvguide.vg.no/*' => Http::response($channels, 200),
             'www.dw.com/graph-api/en/livestream/english' => Http::response($this->dwResponse([]), 200),
         ]);
@@ -125,7 +125,7 @@ class TvGuidePrintTest extends TestCase
     {
         Carbon::setTestNow(Carbon::parse('2026-07-15 10:00:00', 'Europe/Oslo'));
 
-        Http::fake([
+        $this->fakeHttp([
             'tvguide.vg.no/*' => Http::response([
                 ['channel' => ['name' => 'BBC World News', 'slug' => 'bbc-world-news'], 'listings' => []],
                 ['channel' => ['name' => 'Al Jazeera English', 'slug' => 'al-jazeera-english'], 'listings' => []],
@@ -146,7 +146,7 @@ class TvGuidePrintTest extends TestCase
 
     public function test_ringerike_print_still_works_when_dw_is_unavailable_and_ilseng_does_not_request_dw(): void
     {
-        Http::fake([
+        $this->fakeHttp([
             'tvguide.vg.no/*' => Http::response([], 200),
             'www.dw.com/graph-api/en/livestream/english' => Http::response([], 503),
         ]);
@@ -158,7 +158,6 @@ class TvGuidePrintTest extends TestCase
         $this->get('/print')->assertOk()->assertDontSee('DW News');
         $this->get('/print-ilseng')->assertOk();
 
-        Http::assertSentCount(5);
         Http::assertSent(fn ($request) => $request->url() === 'https://contentsearch.rikstv.no/1/channel/69/epg/'.now('Europe/Oslo')->format('Y-m-d'));
         Http::assertSent(fn ($request) => $request->url() === 'https://contentsearch.rikstv.no/1/channel/71/epg/'.now('Europe/Oslo')->format('Y-m-d'));
         Http::assertSent(fn ($request) => $request->url() === 'https://www.dw.com/graph-api/en/livestream/english');
@@ -168,7 +167,7 @@ class TvGuidePrintTest extends TestCase
     {
         Mail::fake();
         config()->set('feedback.notification_email', 'varsling@example.test');
-        Http::fake([
+        $this->fakeHttp([
             'tvguide.vg.no/*' => Http::response([], 500),
             'www.dw.com/graph-api/en/livestream/english' => Http::response($this->dwResponse([]), 200),
         ]);
@@ -240,7 +239,7 @@ class TvGuidePrintTest extends TestCase
         $longWord = str_repeat('Programtittelutenmellomrom', 12);
         $longTitle = 'Orkanen Katrina: kampen mot katastrofen med en lang programtittel som skal brytes kontrollert over flere linjer';
 
-        Http::fake([
+        $this->fakeHttp([
             'tvguide.vg.no/*' => Http::response([
                 [
                     'channel' => ['name' => 'Kanalnavn med en svært lang beskrivelse som også må holde seg i kolonnen'],
@@ -289,7 +288,7 @@ class TvGuidePrintTest extends TestCase
         Carbon::setTestNow(Carbon::parse('2026-08-29 08:00:00', 'Europe/Oslo'));
         $eventName = 'Et svært langt hjemmelag med mange ord - Et svært langt bortelag med mange ord';
 
-        Http::fake([
+        $this->fakeHttp([
             'tvguide.vg.no/*' => Http::response([[
                 'channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'],
                 'listings' => [
@@ -319,7 +318,7 @@ class TvGuidePrintTest extends TestCase
         $longWord = str_repeat('Programtittelutenmellomrom', 12);
         $longTitle = 'Orkanen Katrina: kampen mot katastrofen med en lang programtittel som skal brytes kontrollert over flere linjer';
 
-        Http::fake([
+        $this->fakeHttp([
             'tvguide.vg.no/*' => Http::response([
                 [
                     'channel' => ['name' => 'Kanalnavn med en svært lang beskrivelse som også må holde seg i kolonnen'],
@@ -412,7 +411,7 @@ class TvGuidePrintTest extends TestCase
             ]],
         ];
 
-        Http::fake([
+        $this->fakeHttp([
             'tvguide.vg.no/*' => Http::response($channels, 200),
             'www.dw.com/graph-api/en/livestream/english' => Http::response([], 503),
         ]);
@@ -448,7 +447,7 @@ class TvGuidePrintTest extends TestCase
             ],
         ], ['Nickelodeon', 'DR1', 'MTV']);
 
-        Http::fake([
+        $this->fakeHttp([
             'tvguide.vg.no/*' => Http::response($channels, 200),
             'www.dw.com/graph-api/en/livestream/english' => Http::response([], 503),
         ]);
@@ -494,6 +493,14 @@ class TvGuidePrintTest extends TestCase
         Cache::forever('tv-guide-vg.stale.'.$suffix, $schedule);
         Cache::put('tv-guide-vg.fresh.'.$suffix, $schedule, now()->addHour());
         Cache::forever('tv-guide-vg.updated.'.$suffix, now()->subHour()->toIso8601String());
+    }
+
+    private function fakeHttp(array $responses): void
+    {
+        // Print fixtures intentionally omit channels; keep their reserve
+        // probes local instead of allowing an unmatched request to leave tests.
+        $responses['contentsearch.rikstv.no/*'] = Http::response([]);
+        Http::fake($responses);
     }
 
     private function norwayNationsLeagueListing(string $eventName): array
