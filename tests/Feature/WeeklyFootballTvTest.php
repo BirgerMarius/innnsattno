@@ -63,7 +63,7 @@ class WeeklyFootballTvTest extends TestCase
             ->assertSee('Bayern')->assertSee('Dortmund')
             ->assertSee('La Liga')
             ->assertSee('TV3+')->assertSee('V sport 1')
-            ->assertSee('name="utvalg" value="utvidet" checked', false)
+            ->assertSee('href="http://localhost:8086/ringerike/ukens-fotball-pa-tv?uke=denne&amp;utvalg=utvidet"', false)
             ->assertDontSee('Studio – Magasin')
             ->assertSee('Sendestart')
             ->assertSee('Avspark vises ikke');
@@ -90,16 +90,37 @@ class WeeklyFootballTvTest extends TestCase
         });
         $this->warmTv(now('Europe/Oslo')->startOfWeek(), 7);
 
-        $this->get('/ringerike/ukens-fotball-pa-tv')->assertOk()
+        $standardPage = $this->get('/ringerike/ukens-fotball-pa-tv')->assertOk()
             ->assertSee('West Ham')->assertSee('Brann')->assertSee('Real Madrid')->assertSee('Norge')
             ->assertDontSee('Bayern')->assertDontSee('Roma')->assertDontSee('Brugge')->assertDontSee('Brasil')->assertDontSee('Milan')
             ->assertDontSee('Barcelona')
-            ->assertSee('name="utvalg" value="standard" checked', false)
-            ->assertSee('TV-sendte kamper fra Eliteserien, Premier League, Nations League og Champions League i valgt periode.')
-            ->assertDontSee('Alle fotballkamper i TV-guiden i valgt periode.')
+            ->assertSee('Utskriften viser TV-sendte kamper fra Eliteserien, Premier League, Nations League og Champions League i valgt uke.')
+            ->assertDontSee('Utskriften viser alle identifiserbare fotballkamper i TV-guiden i valgt uke, uavhengig av liga eller turnering.')
             ->assertSee('data-weekly-football-print', false)
-            ->assertSee('form.submit()', false)
-            ->assertSee('/ringerike/ukens-fotball-pa-tv/utskrift?uke=denne&amp;utvalg=standard&amp;periode=hele', false);
+            ->assertSee('/ringerike/ukens-fotball-pa-tv/utskrift?uke=denne&amp;utvalg=standard', false);
+
+        $standardPage->assertSee('weekly-football-selector__choices', false)
+            ->assertSee('href="http://localhost:8086/ringerike/ukens-fotball-pa-tv?uke=denne&amp;utvalg=standard"', false)
+            ->assertSee('aria-current="true"', false)
+            ->assertSee('Skriv ut oversikten')
+            ->assertDontSee('Vis oversikt')
+            ->assertDontSee('type="radio"', false)
+            ->assertDontSee('form.requestSubmit()', false);
+
+        $selectedPage = $this->get('/ringerike/ukens-fotball-pa-tv?uke=denne&utvalg=utvidet&periode=gjenstaende');
+        $selectedPage->assertOk()
+            ->assertSee('Barcelona')->assertSee('Bayern')
+            ->assertSee('Utskriften viser alle identifiserbare fotballkamper i TV-guiden i valgt uke, uavhengig av liga eller turnering.')
+            ->assertSee('/ringerike/ukens-fotball-pa-tv/utskrift?uke=denne&amp;utvalg=utvidet', false)
+            ->assertDontSee('Bare gjenstående kamper')
+            ->assertDontSee('periode=', false);
+
+        preg_match('/href="([^"]*ukens-fotball-pa-tv\/utskrift\?[^"]*)"/', $selectedPage->getContent(), $printLink);
+        $this->assertNotEmpty($printLink[1] ?? null);
+        $this->get(html_entity_decode($printLink[1]))->assertOk()
+            ->assertSee('poster--all', false)
+            ->assertSee('Utvalg: Utvidet ·', false)
+            ->assertSee('Barcelona')->assertSee('Bayern');
 
         $this->get('/ringerike/ukens-fotball-pa-tv/utskrift')->assertOk()
             ->assertSee('poster--standard', false)
@@ -109,14 +130,30 @@ class WeeklyFootballTvTest extends TestCase
 
         $this->get('/ringerike/ukens-fotball-pa-tv?utvalg=utvidet')->assertOk()
             ->assertSee('Barcelona')->assertSee('Bayern')
-            ->assertSee('Alle fotballkamper i TV-guiden i valgt periode.')
-            ->assertDontSee('TV-sendte kamper fra Eliteserien, Premier League, Nations League og Champions League i valgt periode.')
-            ->assertSee('name="utvalg" value="utvidet" checked', false)
-            ->assertSee('/ringerike/ukens-fotball-pa-tv/utskrift?uke=denne&amp;utvalg=utvidet&amp;periode=hele', false);
+            ->assertSee('Utskriften viser alle identifiserbare fotballkamper i TV-guiden i valgt uke, uavhengig av liga eller turnering.')
+            ->assertDontSee('Utskriften viser TV-sendte kamper fra Eliteserien, Premier League, Nations League og Champions League i valgt uke.')
+            ->assertSee('/ringerike/ukens-fotball-pa-tv/utskrift?uke=denne&amp;utvalg=utvidet', false);
         $this->get('/ringerike/ukens-fotball-pa-tv/utskrift?utvalg=utvidet')->assertOk()
             ->assertSee('poster--all', false)
             ->assertSee('Barcelona')->assertSee('Bayern')
-            ->assertSee('/ringerike/ukens-fotball-pa-tv?uke=denne&amp;utvalg=utvidet&amp;periode=hele', false);
+            ->assertSee('/ringerike/ukens-fotball-pa-tv?uke=denne&amp;utvalg=utvidet', false);
+    }
+
+    public function test_selection_links_preserve_week_and_print_selection(): void
+    {
+        foreach ([
+            ['standard', 'Standard', 'Utskriften viser TV-sendte kamper fra Eliteserien, Premier League, Nations League og Champions League i valgt uke.'],
+            ['utvidet', 'Utvidet', 'Utskriften viser alle identifiserbare fotballkamper i TV-guiden i valgt uke, uavhengig av liga eller turnering.'],
+        ] as [$selection, $selectionLabel, $selectionText]) {
+            $this->get("/ringerike/ukens-fotball-pa-tv?uke=neste&utvalg={$selection}")->assertOk()
+                ->assertSee($selectionText)
+                ->assertSee('Aktivt utvalg: '.$selectionLabel.' · 0 kamper.')
+                ->assertSee("/ringerike/ukens-fotball-pa-tv/utskrift?uke=neste&amp;utvalg={$selection}", false)
+                ->assertSee("/ringerike/ukens-fotball-pa-tv?uke=neste&amp;utvalg=".($selection === 'standard' ? 'utvidet' : 'standard'), false)
+                ->assertDontSee('periode=', false);
+            $this->get("/ringerike/ukens-fotball-pa-tv/utskrift?uke=neste&utvalg={$selection}")->assertOk()
+                ->assertSee('Utvalg: '.$selectionLabel.' · 0 kamper', false);
+        }
     }
 
     public function test_weekly_page_reports_missing_local_data_without_claiming_the_source_fetch_failed(): void
@@ -251,7 +288,7 @@ class WeeklyFootballTvTest extends TestCase
             ->assertSee('Natt til mandag')->assertSee('Sendetype ikke oppgitt');
     }
 
-    public function test_remaining_selection_uses_only_confirmed_sportsnext_status_and_keeps_live_future_and_cancelled_matches(): void
+    public function test_legacy_remaining_period_url_keeps_all_matches_and_statuses(): void
     {
         Cache::put('schibsted_sports.premier_league.9186.last_good', [
             'sourceFetchedAt' => '2026-10-14T11:55:00+02:00',
@@ -282,18 +319,25 @@ class WeeklyFootballTvTest extends TestCase
 
         $this->get('/ringerike/ukens-fotball-pa-tv')->assertOk()
             ->assertSee('Sluttresultat 2–1')->assertSee('Pågår')->assertSee('Ikke startet')->assertSee('Avlyst');
-        $this->get('/ringerike/ukens-fotball-pa-tv?periode=gjenstaende')->assertOk()
-            ->assertDontSee('Arsenal')->assertDontSee('Man City')->assertSee('Liverpool')->assertSee('Brentford')->assertSee('Villa')
-            ->assertSee('Bare gjenstående kamper')->assertSee('Kamper uten bekreftet sluttstatus kan fortsatt vises.');
+        $remainingPage = $this->get('/ringerike/ukens-fotball-pa-tv?uke=denne&utvalg=standard&periode=gjenstaende')->assertOk()
+            ->assertSee('Arsenal')->assertSee('Man City')->assertSee('Liverpool')->assertSee('Brentford')->assertSee('Villa')
+            ->assertSee('Sluttresultat 2–1')->assertSee('Pågår')->assertSee('Ikke startet')->assertSee('Avlyst')
+            ->assertSee('/ringerike/ukens-fotball-pa-tv/utskrift?uke=denne&amp;utvalg=standard', false)
+            ->assertDontSee('periode=', false)
+            ->assertDontSee('Bare gjenstående kamper');
+        preg_match('/href="([^"]*ukens-fotball-pa-tv\/utskrift\?[^"]*)"/', $remainingPage->getContent(), $remainingPrintLink);
+        $this->assertNotEmpty($remainingPrintLink[1] ?? null);
+        $this->get(html_entity_decode($remainingPrintLink[1]))->assertOk()
+            ->assertSee('Arsenal')->assertSee('Man City')->assertSee('Liverpool')->assertSee('Pågår');
         $this->get('/ringerike/ukens-fotball-pa-tv/utskrift?periode=gjenstaende')->assertOk()
-            ->assertDontSee('Arsenal')->assertSee('Liverpool')->assertSee('Pågår')->assertSee('Avlyst')
-            ->assertDontSee('Hele uken')->assertSee('Kamper uten bekreftet sluttstatus kan fortsatt vises.');
+            ->assertSee('Arsenal')->assertSee('Liverpool')->assertSee('Pågår')->assertSee('Avlyst')
+            ->assertDontSee('Kamper uten bekreftet sluttstatus kan fortsatt vises.');
         $this->get('/ringerike/ukens-fotball-pa-tv?utvalg=utvidet&periode=gjenstaende')->assertOk()
-            ->assertDontSee('Arsenal')->assertDontSee('Man City')->assertSee('Liverpool')->assertSee('Bare gjenstående kamper')
-            ->assertSee('Kamper uten bekreftet sluttstatus kan fortsatt vises.');
+            ->assertSee('Arsenal')->assertSee('Man City')->assertSee('Liverpool')
+            ->assertDontSee('Bare gjenstående kamper');
         $this->get('/ringerike/ukens-fotball-pa-tv/utskrift?utvalg=utvidet&periode=gjenstaende')->assertOk()
-            ->assertDontSee('Arsenal')->assertDontSee('Man City')->assertSee('Liverpool')->assertSee('Utvalg: Utvidet · Bare gjenstående kamper')
-            ->assertSee('Kamper uten bekreftet sluttstatus kan fortsatt vises.');
+            ->assertSee('Arsenal')->assertSee('Man City')->assertSee('Liverpool')->assertSee('Utvalg: Utvidet ·', false)
+            ->assertDontSee('Kamper uten bekreftet sluttstatus kan fortsatt vises.');
     }
 
     public function test_replay_evidence_is_filtered_without_guessing_from_an_older_sportsnext_fixture_or_repeated_teams(): void

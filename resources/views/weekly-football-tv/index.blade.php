@@ -19,25 +19,25 @@
         </div>
     </header>
 
-    <form class="weekly-football-selector" method="get" action="{{ route('prison.weekly-football-tv', ['prison' => $prison]) }}" data-weekly-football-selector>
-        @if($weekOffset)<input type="hidden" name="uke" value="neste">@endif
+    <section class="weekly-football-selector" aria-label="Velg fotballoversikt">
         <div class="weekly-football-selector__copy">
-            <p class="weekly-football-selector__label">Velg utvalg</p>
-            <label><input type="radio" name="utvalg" value="standard" @checked(! $showAll)> Standard</label>
-            <label><input type="radio" name="utvalg" value="utvidet" @checked($showAll)> Utvidet</label>
+            <nav class="weekly-football-selector__choices" aria-label="Velg utvalg">
+                <span class="weekly-football-selector__label">Velg utvalg</span>
+                <a class="{{ ! $showAll ? 'active' : '' }}" @if(! $showAll) aria-current="true" @endif href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne', 'utvalg' => 'standard']) }}">Standard</a>
+                <a class="{{ $showAll ? 'active' : '' }}" @if($showAll) aria-current="true" @endif href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne', 'utvalg' => 'utvidet']) }}">Utvidet</a>
+            </nav>
             <p class="weekly-football-selector__description">{{ $weeklyFootball['selectionDescription'] }}</p>
-            <p>Valgt periode: {{ $weeklyFootball['weekStart']->locale('nb')->translatedFormat('j. F') }}–{{ $weeklyFootball['weekEnd']->locale('nb')->translatedFormat('j. F Y') }} · Aktivt utvalg: {{ $weeklyFootball['selectionLabel'] }} · {{ count($weeklyFootball['matches']) + count($weeklyFootball['mondayNightMatches'] ?? []) }} kamper.</p>
-            <p class="weekly-football-selector__label">Kamper i perioden</p>
-            <label><input type="radio" name="periode" value="hele" @checked(! $remainingOnly)> Hele uken</label>
-            <label><input type="radio" name="periode" value="gjenstaende" @checked($remainingOnly)> Bare gjenstående kamper</label>
-            @if($remainingOnly)<p class="weekly-football-selector__description">Kamper uten bekreftet sluttstatus kan fortsatt vises.</p>@endif
+            <p>Valgt uke: {{ $weeklyFootball['weekStart']->locale('nb')->translatedFormat('j. F') }}–{{ $weeklyFootball['weekEnd']->locale('nb')->translatedFormat('j. F Y') }} · Aktivt utvalg: {{ $weeklyFootball['selectionLabel'] }} · {{ count($weeklyFootball['matches']) + count($weeklyFootball['mondayNightMatches'] ?? []) }} kamper.</p>
+            <p class="weekly-football-selector__description">Repriser, høydepunkter og studioprogrammer filtreres bort så langt datagrunnlaget tillater.</p>
         </div>
-        <a class="btn btn-success weekly-football-selector__print" data-weekly-football-print href="{{ route('prison.weekly-football-tv.print', ['prison' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne', 'utvalg' => $showAll ? 'utvidet' : 'standard', 'periode' => $remainingOnly ? 'gjenstaende' : 'hele']) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut {{ strtolower($weeklyFootball['selectionLabel']) }}oversikt</a>
-    </form>
+        <div class="weekly-football-selector__actions">
+            <a class="btn btn-success weekly-football-selector__print" data-weekly-football-print href="{{ route('prison.weekly-football-tv.print', ['prison' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne', 'utvalg' => $showAll ? 'utvidet' : 'standard']) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut oversikten</a>
+        </div>
+    </section>
 
     <nav class="weekly-football-week-tabs" aria-label="Velg uke">
-        <a class="{{ $weekOffset === 0 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'utvalg' => $showAll ? 'utvidet' : 'standard', 'periode' => $remainingOnly ? 'gjenstaende' : 'hele']) }}">Denne uken</a>
-        <a class="{{ $weekOffset === 1 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'uke' => 'neste', 'utvalg' => $showAll ? 'utvidet' : 'standard', 'periode' => $remainingOnly ? 'gjenstaende' : 'hele']) }}">Neste uke</a>
+        <a class="{{ $weekOffset === 0 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'utvalg' => $showAll ? 'utvidet' : 'standard']) }}">Denne uken</a>
+        <a class="{{ $weekOffset === 1 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'uke' => 'neste', 'utvalg' => $showAll ? 'utvidet' : 'standard']) }}">Neste uke</a>
     </nav>
 
     @if($weeklyFootball['tvPending'] ?? false)
@@ -54,7 +54,7 @@
     @endif
 
     @if($weeklyFootball['matches'] === [] && ($weeklyFootball['mondayNightMatches'] ?? []) === [] && ! $weeklyFootball['hasMissingLocalData'] && ! $weeklyFootball['hasUnpublishedDates'])
-        <p class="weekly-football-empty">{{ $remainingOnly ? 'Ingen kamper gjenstår i valgt utvalg denne uken.' : 'Ingen TV-sendte kamper i valgt utvalg er oppført denne uken.' }}</p>
+        <p class="weekly-football-empty">Ingen TV-sendte kamper i valgt utvalg er oppført denne uken.</p>
     @else
         @foreach(range(0, 6) as $offset)
             @php($date = $weeklyFootball['weekStart']->copy()->addDays($offset))
@@ -99,22 +99,6 @@
     @endif
     <p class="weekly-football-note">Tidspunktet er TV-sendingens starttid fra VG TV-guide. Kalenderuken inkluderer også natt til mandag frem til kl. 06.00. Avspark vises ikke når det ikke er oppgitt i TV-dataene. TV-data sist oppdatert: {{ $weeklyFootball['lastUpdated'] ? $weeklyFootball['lastUpdated']->locale('nb')->translatedFormat('j. F Y \k\l. H.i') : 'ukjent' }}@if($weeklyFootball['sportsNextLastUpdated']) · Kampstatus sist oppdatert: {{ $weeklyFootball['sportsNextLastUpdated']->locale('nb')->translatedFormat('j. F Y \k\l. H.i') }}@endif.</p>
 </main>
-<script>
-    (() => {
-        const form = document.querySelector('[data-weekly-football-selector]');
-        const options = form?.querySelectorAll('input[name="utvalg"], input[name="periode"]');
-        const printLink = form?.querySelector('[data-weekly-football-print]');
-        if (!form || !options?.length || !printLink) return;
-
-        options.forEach((option) => option.addEventListener('change', () => {
-            if (!option.checked) return;
-            const url = new URL(printLink.href, window.location.href);
-            url.searchParams.set(option.name, option.value);
-            printLink.href = url.pathname + url.search + url.hash;
-            form.submit();
-        });
-    })();
-</script>
     @include('partials.footer')
 </div>
 @endsection
