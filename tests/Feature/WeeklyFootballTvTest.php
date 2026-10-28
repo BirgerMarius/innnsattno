@@ -220,6 +220,7 @@ class WeeklyFootballTvTest extends TestCase
             ->assertSee('poster--standard', false)
             ->assertDontSee('class="site-logo"', false)
             ->assertDontSee('class="site-footer ', false)
+            ->assertDontSee('id="phpdebugbar"', false)
             ->assertSee('window.print()', false);
     }
 
@@ -229,7 +230,7 @@ class WeeklyFootballTvTest extends TestCase
             parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
             $listings = [];
             if (($query['date'] ?? '') === '2026-10-12') {
-                foreach (range(1, 17) as $number) {
+                foreach (range(1, 18) as $number) {
                     $listings[] = $this->listing('Premier League', 'Lag '.$number.' - Motstander '.$number, sprintf('2026-10-12T%02d:00:00Z', $number % 20), $number + 100);
                 }
             }
@@ -238,11 +239,31 @@ class WeeklyFootballTvTest extends TestCase
 
         $this->warmTv(now('Europe/Oslo')->startOfWeek(), 7);
 
-        $this->get('/ukens-fotball-pa-tv/utskrift')->assertOk()
-            ->assertSee('days--three', false)
-            ->assertSee('days--dense', false)
-            ->assertSee('Lag 17')
+        $this->get('/ukens-fotball-pa-tv/utskrift?utvalg=utvidet')->assertOk()
+            ->assertSee('class="days-grid days-grid--3"', false)
+            ->assertSee('days-grid__column', false)
+            ->assertSee('Lag 18')
             ->assertSee('break-inside:avoid', false);
+    }
+
+    public function test_print_pages_disable_debugbar_before_response_injection(): void
+    {
+        $debugbar = new class {
+            public bool $disabled = false;
+
+            public function disable(): void
+            {
+                $this->disabled = true;
+            }
+        };
+        $this->app->instance('debugbar', $debugbar);
+
+        app(\App\Http\Middleware\NoIndexPrintPages::class)->handle(
+            \Illuminate\Http\Request::create('/ringerike/ukens-fotball-pa-tv/utskrift'),
+            fn () => response('Utskrift')
+        );
+
+        $this->assertTrue($debugbar->disabled);
     }
 
     public function test_monday_night_uses_tv_start_time_filters_replays_and_deduplicates_the_concrete_listing(): void
