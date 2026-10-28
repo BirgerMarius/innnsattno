@@ -206,6 +206,11 @@ beholder reservedata ved feil og avslutter med status 1 ved feil eller manglende
 nødvendige data for i dag/tidligere. Fremtidige TV-programmer kan være upubliserte.
 Scheduleren fortsetter med nye forsøk.
 
+For en målrettet, manuell kontroll av dagens TV-data brukes
+`php artisan external-data:refresh tv --force`. Den omgår bare schedulerens
+intervallkontroll for dagens Ringerike- og Ilseng-utvalg, og skriver ut resultat
+per utvalg. Den tømmer ikke cache og berører ikke andre datoer.
+
 Datakopiene ligger i standard-cachelageret, ikke i databasens kontrolltabeller.
 `cache:clear` og `optimize:clear` sletter siste brukbare data og kan fjerne låser.
 Bruk heller målrettet `config:clear`, `route:clear` eller `view:clear` når det er

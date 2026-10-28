@@ -175,6 +175,44 @@ class ExternalDataMonitoringTest extends TestCase
         $this->assertNotNull($first);
     }
 
+    public function test_forced_tv_command_refreshes_today_with_strim_and_exposes_the_vg_incident_in_admin(): void
+    {
+        Http::fake([
+            'tvguide.vg.no/*' => fn ($request) => Http::response($this->scheduleForRequestWithMissingViasatChannels($request)),
+            'contentsearch.rikstv.no/1/channel/69/epg/2026-10-19' => Http::response([[
+                'broadcastId' => 'force-tv3', 'seriesName' => 'Strim TV3', 'broadcastedTime' => '2026-10-19T12:00:00Z',
+                'broadcastedTimeEnd' => '2026-10-19T13:00:00Z', 'originChannel' => ['channelId' => 69],
+            ]]),
+            'contentsearch.rikstv.no/1/channel/71/epg/2026-10-19' => Http::response([[
+                'broadcastId' => 'force-tv3-plus', 'name' => 'Strim TV3+', 'broadcastedTime' => '2026-10-19T13:00:00Z',
+                'broadcastedTimeEnd' => '2026-10-19T14:00:00Z', 'originChannel' => ['channelId' => 71],
+            ]]),
+        ]);
+
+        $this->artisan('external-data:refresh', ['type' => 'tv', '--force' => true])
+            ->expectsOutput('TV ringerike 2026-10-19: kontrollert')
+            ->expectsOutput('TV ilseng 2026-10-19: kontrollert')
+            ->assertExitCode(0);
+
+        Http::assertSent(fn ($request) => $request->url() === 'https://contentsearch.rikstv.no/1/channel/69/epg/2026-10-19');
+        Http::assertSent(fn ($request) => $request->url() === 'https://contentsearch.rikstv.no/1/channel/71/epg/2026-10-19');
+        $this->assertDatabaseHas('external_data_checks', ['service' => 'tv-guide-vg-channel', 'coverage_key' => '2026-10-19|tv3', 'failure_count' => 1, 'usable' => true]);
+        $this->assertDatabaseHas('external_data_checks', ['service' => 'tv-guide-vg-channel', 'coverage_key' => '2026-10-19|tv3-plus', 'failure_count' => 1, 'usable' => true]);
+
+        foreach (['ringerike' => TvGuideService::ringerikeChannels(), 'ilseng' => TvGuideService::ilsengChannels()] as $selection => $channels) {
+            $schedule = app(TvGuideService::class)->getSchedule(now(), $channels, 'test');
+            $tv3 = collect($schedule)->firstWhere('channel.slug', 'tv3');
+            $tv3Plus = collect($schedule)->firstWhere('channel.slug', 'tv3-plus');
+            $this->assertSame('external-fallback', $tv3['programDataStatus']);
+            $this->assertSame('Strim TV3', $tv3['listings'][0]['title']['title']);
+            $this->assertSame('external-fallback', $tv3Plus['programDataStatus']);
+            $this->assertSame('Strim TV3+', $tv3Plus['listings'][0]['title']['title']);
+        }
+
+        $this->withSession(['admin_authenticated' => true])->get('/adm')->assertOk()
+            ->assertSee('Manglende programdata hos VG')->assertSee('tv3')->assertSee('tv3-plus')->assertSee('Strim');
+    }
+
     public function test_coverage_lock_prevents_a_second_source_check_and_preserves_cache(): void
     {
         $date = now();
@@ -344,6 +382,20 @@ class ExternalDataMonitoringTest extends TestCase
         parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
 
         return $this->schedule(array_filter(explode(',', (string) ($query['channels'] ?? ''))));
+    }
+
+    private function scheduleForRequestWithMissingViasatChannels($request): array
+    {
+        parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+
+        return array_map(function (string $channel): array {
+            return [
+                'channel' => ['name' => strtoupper($channel), 'slug' => $channel],
+                'listings' => in_array($channel, ['tv3', 'tv3-plus'], true) ? [] : [[
+                    'startsAt' => '2026-10-19T12:00:00Z', 'title' => ['title' => strtoupper($channel)],
+                ]],
+            ];
+        }, array_filter(explode(',', (string) ($query['channels'] ?? ''))));
     }
 
     private function tvCacheKeys(Carbon $date, array $channels): array

@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Schema;
 
 class RefreshExternalData extends Command
 {
-    protected $signature = 'external-data:refresh {type : tv or football}';
+    protected $signature = 'external-data:refresh {type : tv or football} {--force : Tving dagens TV-oppdatering, uten intervallkontroll}';
     protected $description = 'Kontroller og oppdater lokal TV- og fotballcache';
 
     public function handle(TvGuideService $tv): int
@@ -28,7 +28,7 @@ class RefreshExternalData extends Command
             return self::FAILURE;
         }
         if ($this->argument('type') === 'tv') {
-            $this->refreshTv($tv);
+            $this->refreshTv($tv, (bool) $this->option('force'));
         } elseif ($this->argument('type') === 'football') {
             $this->refreshFootball();
         } else {
@@ -38,8 +38,27 @@ class RefreshExternalData extends Command
         return self::SUCCESS;
     }
 
-    private function refreshTv(TvGuideService $tv): void
+    private function refreshTv(TvGuideService $tv, bool $force = false): void
     {
+        if ($force) {
+            // A manual operational refresh must not silently succeed merely
+            // because the scheduler's generic VG check is still within its
+            // normal interval. Keep this deliberately narrow: it refreshes
+            // today's two published prison selections, not the whole window.
+            $today = now('Europe/Oslo')->startOfDay();
+            $failed = false;
+            foreach (['ringerike' => TvGuideService::ringerikeChannels(), 'ilseng' => TvGuideService::ilsengChannels()] as $selection => $channels) {
+                $ok = $tv->refreshSchedule($today, $channels, $selection);
+                $this->line('TV '.$selection.' '.$today->format('Y-m-d').': '.($ok ? 'kontrollert' : 'kunne ikke kontrolleres'));
+                $failed = $failed || ! $ok;
+            }
+            if ($failed) {
+                throw new \RuntimeException('Minst én tv-guide kunne ikke kontrolleres.');
+            }
+
+            return;
+        }
+
         $dw = DB::table('external_data_checks')->where('service', 'dw-news')->first();
         if (! $dw || ! $dw->last_check_at || Carbon::parse($dw->last_check_at)->lte(now()->subMinutes($dw->failure_count ? 15 : 60))) {
             app(DwScheduleService::class)->refresh();
