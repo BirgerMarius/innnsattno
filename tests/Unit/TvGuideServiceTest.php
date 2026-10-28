@@ -28,7 +28,10 @@ class TvGuideServiceTest extends TestCase
 
     public function test_successful_call_returns_the_schedule_and_uses_fresh_cache(): void
     {
-        $schedule = [$this->channel('NRK1')];
+        $schedule = [
+            $this->channelWithListing('NRK1', 'nrk1', 'NRK1'),
+            $this->channelWithListing('NRK2', 'nrk2', 'NRK2'),
+        ];
         Http::fake(['tvguide.vg.no/*' => Http::response($schedule)]);
 
         $this->service()->refreshSchedule($this->date(), self::CHANNELS, 'ringerike');
@@ -43,7 +46,10 @@ class TvGuideServiceTest extends TestCase
     public function test_a_failed_cache_write_is_not_reported_as_a_successful_schedule_refresh(): void
     {
         $date = $this->date();
-        $schedule = [$this->channel('NRK1')];
+        $schedule = [
+            $this->channelWithListing('NRK1', 'nrk1', 'NRK1'),
+            $this->channelWithListing('NRK2', 'nrk2', 'NRK2'),
+        ];
         $identity = $date->format('Y-m-d').'|Europe/Oslo|'.implode(',', self::CHANNELS);
         $suffix = $date->format('Y-m-d').'.'.sha1($identity);
         $staleKey = 'tv-guide-vg.stale.'.$suffix;
@@ -65,6 +71,90 @@ class TvGuideServiceTest extends TestCase
         } finally {
             Cache::swap($originalCache);
         }
+    }
+
+    public function test_empty_channel_keeps_same_date_cached_programmes_and_marks_the_refresh_partial(): void
+    {
+        $date = Carbon::parse('2026-10-19', 'Europe/Oslo');
+        $channels = ['nrk1', 'tv3'];
+        $previous = [
+            $this->channelWithListing('NRK1', 'nrk1', 'Tidligere NRK'),
+            $this->channelWithListing('TV3', 'tv3', 'Tidligere TV3'),
+        ];
+        $partial = [
+            $this->channelWithListing('NRK1', 'nrk1', 'Ny NRK'),
+            ['channel' => ['name' => 'TV3', 'slug' => 'tv3'], 'listings' => []],
+        ];
+        Http::fakeSequence()->push($previous)->push($partial);
+
+        $this->assertTrue($this->service()->refreshSchedule($date, $channels, 'ringerike'));
+        $updated = $this->service()->lastUpdated($date, $channels)->toIso8601String();
+        Carbon::setTestNow(now()->addMinutes(61));
+        $this->assertTrue($this->service()->refreshSchedule($date, $channels, 'ringerike'));
+
+        $schedule = $this->service()->getSchedule($date, $channels, 'print');
+        $this->assertSame('Ny NRK', $schedule[0]['listings'][0]['title']['title']);
+        $this->assertSame('Tidligere TV3', $schedule[1]['listings'][0]['title']['title']);
+        $this->assertSame('fallback', $schedule[1]['programDataStatus']);
+        $this->assertSame($updated, $this->service()->lastUpdated($date, $channels)->toIso8601String());
+    }
+
+    public function test_missing_channel_row_keeps_same_date_cached_programmes(): void
+    {
+        $date = Carbon::parse('2026-10-19', 'Europe/Oslo');
+        $channels = ['nrk1', 'tv3'];
+        Http::fakeSequence()
+            ->push([$this->channelWithListing('NRK1', 'nrk1', 'NRK'), $this->channelWithListing('TV3', 'tv3', 'TV3')])
+            ->push([$this->channelWithListing('NRK1', 'nrk1', 'Ny NRK')]);
+
+        $this->service()->refreshSchedule($date, $channels, 'ringerike');
+        Carbon::setTestNow(now()->addMinutes(61));
+        $this->service()->refreshSchedule($date, $channels, 'ringerike');
+
+        $schedule = $this->service()->getSchedule($date, $channels, 'print');
+        $tv3 = collect($schedule)->firstWhere('channel.slug', 'tv3');
+        $this->assertSame('TV3', $tv3['listings'][0]['title']['title']);
+        $this->assertSame('fallback', $tv3['programDataStatus']);
+    }
+
+    public function test_empty_tv3_uses_validated_strim_backup_without_sports_metadata(): void
+    {
+        $date = Carbon::parse('2026-10-28', 'Europe/Oslo');
+        Http::fake([
+            'tvguide.vg.no/*' => Http::response([['channel' => ['name' => 'TV3', 'slug' => 'tv3'], 'listings' => []]]),
+            'contentsearch.rikstv.no/1/channel/69/epg/2026-10-28' => Http::response([[
+                'broadcastId' => '123', 'seriesName' => 'Strim-program', 'name' => 'Episode 1',
+                'broadcastedTime' => '2026-10-28T18:00:00Z', 'broadcastedTimeEnd' => '2026-10-28T19:00:00Z',
+                'originChannel' => ['channelId' => 69],
+            ]]),
+        ]);
+
+        $this->service()->refreshSchedule($date, ['tv3'], 'ringerike');
+        $channel = $this->service()->getSchedule($date, ['tv3'], 'print')[0];
+        $this->assertSame('external-fallback', $channel['programDataStatus']);
+        $this->assertSame('Strim-program', $channel['listings'][0]['title']['title']);
+        $this->assertArrayNotHasKey('sportsEvent', $channel['listings'][0]);
+        $this->assertArrayNotHasKey('isLive', $channel['listings'][0]);
+        Http::assertSent(fn ($request) => $request->url() === 'https://contentsearch.rikstv.no/1/channel/69/epg/2026-10-28');
+    }
+
+    public function test_first_partial_fetch_marks_empty_channel_missing_without_borrowing_another_date(): void
+    {
+        $channels = ['nrk1', 'tv3'];
+        $yesterday = Carbon::parse('2026-10-18', 'Europe/Oslo');
+        $today = Carbon::parse('2026-10-19', 'Europe/Oslo');
+        Http::fakeSequence()
+            ->push([$this->channelWithListing('NRK1', 'nrk1', 'Gårsdagens NRK'), $this->channelWithListing('TV3', 'tv3', 'Gårsdagens TV3')])
+            ->push([$this->channelWithListing('NRK1', 'nrk1', 'Dagens NRK'), ['channel' => ['name' => 'TV3', 'slug' => 'tv3'], 'listings' => []]]);
+
+        $this->service()->refreshSchedule($yesterday, $channels, 'ringerike');
+        $this->service()->refreshSchedule($today, $channels, 'ringerike');
+
+        $schedule = $this->service()->getSchedule($today, $channels, 'print');
+        $tv3 = collect($schedule)->firstWhere('channel.slug', 'tv3');
+        $this->assertSame([], $tv3['listings']);
+        $this->assertSame('missing', $tv3['programDataStatus']);
+        $this->assertNull($this->service()->lastUpdated($today, $channels));
     }
 
     public function test_http_failure_notifies_and_uses_stale_data_for_the_same_date_and_channels(): void
@@ -216,10 +306,10 @@ class TvGuideServiceTest extends TestCase
         $this->assertSame(1, $result['missingMatchNames']);
         $this->assertSame(1, $result['excludedNonMatchProgrammes']);
         $this->assertFalse($result['hasSourceFailure']);
-        Http::assertSentCount(7);
+        Http::assertSentCount(20);
 
         $this->service()->getUpcomingPremierLeagueOnTv3Plus($now, 'premier-league-tv3-plus-print', 1);
-        Http::assertSentCount(7);
+        Http::assertSentCount(20);
     }
 
     public function test_upcoming_tv3_plus_matches_distinguish_a_source_failure_from_no_listed_match(): void
@@ -264,7 +354,7 @@ class TvGuideServiceTest extends TestCase
         $this->assertSame([], $eliteserien['matches']);
         $this->assertSame(1, $eliteserien['missingMatchNames']);
         $this->assertSame(1, $eliteserien['excludedNonMatchProgrammes']);
-        Http::assertSentCount(7);
+        Http::assertSentCount(20);
     }
 
     public function test_nations_league_box_shows_scheduled_fixture_broadcasts_but_excludes_non_matches_and_replays(): void
@@ -340,7 +430,7 @@ class TvGuideServiceTest extends TestCase
 
         $this->assertSame(['Nå – Kamp', 'Slutt – Kamp'], array_column($result['matches'], 'name'));
         $this->assertSame('2026-10-01 10:00:00', $result['periodEnd']->format('Y-m-d H:i:s'));
-        Http::assertSentCount(8);
+        Http::assertSentCount(22);
     }
 
     private function primeStale(array $schedule): void
@@ -363,6 +453,17 @@ class TvGuideServiceTest extends TestCase
     private function channel(string $name): array
     {
         return ['channel' => ['name' => $name, 'slug' => strtolower(str_replace(' ', '-', $name))], 'listings' => []];
+    }
+
+    private function channelWithListing(string $name, string $slug, string $title): array
+    {
+        return [
+            'channel' => ['name' => $name, 'slug' => $slug],
+            'listings' => [[
+                'startsAt' => '2026-10-19T12:00:00Z',
+                'title' => ['title' => $title],
+            ]],
+        ];
     }
 
     private function premierLeagueListing(string $startsAt, ?string $eventName): array

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class AdminDashboardStatisticsTest extends TestCase
@@ -48,6 +49,21 @@ class AdminDashboardStatisticsTest extends TestCase
         $response->assertSee('/nyheter');
         $response->assertSee('04.08.2026 12:15');
         $response->assertSee('TESTDATA – ikke produksjonstall');
+    }
+
+    public function test_dashboard_shows_active_vg_channel_issue_with_shared_prison_context(): void
+    {
+        DB::table('external_data_checks')->insert([
+            'service' => 'tv-guide-vg-channel', 'coverage_key' => '2026-10-28|tv3', 'datatype' => 'tv',
+            'description' => 'VG TV-guide tv3', 'essential' => true, 'usable' => true,
+            'last_success_at' => null, 'last_check_at' => '2026-10-28 14:20:00', 'first_failure_at' => '2026-10-28 13:10:00',
+            'active_until' => '2026-10-28 23:59:59', 'failure_count' => 3,
+            'last_error' => 'VG mangler programdata; Strim leverer reserve.', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $this->withSession(['admin_authenticated' => true])->get('/adm')->assertOk()
+            ->assertSee('Manglende programdata hos VG')->assertSee('tv3')
+            ->assertSee('Ringerike fengsel, Ilseng fengsel')->assertSee('Strim');
     }
 
     public function testDashboardShowsFallbackWhenSummaryIsMissingOrInvalid()

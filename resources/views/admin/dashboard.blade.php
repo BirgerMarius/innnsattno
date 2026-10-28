@@ -40,6 +40,19 @@
         </div>
     </section>
 
+    @if (count($tvGuideChannelIssues))
+        <section class="card border-warning mb-4" aria-labelledby="tv-guide-status-title">
+            <div class="card-body p-lg-4">
+                <p class="admin-card-label mb-1">Driftsstatus</p>
+                <h2 class="h4 mb-2" id="tv-guide-status-title">Manglende programdata hos VG</h2>
+                <p class="text-muted">Reserveløsning endrer ikke denne VG-statusen. Hendelsen lukkes først når VG igjen har brukbare programmer.</p>
+                <div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>Kanal og dato</th><th>Fengsel</th><th>Vises fra</th><th>Først registrert</th><th>Sist kontrollert</th><th>Varighet</th></tr></thead><tbody>
+                @foreach ($tvGuideChannelIssues as $issue)<tr><td><strong>{{ $issue['slug'] }}</strong><br><small>{{ $issue['date'] }}</small></td><td>{{ implode(', ', $issue['prisons']) }}</td><td>{{ $issue['source'] }}</td><td>{{ $issue['first']->format('d.m.Y H:i') }}</td><td>{{ $issue['last']->format('d.m.Y H:i') }}</td><td>{{ $issue['first']->diffForHumans($issue['last'], true) }}</td></tr>@endforeach
+                </tbody></table></div>
+            </div>
+        </section>
+    @endif
+
     <section class="mb-4" aria-labelledby="innhold-title">
         <h2 class="h4 mb-3" id="innhold-title">Innhold og handlinger</h2>
         <div class="admin-action-grid">

@@ -10,12 +10,13 @@ use App\ProfessionalResource;
 use App\ResourceCategory;
 use App\Services\AdminStatisticsSummary;
 use App\Services\PlannedSiteChangesService;
+use App\Services\TvGuideChannelHealthService;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
-    public function index(Request $request, AdminStatisticsSummary $statistics, PlannedSiteChangesService $plannedSiteChanges)
+    public function index(Request $request, AdminStatisticsSummary $statistics, PlannedSiteChangesService $plannedSiteChanges, TvGuideChannelHealthService $tvGuideHealth)
     {
         $statusCounts = ProfessionalResource::query()
             ->selectRaw('status, count(*) as aggregate')
@@ -55,6 +56,7 @@ class AdminDashboardController extends Controller
             'trafficDate' => $trafficDate,
             'trafficDateInvalid' => $requestedDate !== null && $trafficDate === null,
             'tvPrintDefaultDate' => now('Europe/Oslo')->format('Y-m-d'),
+            'tvGuideChannelIssues' => $tvGuideHealth->active(),
         ]);
     }
 

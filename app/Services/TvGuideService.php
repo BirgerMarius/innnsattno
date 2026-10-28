@@ -19,6 +19,11 @@ class TvGuideService
     private const FRESH_TTL_SECONDS = 3900;
     private const TIMEZONE = 'Europe/Oslo';
     private const UPCOMING_DAYS = 7;
+    private const STRIM_ENDPOINT = 'https://contentsearch.rikstv.no/1/channel';
+    private const STRIM_CHANNELS = [
+        'tv3' => ['id' => 69, 'name' => 'TV3'],
+        'tv3-plus' => ['id' => 71, 'name' => 'TV3+'],
+    ];
 
     /**
      * Exact VG titles are intentional: slugs are not reliable for UEFA programming.
@@ -139,19 +144,36 @@ class TvGuideService
             try {
                 $schedule = $this->fetch($date, $channels);
                 // VG returns [] for dates not yet published. A missing current day is not usable.
-                if ($essential && $schedule === []) {
-                    throw new UnexpectedValueException('VG TV-guide mangler programmer for i dag.');
-                }
-                if ($schedule === [] && is_array($existing) && $existing !== []) {
-                    // An unpublished future date does not supersede previously usable data.
-                    // Back off without counting this response as a successful coverage refresh.
-                    Cache::put($keys['updated'].'.unpublished', true, now()->addMinutes(15));
+                if ($schedule === [] && ! $essential) {
+                    // VG uses an empty root response outside its publication window.
+                    // It is not a channel-level source failure and must neither overwrite
+                    // same-date data nor be reported as a complete, usable refresh.
+                    if (is_array($existing) && $existing !== []) {
+                        Cache::put($keys['updated'].'.unpublished', true, now()->addMinutes(15));
+
+                        return true;
+                    }
+                    app(ExternalDataMonitor::class)->checked('tv-guide-vg', $key, 'tv', $selection.' – '.$date->format('Y-m-d').' (TV og fotball)', false, true, false, null, $date->copy()->endOfDay()->setTimezone(config('app.timezone')));
+
                     return true;
                 }
                 Cache::forget($keys['updated'].'.unpublished');
-                $this->storeSchedule($keys, $schedule);
+                [$schedule, $coverage] = $this->reconcileChannelCoverage($date, $schedule, $existing, $channels);
+                $this->storeSchedule($keys, $schedule, $coverage['complete']);
+                $this->recordChannelHealth($date, $selection, $channels, $coverage);
+
+                if (! $coverage['complete']) {
+                    $summary = 'VG TV-guide mangler programdata for: '.implode(', ', $coverage['missing']).'.';
+                    $this->failureNotifier->report('tv-guide-vg', $summary, [
+                        'operation' => $key, 'date' => $date->format('Y-m-d'), 'failure_kind' => 'partial-coverage',
+                    ]);
+                    app(ExternalDataMonitor::class)->checked('tv-guide-vg', $key, 'tv', $selection.' – '.$date->format('Y-m-d').' (TV og fotball)', $essential, false, $this->scheduleHasListings($schedule), $summary, $date->copy()->endOfDay()->setTimezone(config('app.timezone')));
+
+                    return true;
+                }
+
                 $this->failureNotifier->reportSuccess('tv-guide-vg', $key);
-                app(ExternalDataMonitor::class)->checked('tv-guide-vg', $key, 'tv', $selection.' – '.$date->format('Y-m-d').' (TV og fotball)', $essential, true, $schedule !== [], null, $date->copy()->endOfDay()->setTimezone(config('app.timezone')));
+                app(ExternalDataMonitor::class)->checked('tv-guide-vg', $key, 'tv', $selection.' – '.$date->format('Y-m-d').' (TV og fotball)', $essential, true, true, null, $date->copy()->endOfDay()->setTimezone(config('app.timezone')));
                 return true;
             } catch (Throwable $exception) {
                 $this->failureNotifier->report('tv-guide-vg', $this->summary($exception), [
@@ -812,6 +834,216 @@ class TvGuideService
         return true;
     }
 
+    /**
+     * VG may return a syntactically valid schedule while omitting individual
+     * requested channels or giving them an empty listings array.  Preserve a
+     * non-empty value only from the exact same date and channel selection;
+     * data from another date is never considered here.
+     *
+     * @return array{array, array{complete: bool, missing: array<int, string>, sources: array<string, string>}}
+     */
+    private function reconcileChannelCoverage(CarbonInterface $date, array $schedule, mixed $existing, array $channels): array
+    {
+        $currentBySlug = $this->channelsBySlug($schedule);
+        $existingBySlug = is_array($existing) ? $this->channelsBySlug($existing) : [];
+        $missing = [];
+        $sources = [];
+
+        foreach ($channels as $slug) {
+            $slug = (string) $slug;
+            $current = $currentBySlug[$slug] ?? null;
+            $hasListings = is_array($current) && $this->channelHasListings($current);
+            if ($hasListings) {
+                unset($current['programDataStatus']);
+                $currentBySlug[$slug] = $current;
+                $sources[$slug] = 'vg';
+                continue;
+            }
+
+            $missing[] = $slug;
+            $strim = $this->strimChannelForDate($date, $slug);
+            if ($strim !== null) {
+                $strim['programDataStatus'] = 'external-fallback';
+                $currentBySlug[$slug] = $strim;
+                $sources[$slug] = 'strim';
+                continue;
+            }
+            $previous = $existingBySlug[$slug] ?? null;
+            if (is_array($previous) && $this->channelHasListings($previous)) {
+                $previous['programDataStatus'] = 'fallback';
+                $currentBySlug[$slug] = $previous;
+                $sources[$slug] = 'local';
+                continue;
+            }
+
+            if (is_array($current)) {
+                $current['programDataStatus'] = 'missing';
+                $currentBySlug[$slug] = $current;
+            } elseif (isset(self::STRIM_CHANNELS[$slug])) {
+                $currentBySlug[$slug] = ['channel' => ['slug' => $slug, 'name' => self::STRIM_CHANNELS[$slug]['name']], 'listings' => [], 'programDataStatus' => 'missing'];
+            }
+            $sources[$slug] = 'missing';
+        }
+
+        // Keep VG's order for returned channels, replacing only the rows whose
+        // same-date cached values are safer. A missing channel row cannot be
+        // given a trustworthy display name, so it is monitored but not invented.
+        $returnedSlugs = [];
+        foreach ($schedule as $index => $channel) {
+            $slug = data_get($channel, 'channel.slug');
+            if (is_string($slug) && isset($currentBySlug[$slug])) {
+                $schedule[$index] = $currentBySlug[$slug];
+                $returnedSlugs[$slug] = true;
+            }
+        }
+
+        foreach ($channels as $slug) {
+            $slug = (string) $slug;
+            if (! isset($returnedSlugs[$slug]) && isset($currentBySlug[$slug])) {
+                $schedule[] = $currentBySlug[$slug];
+            }
+        }
+
+        return [$schedule, ['complete' => $missing === [], 'missing' => $missing, 'sources' => $sources]];
+    }
+
+    /** Return a validated, date-scoped Strim backup row for the two supported channels. */
+    private function strimChannelForDate(CarbonInterface $date, string $slug): ?array
+    {
+        if (! isset(self::STRIM_CHANNELS[$slug])) return null;
+        $definition = self::STRIM_CHANNELS[$slug];
+        $cacheKey = 'tv-guide-strim.'.$date->format('Y-m-d').'.'.$slug;
+        $cached = Cache::get($cacheKey);
+        if (is_array($cached)) return $cached === [] ? null : $cached;
+
+        $lock = Cache::lock('fetch.'.$cacheKey, 45);
+        if (! $lock->get()) return null;
+        try {
+            $cached = Cache::get($cacheKey);
+            if (is_array($cached)) return $cached === [] ? null : $cached;
+            $response = null;
+            for ($attempt = 1; $attempt <= 2; $attempt++) {
+                try {
+                    $response = Http::acceptJson()->connectTimeout(3)->timeout(10)
+                        ->get(self::STRIM_ENDPOINT.'/'.$definition['id'].'/epg/'.$date->format('Y-m-d'));
+                    if (! $response->serverError() || $attempt === 2) break;
+                } catch (ConnectionException $exception) {
+                    if ($attempt === 2) throw $exception;
+                }
+                usleep(250000);
+            }
+            if ($response === null) throw new ConnectionException('Strim svarte ikke.');
+            $response->throw();
+            $payload = json_decode($response->body(), true, 512, JSON_THROW_ON_ERROR);
+            $channel = $this->normalizeStrimChannel($payload, $date, $slug, $definition);
+            // Cache even an invalid/empty result briefly: both prison selections share it.
+            Cache::put($cacheKey, $channel ?? [], now()->addMinutes(15));
+
+            return $channel;
+        } catch (Throwable $exception) {
+            $this->failureNotifier->report('tv-guide-strim', 'Strim-reserve kunne ikke valideres.', [
+                'operation' => $slug.'-'.$date->format('Y-m-d'), 'date' => $date->format('Y-m-d'),
+                'failure_kind' => $this->failureKind($exception),
+                'status' => $exception instanceof RequestException ? $exception->response?->status() : null,
+            ]);
+            Cache::put($cacheKey, [], now()->addMinutes(5));
+            return null;
+        } finally {
+            $lock->release();
+        }
+    }
+
+    private function normalizeStrimChannel(mixed $payload, CarbonInterface $date, string $slug, array $definition): ?array
+    {
+        if (! is_array($payload) || ($payload !== [] && array_keys($payload) !== range(0, count($payload) - 1))) return null;
+        $listings = [];
+        foreach ($payload as $item) {
+            if (! is_array($item) || (int) data_get($item, 'originChannel.channelId') !== $definition['id']) continue;
+            $title = trim((string) ($item['seriesName'] ?? $item['name'] ?? ''));
+            $startsAt = $item['broadcastedTime'] ?? null;
+            if ($title === '' || ! is_string($startsAt)) continue;
+            try {
+                $start = \Carbon\Carbon::parse($startsAt)->setTimezone(self::TIMEZONE);
+            } catch (Throwable $exception) {
+                continue;
+            }
+            if (! $start->isSameDay($date)) continue;
+            $id = (string) ($item['broadcastId'] ?? sha1($slug.'|'.$start->toIso8601String().'|'.$title));
+            $listings[$id] = [
+                'id' => 'strim:'.$id,
+                'title' => ['title' => $title],
+                'startsAt' => $start->toIso8601String(),
+                'endsAt' => is_string($item['broadcastedTimeEnd'] ?? null) ? $item['broadcastedTimeEnd'] : null,
+            ];
+        }
+        if ($listings === []) return null;
+        usort($listings, fn (array $left, array $right) => strcmp($left['startsAt'], $right['startsAt']));
+
+        return ['channel' => ['slug' => $slug, 'name' => $definition['name']], 'listings' => array_values($listings)];
+    }
+
+    /** One persistent row per channel/date, not one duplicate for each prison selection. */
+    private function recordChannelHealth(CarbonInterface $date, string $selection, array $channels, array $coverage): void
+    {
+        if ($date->greaterThan(now(self::TIMEZONE)->startOfDay())) return;
+        foreach ($channels as $slug) {
+            $slug = (string) $slug;
+            if ($this->primaryPrisonForChannel($slug) !== $selection) continue;
+            $source = $coverage['sources'][$slug] ?? 'vg';
+            $missing = in_array($slug, $coverage['missing'], true);
+            $prisons = $this->prisonsForChannel($slug);
+            $description = 'VG TV-guide '.$slug.' – '.implode(', ', $prisons).' – '.$date->format('Y-m-d');
+            $message = match ($source) {
+                'strim' => 'VG mangler programdata; Strim leverer reserve.',
+                'local' => 'VG mangler programdata; tidligere lokal cache vises.',
+                'missing' => 'VG mangler programdata; ingen brukbar reserve.',
+                default => null,
+            };
+            app(ExternalDataMonitor::class)->checked('tv-guide-vg-channel', $date->format('Y-m-d').'|'.$slug, 'tv', $description, $date->isSameDay(now(self::TIMEZONE)), ! $missing, ! $missing || $source !== 'missing', $message, $date->copy()->endOfDay()->setTimezone(config('app.timezone')));
+        }
+    }
+
+    private function prisonsForChannel(string $slug): array
+    {
+        return collect(config('prisons.all', []))->filter(fn (array $prison) => in_array($slug, $prison['tv_channels'] ?? [], true))->map(fn (array $prison) => $prison['name'])->values()->all();
+    }
+
+    private function primaryPrisonForChannel(string $slug): ?string
+    {
+        foreach (config('prisons.all', []) as $key => $prison) if (in_array($slug, $prison['tv_channels'] ?? [], true)) return $key;
+        return null;
+    }
+
+    /** @return array<string, array> */
+    private function channelsBySlug(array $schedule): array
+    {
+        $result = [];
+        foreach ($schedule as $channel) {
+            $slug = data_get($channel, 'channel.slug');
+            if (is_string($slug) && $slug !== '' && is_array($channel)) {
+                $result[$slug] = $channel;
+            }
+        }
+
+        return $result;
+    }
+
+    private function channelHasListings(array $channel): bool
+    {
+        return is_array($channel['listings'] ?? null) && $channel['listings'] !== [];
+    }
+
+    private function scheduleHasListings(array $schedule): bool
+    {
+        foreach ($schedule as $channel) {
+            if (is_array($channel) && $this->channelHasListings($channel)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private function cacheKeys(CarbonInterface $date, array $channels): array
     {
         $identity = $date->format('Y-m-d').'|'.self::TIMEZONE.'|'.implode(',', $channels);
@@ -829,12 +1061,11 @@ class TvGuideService
      * local value needed by readers has been persisted. Cache stores may
      * signal a write failure by returning false rather than throwing.
      */
-    private function storeSchedule(array $keys, array $schedule): void
+    private function storeSchedule(array $keys, array $schedule, bool $complete): void
     {
-        $updatedAt = now()->toIso8601String();
         $freshStored = Cache::put($keys['fresh'], $schedule, now()->addSeconds(self::FRESH_TTL_SECONDS));
         $staleStored = Cache::forever($keys['stale'], $schedule);
-        $updatedStored = Cache::forever($keys['updated'], $updatedAt);
+        $updatedStored = ! $complete || Cache::forever($keys['updated'], now()->toIso8601String());
 
         if (! $freshStored || ! $staleStored || ! $updatedStored || Cache::get($keys['stale']) !== $schedule) {
             throw new RuntimeException('TV-guide-data kunne ikke lagres i lokal cache.');

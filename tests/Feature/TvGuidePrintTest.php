@@ -158,7 +158,9 @@ class TvGuidePrintTest extends TestCase
         $this->get('/print')->assertOk()->assertDontSee('DW News');
         $this->get('/print-ilseng')->assertOk();
 
-        Http::assertSentCount(3);
+        Http::assertSentCount(5);
+        Http::assertSent(fn ($request) => $request->url() === 'https://contentsearch.rikstv.no/1/channel/69/epg/'.now('Europe/Oslo')->format('Y-m-d'));
+        Http::assertSent(fn ($request) => $request->url() === 'https://contentsearch.rikstv.no/1/channel/71/epg/'.now('Europe/Oslo')->format('Y-m-d'));
         Http::assertSent(fn ($request) => $request->url() === 'https://www.dw.com/graph-api/en/livestream/english');
     }
 
@@ -175,6 +177,60 @@ class TvGuidePrintTest extends TestCase
         $this->get('/print-ilseng')->assertOk();
 
         Mail::assertNothingSent();
+    }
+
+    /**
+     * @dataProvider printStatusRoutes
+     */
+    public function test_prints_distinguish_missing_data_fallback_and_already_aired_programmes(string $prison, string $route, string $pastChannel): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-10-28 14:00:00', 'Europe/Oslo'));
+        $this->primePrintSchedule($prison, now('Europe/Oslo'), [
+            ['channel' => ['name' => 'TV3', 'slug' => 'tv3'], 'listings' => [], 'programDataStatus' => 'missing'],
+            ['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'programDataStatus' => 'fallback', 'listings' => [
+                ['startsAt' => '2026-10-28T18:00:00Z', 'title' => ['title' => 'Reservesending']],
+            ]],
+            ['channel' => ['name' => $pastChannel, 'slug' => 'past-channel'], 'listings' => [
+                ['startsAt' => '2026-10-28T08:00:00Z', 'title' => ['title' => 'Tidlig sending']],
+            ]],
+        ]);
+
+        $this->get($route)->assertOk()
+            ->assertSee('Programdata mangler.')
+            ->assertDontSee('Viser tidligere hentede programdata som reserve.')
+            ->assertSee('Alle dagens programmer er allerede sendt.')
+            ->assertSee('19:00')
+            ->assertSee('Reservesending');
+    }
+
+    public function printStatusRoutes(): array
+    {
+        return [
+            'Ringerike' => ['ringerike', '/print', 'NRK1'],
+            'Ilseng' => ['ilseng', '/print-ilseng', 'TV6'],
+        ];
+    }
+
+    /**
+     * @dataProvider printTimezoneRoutes
+     */
+    public function test_prints_convert_vg_utc_times_using_the_listing_timezone(string $prison, string $route, string $now, string $startsAt, string $expectedTime): void
+    {
+        Carbon::setTestNow(Carbon::parse($now, 'Europe/Oslo'));
+        $this->primePrintSchedule($prison, now('Europe/Oslo'), [[
+            'channel' => ['name' => 'TV3', 'slug' => 'tv3'],
+            'listings' => [['startsAt' => $startsAt, 'title' => ['title' => 'Tidssoneprogram']]],
+        ]]);
+
+        $this->get($route)->assertOk()->assertSee($expectedTime)->assertSee('Tidssoneprogram');
+    }
+
+    public function printTimezoneRoutes(): array
+    {
+        return [
+            'Ringerike after summer time starts' => ['ringerike', '/print', '2026-03-29 10:00:00', '2026-03-29T18:00:00Z', '20:00'],
+            'Ilseng after summer time ends' => ['ilseng', '/print-ilseng', '2026-10-25 10:00:00', '2026-10-25T18:00:00Z', '19:00'],
+        ];
     }
 
     public function test_ringerike_print_keeps_problematic_channel_and_programme_text_inside_its_column(): void
@@ -426,6 +482,18 @@ class TvGuidePrintTest extends TestCase
                 ]],
             ],
         ];
+    }
+
+    private function primePrintSchedule(string $prison, Carbon $date, array $schedule): void
+    {
+        $channels = $prison === 'ilseng'
+            ? \App\Services\TvGuideService::ilsengChannels()
+            : \App\Services\TvGuideService::ringerikeChannels();
+        $identity = $date->copy()->setTimezone('Europe/Oslo')->format('Y-m-d').'|Europe/Oslo|'.implode(',', $channels);
+        $suffix = $date->copy()->setTimezone('Europe/Oslo')->format('Y-m-d').'.'.sha1($identity);
+        Cache::forever('tv-guide-vg.stale.'.$suffix, $schedule);
+        Cache::put('tv-guide-vg.fresh.'.$suffix, $schedule, now()->addHour());
+        Cache::forever('tv-guide-vg.updated.'.$suffix, now()->subHour()->toIso8601String());
     }
 
     private function norwayNationsLeagueListing(string $eventName): array

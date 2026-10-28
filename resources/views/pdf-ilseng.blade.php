@@ -1,14 +1,7 @@
 @include('partials.tv-print-head', ['title' => 'TV-guide – Ilseng fengsel | Innsatt.no'])
 
 @php
-    $now = \Carbon\Carbon::now();
-    $dst = $now->isDST();
-
-    if ($dst == true){
-        $hours = 2;
-    } else {
-        $hours = 1;
-    }
+    $now = \Carbon\Carbon::now('Europe/Oslo');
 @endphp
 
 
@@ -98,16 +91,24 @@
     @foreach ($channels as $channel)
         <section class="ilseng-tv-print__channel">
             <strong class="ilseng-tv-print__channel-name">{{ $channel['channel']['name'] }}</strong>
-
-            @foreach ($channel['listings'] as $listing)
-                @if (!$isSelectedDate && \Carbon\Carbon::parse($listing['startsAt'])->addHours($hours)->format('Y-m-d H:i:s') < now())
-                @else
+            @php
+                $listings = $channel['listings'] ?? [];
+                $visibleListings = collect($listings)->filter(fn (array $listing) => $isSelectedDate
+                    || \Carbon\Carbon::parse($listing['startsAt'])->setTimezone('Europe/Oslo')->greaterThanOrEqualTo($now));
+            @endphp
+            @if ($listings === [])
+                <p>Programdata mangler.</p>
+            @elseif ($visibleListings->isEmpty())
+                <p>Alle dagens programmer er allerede sendt.</p>
+            @else
+                @foreach ($visibleListings as $listing)
+                    @php($startsAt = \Carbon\Carbon::parse($listing['startsAt'])->setTimezone('Europe/Oslo'))
                     <div class="ilseng-tv-print__listing">
-                        <span class="ilseng-tv-print__time">{{ \Carbon\Carbon::parse($listing['startsAt'])->addHours($hours)->format('H:i') }}</span>
+                        <span class="ilseng-tv-print__time">{{ $startsAt->format('H:i') }}</span>
                         <span class="ilseng-tv-print__title">{{ $listing['norwayMensMatchLabel'] ?? $listing['displayTitle'] ?? $listing['title']['title'] }}</span>
                     </div>
-                @endif
-            @endforeach
+                @endforeach
+            @endif
         </section>
     @endforeach
 
