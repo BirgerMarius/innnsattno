@@ -12,13 +12,7 @@ class WeeklyFootballTvController extends Controller
         'Premier League',
         'Eliteserien',
         'Champions League',
-        'Europa League',
-        'Conference League',
         'Nations League',
-        'Fotball-VM',
-        'Bundesliga',
-        'Serie A',
-        'OBOS-ligaen',
     ];
 
     public function index(Request $request, TvGuideService $tvGuideService, WeeklyFootballTeamLogoService $teamLogos)
@@ -44,7 +38,8 @@ class WeeklyFootballTvController extends Controller
     private function render(string $prison, Request $request, TvGuideService $tvGuideService, WeeklyFootballTeamLogoService $teamLogos, bool $print = false)
     {
         $weekOffset = $request->query('uke') === 'neste' ? 1 : 0;
-        $showAll = $request->boolean('vis_alle');
+        $showAll = $request->query('utvalg') === 'utvidet';
+        $remainingOnly = $request->query('periode') === 'gjenstaende';
         $weeklyFootball = $tvGuideService->getWeeklyFootballMatches(
             now('Europe/Oslo'),
             $prison,
@@ -55,10 +50,26 @@ class WeeklyFootballTvController extends Controller
             $weeklyFootball['matches'] = $this->standardCompetitions($weeklyFootball['matches']);
             $weeklyFootball['mondayNightMatches'] = $this->standardCompetitions($weeklyFootball['mondayNightMatches'] ?? []);
         }
+        $weeklyFootball['selectionLabel'] = $showAll ? 'Utvidet' : 'Standard';
+        $weeklyFootball['selectionDescription'] = $showAll
+            ? 'Alle fotballkamper i TV-guiden i valgt periode. Repriser, høydepunkter og studioprogrammer filtreres bort så langt datagrunnlaget tillater.'
+            : 'TV-sendte kamper fra Eliteserien, Premier League, Nations League og Champions League i valgt periode.';
+        if ($remainingOnly) {
+            $weeklyFootball['matches'] = array_values(array_filter($weeklyFootball['matches'], fn (array $match) => ! $match['isFinished']));
+            $weeklyFootball['mondayNightMatches'] = array_values(array_filter($weeklyFootball['mondayNightMatches'], fn (array $match) => ! $match['isFinished']));
+        }
+        $weeklyFootball['periodLabel'] = $remainingOnly ? 'Bare gjenstående kamper' : 'Hele uken';
+        $statusUpdates = array_filter(array_merge(
+            array_column($weeklyFootball['matches'], 'sportsNextUpdatedAt'),
+            array_column($weeklyFootball['mondayNightMatches'], 'sportsNextUpdatedAt'),
+        ));
+        $weeklyFootball['sportsNextLastUpdated'] = $statusUpdates !== []
+            ? \Carbon\Carbon::parse(min($statusUpdates))->setTimezone('Europe/Oslo')
+            : null;
         $weeklyFootball['matches'] = $this->withTeamLogos($weeklyFootball['matches'], $teamLogos);
         $weeklyFootball['mondayNightMatches'] = $this->withTeamLogos($weeklyFootball['mondayNightMatches'] ?? [], $teamLogos);
 
-        return view($print ? 'weekly-football-tv.print' : 'weekly-football-tv.index', compact('weeklyFootball', 'prison', 'weekOffset', 'showAll'));
+        return view($print ? 'weekly-football-tv.print' : 'weekly-football-tv.index', compact('weeklyFootball', 'prison', 'weekOffset', 'showAll', 'remainingOnly'));
     }
 
     private function standardCompetitions(array $matches): array

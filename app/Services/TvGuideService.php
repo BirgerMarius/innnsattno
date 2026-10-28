@@ -64,6 +64,9 @@ class TvGuideService
      * a dash in a name. IDs and slugs are used before human-readable aliases.
      */
     private const WEEKLY_FOOTBALL_IDENTIFIERS = [
+        667060 => 'Eliteserien', // Eliteserien
+        246959 => 'Champions League', // UEFA Champions League
+        572756 => 'Nations League', // UEFA Nations League
         36804 => 'La Liga', // LaLiga EA Sports
         78710 => 'OBOS-ligaen',
     ];
@@ -365,6 +368,7 @@ class TvGuideService
         // listing rather than a sporting event.
         $dates = collect(range(0, 7))->map(fn (int $offset) => $weekStart->copy()->addDays($offset))->all();
         $matches = [];
+        $originalBroadcasts = $this->weeklyOriginalBroadcasts($weekStart, $channels);
         $availableDates = [];
         $missingLocalDataDates = [];
         $unpublishedDates = [];
@@ -418,13 +422,20 @@ class TvGuideService
                         continue;
                     }
                     $startsAt = \Carbon\Carbon::parse($startsAtValue)->setTimezone(self::TIMEZONE);
+                    if ($this->isCertainWeeklyFootballReplay($listing)
+                        || $this->isWeeklyFootballReplayWithEarlierOriginal($listing, $startsAt, $originalBroadcasts)) {
+                        continue;
+                    }
                     $nightToMonday = $startsAt->isSameDay($weekEnd->copy()->addDay())
                         && $startsAt->format('H:i:s') < '06:00:00';
                     if (($startsAt->lessThan($weekStart) || $startsAt->greaterThan($weekEnd)) && ! $nightToMonday) {
                         continue;
                     }
                     $name = $this->formatEventName((string) data_get($listing, 'sportsEvent.name'));
-                    $key = $this->weeklyListingKey($listing, $channelSlug, $startsAt);
+                    // A game shown at exactly the same time on more than one
+                    // channel is one choice for the reader, with all channels
+                    // listed. A later showing remains its own broadcast.
+                    $key = $this->weeklyMatchKey($listing, $channelSlug, $startsAt);
                     if (! isset($matches[$key])) {
                         $matches[$key] = [
                             'name' => $name,
@@ -445,6 +456,7 @@ class TvGuideService
             sort($match['channels'], SORT_NATURAL | SORT_FLAG_CASE);
             return $match;
         }, $matches));
+        $matches = $this->withSportsNextMatchStatus($matches);
         usort($matches, fn (array $left, array $right) => ($left['nightToMonday'] <=> $right['nightToMonday'])
             ?: ($left['startsAt']->getTimestamp() <=> $right['startsAt']->getTimestamp()));
 
@@ -543,7 +555,15 @@ class TvGuideService
             return self::WEEKLY_FOOTBALL_SLUGS[$slug];
         }
 
-        return self::WEEKLY_FOOTBALL_TITLES[(string) data_get($listing, 'title.title', '')] ?? null;
+        $title = (string) data_get($listing, 'title.title', '');
+        if (isset(self::WEEKLY_FOOTBALL_TITLES[$title])) {
+            return self::WEEKLY_FOOTBALL_TITLES[$title];
+        }
+
+        // The guide has no sport field on a listing. For the extended view we
+        // accept only documented football words in VG's programme title/slug;
+        // a fixture-shaped event name alone would also admit handball.
+        return $this->looksLikeFootballTitle($listing) ? $title : null;
     }
 
     private function isWeeklyFootballFixture(array $listing): bool
@@ -551,7 +571,48 @@ class TvGuideService
         $eventName = trim((string) data_get($listing, 'sportsEvent.name', ''));
 
         return $this->looksLikeFixtureName($eventName)
-            && preg_match('/\b(studio|magasin|høydepunkter|highlights|oppsummering)\b/ui', $eventName) !== 1;
+            && ! $this->listingTextContains($listing, '/\b(studio|magasin|høydepunkter|highlights|oppsummering|sammendrag)\b/ui');
+    }
+
+    /**
+     * Only positive evidence excludes a broadcast. In particular, neither a
+     * late start nor an earlier matching pair of teams is proof of a replay:
+     * leagues can schedule the same teams twice and primary coverage can be
+     * delayed. SportsNext has no shared event ID with this feed, so its dates
+     * are useful corroboration for operators, not a safe automatic exclusion.
+     */
+    private function isCertainWeeklyFootballReplay(array $listing): bool
+    {
+        return ($listing['isRerun'] ?? false) === true
+            || $this->listingTextContains($listing, '/\b(reprise|rerun|gjenutsendelse|opptak)\b/ui');
+    }
+
+    private function listingTextContains(array $listing, string $pattern): bool
+    {
+        $parts = [
+            data_get($listing, 'title.title'),
+            data_get($listing, 'title.slug'),
+            data_get($listing, 'sportsEvent.name'),
+            data_get($listing, 'description'),
+            data_get($listing, 'subtitle'),
+            data_get($listing, 'episode.name'),
+            data_get($listing, 'episode.description'),
+        ];
+
+        return preg_match($pattern, implode(' ', array_filter($parts, 'is_string'))) === 1;
+    }
+
+    private function looksLikeFootballTitle(array $listing): bool
+    {
+        $title = (string) data_get($listing, 'title.title', '');
+        $slug = (string) data_get($listing, 'title.slug', '');
+        $text = Str::lower($title.' '.$slug);
+
+        if (preg_match('/\b(ehf|handball|håndball|ishockey|hockey|tennis|golf|basket|volleyball)\b/ui', $text) === 1) {
+            return false;
+        }
+
+        return preg_match('/\b(fotball|football|premier[ -]league|eliteserien|obos|champions[ -]league|europa[ -]league|conference[ -]league|nations[ -]league|la ?liga|laliga|bundesliga|serie[ -]a|eredivisie|allsvenskan|superliga|fa[ -]cup|carabao|copa|libertadores|sudamericana|mls|liga mx|club world cup|verdensmesterskap)\b/ui', $text) === 1;
     }
 
     private function broadcastType(array $listing): string
@@ -562,8 +623,13 @@ class TvGuideService
         return 'Sendetype ikke oppgitt';
     }
 
-    private function weeklyListingKey(array $listing, string $channelSlug, \Carbon\CarbonInterface $startsAt): string
+    private function weeklyMatchKey(array $listing, string $channelSlug, \Carbon\CarbonInterface $startsAt): string
     {
+        $eventId = data_get($listing, 'sportsEvent.id');
+        if (is_scalar($eventId) && (string) $eventId !== '') {
+            return 'event:'.(string) $eventId.'|'.$startsAt->toIso8601String();
+        }
+
         $listingId = data_get($listing, 'id');
         if (is_scalar($listingId) && (string) $listingId !== '') return 'listing:'.(string) $listingId;
 
@@ -573,6 +639,117 @@ class TvGuideService
             ?? data_get($listing, 'title.slug', 'unknown');
 
         return 'fallback:'.sha1($channelSlug.'|'.$startsAt->toIso8601String().'|'.(string) $programmeId);
+    }
+
+    /**
+     * Read-only evidence from the local rolling TV cache. Eight preceding days
+     * are intentionally used because the scheduled refresh retains that
+     * period. Missing history is simply inconclusive, never a source failure.
+     */
+    private function weeklyOriginalBroadcasts(\Carbon\CarbonInterface $weekStart, array $channels): array
+    {
+        $originals = [];
+        foreach (range(-8, 7) as $offset) {
+            $date = $weekStart->copy()->addDays($offset);
+            $keys = $this->cacheKeys($date, $channels);
+            $schedule = Cache::get($keys['fresh'], Cache::get($keys['stale']));
+            if (! is_array($schedule)) continue;
+            foreach ($schedule as $channel) foreach (($channel['listings'] ?? []) as $listing) {
+                $eventId = data_get($listing, 'sportsEvent.id');
+                $startsAt = data_get($listing, 'startsAt');
+                $endsAt = data_get($listing, 'endsAt');
+                if (! is_scalar($eventId) || (string) $eventId === '' || ! is_string($startsAt) || ! is_string($endsAt)
+                    || ($listing['isLive'] ?? false) !== true || ($listing['isRerun'] ?? false) === true
+                    || ! $this->isWeeklyFootballFixture($listing)) continue;
+                $originals[(string) $eventId][] = [
+                    'startsAt' => \Carbon\Carbon::parse($startsAt)->setTimezone(self::TIMEZONE),
+                    'endsAt' => \Carbon\Carbon::parse($endsAt)->setTimezone(self::TIMEZONE),
+                    'programme' => $this->weeklyProgrammeIdentity($listing),
+                    'name' => $this->formatEventName((string) data_get($listing, 'sportsEvent.name')),
+                ];
+            }
+        }
+        return $originals;
+    }
+
+    /** A later unmarked listing is a replay only with a fully matching, ended live original. */
+    private function isWeeklyFootballReplayWithEarlierOriginal(array $listing, \Carbon\CarbonInterface $startsAt, array $originals): bool
+    {
+        if (($listing['isLive'] ?? false) === true) return false;
+        $eventId = data_get($listing, 'sportsEvent.id');
+        if (! is_scalar($eventId) || ! isset($originals[(string) $eventId])) return false;
+        $programme = $this->weeklyProgrammeIdentity($listing);
+        $name = $this->formatEventName((string) data_get($listing, 'sportsEvent.name'));
+        foreach ($originals[(string) $eventId] as $original) {
+            if ($original['programme'] === $programme && $original['name'] === $name
+                && $original['endsAt']->copy()->addMinutes(15)->lessThanOrEqualTo($startsAt)) return true;
+        }
+        return false;
+    }
+
+    private function weeklyProgrammeIdentity(array $listing): string
+    {
+        return (string) (data_get($listing, 'title.id') ?? data_get($listing, 'title.slug') ?? data_get($listing, 'title.title', ''));
+    }
+
+    /**
+     * SportsNext is an optional, cache-only enrichment. VG and SportsNext do
+     * not share an event identifier, so retain status only for a unique exact
+     * home/away pair in the same supported competition on the same local date
+     * and within four hours of the guide's broadcast start.
+     */
+    private function withSportsNextMatchStatus(array $matches): array
+    {
+        $sources = [
+            'Premier League' => ['prefix' => 'premier_league', 'season' => 'premier_league_season_id'],
+            'Eliteserien' => ['prefix' => 'eliteserien', 'season' => 'eliteserien_season_id'],
+            'Champions League' => ['prefix' => 'champions_league', 'season' => 'champions_league_season_id'],
+            'Nations League' => ['prefix' => 'nations_league', 'season' => 'nations_league_season_id'],
+        ];
+        $sportsNext = [];
+        $updatedAt = [];
+
+        foreach ($sources as $competition => $source) {
+            $season = (int) config('services.schibsted_sports.'.$source['season']);
+            $cached = Cache::get('schibsted_sports.'.$source['prefix'].'.'.$season.'.last_good');
+            if (! is_array($cached) || ! is_array($cached['matches'] ?? null)) continue;
+            $sportsNext[$competition] = $cached['matches'];
+            if (is_string($cached['sourceFetchedAt'] ?? null)) $updatedAt[] = $cached['sourceFetchedAt'];
+        }
+
+        foreach ($matches as &$match) {
+            $match['statusLabel'] = null;
+            $match['result'] = null;
+            $match['isFinished'] = false;
+            $match['sportsNextUpdatedAt'] = null;
+            if (! isset($sportsNext[$match['competition']])) continue;
+            $teams = $this->fixtureParticipants($match['name']);
+            if ($teams === null) continue;
+            $candidates = array_values(array_filter($sportsNext[$match['competition']], function (array $candidate) use ($teams, $match): bool {
+                if (! ($candidate['startsAt'] ?? null) instanceof \Carbon\CarbonInterface) return false;
+                return $this->normalizedTeamName((string) ($candidate['homeTeam'] ?? '')) === $this->normalizedTeamName($teams[0])
+                    && $this->normalizedTeamName((string) ($candidate['awayTeam'] ?? '')) === $this->normalizedTeamName($teams[1])
+                    && $candidate['startsAt']->isSameDay($match['startsAt'])
+                    && abs($candidate['startsAt']->diffInMinutes($match['startsAt'], false)) <= 240;
+            }));
+            if (count($candidates) !== 1) continue;
+            $candidate = $candidates[0];
+            $match['statusLabel'] = $candidate['statusLabel'] ?? null;
+            $match['isFinished'] = ($candidate['isFinished'] ?? false) === true;
+            $match['sportsNextUpdatedAt'] = $updatedAt !== [] ? min($updatedAt) : null;
+            if ($match['isFinished'] && is_numeric($candidate['homeScore'] ?? null) && is_numeric($candidate['awayScore'] ?? null)) {
+                $match['result'] = (int) $candidate['homeScore'].'–'.(int) $candidate['awayScore'];
+            }
+        }
+        unset($match);
+
+        return $matches;
+    }
+
+    private function normalizedTeamName(string $name): string
+    {
+        $name = Str::lower(trim($name));
+        return preg_replace('/[^\pL\pN]+/u', '', $name) ?? '';
     }
 
     private function looksLikeFixtureName(string $eventName): bool

@@ -22,16 +22,22 @@
     <form class="weekly-football-selector" method="get" action="{{ route('prison.weekly-football-tv', ['prison' => $prison]) }}" data-weekly-football-selector>
         @if($weekOffset)<input type="hidden" name="uke" value="neste">@endif
         <div class="weekly-football-selector__copy">
-            <label class="weekly-football-selector__label"><input type="checkbox" name="vis_alle" value="1" @checked($showAll)> Vis alle kamper</label>
-            <p class="weekly-football-selector__standard">Standard: Alle turneringer unntatt La Liga. Utskriften tilpasses én A4-side.</p>
-            <p class="weekly-football-selector__all">Ta også med La Liga. Utskriften kan gå over flere sider.</p>
+            <p class="weekly-football-selector__label">Velg utvalg</p>
+            <label><input type="radio" name="utvalg" value="standard" @checked(! $showAll)> Standard</label>
+            <label><input type="radio" name="utvalg" value="utvidet" @checked($showAll)> Utvidet</label>
+            <p class="weekly-football-selector__description">{{ $weeklyFootball['selectionDescription'] }}</p>
+            <p>Valgt periode: {{ $weeklyFootball['weekStart']->locale('nb')->translatedFormat('j. F') }}–{{ $weeklyFootball['weekEnd']->locale('nb')->translatedFormat('j. F Y') }} · Aktivt utvalg: {{ $weeklyFootball['selectionLabel'] }} · {{ count($weeklyFootball['matches']) + count($weeklyFootball['mondayNightMatches'] ?? []) }} kamper.</p>
+            <p class="weekly-football-selector__label">Kamper i perioden</p>
+            <label><input type="radio" name="periode" value="hele" @checked(! $remainingOnly)> Hele uken</label>
+            <label><input type="radio" name="periode" value="gjenstaende" @checked($remainingOnly)> Bare gjenstående kamper</label>
+            @if($remainingOnly)<p class="weekly-football-selector__description">Kamper uten bekreftet sluttstatus kan fortsatt vises.</p>@endif
         </div>
-        <a class="btn btn-success weekly-football-selector__print" data-weekly-football-print href="{{ route('prison.weekly-football-tv.print', ['prison' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne', 'vis_alle' => $showAll ? 1 : null]) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut plakat</a>
+        <a class="btn btn-success weekly-football-selector__print" data-weekly-football-print href="{{ route('prison.weekly-football-tv.print', ['prison' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne', 'utvalg' => $showAll ? 'utvidet' : 'standard', 'periode' => $remainingOnly ? 'gjenstaende' : 'hele']) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut {{ strtolower($weeklyFootball['selectionLabel']) }}oversikt</a>
     </form>
 
     <nav class="weekly-football-week-tabs" aria-label="Velg uke">
-        <a class="{{ $weekOffset === 0 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'vis_alle' => $showAll ? 1 : null]) }}">Denne uken</a>
-        <a class="{{ $weekOffset === 1 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'uke' => 'neste', 'vis_alle' => $showAll ? 1 : null]) }}">Neste uke</a>
+        <a class="{{ $weekOffset === 0 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'utvalg' => $showAll ? 'utvidet' : 'standard', 'periode' => $remainingOnly ? 'gjenstaende' : 'hele']) }}">Denne uken</a>
+        <a class="{{ $weekOffset === 1 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'uke' => 'neste', 'utvalg' => $showAll ? 'utvidet' : 'standard', 'periode' => $remainingOnly ? 'gjenstaende' : 'hele']) }}">Neste uke</a>
     </nav>
 
     @if($weeklyFootball['tvPending'] ?? false)
@@ -47,8 +53,8 @@
         <div class="weekly-football-warning" role="status">TV-programmet er foreløpig ikke publisert for {{ count($weeklyFootball['unpublishedDates']) }} av 7 dager. Det er ikke det samme som dager uten oppførte kamper.</div>
     @endif
 
-    @if($weeklyFootball['matches'] === [] && ! $weeklyFootball['hasMissingLocalData'] && ! $weeklyFootball['hasUnpublishedDates'])
-        <p class="weekly-football-empty">Ingen direktesendte kamper fra de valgte ligaene og turneringene er oppført på TV denne uken.</p>
+    @if($weeklyFootball['matches'] === [] && ($weeklyFootball['mondayNightMatches'] ?? []) === [] && ! $weeklyFootball['hasMissingLocalData'] && ! $weeklyFootball['hasUnpublishedDates'])
+        <p class="weekly-football-empty">{{ $remainingOnly ? 'Ingen kamper gjenstår i valgt utvalg denne uken.' : 'Ingen TV-sendte kamper i valgt utvalg er oppført denne uken.' }}</p>
     @else
         @foreach(range(0, 6) as $offset)
             @php($date = $weeklyFootball['weekStart']->copy()->addDays($offset))
@@ -69,7 +75,7 @@
                             <article class="weekly-football-match">
                                 <time datetime="{{ $match['startsAt']->toIso8601String() }}"><strong>{{ $match['startsAt']->format('H.i') }}</strong><span>Sendestart</span></time>
                                 <div class="weekly-football-teams"><strong>@if($match['homeLogoUrl'])<img src="{{ $match['homeLogoUrl'] }}" alt="" onerror="this.remove()">@endif{{ preg_replace('/\s+–\s+.*/u', '', $match['name']) }} <span aria-hidden="true">–</span> @if($match['awayLogoUrl'])<img src="{{ $match['awayLogoUrl'] }}" alt="" onerror="this.remove()">@endif{{ preg_replace('/^.*\s+–\s+/u', '', $match['name']) }}</strong><span>{{ $match['competition'] }}</span></div>
-                                <div class="weekly-football-channels">{{ implode(' · ', $match['channels']) }}<br><span>{{ $match['broadcastType'] }}</span></div>
+                                <div class="weekly-football-channels">{{ implode(' · ', $match['channels']) }}<br><span>{{ $match['result'] ? 'Sluttresultat '.$match['result'] : ($match['statusLabel'] ?? $match['broadcastType']) }}</span></div>
                             </article>
                         @endforeach
                     </div>
@@ -84,26 +90,26 @@
                         <article class="weekly-football-match">
                             <time datetime="{{ $match['startsAt']->toIso8601String() }}"><strong>{{ $match['startsAt']->format('H.i') }}</strong><span>Sendestart</span></time>
                             <div class="weekly-football-teams"><strong>@if($match['homeLogoUrl'])<img src="{{ $match['homeLogoUrl'] }}" alt="" onerror="this.remove()">@endif{{ preg_replace('/\s+–\s+.*/u', '', $match['name']) }} <span aria-hidden="true">–</span> @if($match['awayLogoUrl'])<img src="{{ $match['awayLogoUrl'] }}" alt="" onerror="this.remove()">@endif{{ preg_replace('/^.*\s+–\s+/u', '', $match['name']) }}</strong><span>{{ $match['competition'] }}</span></div>
-                            <div class="weekly-football-channels">{{ implode(' · ', $match['channels']) }}<br><span>{{ $match['broadcastType'] }}</span></div>
+                            <div class="weekly-football-channels">{{ implode(' · ', $match['channels']) }}<br><span>{{ $match['result'] ? 'Sluttresultat '.$match['result'] : ($match['statusLabel'] ?? $match['broadcastType']) }}</span></div>
                         </article>
                     @endforeach
                 </div>
             </section>
         @endif
     @endif
-    <p class="weekly-football-note">Tidspunktet er TV-sendingens starttid fra VG TV-guide. Kalenderuken inkluderer også natt til mandag frem til kl. 06.00. Avspark vises ikke når det ikke er oppgitt i TV-dataene. Sist oppdatert: {{ $weeklyFootball['lastUpdated'] ? $weeklyFootball['lastUpdated']->locale('nb')->translatedFormat('j. F Y \k\l. H.i') : 'ukjent' }}.</p>
+    <p class="weekly-football-note">Tidspunktet er TV-sendingens starttid fra VG TV-guide. Kalenderuken inkluderer også natt til mandag frem til kl. 06.00. Avspark vises ikke når det ikke er oppgitt i TV-dataene. TV-data sist oppdatert: {{ $weeklyFootball['lastUpdated'] ? $weeklyFootball['lastUpdated']->locale('nb')->translatedFormat('j. F Y \k\l. H.i') : 'ukjent' }}@if($weeklyFootball['sportsNextLastUpdated']) · Kampstatus sist oppdatert: {{ $weeklyFootball['sportsNextLastUpdated']->locale('nb')->translatedFormat('j. F Y \k\l. H.i') }}@endif.</p>
 </main>
 <script>
     (() => {
         const form = document.querySelector('[data-weekly-football-selector]');
-        const checkbox = form?.querySelector('input[name="vis_alle"]');
+        const options = form?.querySelectorAll('input[name="utvalg"], input[name="periode"]');
         const printLink = form?.querySelector('[data-weekly-football-print]');
-        if (!form || !checkbox || !printLink) return;
+        if (!form || !options?.length || !printLink) return;
 
-        checkbox.addEventListener('change', () => {
+        options.forEach((option) => option.addEventListener('change', () => {
+            if (!option.checked) return;
             const url = new URL(printLink.href, window.location.href);
-            if (checkbox.checked) url.searchParams.set('vis_alle', '1');
-            else url.searchParams.delete('vis_alle');
+            url.searchParams.set(option.name, option.value);
             printLink.href = url.pathname + url.search + url.hash;
             form.submit();
         });
