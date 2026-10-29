@@ -210,7 +210,8 @@ class ExternalDataMonitoringTest extends TestCase
         }
 
         $this->withSession(['admin_authenticated' => true])->get('/adm')->assertOk()
-            ->assertSee('Manglende programdata hos VG')->assertSee('tv3')->assertSee('tv3-plus')->assertSee('Strim');
+            ->assertSee('Dagens TV-program')->assertSee('tv3')->assertSee('tv3-plus')
+            ->assertSee('Programmer tilgjengelige fra Strim');
     }
 
     public function test_coverage_lock_prevents_a_second_source_check_and_preserves_cache(): void

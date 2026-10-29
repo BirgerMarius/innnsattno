@@ -53,6 +53,7 @@ class AdminDashboardStatisticsTest extends TestCase
 
     public function test_dashboard_shows_active_vg_channel_issue_with_shared_prison_context(): void
     {
+        Carbon::setTestNow('2026-10-28 15:00:00 Europe/Oslo');
         DB::table('external_data_checks')->insert([
             'service' => 'tv-guide-vg-channel', 'coverage_key' => '2026-10-28|tv3-plus', 'datatype' => 'tv',
             'description' => 'VG TV-guide tv3', 'essential' => true, 'usable' => true,
@@ -62,8 +63,36 @@ class AdminDashboardStatisticsTest extends TestCase
         ]);
 
         $this->withSession(['admin_authenticated' => true])->get('/adm')->assertOk()
-            ->assertSee('Manglende programdata hos VG')->assertSee('TV3+')->assertSee('tv3-plus')
-            ->assertSee('Ringerike fengsel, Ilseng fengsel')->assertSee('Strim');
+            ->assertSee('Dagens TV-program')->assertSee('TV3+')->assertSee('tv3-plus')
+            ->assertSee('VG mangler programdata for 1 kanal. Reserveløsningen leverer programmer for alle disse.')
+            ->assertSee('Ringerike fengsel, Ilseng fengsel')->assertSee('Programmer tilgjengelige fra Strim')
+            ->assertSee('Tid siden oppdaget')->assertSee('1 t 10 min');
+    }
+
+    public function test_dashboard_separates_today_upcoming_and_historical_tv_program_dates(): void
+    {
+        Carbon::setTestNow('2026-10-28 15:00:00 Europe/Oslo');
+        foreach ([
+            ['2026-10-27', 'tv3', 'VG mangler programdata; tidligere lokal cache vises.'],
+            ['2026-10-28', 'tv3-plus', 'VG mangler programdata; ingen brukbar reserve.'],
+            ['2026-10-29', 'tv6', 'VG mangler programdata; Strim leverer reserve.'],
+        ] as [$date, $channel, $error]) {
+            DB::table('external_data_checks')->insert([
+                'service' => 'tv-guide-vg-channel', 'coverage_key' => $date.'|'.$channel, 'datatype' => 'tv',
+                'description' => 'VG TV-guide '.$channel, 'essential' => true, 'usable' => $channel !== 'tv3-plus',
+                'last_success_at' => null, 'last_check_at' => $date.' 14:20:00', 'first_failure_at' => $date.' 13:10:00',
+                'active_until' => $date.' 23:59:59', 'failure_count' => 3, 'last_error' => $error,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+        }
+
+        $this->withSession(['admin_authenticated' => true])->get('/adm')->assertOk()
+            ->assertSee('1 kanal mangler programdata også etter forsøk på reserve.')
+            ->assertSee('Programdata mangler')
+            ->assertSee('Kommende programdatoer')->assertSee('29.10.2026')
+            ->assertSee('Tidligere programdatoer (1 hendelse)')->assertSee('Historiske hendelser')
+            ->assertSee('Bruker tidligere hentede programmer for samme dato')
+            ->assertSee('Historisk');
     }
 
     public function testDashboardShowsFallbackWhenSummaryIsMissingOrInvalid()

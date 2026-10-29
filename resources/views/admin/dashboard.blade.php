@@ -40,18 +40,39 @@
         </div>
     </section>
 
-    @if (count($tvGuideChannelIssues))
-        <section class="card border-warning mb-4" aria-labelledby="tv-guide-status-title">
+    <section class="card admin-dashboard-section mb-4" aria-labelledby="tv-guide-status-title">
             <div class="card-body p-lg-4">
                 <p class="admin-card-label mb-1">Driftsstatus</p>
-                <h2 class="h4 mb-2" id="tv-guide-status-title">Manglende programdata hos VG</h2>
-                <p class="text-muted">Reserveløsning endrer ikke denne VG-statusen. Hendelsen lukkes først når VG igjen har brukbare programmer.</p>
-                <div class="table-responsive"><table class="table table-sm align-middle mb-0"><thead><tr><th>Kanal og dato</th><th>Fengsel</th><th>Vises fra</th><th>Først registrert</th><th>Sist kontrollert</th><th>Varighet</th></tr></thead><tbody>
-                @foreach ($tvGuideChannelIssues as $issue)<tr><td><strong>{{ $issue['name'] }}</strong><br><small>{{ $issue['slug'] }} · {{ $issue['date'] }}</small></td><td>{{ implode(', ', $issue['prisons']) }}</td><td>{{ $issue['source'] }}</td><td>{{ $issue['first']->format('d.m.Y H:i') }}</td><td>{{ $issue['last']->format('d.m.Y H:i') }}</td><td>{{ $issue['first']->diffForHumans($issue['last'], true) }}</td></tr>@endforeach
-                </tbody></table></div>
+                <h2 class="h4 mb-2" id="tv-guide-status-title">TV-program fra VG og reserver</h2>
+                <p class="text-muted mb-3">VG er hovedkilden. Når VG mangler programmer, forsøker vi reservekilder. Varselet står åpent til VG leverer igjen, selv om programmene er tilgjengelige fra en reserve.</p>
+
+                <h3 class="h5 mb-2">Dagens TV-program</h3>
+                @if ($tvGuideChannelHealth['todaySummary']['channelCount'])
+                    @if ($tvGuideChannelHealth['todaySummary']['missingCount'] === 0)
+                        <p class="alert alert-success">VG mangler programdata for {{ $tvGuideChannelHealth['todaySummary']['channelCount'] }} {{ $tvGuideChannelHealth['todaySummary']['channelCount'] === 1 ? 'kanal' : 'kanaler' }}. Reserveløsningen leverer programmer for alle disse. Berørte fengsler: {{ implode(', ', $tvGuideChannelHealth['todaySummary']['prisons']) }}.</p>
+                    @else
+                        <p class="alert alert-danger">{{ $tvGuideChannelHealth['todaySummary']['missingCount'] }} {{ $tvGuideChannelHealth['todaySummary']['missingCount'] === 1 ? 'kanal mangler' : 'kanaler mangler' }} programdata også etter forsøk på reserve. Berørte fengsler: {{ implode(', ', $tvGuideChannelHealth['todaySummary']['prisons']) }}.</p>
+                    @endif
+                    @include('admin.partials.tv-guide-health-table', ['issues' => $tvGuideChannelHealth['today']])
+                @else
+                    <p class="alert alert-success mb-0">Ingen åpne VG-avvik for dagens TV-program.</p>
+                @endif
+
+                @if (count($tvGuideChannelHealth['upcoming']))
+                    <h3 class="h5 mt-4 mb-2">Kommende programdatoer</h3>
+                    <p class="text-muted small">Vises bare når det finnes relevante hendelser. Upubliserte fremtidige datoer er ikke datafeil.</p>
+                    @include('admin.partials.tv-guide-health-table', ['issues' => $tvGuideChannelHealth['upcoming']])
+                @endif
+
+                @if (count($tvGuideChannelHealth['previous']))
+                    <details class="mt-4">
+                        <summary><strong>Tidligere programdatoer ({{ count($tvGuideChannelHealth['previous']) }} {{ count($tvGuideChannelHealth['previous']) === 1 ? 'hendelse' : 'hendelser' }})</strong> <span class="text-muted">Historiske hendelser</span></summary>
+                        <p class="text-muted small mt-2">Historiske hendelser er beholdt. De gjelder ikke dagens TV-program.</p>
+                        @include('admin.partials.tv-guide-health-table', ['issues' => $tvGuideChannelHealth['previous'], 'historical' => true])
+                    </details>
+                @endif
             </div>
-        </section>
-    @endif
+    </section>
 
     <section class="mb-4" aria-labelledby="innhold-title">
         <h2 class="h4 mb-3" id="innhold-title">Innhold og handlinger</h2>
