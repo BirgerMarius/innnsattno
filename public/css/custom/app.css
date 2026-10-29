@@ -766,6 +766,7 @@
 .weekly-football-day h2 { background: #edf5ef; color: #173f2a; font-size: 1.15rem; margin: 0; padding: .6rem .85rem; }
 .weekly-football-match { align-items: center; border-top: 1px solid #e2e8f0; display: grid; gap: .75rem; grid-template-columns: 105px minmax(0, 1fr) 180px; padding: .75rem .85rem; }
 .weekly-football-match time strong, .weekly-football-match > div strong { display: block; }
+.football-participant-visual--flag { object-fit: contain; }
 .weekly-football-teams img { height: 1.25em; margin: 0 .3em 0 0; object-fit: contain; vertical-align: -.22em; width: 1.25em; }
 .weekly-football-match time span, .weekly-football-match > div span, .weekly-football-channels, .weekly-football-no-matches, .weekly-football-note { color: #536173; font-size: .9rem; }
 .weekly-football-channels { overflow-wrap: anywhere; text-align: right; }

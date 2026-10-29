@@ -124,6 +124,8 @@ class NationsLeagueController extends Controller
                         'awayTeam' => $fixture['awayTeam'],
                         'homeEmblemUrl' => $fixture['homeEmblemUrl'],
                         'awayEmblemUrl' => $fixture['awayEmblemUrl'],
+                        'homeEmblemType' => $fixture['homeEmblemType'] ?? null,
+                        'awayEmblemType' => $fixture['awayEmblemType'] ?? null,
                     ]);
                 }
             }

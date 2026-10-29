@@ -54,6 +54,21 @@ Standings-responsen inneholder disse toppnivafeltene:
 
 `participants`-data folger med i bade schedule og standings.
 
+## Deltakerbilder
+
+Ingen ekstra API-kall trengs for flagg og logoer: de ligger i `participants` i
+de cachede schedule-/standings-responsene. Bruk alltid deltakerens type, ikke
+turneringens land, for å velge bilde:
+
+- Landslag (`type: team`, `subtype: national`): `images.countryFlag.url` med
+  `?rule=clip-{size}x{size}`.
+- Klubblag: `images.clubLogo.url` med samme regel. Den nakne SportsNext-
+  ressursen er ikke en direkte bildefil.
+
+`countryFlag` skal foretrekkes fremfor landslagets `clubLogo`, som er et
+forbundsmerke. Når feltet mangler eller bildet ikke kan lastes, vises bare
+lagnavnet. Dette gjelder også den cachebaserte, entydige TV-navnmatchingen.
+
 ## Testet Og Avvist
 
 Disse eksplisitte kandidatstiene returnerte HTTP 404. De er avviste kandidater, ikke systemfeil:

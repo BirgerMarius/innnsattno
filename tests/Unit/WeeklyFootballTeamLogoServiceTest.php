@@ -28,4 +28,18 @@ class WeeklyFootballTeamLogoServiceTest extends TestCase
         $this->assertSame('https://example.test/villa.png', $logos->logosFor('Premier League', 'Aston Villa FC – Test FC')['homeLogoUrl']);
         $this->assertNull($logos->logosFor('Premier League', 'Aston Villa FC – Test FC')['awayLogoUrl']);
     }
+
+    public function test_national_team_visuals_keep_the_cached_flag_type(): void
+    {
+        Cache::put('schibsted_sports.nations_league.8889.last_good', ['teams' => [
+            11667 => ['teamId' => 11667, 'teamName' => 'Norge', 'emblemUrl' => 'https://example.test/no-flag', 'emblemType' => 'flag'],
+            11662 => ['teamId' => 11662, 'teamName' => 'Danmark', 'emblemUrl' => 'https://example.test/dk-flag', 'emblemType' => 'flag'],
+        ]], now()->addDay());
+
+        $visuals = app(WeeklyFootballTeamLogoService::class)->logosFor('Nations League', 'Norge – Danmark');
+
+        $this->assertSame('https://example.test/no-flag', $visuals['homeLogoUrl']);
+        $this->assertSame('flag', $visuals['homeVisualType']);
+        $this->assertSame('flag', $visuals['awayVisualType']);
+    }
 }

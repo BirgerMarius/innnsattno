@@ -40,4 +40,26 @@ class NationsLeagueServiceTest extends TestCase
         $week = $service->matchesForCalendarWeek($data['matches'], Carbon::parse('2026-09-21 10:00:00', 'Europe/Oslo'));
         $this->assertSame([1, 2], array_column($week, 'id'));
     }
+
+    /** @test */
+    public function it_uses_sportsnext_country_flags_for_national_teams_and_club_crests_for_clubs(): void
+    {
+        $data = (new NationsLeagueService())->normalizeCompetitionData(['participants' => [
+            1 => ['name' => 'Norge', 'type' => 'team', 'subtype' => 'national', 'images' => [
+                'clubLogo' => ['url' => 'https://example.test/norge-forbund'],
+                'countryFlag' => ['url' => 'https://example.test/no-flag'],
+            ]],
+            2 => ['name' => 'Klubb', 'type' => 'team', 'subtype' => 'club', 'images' => [
+                'clubLogo' => ['url' => 'https://example.test/club'],
+            ]],
+        ], 'events' => [[
+            'id' => 1, 'startDate' => '2026-09-24T18:45:00Z', 'participantIds' => [1, 2], 'status' => ['type' => 'notStarted'],
+        ]]], ['standings' => []]);
+
+        $this->assertStringContainsString('https://example.test/no-flag', $data['matches'][0]['homeEmblemUrl']);
+        $this->assertStringContainsString('rule=clip-64x64', $data['matches'][0]['homeEmblemUrl']);
+        $this->assertSame('flag', $data['matches'][0]['homeEmblemType']);
+        $this->assertSame('crest', $data['matches'][0]['awayEmblemType']);
+        $this->assertStringContainsString('rule=clip-64x64', $data['matches'][0]['awayEmblemUrl']);
+    }
 }

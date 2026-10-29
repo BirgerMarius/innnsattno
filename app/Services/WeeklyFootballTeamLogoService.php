@@ -38,7 +38,7 @@ class WeeklyFootballTeamLogoService
 
         return Cache::remember($cacheKey, now()->addMinutes(10), function () use ($competition, $fixture): array {
             if (preg_match('/^\s*(.+?)\s+–\s+(.+?)\s*$/u', $fixture, $parts) !== 1) {
-                return ['homeLogoUrl' => null, 'awayLogoUrl' => null];
+                return $this->emptyVisuals();
             }
 
             $teams = $this->serviceFor($competition)?->cachedTeams() ?? [];
@@ -52,14 +52,24 @@ class WeeklyFootballTeamLogoService
                     $byName[$key] = null;
                     continue;
                 }
-                $byName[$key] = $team['emblemUrl'];
+                $byName[$key] = [
+                    'url' => $team['emblemUrl'],
+                    'type' => $team['emblemType'] ?? 'crest',
+                ];
             }
 
             return [
-                'homeLogoUrl' => $byName[$this->key($parts[1])] ?? null,
-                'awayLogoUrl' => $byName[$this->key($parts[2])] ?? null,
+                'homeLogoUrl' => $byName[$this->key($parts[1])]['url'] ?? null,
+                'awayLogoUrl' => $byName[$this->key($parts[2])]['url'] ?? null,
+                'homeVisualType' => $byName[$this->key($parts[1])]['type'] ?? null,
+                'awayVisualType' => $byName[$this->key($parts[2])]['type'] ?? null,
             ];
         });
+    }
+
+    private function emptyVisuals(): array
+    {
+        return ['homeLogoUrl' => null, 'awayLogoUrl' => null, 'homeVisualType' => null, 'awayVisualType' => null];
     }
 
     private function serviceFor(string $competition): ?SchibstedCompetitionService

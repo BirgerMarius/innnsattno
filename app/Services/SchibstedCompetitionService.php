@@ -487,6 +487,7 @@ abstract class SchibstedCompetitionService
                     'teamName' => $participant['name'] ?? $teamStanding['teamName'] ?? 'Ukjent lag',
                     'shortName' => $participant['shortName'] ?? $participant['abbreviation'] ?? null,
                     'emblemUrl' => $this->extractImageUrl($participant),
+                    'emblemType' => $this->participantVisualType($participant),
                     'played' => $this->nullableInt($teamStanding['played'] ?? null),
                     'wins' => $this->nullableInt($teamStanding['wins'] ?? null),
                     'draws' => $this->nullableInt($teamStanding['draws'] ?? null),
@@ -554,6 +555,8 @@ abstract class SchibstedCompetitionService
                 'awayTeam' => $this->teamName($participants, $awayId),
                 'homeEmblemUrl' => $this->teamEmblem($participants, $homeId),
                 'awayEmblemUrl' => $this->teamEmblem($participants, $awayId),
+                'homeEmblemType' => $this->teamEmblemType($participants, $homeId),
+                'awayEmblemType' => $this->teamEmblemType($participants, $awayId),
                 'homeScore' => $isFinished ? $this->scoreFor($event, $homeId) : null,
                 'awayScore' => $isFinished ? $this->scoreFor($event, $awayId) : null,
                 'homeAggregateScore' => $this->resultValue($event, $homeId, 'aggregateScore'),
@@ -593,6 +596,7 @@ abstract class SchibstedCompetitionService
                 'teamName' => $participant['name'] ?? 'Ukjent lag',
                 'shortName' => $participant['shortName'] ?? $participant['abbreviation'] ?? null,
                 'emblemUrl' => $this->extractImageUrl($participant),
+                'emblemType' => $this->participantVisualType($participant),
             ];
         }
 
@@ -832,15 +836,33 @@ abstract class SchibstedCompetitionService
         return $this->extractImageUrl($participants[$teamId]);
     }
 
+    private function teamEmblemType(array $participants, $teamId): ?string
+    {
+        if (!$teamId || !isset($participants[$teamId])) {
+            return null;
+        }
+
+        return $this->participantVisualType($participants[$teamId]);
+    }
+
     private function extractImageUrl(array $participant): ?string
     {
-        // SportsNext supplies club crests as participants.{id}.images.clubLogo.url.
-        // VG Live's image component turns that resource URL into
-        // ?rule=clip-{size}x{size}; the bare resource URL is not an image.
+        // National teams have both a federation crest and an actual flag. The
+        // football pages deliberately use the flag; clubs use their crest.
+        if ($this->participantVisualType($participant) === 'flag') {
+            $flagUrl = $participant['images']['countryFlag']['url'] ?? null;
+
+            return is_string($flagUrl) && filter_var($flagUrl, FILTER_VALIDATE_URL)
+                ? $this->sportsNextImageVariantUrl($flagUrl, 64)
+                : null;
+        }
+
+        // VG Live turns a club-logo resource URL into a clipped image variant.
+        // The bare resource URL is not directly renderable as an image.
         $clubLogoUrl = $participant['images']['clubLogo']['url'] ?? null;
 
         if (is_string($clubLogoUrl) && filter_var($clubLogoUrl, FILTER_VALIDATE_URL)) {
-            return $this->sportsNextClubLogoVariantUrl($clubLogoUrl, 64);
+            return $this->sportsNextImageVariantUrl($clubLogoUrl, 64);
         }
 
         foreach ($participant as $key => $value) {
@@ -866,7 +888,16 @@ abstract class SchibstedCompetitionService
         return null;
     }
 
-    private function sportsNextClubLogoVariantUrl(string $url, int $size): string
+    private function participantVisualType(array $participant): ?string
+    {
+        if (($participant['type'] ?? null) !== 'team') {
+            return null;
+        }
+
+        return ($participant['subtype'] ?? null) === 'national' ? 'flag' : 'crest';
+    }
+
+    private function sportsNextImageVariantUrl(string $url, int $size): string
     {
         $separator = str_contains($url, '?') ? '&' : '?';
 
