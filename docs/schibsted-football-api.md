@@ -69,6 +69,14 @@ turneringens land, for å velge bilde:
 forbundsmerke. Når feltet mangler eller bildet ikke kan lastes, vises bare
 lagnavnet. Dette gjelder også den cachebaserte, entydige TV-navnmatchingen.
 
+For Champions League er ti verifiserte forkortelser fra VG TV-guide et
+bevisst, snevert unntak: `Atlético` (1156), `Bayern` (4070), `PSG` (3419),
+`Stuttgart` (32503), `Leipzig` (4087), `Fenerbahçe` (5710), `Aek` (6344) og
+`Sabah` (360471), samt `Dortmund` (4072) og `Shakhtar` (58170). De kan bare
+bruke logo når akkurat denne deltaker-ID-en med gyldig bilde finnes i den
+eksisterende Champions League-cachen. Unntaket gjør ingen API-kall, gjelder
+ikke andre turneringer og brukes ikke for kampstatus eller resultater.
+
 ## Testet Og Avvist
 
 Disse eksplisitte kandidatstiene returnerte HTTP 404. De er avviste kandidater, ikke systemfeil:

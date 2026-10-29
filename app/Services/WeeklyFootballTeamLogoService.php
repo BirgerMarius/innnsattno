@@ -17,6 +17,26 @@ class WeeklyFootballTeamLogoService
         'fredrikstad fk' => 'fredrikstad',
         'aston villa fc' => 'aston villa',
     ];
+
+    /**
+     * Verified VG TV-guide abbreviations for Champions League participants.
+     *
+     * These are deliberately ID-bound rather than fuzzy name matches.  The
+     * image is still taken only from the already cached Champions League
+     * payload, and only when that payload contains the expected participant.
+     */
+    private const CHAMPIONS_LEAGUE_TV_TEAM_IDS = [
+        'atlético' => 1156,
+        'bayern' => 4070,
+        'psg' => 3419,
+        'stuttgart' => 32503,
+        'leipzig' => 4087,
+        'fenerbahçe' => 5710,
+        'aek' => 6344,
+        'sabah' => 360471,
+        'dortmund' => 4072,
+        'shakhtar' => 58170,
+    ];
     public function __construct(
         private PremierLeagueService $premierLeague,
         private EliteserienService $eliteserien,
@@ -58,11 +78,14 @@ class WeeklyFootballTeamLogoService
                 ];
             }
 
+            $homeVisual = $this->visualFor($competition, $parts[1], $byName, $teams);
+            $awayVisual = $this->visualFor($competition, $parts[2], $byName, $teams);
+
             return [
-                'homeLogoUrl' => $byName[$this->key($parts[1])]['url'] ?? null,
-                'awayLogoUrl' => $byName[$this->key($parts[2])]['url'] ?? null,
-                'homeVisualType' => $byName[$this->key($parts[1])]['type'] ?? null,
-                'awayVisualType' => $byName[$this->key($parts[2])]['type'] ?? null,
+                'homeLogoUrl' => $homeVisual['url'] ?? null,
+                'awayLogoUrl' => $awayVisual['url'] ?? null,
+                'homeVisualType' => $homeVisual['type'] ?? null,
+                'awayVisualType' => $awayVisual['type'] ?? null,
             ];
         });
     }
@@ -70,6 +93,35 @@ class WeeklyFootballTeamLogoService
     private function emptyVisuals(): array
     {
         return ['homeLogoUrl' => null, 'awayLogoUrl' => null, 'homeVisualType' => null, 'awayVisualType' => null];
+    }
+
+    private function visualFor(string $competition, string $name, array $byName, array $teams): ?array
+    {
+        $key = $this->key($name);
+        $exactVisual = $byName[$key] ?? null;
+        if (is_array($exactVisual)) {
+            return $exactVisual;
+        }
+
+        if ($competition !== 'Champions League' || ! isset(self::CHAMPIONS_LEAGUE_TV_TEAM_IDS[$key])) {
+            return null;
+        }
+
+        $expectedTeamId = self::CHAMPIONS_LEAGUE_TV_TEAM_IDS[$key];
+        foreach ($teams as $team) {
+            if (! is_array($team) || (int) ($team['teamId'] ?? 0) !== $expectedTeamId) {
+                continue;
+            }
+
+            $url = $team['emblemUrl'] ?? null;
+            if (! is_string($url) || ! filter_var($url, FILTER_VALIDATE_URL)) {
+                continue;
+            }
+
+            return ['url' => $url, 'type' => $team['emblemType'] ?? 'crest'];
+        }
+
+        return null;
     }
 
     private function serviceFor(string $competition): ?SchibstedCompetitionService
