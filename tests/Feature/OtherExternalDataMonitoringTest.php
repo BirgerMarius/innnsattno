@@ -19,13 +19,15 @@ class OtherExternalDataMonitoringTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const TEST_NOW = '2026-10-19 08:00:00 Europe/Oslo';
+
     protected function setUp(): void
     {
         parent::setUp();
         Cache::flush(); Mail::fake();
         config()->set('feedback.notification_email', 'monitor@example.test');
         config()->set('services.prayer_times.api_token', 'test');
-        Carbon::setTestNow(Carbon::parse('2026-10-19 08:00:00', 'Europe/Oslo'));
+        Carbon::setTestNow(Carbon::parse(self::TEST_NOW));
     }
 
     protected function tearDown(): void { Carbon::setTestNow(); parent::tearDown(); }
@@ -159,7 +161,7 @@ class OtherExternalDataMonitoringTest extends TestCase
     public function test_warm_command_reports_and_fails_when_football_is_missing(): void
     {
         Http::fake(function ($request) {
-            if (str_contains($request->url(), 'tvguide.vg.no')) return Http::response([['channel' => ['name' => 'NRK1', 'slug' => 'nrk1'], 'listings' => [['startsAt' => now()->toIso8601String(), 'title' => ['title' => 'Nyheter']]]]]);
+            if (str_contains($request->url(), 'tvguide.vg.no')) return Http::response($this->completeTvGuideResponse($request));
             return Http::response([], 404);
         });
         $this->artisan('external-data:warm')->expectsOutput('Noen hentinger feilet eller mangler data. Scheduleren prøver på nytt.')->assertExitCode(1);
@@ -170,7 +172,7 @@ class OtherExternalDataMonitoringTest extends TestCase
     public function test_warm_command_succeeds_with_complete_valid_tv_and_football_data(): void
     {
         Http::fake(function ($request) {
-            if (str_contains($request->url(), 'tvguide.vg.no')) return Http::response([['channel' => ['name' => 'NRK1', 'slug' => 'nrk1'], 'listings' => [['startsAt' => now()->toIso8601String(), 'title' => ['title' => 'Nyheter']]]]]);
+            if (str_contains($request->url(), 'tvguide.vg.no')) return Http::response($this->completeTvGuideResponse($request));
             if (str_ends_with(parse_url($request->url(), PHP_URL_PATH), '/schedule')) return Http::response([
                 'events' => [['startDate' => now()->toIso8601String(), 'participantIds' => [1, 2], 'status' => ['type' => 'notstarted']]],
                 'participants' => [1 => ['name' => 'A'], 2 => ['name' => 'B']],
@@ -183,6 +185,18 @@ class OtherExternalDataMonitoringTest extends TestCase
         $this->artisan('external-data:warm')->expectsOutput('Forhåndshenting fullført.')->assertExitCode(0);
         $this->assertSame(44, DB::table('external_data_checks')->where('service', 'tv-guide-vg')->count());
         $this->assertSame(8, DB::table('external_data_checks')->where('service', 'sportsnext')->where('failure_count', 0)->count());
+    }
+
+    /** A complete date-specific VG response, matching the requested local channel set. */
+    private function completeTvGuideResponse($request): array
+    {
+        $channels = array_filter(explode(',', (string) ($request->data()['channels'] ?? '')));
+        $date = Carbon::parse((string) ($request->data()['date'] ?? now('Europe/Oslo')->toDateString()), 'Europe/Oslo')->setTime(12, 0);
+
+        return array_map(fn (string $slug) => [
+            'channel' => ['name' => strtoupper($slug), 'slug' => $slug],
+            'listings' => [['startsAt' => $date->toIso8601String(), 'title' => ['title' => 'Nyheter']]],
+        ], $channels);
     }
 
     private function days(int $count): array
