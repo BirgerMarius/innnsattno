@@ -130,6 +130,13 @@
             @else
                 <div class="alert alert-light border mb-3" role="status">Ingen planlagte endringer de neste 100 dagene.</div>
             @endif
+            @if ($hasMorePlannedChanges)
+                @if ($showMorePlannedChanges)
+                    <a href="{{ route('admin.index', request()->except('planned_changes_display')) }}#planned-changes-title" class="btn btn-outline-secondary btn-sm mt-3">Vis færre</a>
+                @else
+                    <a href="{{ route('admin.index', array_merge(request()->query(), ['planned_changes_display' => 'all'])) }}#planned-changes-title" class="btn btn-outline-secondary btn-sm mt-3">Vis flere planlagte endringer</a>
+                @endif
+            @endif
             @if ($showAllPlannedChanges)
                 <a href="{{ route('admin.index', request()->except('planned_changes')) }}#planned-changes-title" class="btn btn-outline-secondary btn-sm mt-3">Vis kun neste 100 dager</a>
             @elseif ($hasLaterPlannedChanges)

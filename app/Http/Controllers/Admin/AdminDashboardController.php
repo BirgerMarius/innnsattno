@@ -30,9 +30,13 @@ class AdminDashboardController extends Controller
 
         $allPlannedChanges = $plannedSiteChanges->upcoming();
         $showAllPlannedChanges = $request->query('planned_changes') === 'all';
-        $plannedChanges = $showAllPlannedChanges
+        $plannedChangesInPeriod = $showAllPlannedChanges
             ? $allPlannedChanges
             : array_values(array_filter($allPlannedChanges, fn (array $change) => $change['date']->lessThanOrEqualTo(now('Europe/Oslo')->addDays(100))));
+        $showMorePlannedChanges = $request->query('planned_changes_display') === 'all';
+        $plannedChanges = $showMorePlannedChanges
+            ? $plannedChangesInPeriod
+            : array_slice($plannedChangesInPeriod, 0, 10);
 
         return view('admin.dashboard', [
             'publishedCount' => (int) ($statusCounts[ProfessionalResource::STATUS_PUBLISHED] ?? 0),
@@ -50,7 +54,9 @@ class AdminDashboardController extends Controller
             'statistics' => $statistics->read(),
             'plannedChanges' => $plannedChanges,
             'showAllPlannedChanges' => $showAllPlannedChanges,
-            'hasLaterPlannedChanges' => count($plannedChanges) < count($allPlannedChanges),
+            'hasLaterPlannedChanges' => count($plannedChangesInPeriod) < count($allPlannedChanges),
+            'showMorePlannedChanges' => $showMorePlannedChanges,
+            'hasMorePlannedChanges' => count($plannedChangesInPeriod) > 10,
             'manualTheme' => $plannedSiteChanges->manualTheme(),
             'trafficPeriod' => $period,
             'trafficDate' => $trafficDate,

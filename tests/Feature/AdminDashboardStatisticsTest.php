@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use Illuminate\Support\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use App\Services\PlannedSiteChangesService;
 use Tests\TestCase;
 
 class AdminDashboardStatisticsTest extends TestCase
@@ -122,21 +124,51 @@ class AdminDashboardStatisticsTest extends TestCase
             ->assertSee('Grafisk tema endres');
     }
 
-    public function testDashboardLimitsPlannedChangesToTheNextHundredDaysUntilExpanded(): void
+    public function testDashboardShowsOnlyTenPlannedChangesUntilExpanded(): void
     {
         Carbon::setTestNow('2026-09-08 12:00:00 Europe/Oslo');
         config(['front_page_themes.active' => null, 'mourning_flag.enabled' => false]);
 
         $admin = $this->withSession(['admin_authenticated' => true]);
+        $response = $admin->get('/adm');
+
+        $response
+            ->assertOk()
+            ->assertSee('Vis flere planlagte endringer')
+            ->assertDontSee('29.09.2026');
+        $this->assertSame(10, substr_count($response->getContent(), '<li class="admin-planned-change">'));
+
+        $admin->get('/adm?planned_changes_display=all')
+            ->assertOk()
+            ->assertSee('29.09.2026')
+            ->assertSee('Vis færre');
+
         $admin->get('/adm')
             ->assertOk()
-            ->assertSee('Vis alle planlagte endringer')
-            ->assertDontSee('29.12.2026');
+            ->assertDontSee('29.09.2026');
 
-        $admin->get('/adm?planned_changes=all')
+        $admin->get('/adm?planned_changes=all&planned_changes_display=all')
             ->assertOk()
             ->assertSee('29.12.2026')
             ->assertSee('Vis kun neste 100 dager');
+    }
+
+    public function testDashboardHidesPlannedChangesExpansionWhenThereAreTenOrFewerEvents(): void
+    {
+        $this->mock(PlannedSiteChangesService::class, function ($mock) {
+            $mock->shouldReceive('upcoming')->once()->andReturn([
+                ['date' => CarbonImmutable::parse('2026-01-02 00:00:00', 'Europe/Oslo'), 'title' => 'Første endring', 'description' => 'Beskrivelse', 'type' => 'test'],
+                ['date' => CarbonImmutable::parse('2026-01-03 00:00:00', 'Europe/Oslo'), 'title' => 'Andre endring', 'description' => 'Beskrivelse', 'type' => 'test'],
+            ]);
+            $mock->shouldReceive('manualTheme')->once()->andReturn(null);
+        });
+
+        $this->withSession(['admin_authenticated' => true])->get('/adm')
+            ->assertOk()
+            ->assertSee('Første endring')
+            ->assertSee('Andre endring')
+            ->assertDontSee('Vis flere planlagte endringer')
+            ->assertDontSee('Vis færre');
     }
 
     public function testDashboardShowsPlannedDailyWordAsALinkToItsPrintPage(): void
