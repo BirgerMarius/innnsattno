@@ -1,3 +1,16 @@
+# Arbeidsregler og commitmeldinger
+
+Les `PROJECT.md` og `context/project-rules.md` før arbeidet starter. Disse
+inneholder prosjektets gjeldende regler for arbeidsflyt, testing, Git og deploy.
+
+- Alle nye Git-commitmeldinger skal skrives på norsk bokmål, både emnelinje og eventuell brødtekst.
+- Dette gjelder også når oppgaven, kode, verktøy eller tidligere commitmeldinger er på engelsk.
+- Tekniske navn, filstier, identifikatorer og etablerte faguttrykk kan beholdes uendret.
+- Kontroller språket før hver commit. Skriv en kort og konkret beskrivelse av den faktiske endringen.
+- Eksempel: `Varsle bare når eksterne data mangler`.
+- Ikke omskriv eksisterende Git-historikk bare for å oversette gamle commitmeldinger.
+- Commit og push utføres bare når brukeren har bestilt dette. Produksjonsdeploy er et separat steg.
+
 # Fengselskontekst
 
 `/ringerike`, `/ilseng` og `/kongsvinger` er inngangene til Innsatt.no. Ikke
