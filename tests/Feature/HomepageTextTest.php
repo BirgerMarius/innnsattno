@@ -27,21 +27,13 @@ class HomepageTextTest extends TestCase
         $response
             ->assertOk()
             ->assertSee('Skriv ut TV-guide – Ringerike fengsel')
-            ->assertSee('href="/print"', false)
+            ->assertSee('href="/ringerike/tv-utskrift"', false)
             ->assertSee('Bønnetider – Ringerike fengsel')
-            ->assertSee('href="/bonnetider"', false)
-            ->assertSee('Værmelding – Tyristrand/Ringerike fengsel')
-            ->assertSee('href="'.route('weather.index').'"', false)
-            ->assertSee('Skriv ut TV-guide – Ilseng fengsel')
-            ->assertSee('href="/print-ilseng"', false)
-            ->assertSee('Bønnetider – Ilseng fengsel')
-            ->assertSee('href="/bonnetider-ilseng"', false)
-            ->assertSee('href="'.route('weather.ilseng').'"', false)
-            ->assertSee('Værmelding – Ilseng fengsel')
-            ->assertSee('href="'.route('visitation.index').'"', false)
+            ->assertSee('href="/ringerike/bonnetider"', false)
+            ->assertSee('Værmelding – Ringerike fengsel')
+            ->assertSee('href="/ringerike/vaer"', false)
+            ->assertSee('href="'.route('prison.visitation', 'ringerike').'"', false)
             ->assertSee('ℹ️ Ringerike fengsel')
-            ->assertSee('ℹ️ Ilseng fengsel')
-            ->assertSee('class="prison-actions-placeholder"', false)
             ->assertDontSee('prison-actions-heading')
             ->assertSee('href="/oppdrag?prison=ringerike"', false)
             ->assertSee('Spinn hjulet')
@@ -52,11 +44,7 @@ class HomepageTextTest extends TestCase
         $this->assertSame(1, substr_count((string) $response->getContent(), 'Visitasjonsrullett'));
         $response->assertDontSee('Visitasjonsrullett – Ilseng');
         $this->assertMatchesRegularExpression(
-            '/Værmelding – Ilseng fengsel.*prison-actions-placeholder.*ℹ️ Ilseng fengsel/s',
-            (string) $response->getContent()
-        );
-        $this->assertMatchesRegularExpression(
-            '/prison-actions--with-task-wheel.*?ℹ️ Ringerike fengsel.*?href="\/oppdrag\?prison=ringerike".*?Spinn hjulet.*?<\/section>.*?Fangenytt/s',
+            '/prison-actions--with-task-wheel.*?Visitasjonsrullett – Ringerike fengsel.*?ℹ️ Ringerike fengsel.*?href="\/oppdrag\?prison=ringerike".*?Spinn hjulet.*?<\/section>.*?Fangenytt/s',
             (string) $response->getContent()
         );
     }

@@ -19,6 +19,7 @@ return [
             'weather_key' => 'ringerike',
             'prayer_location_id' => 146,
             'tv_available' => true,
+            'visitation_available' => true,
             'official_url' => 'https://www.kriminalomsorgen.no/ringerike-fengsel.5031519-237612.html',
             'local_news' => [
                 'source_name' => 'Ringerikes Blad',
@@ -40,6 +41,7 @@ return [
             'weather_key' => 'ilseng',
             'prayer_location_id' => 181,
             'tv_available' => true,
+            'visitation_available' => false,
             'official_url' => 'https://www.kriminalomsorgen.no/fengsel/innlandet-kriminalomsorgen-innlandet-avd-lavere-sikkerhet-ilseng',
             'local_news' => [
                 'source_name' => 'Hamar Arbeiderblad',
@@ -59,6 +61,7 @@ return [
             // verified provider ID in production before enabling this page.
             'prayer_location_id' => env('BONNETID_KONGSVINGER_LOCATION_ID'),
             'tv_available' => false,
+            'visitation_available' => false,
             'official_url' => 'https://www.kriminalomsorgen.no/fengsel/innlandet-kriminalomsorgen-innlandet-avd-utenlandske-innsatte-kongsvinger',
             'local_news' => [
                 'source_name' => 'Glåmdalen',

@@ -302,6 +302,15 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <a href="/{{ $prison['slug'] }}/tv-utskrift" class="btn btn-primary btn-lg front-page-btn" role="button"><i class="far fa-print" aria-hidden="true"></i> Skriv ut TV-guide – {{ $prison['name'] }}</a>
             <a href="/{{ $prison['slug'] }}/bonnetider" class="btn btn-primary btn-lg front-page-btn" role="button">🕌 Bønnetider – {{ $prison['name'] }}</a>
             <a href="/{{ $prison['slug'] }}/vaer" class="btn btn-primary btn-lg front-page-btn" role="button">🌦️ Værmelding – {{ $prison['name'] }}</a>
+            @if ($prison['visitation_available'])
+            <a href="{{ route('prison.visitation', $prison['slug']) }}" class="btn btn-primary btn-lg front-page-btn" role="button">
+                <svg class="front-page-wheel-icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="12" cy="13" r="8"></circle>
+                    <path d="M12 5v16M4 13h16M6.34 7.34l11.32 11.32M17.66 7.34 6.34 18.66M10 2h4l-2 3z"></path>
+                </svg>
+                Visitasjonsrullett – {{ $prison['name'] }}
+            </a>
+            @endif
             <a href="{{ $prison['official_url'] }}" target="_blank" rel="noopener" class="btn btn-primary btn-lg front-page-btn" role="button">ℹ️ {{ $prison['name'] }}</a>
         </div>
         @else
@@ -314,50 +323,6 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <small>Hvem får oppdraget?</small>
         </a>
 
-        {{-- Legacy two-prison button layout kept below only for visual CSS compatibility. --}}
-        <div class="d-none">
-        <div class="prison-actions-column prison-actions-column--ringerike">
-            <a href="/print" class="btn btn-primary btn-lg front-page-btn front-page-btn--ringerike" role="button">
-                <i class="far fa-print" aria-hidden="true"></i> Skriv ut TV-guide – Ringerike fengsel
-            </a>
-            <a href="/bonnetider" class="btn btn-primary btn-lg front-page-btn front-page-btn--ringerike" role="button">
-                🕌 Bønnetider – Ringerike fengsel
-            </a>
-            <a href="{{ route('weather.index') }}" class="btn btn-primary btn-lg front-page-btn front-page-btn--ringerike" role="button">
-                🌦️ Værmelding – Tyristrand/Ringerike fengsel
-            </a>
-            <a href="{{ route('visitation.index') }}" class="btn btn-primary btn-lg front-page-btn front-page-btn--ringerike" role="button">
-                <svg class="front-page-wheel-icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                    <circle cx="12" cy="13" r="8"></circle>
-                    <path d="M12 5v16M4 13h16M6.34 7.34l11.32 11.32M17.66 7.34 6.34 18.66M10 2h4l-2 3z"></path>
-                </svg>
-                Visitasjonsrullett – Ringerike fengsel
-            </a>
-            <a href="https://www.kriminalomsorgen.no/ringerike-fengsel.5031519-237612.html"
-               target="_blank" rel="noopener"
-               class="btn btn-primary btn-lg front-page-btn front-page-btn--ringerike">
-                ℹ️ Ringerike fengsel
-            </a>
-        </div>
-
-        <div class="prison-actions-column prison-actions-column--ilseng">
-            <a href="/print-ilseng" class="btn btn-danger btn-lg front-page-btn front-page-btn--ilseng" role="button">
-                <i class="far fa-print" aria-hidden="true"></i> Skriv ut TV-guide – Ilseng fengsel
-            </a>
-            <a href="/bonnetider-ilseng" class="btn btn-danger btn-lg front-page-btn front-page-btn--ilseng" role="button">
-                🕌 Bønnetider – Ilseng fengsel
-            </a>
-            <a href="{{ route('weather.ilseng') }}" class="btn btn-danger btn-lg front-page-btn front-page-btn--ilseng" role="button">
-                🌦️ Værmelding – Ilseng fengsel
-            </a>
-            <span class="prison-actions-placeholder" aria-hidden="true"></span>
-            <a href="https://www.kriminalomsorgen.no/fengsel/innlandet-kriminalomsorgen-innlandet-avd-lavere-sikkerhet-ilseng"
-               target="_blank" rel="noopener"
-               class="btn btn-danger btn-lg front-page-btn front-page-btn--ilseng">
-                ℹ️ Ilseng fengsel
-            </a>
-        </div>
-        </div>
     </section>
 
     <section class="shared-actions" aria-label="Sport, tidsfordriv og utskrift">

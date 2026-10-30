@@ -8,7 +8,7 @@ class VisitationTest extends TestCase
 {
     public function testVisitationPageIncludesCellDrawAssetsAndData()
     {
-        $response = $this->get(route('visitation.index'));
+        $response = $this->get(route('prison.visitation', 'ringerike'));
 
         $response
             ->assertStatus(200)
@@ -22,7 +22,7 @@ class VisitationTest extends TestCase
 
     public function testVerifiedDepartmentsAndCellListsAreShown()
     {
-        $response = $this->get('/visitasjon');
+        $response = $this->get('/ringerike/visitasjon');
 
         foreach (['A', 'B', 'C', 'D'] as $department) {
             $response
@@ -31,13 +31,28 @@ class VisitationTest extends TestCase
         }
     }
 
-    public function testPrisonFrontPageKeepsTheCurrentMainChoicesInItsOwnContext()
+    public function testVisitationIsOnlyAvailableForRingerike(): void
+    {
+        $this->get('/visitasjon?prison=ilseng')
+            ->assertRedirect('/ringerike/visitasjon');
+
+        $this->get('/ringerike/visitasjon?prison=ilseng')
+            ->assertOk()
+            ->assertSee('data-prison-context="ringerike"', false);
+
+        $this->get('/ilseng/visitasjon')->assertNotFound();
+        $this->get('/kongsvinger/visitasjon')->assertNotFound();
+    }
+
+    public function testRingerikeFrontPageShowsVisitationAndKeepsTheCurrentMainChoices(): void
     {
         $response = $this->get('/ringerike');
 
         $response
             ->assertStatus(200)
             ->assertSee('Spinn hjulet')
+            ->assertSee('Visitasjonsrullett – Ringerike fengsel')
+            ->assertSee('href="'.route('prison.visitation', 'ringerike').'"', false)
             ->assertSee('href="/oppdrag?prison=ringerike"', false)
             ->assertSee(
                 asset('css/custom/app.css').'?v='.filemtime(public_path('css/custom/app.css')),
@@ -60,5 +75,15 @@ class VisitationTest extends TestCase
         $response->assertSee('href="/ringerike/ukens-fotball-pa-tv"', false)
             ->assertSee('href="/ringerike/premier-league"', false)
             ->assertSee('href="/tidsfordriv?prison=ringerike"', false);
+    }
+
+    public function testOtherPrisonFrontPagesDoNotShowVisitation(): void
+    {
+        foreach (['ilseng', 'kongsvinger'] as $prison) {
+            $this->get('/'.$prison)
+                ->assertOk()
+                ->assertDontSee('Visitasjonsrullett')
+                ->assertDontSee('/ringerike/visitasjon', false);
+        }
     }
 }

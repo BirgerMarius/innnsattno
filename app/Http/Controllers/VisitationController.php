@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\PrisonContext;
+
 class VisitationController extends Controller
 {
     /**
@@ -35,8 +37,10 @@ class VisitationController extends Controller
         ],
     ];
 
-    public function index()
+    public function index(string $prison, PrisonContext $prisons)
     {
+        abort_unless($prisons->prison($prison)['visitation_available'] ?? false, 404);
+
         return view('visitation.index', [
             'departments' => self::DEPARTMENTS,
         ]);

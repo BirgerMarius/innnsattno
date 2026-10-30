@@ -275,4 +275,6 @@ Route::get('/manedskalender', [MonthCalendarController::class, 'index'])->name('
 Route::get('/manedskalender/utskrift', [MonthCalendarController::class, 'print'])->name('calendar.print');
 
 Route::get('/oppdrag', [SpinWheelController::class, 'index']);
-Route::get('/visitasjon', [VisitationController::class, 'index'])->name('visitation.index');
+Route::redirect('/visitasjon', '/ringerike/visitasjon')->name('visitation.index');
+Route::get('/{prison}/visitasjon', [VisitationController::class, 'index'])
+    ->where('prison', 'ringerike|ilseng|kongsvinger')->name('prison.visitation');
