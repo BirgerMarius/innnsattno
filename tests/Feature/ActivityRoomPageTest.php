@@ -39,4 +39,14 @@ class ActivityRoomPageTest extends TestCase
         $this->assertStringNotContainsString('indexedDB', $view);
         $this->assertStringNotContainsString('fetch(', $view);
     }
+
+    public function test_live_updates_do_not_replace_booking_forms(): void
+    {
+        $view = file_get_contents(resource_path('views/activity-rooms/index.blade.php'));
+
+        $this->assertStringContainsString('window.setInterval(refreshLiveData,1000)', $view);
+        $this->assertStringContainsString('function refreshLiveData()', $view);
+        $this->assertStringContainsString('function renderRooms(){roomGrid.replaceChildren', $view);
+        $this->assertStringNotContainsString('window.setInterval(renderRooms,1000)', $view);
+    }
 }
