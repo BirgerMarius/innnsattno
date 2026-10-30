@@ -1,6 +1,8 @@
 <div class="container mt-4 site-header site-header--has-message">
     <div class="site-header__brand-row">
-        @include('partials.oslo-clock')
+        <a href="{{ route('prison.activity-rooms', app(\App\Services\PrisonContext::class)->prison()['slug']) }}" class="oslo-clock-link" target="_blank" rel="noopener" aria-label="Åpne Aktivitetsrom – test i ny fane">
+            @include('partials.oslo-clock')
+        </a>
 
         <a href="{{ $prisonHomeUrl }}" class="site-header__logo-link text-center mb-3 d-block" aria-label="Gå til forsiden">
             <img

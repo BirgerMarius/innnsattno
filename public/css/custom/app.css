@@ -297,6 +297,8 @@
     grid-template-columns: minmax(5.25rem, 1fr) minmax(0, 700px) minmax(5.25rem, 1fr);
 }
 .site-header__logo-link { grid-column: 2; min-width: 0; }
+.oslo-clock-link { grid-column: 1; justify-self: center; text-decoration: none; }
+.oslo-clock-link:focus-visible { border-radius: .25rem; outline: 3px solid #173f72; outline-offset: 3px; }
 .site-header__message-slot { align-self: center; grid-column: 3; justify-self: center; max-width: 100%; min-width: 0; width: 17rem; }
 .site-logo {
     display: block;
@@ -317,7 +319,6 @@
     display: inline-flex;
     flex-direction: column;
     gap: .12rem;
-    grid-column: 1;
     justify-self: center;
     margin-bottom: .75rem;
     text-shadow: 0 1px 1px rgba(23, 63, 114, .12);
@@ -358,6 +359,7 @@
 @media (max-width: 767.98px) {
     .site-header__brand-row { grid-template-columns: minmax(0, 700px); justify-content: center; }
     .site-header__logo-link { grid-column: 1; }
+    .oslo-clock-link { display: none; }
     .site-header__message-slot { grid-column: 1; }
     .oslo-clock { display: none; }
 }

@@ -6,11 +6,13 @@ use Tests\TestCase;
 
 class OsloClockHeaderTest extends TestCase
 {
-    public function testSharedHeaderIncludesTheDecorativeOsloClockWithoutChangingTheLogoLink(): void
+    public function testSharedHeaderIncludesTheClockLinkWithoutChangingTheLogoLink(): void
     {
         $header = view('partials.header')->render();
 
         $this->assertStringContainsString('data-oslo-clock', $header);
+        $this->assertStringContainsString('oslo-clock-link', $header);
+        $this->assertStringContainsString('target="_blank"', $header);
         $this->assertStringContainsString('aria-hidden="true"', $header);
         $this->assertStringContainsString('site-header__brand-row', $header);
         $this->assertStringContainsString('site-header__message-slot', $header);

@@ -46,6 +46,14 @@ lokale lenker og utskrifter skal beholde samme prefix, og cache-/monitorerings-
 nøkler skal inneholde sluggen. `AGENTS.md` er den korte føringen for fremtidige
 endringer.
 
+## Aktivitetsrom – test
+
+Den midlertidige koordinatoroversikten åpnes fra klokken i den delte headeren
+og ligger på `/{fengsel}/aktivitetsrom`. Rom og bookinger er bare JavaScript-
+tilstand i den åpne fanen: de lagres eller sendes ikke til serveren, og Clarity
+lastes ikke på denne siden. Vanlig deploy via «innsatt»-menyen er tilstrekkelig;
+funksjonen har ingen migreringer, cacheoppvarming eller andre driftssteg.
+
 ### Fengselskontekst på felles sider
 
 Felles adresser beholdes av hensyn til bokmerker. Når en lenke fra en

@@ -24,6 +24,7 @@
 
 @stack('head')
 
+    @unless (View::hasSection('disable-analytics'))
     <!-- Microsoft Clarity -->
     <script type="text/javascript">
         (function(c,l,a,r,i,t,y){
@@ -37,6 +38,7 @@
             y.parentNode.insertBefore(t,y);
         })(window, document, "clarity", "script", "xf2dio3725");
     </script>
+    @endunless
 
 </head>
 <body class="@yield('body-class')" data-prison-context="{{ app(\App\Services\PrisonContext::class)->prison()['slug'] }}">

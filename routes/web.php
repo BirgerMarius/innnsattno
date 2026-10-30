@@ -35,6 +35,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\FangenyttController;
 use App\Http\Controllers\WeeklyFootballTvController;
 use App\Http\Controllers\RecipeController;
+use App\Http\Controllers\ActivityRoomController;
 use App\Http\Controllers\Admin\NewsAdminController;
 use App\Http\Controllers\Admin\NewsSourceAdminController;
 
@@ -49,6 +50,8 @@ Route::get('/', function () {
 });
 
 Route::get('/tv', [FrontPageController::class, 'index'])->name('tv');
+Route::get('/{prison}/aktivitetsrom', [ActivityRoomController::class, 'index'])
+    ->where('prison', 'ringerike|ilseng|kongsvinger')->name('prison.activity-rooms');
 Route::get('/{prison}', [FrontPageController::class, 'index'])
     ->where('prison', 'ringerike|ilseng|kongsvinger')->name('prison.home');
 Route::get('/header-message', [HeaderMessageController::class, 'show'])->name('header-message.show');
