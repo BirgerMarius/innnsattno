@@ -36,15 +36,19 @@ class ExternalDataMonitoringTest extends TestCase
     public function test_short_failure_is_logged_and_real_recovery_never_sends_email(): void
     {
         $tv = app(TvGuideService::class);
-        $sequence = Http::fakeSequence();
+        $sequence = Http::sequence();
         for ($i = 0; $i < 4; $i++) $sequence->push([], 503);
         $sequence->push($this->schedule());
+        Http::fake([
+            'tvguide.vg.no/*' => $sequence,
+            'contentsearch.rikstv.no/*' => Http::response([], 503),
+        ]);
         $tv->refreshSchedule(now(), ['nrk1'], 'ringerike');
         Carbon::setTestNow(now()->addMinutes(5));
         $tv->refreshSchedule(now(), ['nrk1'], 'ringerike');
         app(ExternalDataMonitor::class)->evaluate();
         Mail::assertNothingSent();
-        $this->assertDatabaseCount('external_data_source_events', 2);
+        $this->assertGreaterThanOrEqual(2, DB::table('external_data_source_events')->count());
 
         Carbon::setTestNow(now()->addMinutes(5));
         $this->assertTrue($tv->refreshSchedule(now(), ['nrk1'], 'ringerike'));
@@ -53,7 +57,7 @@ class ExternalDataMonitoringTest extends TestCase
         $this->assertDatabaseHas('external_data_checks', ['service' => 'tv-guide-vg', 'failure_count' => 0]);
     }
 
-    public function test_old_saved_data_requires_five_actual_failures_over_an_hour(): void
+    public function test_primary_tv_failure_with_a_usable_local_cache_does_not_send_email(): void
     {
         config()->set('external_data.max_age_minutes.tv', 60);
         $tv = app(TvGuideService::class);
@@ -66,11 +70,8 @@ class ExternalDataMonitoringTest extends TestCase
             // Page visits cannot turn cached data into source success.
             $this->assertSame($this->schedule(), $tv->getSchedule(now(), ['nrk1'], 'print'));
             app(ExternalDataMonitor::class)->evaluate();
-            if ($minutes < 75) {
-                Mail::assertNothingSent();
-            }
+            Mail::assertNothingSent();
         }
-        Mail::assertSent(ExternalDataIncidentMail::class, 1);
         $row = DB::table('external_data_checks')->where('service', 'tv-guide-vg')->first();
         $this->assertSame(5, (int) $row->failure_count);
         $this->assertSame('2026-10-19 08:00:00', $row->last_success_at);
@@ -78,24 +79,21 @@ class ExternalDataMonitoringTest extends TestCase
 
     public function test_missing_data_alert_groups_coverage_and_partial_success_does_not_recover_incident(): void
     {
-        $tv = app(TvGuideService::class);
-        $sequence = Http::fakeSequence();
-        for ($i = 0; $i < 12; $i++) $sequence->push([], 503);
-        $sequence->push($this->schedule(['nrk1']))->push($this->schedule(['nrk2']));
+        $monitor = app(ExternalDataMonitor::class);
         for ($i = 0; $i < 3; $i++) {
             Carbon::setTestNow(Carbon::parse('2026-10-19 08:00:00', 'Europe/Oslo')->addMinutes(5 * $i));
-            $tv->refreshSchedule(now(), ['nrk1'], 'ringerike');
-            $tv->refreshSchedule(now(), ['nrk2'], 'ilseng');
-            app(ExternalDataMonitor::class)->evaluate();
+            $monitor->checked('tv-guide-vg-channel', '2026-10-19|tvnorge', 'tv', 'TVNorge', true, false, false, 'Ingen programdata.');
+            $monitor->checked('tv-guide-vg-channel', '2026-10-19|tv2-livsstil', 'tv', 'TV 2 Livsstil', true, false, false, 'Ingen programdata.');
+            $monitor->evaluate();
         }
-        Mail::assertSent(ExternalDataIncidentMail::class, fn ($mail) => $mail->state === 'critical' && count($mail->coverages) === 2);
+        Mail::assertSent(ExternalDataIncidentMail::class, fn ($mail) => $mail->service === 'tv-guide-vg-channel' && $mail->state === 'critical' && count($mail->coverages) === 2);
 
         Carbon::setTestNow(now()->addMinutes(5));
-        $tv->refreshSchedule(now(), ['nrk1'], 'ringerike');
-        app(ExternalDataMonitor::class)->evaluate();
+        $monitor->checked('tv-guide-vg-channel', '2026-10-19|tvnorge', 'tv', 'TVNorge', true, true, true);
+        $monitor->evaluate();
         Mail::assertSent(ExternalDataIncidentMail::class, 1);
-        $tv->refreshSchedule(now(), ['nrk2'], 'ilseng');
-        app(ExternalDataMonitor::class)->evaluate();
+        $monitor->checked('tv-guide-vg-channel', '2026-10-19|tv2-livsstil', 'tv', 'TV 2 Livsstil', true, true, true);
+        $monitor->evaluate();
         Mail::assertSent(ExternalDataIncidentMail::class, fn ($mail) => $mail->state === 'recovered');
         $this->assertDatabaseCount('external_data_incidents', 0);
     }
@@ -173,6 +171,32 @@ class ExternalDataMonitoringTest extends TestCase
         $tv->refreshSchedule(now(), ['tv3'], 'ringerike');
         $this->assertDatabaseHas('external_data_checks', ['service' => 'tv-guide-vg-channel', 'coverage_key' => '2026-10-19|tv3', 'failure_count' => 0]);
         $this->assertNotNull($first);
+    }
+
+    public function test_tv_channel_alerts_only_for_the_missing_channel_and_recovers_when_a_reserve_returns(): void
+    {
+        $monitor = app(ExternalDataMonitor::class);
+        foreach ([0, 5, 10] as $minutes) {
+            Carbon::setTestNow(Carbon::parse('2026-10-19 08:00:00', 'Europe/Oslo')->addMinutes($minutes));
+            // VG is down for both channels, but TV3 remains covered by Strim.
+            $monitor->checked('tv-guide-vg-channel', '2026-10-19|tv3', 'tv', 'TV3', true, false, true, 'VG feilet; Strim dekker.');
+            $monitor->checked('tv-guide-vg-channel', '2026-10-19|nrk1', 'tv', 'NRK1', true, false, false, 'Ingen programdata.');
+            $monitor->checked('tv-guide-vg', 'ringerike-2026-10-19', 'tv', 'Ringerike', true, false, true, 'Delvis VG-feil.');
+        }
+
+        $monitor->evaluate();
+        Mail::assertSent(ExternalDataIncidentMail::class, function ($mail) {
+            return $mail->service === 'tv-guide-vg-channel'
+                && $mail->state === 'critical'
+                && count($mail->coverages) === 1
+                && $mail->coverages[0]->coverage_key === '2026-10-19|nrk1';
+        });
+        Mail::assertSent(ExternalDataIncidentMail::class, 1);
+
+        Carbon::setTestNow(now()->addMinutes(5));
+        $monitor->checked('tv-guide-vg-channel', '2026-10-19|nrk1', 'tv', 'NRK1', true, false, true, 'VG feilet; lokal cache dekker.');
+        $monitor->evaluate();
+        Mail::assertSent(ExternalDataIncidentMail::class, fn ($mail) => $mail->service === 'tv-guide-vg-channel' && $mail->state === 'recovered');
     }
 
     public function test_forced_tv_command_refreshes_today_with_strim_and_exposes_the_vg_incident_in_admin(): void
@@ -292,7 +316,7 @@ class ExternalDataMonitoringTest extends TestCase
             $this->artisan('external-data:refresh', ['type' => 'tv'])->assertExitCode(0);
         }
         $this->artisan('external-data:evaluate')->assertExitCode(0);
-        Mail::assertSent(ExternalDataIncidentMail::class, fn ($mail) => $mail->service === 'tv-guide-vg' && count($mail->coverages) === 2);
+        Mail::assertSent(ExternalDataIncidentMail::class, fn ($mail) => $mail->service === 'tv-guide-vg-channel' && $mail->state === 'critical');
     }
 
     public function test_scheduled_tv_refresh_rebuilds_a_missing_cache_even_when_its_database_check_is_fresh(): void
@@ -343,7 +367,7 @@ class ExternalDataMonitoringTest extends TestCase
         $row = DB::table('external_data_checks')->where('service', 'sportsnext')->first();
         $this->assertSame(5, (int) $row->failure_count);
         app(ExternalDataMonitor::class)->evaluate();
-        Mail::assertSent(ExternalDataIncidentMail::class, fn ($mail) => $mail->service === 'sportsnext' && $mail->state === 'critical');
+        Mail::assertNothingSent();
     }
 
     public function test_live_competitions_are_refreshed_after_five_minutes(): void

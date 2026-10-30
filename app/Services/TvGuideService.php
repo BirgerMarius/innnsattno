@@ -176,6 +176,12 @@ class TvGuideService
                     'failure_kind' => $this->failureKind($exception),
                     'status' => $exception instanceof RequestException ? $exception->response?->status() : null,
                 ]);
+                // A transport failure has no VG rows to reconcile, but each
+                // requested channel still needs its own availability decision.
+                // This lets a Strim/local fallback suppress only its own alert;
+                // another channel with no data remains visible to the monitor.
+                [, $coverage] = $this->reconcileChannelCoverage($date, [], $existing, $channels);
+                $this->recordChannelHealth($date, $selection, $channels, $coverage);
                 app(ExternalDataMonitor::class)->checked('tv-guide-vg', $key, 'tv', $selection.' – '.$date->format('Y-m-d').' (TV og fotball)', $essential, false, is_array($existing) && $existing !== [], $this->summary($exception), $date->copy()->endOfDay()->setTimezone(config('app.timezone')));
                 return false;
             }

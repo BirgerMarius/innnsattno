@@ -111,7 +111,7 @@ class OtherExternalDataMonitoringTest extends TestCase
         $this->assertSame(5, (int) $row->failure_count);
         $this->assertSame('2026-10-19 08:00:00', $row->last_success_at);
         app(ExternalDataMonitor::class)->evaluate();
-        Mail::assertSent(ExternalDataIncidentMail::class, fn ($mail) => $mail->service === 'met-weather' && $mail->state === 'critical');
+        Mail::assertNothingSent();
     }
 
     public function test_missing_optional_data_does_not_wait_for_the_age_limit_after_five_failures(): void

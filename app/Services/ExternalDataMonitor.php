@@ -74,8 +74,11 @@ class ExternalDataMonitor
             $keys = $incident ? json_decode($incident->affected_keys, true) : [];
             $keys = is_array($keys) ? $keys : [];
             if ($incident && $critical->isEmpty()) {
-                // Every previously reported coverage must have a subsequent successful check.
-                $recovered = collect($keys)->every(fn ($key) => isset($rows[$key]) && (int) $rows[$key]->failure_count === 0 && $rows[$key]->last_success_at !== null && (bool) $rows[$key]->usable);
+                // A recovery is about the availability that triggered the email.
+                // The primary source may still be failing while a validated reserve
+                // or local cache has restored every affected coverage.
+                $recovered = collect($keys)->isNotEmpty()
+                    && collect($keys)->every(fn ($key) => isset($rows[$key]) && (bool) $rows[$key]->usable);
                 if ($recovered && $this->send($service, 'recovered', $rows->only($keys)->values()->all())) {
                     DB::table('external_data_incidents')->where('id', $incident->id)->delete();
                 }
@@ -102,6 +105,19 @@ class ExternalDataMonitor
             return false;
         }
         if (($row->active_until && Carbon::parse($row->active_until)->lt(now())) || Carbon::parse($row->last_check_at)->lt(now()->subMinutes((int) config('external_data.max_check_gap_minutes', 60)))) {
+            return false;
+        }
+        // `usable` is the service's validated answer to whether any permitted
+        // primary, reserve or local source currently covers this exact key.
+        // Keep the failed check and its counters for operations, but do not
+        // page for a source failure while the data remains available.
+        if ((bool) $row->usable) {
+            return false;
+        }
+        // The selection-wide VG row is operational diagnostics only. TV
+        // availability is evaluated by the date|channel rows so one working
+        // channel can never hide a missing one (or create a duplicate alert).
+        if ($row->service === 'tv-guide-vg') {
             return false;
         }
         $duration = Carbon::parse($row->first_failure_at)->diffInMinutes(Carbon::parse($row->last_check_at));
