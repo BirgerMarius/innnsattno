@@ -25,8 +25,9 @@ class LeagueStandingRulesTest extends TestCase
                     ->assertSee('ikke at laget har sikret utfallet');
                 $this->get('/ringerike/'.$path.'/utskrift')->assertOk()
                     ->assertSee('Tegnforklaring:')
-                    ->assertSee('Plassen gir')
-                    ->assertSee($rule['name']);
+                    ->assertSee('Merke')
+                    ->assertSee('1 '.$rule['name'])
+                    ->assertSee('Gjelder tabellplass, ikke sikret utfall.');
             }
         } finally {
             Carbon::setTestNow();
