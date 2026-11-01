@@ -24,9 +24,9 @@ class LeagueStandingRulesTest extends TestCase
                     ->assertSee($rule['name'])
                     ->assertSee('ikke at laget har sikret utfallet');
                 $this->get('/ringerike/'.$path.'/utskrift')->assertOk()
-                    ->assertSee('Tegnforklaring:')
-                    ->assertSee('Merke')
-                    ->assertSee('1 '.$rule['name'])
+                    ->assertDontSee('Tegnforklaring:')
+                    ->assertSee('Plassen gir')
+                    ->assertSee($rule['name'])
                     ->assertSee('Gjelder tabellplass, ikke sikret utfall.');
             }
         } finally {

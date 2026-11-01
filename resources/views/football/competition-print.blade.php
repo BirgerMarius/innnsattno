@@ -28,7 +28,8 @@
         .team { width: 55%; }
         .standing-table .rank { width: 6%; }
         .standing-table .number { width: 7%; }
-        .standing-table .placement { text-align: center; width: 7%; white-space: nowrap; }
+        .standing-table .team { width: 50%; }
+        .standing-table .placement { font-size: 7.5pt; line-height: 1.05; width: 23%; }
         .emblem { height: 4mm; margin-right: 1mm; object-fit: contain; vertical-align: middle; width: 4mm; }
         .empty, .warning { border: 1px solid #aaa; padding: 2.5mm; }
         .warning { margin-bottom: 3mm; }
@@ -64,27 +65,15 @@
             .competition-print--compact .fixture-sections { gap: 3mm; }
             .competition-print--compact .standings-section { margin-top: 2mm; }
 
-            /* Keep the placement key readable without taking room from teams and fixtures. */
+            /* Keep source-provided placement text readable without taking room from teams and fixtures. */
             .competition-print--has-standing-rules .standing-table th,
-            .competition-print--has-standing-rules .standing-table td { padding-bottom: .65mm; padding-top: .65mm; }
-            .competition-print--has-standing-rules .standing-table .placement { font-size: 8pt; }
+            .competition-print--has-standing-rules .standing-table td { padding-bottom: .5mm; padding-top: .5mm; }
+            .competition-print--has-standing-rules .standing-table .placement { font-size: 6.9pt; line-height: 1.02; padding-left: .8mm; padding-right: .8mm; }
             .competition-print--has-standing-rules .football-standing-rules { font-size: 7.75pt; line-height: 1.1; margin-bottom: 1.25mm; }
-            .competition-print--has-standing-rules .football-standing-rules__item { margin-right: 1mm; white-space: nowrap; }
-            .competition-print--has-standing-rules .football-standing-rules__note { display: inline; margin-left: 1mm; }
         }
     </style>
 </head>
-@php
-    $hasStandingRules = collect($standings)->contains(fn (array $team) => !empty($team['rule']['name']));
-    $standingRules = collect($standings)
-        ->map(fn (array $team) => $team['rule'] ?? null)
-        ->filter(fn ($rule) => is_array($rule) && is_string($rule['name'] ?? null) && trim($rule['name']) !== '')
-        ->map(fn (array $rule) => ['code' => $rule['code'] ?? $rule['name'], 'name' => trim($rule['name'])])
-        ->unique('code')
-        ->values()
-        ->map(fn (array $rule, int $index) => $rule + ['marker' => (string) ($index + 1)]);
-    $standingRuleMarkers = $standingRules->pluck('marker', 'code')->all();
-@endphp
+@php($hasStandingRules = collect($standings)->contains(fn (array $team) => !empty($team['rule']['name'])))
 <body class="competition-print{{ in_array($leagueName, ['Premier League', 'La Liga'], true) ? ' competition-print--compact' : '' }}{{ $hasStandingRules ? ' competition-print--has-standing-rules' : '' }}">
     <div class="actions no-print"><button type="button" onclick="window.print()">Skriv ut</button></div>
     <header>
@@ -134,11 +123,11 @@
 
     <section class="standings-section">
         <h2>Tabell</h2>
-        @include('football.partials.standing-rules-legend', ['compactStandingRules' => true])
+        @if($hasStandingRules)<p class="football-standing-rules">Gjelder tabellplass, ikke sikret utfall.</p>@endif
         @if(count($standings))
-            <table class="standing-table"><thead><tr><th class="rank">Pl.</th><th class="team">Lag</th><th class="number">K</th><th class="number">MF</th><th class="number">P</th>@if($hasStandingRules)<th class="placement">Merke</th>@endif</tr></thead><tbody>
+            <table class="standing-table"><thead><tr><th class="rank">Pl.</th><th class="team">Lag</th><th class="number">K</th><th class="number">MF</th><th class="number">P</th>@if($hasStandingRules)<th class="placement">Plassen gir</th>@endif</tr></thead><tbody>
             @foreach($standings as $row)
-                <tr><td class="rank">{{ $row['rank'] ?? '–' }}</td><td>@if($row['emblemUrl'])<img class="emblem" src="{{ $row['emblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $row['teamName'] }}</td><td class="number">{{ $row['played'] ?? '–' }}</td><td class="number">{{ $row['goalDifference'] ?? '–' }}</td><td class="number"><strong>{{ $row['points'] ?? '–' }}</strong></td>@if($hasStandingRules)<td class="placement">@php($ruleCode = $row['rule']['code'] ?? ($row['rule']['name'] ?? null))@if($ruleCode && isset($standingRuleMarkers[$ruleCode]))<abbr title="{{ $row['rule']['name'] }}">{{ $standingRuleMarkers[$ruleCode] }}</abbr>@else–@endif</td>@endif</tr>
+                <tr><td class="rank">{{ $row['rank'] ?? '–' }}</td><td>@if($row['emblemUrl'])<img class="emblem" src="{{ $row['emblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $row['teamName'] }}</td><td class="number">{{ $row['played'] ?? '–' }}</td><td class="number">{{ $row['goalDifference'] ?? '–' }}</td><td class="number"><strong>{{ $row['points'] ?? '–' }}</strong></td>@if($hasStandingRules)<td class="placement">{{ $row['rule']['name'] ?? '–' }}</td>@endif</tr>
             @endforeach
             </tbody></table>
         @else <p class="empty">Tabellen kunne ikke lastes akkurat nå.</p> @endif
