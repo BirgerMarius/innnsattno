@@ -161,6 +161,9 @@
 .activity-print-actions a { border: 1px solid #666; color: #222; }
 
 /* Team season pages for Eliteserien and Premier League */
+.football-standing-rules { color: #475569; font-size: .875rem; margin: 0 0 1rem; }
+.football-standing-rules__item { display: inline-block; margin-right: .65rem; }
+.football-standing-rules__note { display: block; margin-top: .3rem; }
 .football-team-shell { margin: 0 auto; max-width: 950px; }
 .football-team-back { color: #173f72; display: inline-block; font-weight: 600; margin-bottom: 18px; }
 .football-team-header { align-items: center; border-bottom: 2px solid #173f72; display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; padding-bottom: 15px; }

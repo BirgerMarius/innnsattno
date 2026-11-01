@@ -203,6 +203,8 @@
         <section class="pl-section p-3 p-md-4 mb-3">
             <h2 class="h4 mb-3">Tabell</h2>
             <p class="pl-team-help mb-3"><strong>Se alle kampene til et lag:</strong> Trykk på lagnavnet for å se hele sesongens kamper, resultater og kommende oppgjør. Kampoversikten kan også skrives ut på én A4-side.</p>
+            @php($hasStandingRules = collect($standings)->contains(fn (array $team) => !empty($team['rule']['name'])))
+            @include('football.partials.standing-rules-legend')
 
             @if(count($standings) > 0)
                 <div class="table-responsive">
@@ -217,6 +219,7 @@
                                 <th class="text-center">T</th>
                                 <th class="text-center">Målf.</th>
                                 <th class="text-center">P</th>
+                                @if($hasStandingRules)<th>Plassen gir</th>@endif
                             </tr>
                         </thead>
                         <tbody>
@@ -237,6 +240,7 @@
                                     <td class="text-center">{{ $team['losses'] ?? '-' }}</td>
                                     <td class="text-center">{{ $team['goalDifference'] ?? '-' }}</td>
                                     <td class="text-center font-weight-bold">{{ $team['points'] ?? '-' }}</td>
+                                    @if($hasStandingRules)<td>{{ $team['rule']['name'] ?? '–' }}</td>@endif
                                 </tr>
                             @endforeach
                         </tbody>

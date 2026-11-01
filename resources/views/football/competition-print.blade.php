@@ -36,6 +36,9 @@
         .football-tv-box__match span { display: block; font-size: 8.5pt; }
         .football-tv-box__status, .football-tv-box__note { font-size: 8.5pt; margin: 1mm 0 0; }
         .standings-section { margin-top: 3.5mm; }
+        .football-standing-rules { font-size: 8.5pt; margin: 0 0 2mm; }
+        .football-standing-rules__item { margin-right: 1.5mm; }
+        .football-standing-rules__note { display: block; margin-top: .75mm; }
         h2 { break-after: avoid; page-break-after: avoid; }
         @media print {
             .no-print { display: none !important; }
@@ -109,10 +112,12 @@
 
     <section class="standings-section">
         <h2>Tabell</h2>
+        @php($hasStandingRules = collect($standings)->contains(fn (array $team) => !empty($team['rule']['name'])))
+        @include('football.partials.standing-rules-legend')
         @if(count($standings))
-            <table><thead><tr><th class="rank">Pl.</th><th class="team">Lag</th><th class="number">K</th><th class="number">MF</th><th class="number">P</th></tr></thead><tbody>
+            <table><thead><tr><th class="rank">Pl.</th><th class="team">Lag</th><th class="number">K</th><th class="number">MF</th><th class="number">P</th>@if($hasStandingRules)<th>Plassen gir</th>@endif</tr></thead><tbody>
             @foreach($standings as $row)
-                <tr><td class="rank">{{ $row['rank'] ?? '–' }}</td><td>@if($row['emblemUrl'])<img class="emblem" src="{{ $row['emblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $row['teamName'] }}</td><td class="number">{{ $row['played'] ?? '–' }}</td><td class="number">{{ $row['goalDifference'] ?? '–' }}</td><td class="number"><strong>{{ $row['points'] ?? '–' }}</strong></td></tr>
+                <tr><td class="rank">{{ $row['rank'] ?? '–' }}</td><td>@if($row['emblemUrl'])<img class="emblem" src="{{ $row['emblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $row['teamName'] }}</td><td class="number">{{ $row['played'] ?? '–' }}</td><td class="number">{{ $row['goalDifference'] ?? '–' }}</td><td class="number"><strong>{{ $row['points'] ?? '–' }}</strong></td>@if($hasStandingRules)<td>{{ $row['rule']['name'] ?? '–' }}</td>@endif</tr>
             @endforeach
             </tbody></table>
         @else <p class="empty">Tabellen kunne ikke lastes akkurat nå.</p> @endif

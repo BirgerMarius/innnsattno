@@ -264,6 +264,27 @@ Bundesliga 2026/27 er verifisert live i Schibsted/VG SportsNext API-et 2026-11-0
 De fem endepunktene for turnering og sesong returnerte HTTP 200 og gyldig JSON.
 Schedule inneholder 306 kamper og standings inneholder én tabell med 18 lag.
 
+## Tabellregler og plasseringer
+
+SportsNext leverer en valgfri `rule` på den enkelte `teamStandings`-raden:
+`code`, lesbar `name` og numerisk `effect`. `specialNotes` ligger på gruppenivå
+og forklarer avvik eller generell turneringsinformasjon, men brukes ikke for å
+utlede plassgrenser. Innsatt.no viser bare `rule.name` når den finnes; det er
+ikke en egen beregning og betyr «plassen gir …», ikke at laget har sikret utfallet.
+
+Live-svaret 2026-11-01 inneholdt disse eksplisitte reglene:
+
+| Liga | Eksempler på `code` → `name` |
+| --- | --- |
+| Eliteserien | `champions_league_qualification` → Champions League-kvalifisering; `conference_league_qualification` → Conference League-kvalifisering; `relegation_playoffs` → Nedrykkskvalifisering; `relegation` → Nedrykk |
+| OBOS-ligaen | `promotion` → Opprykk; `promotion_playoffs` → Opprykkskvalifisering; `relegation_playoffs` → Nedrykkskvalifisering; `relegation` → Nedrykk |
+| Premier League | `champions_league` → Champions League; `uefa_europa_league` → Europaliga; `relegation` → Nedrykk |
+| La Liga | `champions_league` → Champions League; `uefa_europa_league` → Europaliga; `conference_league_qualification` → Conference League-kvalifisering; `relegation` → Nedrykk |
+| Bundesliga | `champions_league` → Champions League; `uefa_europa_league` → Europaliga; `conference_league_qualification` → Conference League-kvalifisering; `relegation_playoffs` → Nedrykkskvalifisering; `relegation` → Nedrykk |
+
+Eldre cacheoppføringer uten `rule` vises uten merking. Sider leser fortsatt kun
+lokal cache og gjør ingen nye API-kall ved visning.
+
 ## UEFA Nations League
 
 UEFA Nations League 2026/28 er bekreftet live i Schibsted/VG SportsNext API-et 2026-09-21.
