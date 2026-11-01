@@ -47,7 +47,7 @@
             .fixture-sections { gap: 4mm; }
             .standings-section { margin-top: 3mm; }
 
-            /* Premier League has 20 table rows, so it needs a little more vertical room. */
+            /* Twenty-row league tables need a little more vertical room. */
             .competition-print--compact { font-size: 8.5pt; line-height: 1.1; }
             .competition-print--compact header { margin-bottom: 2mm; padding-bottom: 1.5mm; }
             .competition-print--compact h1 { font-size: 15pt; }
@@ -60,7 +60,7 @@
         }
     </style>
 </head>
-<body class="competition-print{{ $leagueName === 'Premier League' ? ' competition-print--compact' : '' }}">
+<body class="competition-print{{ in_array($leagueName, ['Premier League', 'La Liga'], true) ? ' competition-print--compact' : '' }}">
     <div class="actions no-print"><button type="button" onclick="window.print()">Skriv ut</button></div>
     <header>
         <div><strong>Innsatt.no</strong><h1>{{ $leagueName }}</h1></div>

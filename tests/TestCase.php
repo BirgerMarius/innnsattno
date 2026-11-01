@@ -22,7 +22,10 @@ abstract class TestCase extends BaseTestCase
     {
         $class = match ($seasonId) {
             8766 => \App\Services\EliteserienService::class,
+            8767 => \App\Services\ObosLigaenService::class,
             9186 => \App\Services\PremierLeagueService::class,
+            9227 => \App\Services\LaLigaService::class,
+            9237 => \App\Services\BundesligaService::class,
             9168 => \App\Services\ChampionsLeagueService::class,
             9170 => \App\Services\EuropaLeagueService::class,
             9171 => \App\Services\ConferenceLeagueService::class,

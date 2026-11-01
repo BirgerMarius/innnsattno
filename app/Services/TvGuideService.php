@@ -27,6 +27,9 @@ class TvGuideService
     private const FOOTBALL_COMPETITIONS = [
         'premier-league' => ['label' => 'Premier League', 'title' => 'Premier League'],
         'eliteserien' => ['label' => 'Eliteserien', 'title' => 'Eliteserien'],
+        'obos-ligaen' => ['label' => 'OBOS-ligaen', 'title' => 'OBOS-ligaen'],
+        'la-liga' => ['label' => 'La Liga', 'title' => 'LaLiga EA Sports'],
+        'bundesliga' => ['label' => 'Bundesliga', 'title' => 'Bundesliga'],
         'champions-league' => ['label' => 'Champions League', 'title' => 'UEFA Champions League'],
         'europa-league' => ['label' => 'Europa League', 'title' => 'UEFA Europa League'],
         'conference-league' => ['label' => 'Conference League', 'title' => 'UEFA Conference League'],

@@ -3,10 +3,13 @@
 namespace App\Console\Commands;
 
 use App\Services\ChampionsLeagueService;
+use App\Services\BundesligaService;
 use App\Services\ConferenceLeagueService;
 use App\Services\EliteserienService;
 use App\Services\EuropaLeagueService;
 use App\Services\NationsLeagueService;
+use App\Services\LaLigaService;
+use App\Services\ObosLigaenService;
 use App\Services\PremierLeagueService;
 use App\Services\TvGuideService;
 use App\Services\DwScheduleService;
@@ -115,7 +118,7 @@ class RefreshExternalData extends Command
     private function refreshFootball(): void
     {
         $checks = DB::table('external_data_checks')->where('service', 'sportsnext')->get()->keyBy('coverage_key');
-        foreach ([PremierLeagueService::class, EliteserienService::class, ChampionsLeagueService::class, EuropaLeagueService::class, ConferenceLeagueService::class, NationsLeagueService::class] as $class) {
+        foreach ([PremierLeagueService::class, EliteserienService::class, ObosLigaenService::class, LaLigaService::class, BundesligaService::class, ChampionsLeagueService::class, EuropaLeagueService::class, ConferenceLeagueService::class, NationsLeagueService::class] as $class) {
             $service = app($class);
             $key = $service->competitionKey();
             $row = $checks[$key] ?? null;

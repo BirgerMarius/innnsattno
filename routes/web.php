@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\FeedbackAdminController;
 use App\Http\Controllers\Admin\ProfessionalResourceAdminController;
 use App\Http\Controllers\Admin\ResourceCategoryController;
 use App\Http\Controllers\EliteserienController;
+use App\Http\Controllers\BundesligaController;
 use App\Http\Controllers\ChampionsLeagueController;
 use App\Http\Controllers\ConferenceLeagueController;
 use App\Http\Controllers\EuropaLeagueController;
@@ -15,6 +16,8 @@ use App\Http\Controllers\NationsLeagueController;
 use App\Http\Controllers\FootballController;
 use App\Http\Controllers\FeedbackSubmissionController;
 use App\Http\Controllers\PremierLeagueController;
+use App\Http\Controllers\LaLigaController;
+use App\Http\Controllers\ObosLigaenController;
 use App\Http\Controllers\ProfessionalResourceController;
 use App\Http\Controllers\PrayerController;
 use App\Http\Controllers\WordSearchController;
@@ -228,6 +231,12 @@ Route::prefix('{prison}')->where(['prison' => 'ringerike|ilseng|kongsvinger'])->
     Route::get('/eliteserien/utskrift', [EliteserienController::class, 'print'])->name('eliteserien.print');
     Route::get('/eliteserien/lag/{teamId}', [EliteserienController::class, 'team'])->whereNumber('teamId')->name('eliteserien.team');
     Route::get('/eliteserien/lag/{teamId}/utskrift', [EliteserienController::class, 'teamPrint'])->whereNumber('teamId')->name('eliteserien.team.print');
+    foreach (['obos-ligaen' => ObosLigaenController::class, 'la-liga' => LaLigaController::class, 'bundesliga' => BundesligaController::class] as $path => $controller) {
+        Route::get('/'.$path, [$controller, 'index'])->name($path.'.index');
+        Route::get('/'.$path.'/utskrift', [$controller, 'print'])->name($path.'.print');
+        Route::get('/'.$path.'/lag/{teamId}', [$controller, 'team'])->whereNumber('teamId')->name($path.'.team');
+        Route::get('/'.$path.'/lag/{teamId}/utskrift', [$controller, 'teamPrint'])->whereNumber('teamId')->name($path.'.team.print');
+    }
     foreach (['champions-league' => ChampionsLeagueController::class, 'europa-league' => EuropaLeagueController::class, 'conference-league' => ConferenceLeagueController::class] as $path => $controller) {
         Route::get('/'.$path, [$controller, 'index'])->name($path.'.index');
         Route::get('/'.$path.'/print', [$controller, 'print'])->name($path.'.print');

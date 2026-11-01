@@ -3,11 +3,14 @@
 namespace App\Console\Commands;
 
 use App\Services\ChampionsLeagueService;
+use App\Services\BundesligaService;
 use App\Services\ConferenceLeagueService;
 use App\Services\EliteserienService;
 use App\Services\EuropaLeagueService;
 use App\Services\FootballWorldCupService;
 use App\Services\NationsLeagueService;
+use App\Services\LaLigaService;
+use App\Services\ObosLigaenService;
 use App\Services\PremierLeagueService;
 use App\Services\TvGuideService;
 use Illuminate\Console\Command;
@@ -41,7 +44,7 @@ class WarmExternalData extends Command
                 $failed = $failed || ! $ok || (! $date->gt($today) && ! $available);
             }
         }
-        foreach ([PremierLeagueService::class, EliteserienService::class, ChampionsLeagueService::class, EuropaLeagueService::class, ConferenceLeagueService::class, NationsLeagueService::class] as $class) {
+        foreach ([PremierLeagueService::class, EliteserienService::class, ObosLigaenService::class, LaLigaService::class, BundesligaService::class, ChampionsLeagueService::class, EuropaLeagueService::class, ConferenceLeagueService::class, NationsLeagueService::class] as $class) {
             $service = app($class);
             $ok = $service->refreshCompetitionData();
             $data = $service->getCompetitionData();

@@ -210,6 +210,55 @@ php artisan football:schibsted-explore \
   --no-cache
 ```
 
+## OBOS-ligaen
+
+OBOS-ligaen 2026 er verifisert live i Schibsted/VG SportsNext API-et 2026-11-01.
+
+| Felt | Verdi |
+| --- | --- |
+| Turnering | OBOS-ligaen |
+| tournamentId | 40 |
+| seasonId | 8767 |
+| Sesong | 1. divisjon 2026 |
+| Verifikasjon | `live_api_from_innsatt-local` |
+
+`/tournaments/40`, `/tournaments/40/seasons`, `/tournaments/seasons/8767`, samt
+sesongens `schedule` og `standings` returnerte HTTP 200 og gyldig JSON. Schedule
+inneholder 240 kamper. Standings inneholder hovedtabellen `1. divisjon 2026` med
+16 lag, i tillegg til en separat regional Finnmark MiiMetVi-gruppe med 10 lag.
+Visningen viser gruppene hver for seg i kildens rekkefølge; den blander ikke
+tabellplasseringer mellom dem.
+
+## La Liga
+
+LaLiga 2026/27 er verifisert live i Schibsted/VG SportsNext API-et 2026-11-01.
+
+| Felt | Verdi |
+| --- | --- |
+| Turnering | LaLiga |
+| tournamentId | 2 |
+| seasonId | 9227 |
+| Sesong | LaLiga 2026/2027 |
+| Verifikasjon | `live_api_from_innsatt-local` |
+
+De fem endepunktene for turnering og sesong returnerte HTTP 200 og gyldig JSON.
+Schedule inneholder 381 kamper og standings inneholder én tabell med 20 lag.
+
+## Bundesliga
+
+Bundesliga 2026/27 er verifisert live i Schibsted/VG SportsNext API-et 2026-11-01.
+
+| Felt | Verdi |
+| --- | --- |
+| Turnering | Bundesliga |
+| tournamentId | 6 |
+| seasonId | 9237 |
+| Sesong | Bundesliga 2026/2027 |
+| Verifikasjon | `live_api_from_innsatt-local` |
+
+De fem endepunktene for turnering og sesong returnerte HTTP 200 og gyldig JSON.
+Schedule inneholder 306 kamper og standings inneholder én tabell med 18 lag.
+
 ## UEFA Nations League
 
 UEFA Nations League 2026/28 er bekreftet live i Schibsted/VG SportsNext API-et 2026-09-21.

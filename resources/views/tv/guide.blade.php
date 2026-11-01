@@ -345,6 +345,18 @@ $isEvenWeek = $weekNumber % 2 === 0;
             ⚽ Eliteserien 2026
         </a>
 
+        <a href="/{{ $prison['slug'] }}/obos-ligaen" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+            ⚽ OBOS-ligaen 2026
+        </a>
+
+        <a href="/{{ $prison['slug'] }}/la-liga" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+            ⚽ La Liga 2026/27
+        </a>
+
+        <a href="/{{ $prison['slug'] }}/bundesliga" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
+            ⚽ Bundesliga 2026/27
+        </a>
+
         <a href="/{{ $prison['slug'] }}/champions-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Champions League 2026/27
         </a>
