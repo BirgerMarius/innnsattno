@@ -226,8 +226,13 @@ OBOS-ligaen 2026 er verifisert live i Schibsted/VG SportsNext API-et 2026-11-01.
 sesongens `schedule` og `standings` returnerte HTTP 200 og gyldig JSON. Schedule
 inneholder 240 kamper. Standings inneholder hovedtabellen `1. divisjon 2026` med
 16 lag, i tillegg til en separat regional Finnmark MiiMetVi-gruppe med 10 lag.
-Visningen viser gruppene hver for seg i kildens rekkefølge; den blander ikke
-tabellplasseringer mellom dem.
+Begge er feilaktig knyttet til `tournamentId=40` og `seasonId=8767`, og API-et
+gir ingen gruppe-ID. OBOS-visningen beholder derfor bare standings-grupper som
+er knyttet til minst én deltaker-ID i sesongens faktiske kampoppsett. Finnmark-
+lagene finnes ikke i noen av de 240 kampene og filtreres bort. Dette er ikke et
+filter på spilte kamper, slik at den korrekte hovedtabellen beholdes før
+sesongstart. Samme avgrensing gjelder lagoversikt og utskrift, også når en eldre
+`last_good`-cache leses.
 
 ## La Liga
 
