@@ -53,14 +53,16 @@ return [
         ],
         'kongsvinger' => [
             'name' => 'Kongsvinger fengsel',
-            // Bekreftet mot VGs TV-API 02.11.2026. Ikke legg til forespurte
-            // 5HD eller Eurosport 2 før kanalidentiteten er verifisert.
+            // Bekreftet mot VGs TV-API 02.11.2026. Eurosports norske
+            // sendeskjema identifiserer fengselets «Eurosport 2» som
+            // «Eurosport Norge» (kanalfamilie EUROSPORT2_NORWAY).
+            // Ikke legg til forespurte 5HD før kanalidentiteten er verifisert.
             'tv_channels' => [
                 'nrk1', 'nrk2', 'nrk3',
                 'tv2-direkte', 'tv2-zebra', 'tv2-livsstil', 'tv2-nyheter',
                 'tvnorge', 'bbc-nordic', 'viasat-explore', 'history',
                 'discovery-channel', 'investigation-discovery', 'rex', 'mtv',
-                'svt1', 'svt2', 'eurosport-1', 'al-jazeera-english',
+                'svt1', 'svt2', 'eurosport-1', 'eurosport-norge', 'al-jazeera-english',
             ],
             'weather_key' => 'kongsvinger',
             // Bønnetid.no has no publicly readable location catalogue. Set the

@@ -15,7 +15,7 @@ class KongsvingerTvGuideTest extends TestCase
             'tv2-direkte', 'tv2-zebra', 'tv2-livsstil', 'tv2-nyheter',
             'tvnorge', 'bbc-nordic', 'viasat-explore', 'history',
             'discovery-channel', 'investigation-discovery', 'rex', 'mtv',
-            'svt1', 'svt2', 'eurosport-1', 'al-jazeera-english',
+            'svt1', 'svt2', 'eurosport-1', 'eurosport-norge', 'al-jazeera-english',
         ];
 
         $this->assertSame($channels, TvGuideService::channelsForPrison('kongsvinger'));
@@ -57,6 +57,7 @@ class KongsvingerTvGuideTest extends TestCase
 
             return $request->url() !== 'https://www.dw.com/graph-api/en/livestream/english'
                 && in_array('svt1', explode(',', $query['channels'] ?? ''), true)
+                && in_array('eurosport-norge', explode(',', $query['channels'] ?? ''), true)
                 && in_array('al-jazeera-english', explode(',', $query['channels'] ?? ''), true)
                 && ! in_array('tv2-sport-1', explode(',', $query['channels'] ?? ''), true);
         });
