@@ -314,7 +314,20 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <a href="{{ $prison['official_url'] }}" target="_blank" rel="noopener" class="btn btn-primary btn-lg front-page-btn" role="button">ℹ️ {{ $prison['name'] }}</a>
         </div>
         @else
-        <div class="prison-actions-column"><a href="/{{ $prison['slug'] }}/tv-utskrift" class="btn btn-secondary btn-lg front-page-btn" role="button">TV-guiden er under klargjøring</a><a href="/{{ $prison['slug'] }}/bonnetider" class="btn btn-primary btn-lg front-page-btn" role="button">🕌 Bønnetider – {{ $prison['name'] }}</a><a href="/{{ $prison['slug'] }}/vaer" class="btn btn-primary btn-lg front-page-btn" role="button">🌦️ Værmelding – {{ $prison['name'] }}</a></div>
+        <div class="prison-actions-column">
+            <a href="/{{ $prison['slug'] }}/tv-utskrift" class="btn btn-secondary btn-lg front-page-btn" role="button">TV-guiden er under klargjøring</a>
+            <a href="/{{ $prison['slug'] }}/bonnetider" class="btn btn-primary btn-lg front-page-btn" role="button">🕌 Bønnetider – {{ $prison['name'] }}</a>
+            <a href="/{{ $prison['slug'] }}/vaer" class="btn btn-primary btn-lg front-page-btn" role="button">🌦️ Værmelding – {{ $prison['name'] }}</a>
+            @if ($prison['visitation_available'])
+            <a href="{{ route('prison.visitation', $prison['slug']) }}" class="btn btn-primary btn-lg front-page-btn" role="button">
+                <svg class="front-page-wheel-icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <circle cx="12" cy="13" r="8"></circle>
+                    <path d="M12 5v16M4 13h16M6.34 7.34l11.32 11.32M17.66 7.34 6.34 18.66M10 2h4l-2 3z"></path>
+                </svg>
+                Visitasjonsrullett – {{ $prison['name'] }}
+            </a>
+            @endif
+        </div>
         @endif
 
         <a href="{{ $prisonUrl('/oppdrag') }}" class="btn btn-lg front-page-btn front-page-btn--task-wheel">

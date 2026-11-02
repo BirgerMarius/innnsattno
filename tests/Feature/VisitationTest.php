@@ -31,7 +31,7 @@ class VisitationTest extends TestCase
         }
     }
 
-    public function testVisitationIsOnlyAvailableForRingerike(): void
+    public function testVisitationIsAvailableForRingerikeAndKongsvingerOnly(): void
     {
         $this->get('/visitasjon?prison=ilseng')
             ->assertRedirect('/ringerike/visitasjon');
@@ -41,7 +41,23 @@ class VisitationTest extends TestCase
             ->assertSee('data-prison-context="ringerike"', false);
 
         $this->get('/ilseng/visitasjon')->assertNotFound();
-        $this->get('/kongsvinger/visitasjon')->assertNotFound();
+        $this->get('/kongsvinger/visitasjon')->assertOk();
+    }
+
+    public function testKongsvingerShowsTheVerifiedDepartmentsAndAllSixtyNineCells(): void
+    {
+        $response = $this->get('/kongsvinger/visitasjon')->assertOk();
+
+        preg_match('/<script id="visitationDepartments" type="application\/json">(.*?)<\/script>/s', $response->getContent(), $matches);
+        $departments = json_decode(htmlspecialchars_decode($matches[1] ?? ''), true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame([
+            'H' => range(201, 220),
+            'A' => [...range(101, 105), ...range(201, 205)],
+            'B' => [...range(101, 112), ...range(201, 212)],
+            'F' => range(101, 115),
+        ], $departments);
+        $this->assertSame(69, array_sum(array_map('count', $departments)));
     }
 
     public function testRingerikeFrontPageShowsVisitationAndKeepsTheCurrentMainChoices(): void
@@ -77,13 +93,16 @@ class VisitationTest extends TestCase
             ->assertSee('href="/tidsfordriv?prison=ringerike"', false);
     }
 
-    public function testOtherPrisonFrontPagesDoNotShowVisitation(): void
+    public function testKongsvingerFrontPageShowsItsOwnVisitationLink(): void
     {
-        foreach (['ilseng', 'kongsvinger'] as $prison) {
-            $this->get('/'.$prison)
-                ->assertOk()
-                ->assertDontSee('Visitasjonsrullett')
-                ->assertDontSee('/ringerike/visitasjon', false);
-        }
+        $this->get('/kongsvinger')
+            ->assertOk()
+            ->assertSee('Visitasjonsrullett – Kongsvinger fengsel')
+            ->assertSee('href="'.route('prison.visitation', 'kongsvinger').'"', false)
+            ->assertDontSee('/ringerike/visitasjon', false);
+
+        $this->get('/ilseng')
+            ->assertOk()
+            ->assertDontSee('Visitasjonsrullett');
     }
 }

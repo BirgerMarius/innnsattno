@@ -39,10 +39,11 @@ class VisitationController extends Controller
 
     public function index(string $prison, PrisonContext $prisons)
     {
-        abort_unless($prisons->prison($prison)['visitation_available'] ?? false, 404);
+        $prisonConfig = $prisons->prison($prison);
+        abort_unless($prisonConfig['visitation_available'] ?? false, 404);
 
         return view('visitation.index', [
-            'departments' => self::DEPARTMENTS,
+            'departments' => $prisonConfig['visitation_departments'] ?? self::DEPARTMENTS,
         ]);
     }
 }

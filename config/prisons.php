@@ -61,7 +61,19 @@ return [
             // verified provider ID in production before enabling this page.
             'prayer_location_id' => env('BONNETID_KONGSVINGER_LOCATION_ID'),
             'tv_available' => false,
-            'visitation_available' => false,
+            'visitation_available' => true,
+            'visitation_departments' => [
+                'H' => [
+                    201, 202, 203, 204, 205, 206, 207, 208, 209, 210,
+                    211, 212, 213, 214, 215, 216, 217, 218, 219, 220,
+                ],
+                'A' => [101, 102, 103, 104, 105, 201, 202, 203, 204, 205],
+                'B' => [
+                    101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112,
+                    201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212,
+                ],
+                'F' => [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115],
+            ],
             'official_url' => 'https://www.kriminalomsorgen.no/fengsel/innlandet-kriminalomsorgen-innlandet-avd-utenlandske-innsatte-kongsvinger',
             'local_news' => [
                 'source_name' => 'Glåmdalen',

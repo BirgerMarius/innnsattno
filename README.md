@@ -69,10 +69,13 @@ Ved direktebesøk uten kontekst brukes Ringerike. Ikke erstatt denne mekanismen
 med cookie, sesjon eller Referer, og ikke cache HTML for en felles URL uten å
 la hele URL-en, inkludert querystringen, inngå i cache-nøkkelen.
 
-Visitasjonsrulletten er bare tilgjengelig på
-`/ringerike/visitasjon`. Tilgjengeligheten styres av
-`visitation_available` i `config/prisons.php`; andre fengselsprefikser svarer
-med 404. Den eldre `/visitasjon`-adressen videresender alltid til Ringerike.
+Visitasjonsrulletten er tilgjengelig på `/ringerike/visitasjon` og
+`/kongsvinger/visitasjon`. Tilgjengeligheten styres av
+`visitation_available` i `config/prisons.php`; Kongsvingers avdelinger og
+cellelister ligger der også under `visitation_departments`. Resultatet viser
+alltid både avdeling og celle, siden cellenumre kan forekomme i flere
+avdelinger. Andre fengselsprefikser svarer med 404. Den eldre
+`/visitasjon`-adressen videresender alltid til Ringerike.
 
 Bønnetider bruker de kanoniske adressene `/{fengsel}/bonnetider` og
 `/{fengsel}/bonnetider/utskrift`. Månedvalg, utskrift og returen etter utskrift
