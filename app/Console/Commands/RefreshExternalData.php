@@ -14,6 +14,13 @@ use App\Services\PremierLeagueService;
 use App\Services\TvGuideService;
 use App\Services\DwScheduleService;
 use App\Services\FootballWorldCupService;
+use App\Services\LocalNewsService;
+use App\Services\NamedayService;
+use App\Services\PrayerTimeService;
+use App\Services\TodayContentService;
+use App\Services\CorrectionalNewsService;
+use App\Services\WeatherForecastService;
+use App\Services\News\NewsFeedService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -21,8 +28,8 @@ use Illuminate\Support\Facades\Schema;
 
 class RefreshExternalData extends Command
 {
-    protected $signature = 'external-data:refresh {type : tv or football} {--force : Tving dagens TV-oppdatering, uten intervallkontroll}';
-    protected $description = 'Kontroller og oppdater lokal TV- og fotballcache';
+    protected $signature = 'external-data:refresh {type? : Eldre scheduler-modus: tv eller football} {--force : Tving dagens TV-oppdatering i eldre scheduler-modus} {--all : Oppdater alle fengsler og felles datakilder} {--prison= : Oppdater ett fengsel (ringerike, ilseng eller kongsvinger)}';
+    protected $description = 'Oppdater eksterne data for alle fengsler eller ett fengsel';
 
     public function handle(TvGuideService $tv): int
     {
@@ -30,15 +37,121 @@ class RefreshExternalData extends Command
             $this->error('Migreringen for datakildekontroller mangler.');
             return self::FAILURE;
         }
-        if ($this->argument('type') === 'tv') {
+        $type = $this->argument('type');
+        $all = (bool) $this->option('all');
+        $prison = $this->option('prison');
+
+        if ($type !== null) {
+            if ($all || $prison !== null) {
+                $this->error('Eldre type-argument kan ikke kombineres med --all eller --prison.');
+                return self::INVALID;
+            }
+            return $this->runLegacy((string) $type, $tv);
+        }
+        if ($all === ($prison !== null)) {
+            $this->error('Velg nøyaktig ett av --all eller --prison=<fengsel>.');
+            return self::INVALID;
+        }
+        if ($prison !== null && !array_key_exists($prison, config('prisons.all', []))) {
+            $this->error('Ukjent fengsel: '.$prison.'.');
+            return self::INVALID;
+        }
+
+        return $this->runManual($tv, $all ? array_keys(config('prisons.all', [])) : [(string) $prison], $all);
+    }
+
+    private function runLegacy(string $type, TvGuideService $tv): int
+    {
+        if ($type === 'tv') {
             $this->refreshTv($tv, (bool) $this->option('force'));
-        } elseif ($this->argument('type') === 'football') {
+        } elseif ($type === 'football') {
             $this->refreshFootball();
         } else {
             $this->error('Ukjent datatype.');
             return self::FAILURE;
         }
         return self::SUCCESS;
+    }
+
+    private function runManual(TvGuideService $tv, array $prisons, bool $all): int
+    {
+        $rows = [];
+        $failed = false;
+        foreach ($prisons as $prison) {
+            $config = config('prisons.all.'.$prison);
+            $today = now('Europe/Oslo')->startOfDay();
+            $ok = $this->attempt($rows, $prison, 'TV-guide (i dag)', fn () => $tv->refreshSchedule($today, $config['tv_channels'], $prison));
+            $failed = $failed || !$ok;
+            $ok = $this->attempt($rows, $prison, 'Lokale nyheter', fn () => app(LocalNewsService::class)->refresh($prison));
+            $failed = $failed || !$ok;
+            $ok = $this->attempt($rows, $prison, 'Værvarsel', fn () => app(WeatherForecastService::class)->refresh($config['weather_key']));
+            $failed = $failed || !$ok;
+            $locationId = $config['prayer_location_id'] ?? null;
+            if (is_int($locationId) || ctype_digit((string) $locationId)) {
+                $ok = $this->attempt($rows, $prison, 'Bønnetider (denne måneden)', fn () => app(PrayerTimeService::class)->refreshMonth((int) $locationId, $today->year, $today->month));
+                $failed = $failed || !$ok;
+            } else {
+                $rows[] = [$prison, 'Bønnetider', 'Hoppet over: ingen verifisert steds-ID'];
+            }
+        }
+        if ($all) {
+            $failed = !$this->refreshCommon($rows) || $failed;
+        } else {
+            $rows[] = ['Felles', 'Fotball- og fellestjenester', 'Hoppet over ved fengselsvalg; bruk --all for én felles oppdatering'];
+        }
+        $this->table(['Omfang', 'Data', 'Resultat'], $rows);
+        if ($failed) {
+            $this->error('Oppdateringen er fullført med feil. Fungerende reservedata er beholdt der tjenestene støtter det.');
+            return self::FAILURE;
+        }
+        $this->info('Oppdateringen er fullført. Ingen generell cache ble tømt.');
+        return self::SUCCESS;
+    }
+
+    private function refreshCommon(array &$rows): bool
+    {
+        $ok = true;
+        foreach ([PremierLeagueService::class, EliteserienService::class, ObosLigaenService::class, LaLigaService::class, BundesligaService::class, ChampionsLeagueService::class, EuropaLeagueService::class, ConferenceLeagueService::class, NationsLeagueService::class] as $class) {
+            $service = app($class);
+            $result = $this->attempt($rows, 'Felles', 'Fotball: '.$service->competitionKey(), fn () => $service->refreshCompetitionData());
+            $ok = $result && $ok;
+        }
+        foreach (['schedule', 'standings'] as $endpoint) {
+            $result = $this->attempt($rows, 'Felles', 'Fotball-VM: '.$endpoint, fn () => app(FootballWorldCupService::class)->refreshEndpoint($endpoint));
+            $ok = $result && $ok;
+        }
+        $today = now('Europe/Oslo')->startOfDay();
+        $ok = $this->attempt($rows, 'Felles', 'Navnedager', fn () => app(NamedayService::class)->refresh($today)) && $ok;
+        $ok = $this->attempt($rows, 'Felles', 'Dagen i dag', fn () => app(TodayContentService::class)->forDate($today, true)) && $ok;
+        $reports = app(CorrectionalNewsService::class)->refresh();
+        foreach ($reports as $report) {
+            $success = empty($report['error']);
+            $rows[] = ['Felles', 'Kriminalomsorgsnyheter: '.$report['source'], $success ? 'Oppdatert' : 'Feil: '.$report['error']];
+            $ok = $success && $ok;
+        }
+        $reports = app(NewsFeedService::class)->fetchActive();
+        foreach ($reports as $report) {
+            $success = empty($report['error']);
+            $rows[] = ['Felles', 'Nyhetsfeed: '.$report['source'], $success ? 'Oppdatert' : 'Feil: '.$report['error']];
+            $ok = $success && $ok;
+        }
+        return $ok;
+    }
+
+    private function attempt(array &$rows, string $scope, string $data, callable $operation): bool
+    {
+        try {
+            $result = $operation();
+            if ($result === false) {
+                $rows[] = [$scope, $data, 'Feil eller opptatt; se datakildekontroller'];
+                return false;
+            }
+            $rows[] = [$scope, $data, 'Oppdatert'];
+            return true;
+        } catch (\Throwable $exception) {
+            $rows[] = [$scope, $data, 'Feil: '.class_basename($exception)];
+            return false;
+        }
     }
 
     private function refreshTv(TvGuideService $tv, bool $force = false): void

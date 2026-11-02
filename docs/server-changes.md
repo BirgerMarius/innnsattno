@@ -2,6 +2,39 @@
 
 Denne filen er en løpende changelog og huskeliste for endringer som gjøres direkte på produksjonsserveren og derfor ikke automatisk ligger i Git-repositoryet. Dokumenter blant annet Nginx-, systemd-, cron-/timer-, firewall- og annen manuell serverkonfigurasjon her.
 
+## Drift – målrettet oppdatering av eksterne data
+
+Etter vanlig deploy kan data oppdateres som `forge` fra prosjektmappen, uten
+`cache:clear` eller `optimize:clear`:
+
+```bash
+cd /home/forge/innsatt.no/innnsattno
+sudo -u forge /usr/bin/php artisan external-data:refresh --all
+sudo -u forge /usr/bin/php artisan external-data:refresh --prison=ringerike
+sudo -u forge /usr/bin/php artisan external-data:refresh --prison=ilseng
+sudo -u forge /usr/bin/php artisan external-data:refresh --prison=kongsvinger
+```
+
+`--all` oppdaterer dagens TV-guide, lokale nyheter, vær og eventuelle
+bønnetider for alle fengsler. Den henter deretter felles fotball- og
+VM-data én gang, samt navnedager, «Dagen i dag», kriminalomsorgsnyheter og
+aktive nyhetsfeeder. `--prison` oppdaterer bare dagens TV-guide, lokale
+nyheter, vær og eventuelle bønnetider for angitt fengsel. Felles data blir
+ikke hentet ved fengselsvalg; kjør `--all` når de også skal fornyes.
+
+Kommandoen skriver en rad for hver del som er oppdatert, hoppet over eller
+feilet. Uavhengige kilder fortsetter etter en feil, men kommandoen returnerer
+feilkode ved hel eller delvis feil. Tjenestenes egne låser, reservecacher og
+driftskontroller beholdes.
+
+PowerShell-menyen ligger på administratørens PC i
+`$HOME\PowerShellScripts\innsatt.ps1` og startes med funksjonen `innsatt`.
+Den bruker SSH-aliasene `docker01` og `innsatt-prod`. På en ny PC kopieres
+menyskriptet til denne mappen, funksjonen `innsatt` legges i PowerShell-profilen,
+og aliasene settes opp med brukerens egne SSH-nøkler. Ikke lagre nøkler eller
+passord i repositoryet. Når PowerShell-skriptet er ferdigstilt, skal en
+versjonert kopi ligge i `tools/windows/innsatt.ps1` og dermed følge vanlig deploy.
+
 ## 2026-10-24 – Servervedlikehold og oppdatert produksjonsstatus
 
 ### Produksjonsmiljø

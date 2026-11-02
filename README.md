@@ -229,6 +229,37 @@ beholder reservedata ved feil og avslutter med status 1 ved feil eller manglende
 nødvendige data for i dag/tidligere. Fremtidige TV-programmer kan være upubliserte.
 Scheduleren fortsetter med nye forsøk.
 
+### Manuell oppdatering av eksterne data
+
+Driftskommandoen oppdaterer uten å tømme cache og lar tjenestenes egne låser,
+reservecacher og driftskontroller håndtere kildene:
+
+```bash
+php artisan external-data:refresh --all
+php artisan external-data:refresh --prison=ringerike
+php artisan external-data:refresh --prison=ilseng
+php artisan external-data:refresh --prison=kongsvinger
+```
+
+`--all` oppdaterer dagens TV-guide, lokale nyheter, vær og eventuelle bønnetider
+for alle fengsler. Deretter oppdateres felles fotball- og VM-data én gang, samt
+navnedager, «Dagen i dag», kriminalomsorgsnyheter og aktive nyhetsfeeder.
+`--prison` oppdaterer bare dagens TV-guide, lokale nyheter, vær og eventuelle
+bønnetider for valgt fengsel. Felles data oppdateres da ikke, og kommandoen sier
+tydelig fra om dette. Hver del rapporteres som oppdatert, hoppet over eller feilet;
+uavhengige deler fortsetter, men kommandoen avslutter med feilkode ved delvis feil.
+
+PowerShell-menyen ligger lokalt på PC-en i `$HOME\PowerShellScripts\innsatt.ps1`
+og startes med funksjonen `innsatt`. Den bruker SSH-aliasene `docker01` og
+`innsatt-prod`. På en ny PC kopieres det versjonerte meny-skriptet til denne
+mappen, PowerShell-profilen får funksjonen `innsatt`, og SSH-aliasene konfigureres
+med brukerens egne nøkler. Ingen private nøkler eller passord skal legges i
+repositoryet. Menyskriptet er ikke ennå levert til repositoryet; når det foreligger,
+skal en kopi lagres som `tools/windows/innsatt.ps1`.
+
+Se også [driftsdokumentasjonen](docs/server-changes.md#drift--målrettet-oppdatering-av-eksterne-data)
+for produksjonskommandoer og oppsett av den lokale PowerShell-menyen.
+
 For en målrettet, manuell kontroll av dagens TV-data brukes
 `php artisan external-data:refresh tv --force`. Den omgår bare schedulerens
 intervallkontroll for dagens Ringerike- og Ilseng-utvalg, og skriver ut resultat

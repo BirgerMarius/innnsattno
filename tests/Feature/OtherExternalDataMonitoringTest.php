@@ -183,8 +183,8 @@ class OtherExternalDataMonitoringTest extends TestCase
             ]);
         });
         $this->artisan('external-data:warm')->expectsOutput('Forhåndshenting fullført.')->assertExitCode(0);
-        $this->assertSame(44, DB::table('external_data_checks')->where('service', 'tv-guide-vg')->count());
-        $this->assertSame(8, DB::table('external_data_checks')->where('service', 'sportsnext')->where('failure_count', 0)->count());
+        $this->assertSame(66, DB::table('external_data_checks')->where('service', 'tv-guide-vg')->count());
+        $this->assertSame(11, DB::table('external_data_checks')->where('service', 'sportsnext')->where('failure_count', 0)->count());
     }
 
     /** A complete date-specific VG response, matching the requested local channel set. */
