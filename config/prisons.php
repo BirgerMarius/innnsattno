@@ -85,12 +85,12 @@ return [
             'official_url' => 'https://www.kriminalomsorgen.no/fengsel/innlandet-kriminalomsorgen-innlandet-avd-utenlandske-innsatte-kongsvinger',
             'local_news' => [
                 'source_name' => 'Glåmdalen',
-                'description' => 'Nyheter fra Glåmdalen om Kongsvinger fengsel og Kriminalomsorgen Innlandet.',
+                'description' => 'Nyheter fra Glåmdalen om fengsel og Kriminalomsorgen Innlandet.',
                 'sources' => [
                     [
-                        'label' => 'Kongsvinger fengsel',
-                        'more_label' => 'Flere saker hos Glåmdalen – emneknagg: Kongsvinger fengsel',
-                        'url' => 'https://www.glomdalen.no/kongsvinger-fengsel/',
+                        'label' => 'Fengsel',
+                        'more_label' => 'Flere saker hos Glåmdalen – emneknagg: fengsel',
+                        'url' => 'https://www.glomdalen.no/tag/fengsel',
                         'article_hosts' => ['glomdalen.no', 'www.glomdalen.no'],
                     ],
                     [

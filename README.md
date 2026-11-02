@@ -261,15 +261,17 @@ separate `/nyheter`-siden er uavhengige av dette utvalget.
 
 Lokale nyheter hentes av én felles `LocalNewsService`, med kilde per fengsel i
 `config/prisons.php`. Ringerike bruker Ringerikes Blads emneside, Ilseng bruker
-Hamar Arbeiderblads emneside og Kongsvinger bruker Glåmdalens emneside. Tjenesten
+Hamar Arbeiderblads emneside og Kongsvinger bruker Glåmdalens emnesider. For
+Kongsvinger er disse `https://www.glomdalen.no/tag/fengsel` og
+`https://www.glomdalen.no/tag/kriminalomsorgen-innlandet`. Tjenesten
 henter bare offentlig tilgjengelige teasere: tittel, dato, abonnementsmerking,
 original artikkellenke og eventuelt teaserbilde. Artikkeltekst og sammendrag
 hentes aldri.
 
 Når en kilde vedlikeholdes eller et fengsel legges til, oppdater
 `local_news.source_name` og `local_news.sources`. Hver inngang skal ha `url`
-og en eksplisitt `article_hosts`-liste. Emnesiden skal filtrere på det konkrete
-fengselet; ikke bruk brede fritekstsøk. Flere innganger for samme fengsel
+og en eksplisitt `article_hosts`-liste. Emnesiden skal være en relevant,
+redaksjonelt vedlikeholdt emneinngang; ikke bruk brede fritekstsøk. Flere innganger for samme fengsel
 slås sammen, avdupliseres på normalisert artikkellenke og sorteres etter
 offentlig publiseringsdato uten å bruke hentetidspunktet som dato. Hvert
 fengsel har egen cache, reservecache og lås med fengselssluggen, mens hver

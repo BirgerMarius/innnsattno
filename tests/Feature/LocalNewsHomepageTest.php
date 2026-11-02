@@ -30,12 +30,12 @@ class LocalNewsHomepageTest extends TestCase
                 ->assertOk()
                 ->assertSee('Lokale nyheter om '.$name)
                 ->assertSee($prison === 'kongsvinger'
-                    ? 'Nyheter fra Glåmdalen om Kongsvinger fengsel og Kriminalomsorgen Innlandet.'
+                    ? 'Nyheter fra Glåmdalen om fengsel og Kriminalomsorgen Innlandet.'
                     : 'Lokale nyheter om '.$name.' fra '.$source)
                 ->assertSee($title)
                 ->assertSee($url, false)
                 ->assertSee($prison === 'kongsvinger'
-                    ? 'Flere saker hos Glåmdalen – emneknagg: Kongsvinger fengsel'
+                    ? 'Flere saker hos Glåmdalen – emneknagg: fengsel'
                     : 'Se flere lokale nyheter hos '.$source)
                 ->assertSee('Abonnement');
         }
@@ -44,8 +44,8 @@ class LocalNewsHomepageTest extends TestCase
         $this->get('/kongsvinger')
             ->assertDontSee('Ringerike-sak')
             ->assertDontSee('Ilseng-sak')
-            ->assertSee('Nyheter fra Glåmdalen om Kongsvinger fengsel og Kriminalomsorgen Innlandet.')
-            ->assertSee('Flere saker hos Glåmdalen – emneknagg: Kongsvinger fengsel')
+            ->assertSee('Nyheter fra Glåmdalen om fengsel og Kriminalomsorgen Innlandet.')
+            ->assertSee('Flere saker hos Glåmdalen – emneknagg: fengsel')
             ->assertSee('Flere saker hos Glåmdalen – emneknagg: Kriminalomsorgen Innlandet')
             ->assertSee('class="local-news-more-list"', false)
             ->assertSee('https://www.glomdalen.no/tag/kriminalomsorgen-innlandet', false);
@@ -56,7 +56,7 @@ class LocalNewsHomepageTest extends TestCase
         Http::fake([
             'https://www.ringblad.no/ringerike-fengsel/' => Http::response($this->teaser('/ringerike/s/5-45-1', 'Ringerike'), 200),
             'https://www.h-a.no/ilseng-fengsel/' => Http::response($this->teaser('/ilseng/s/5-139-1', 'Ilseng'), 200),
-            'https://www.glomdalen.no/kongsvinger-fengsel/' => Http::response($this->teaser('/kongsvinger/s/80-19-1', 'Kongsvinger'), 200),
+            'https://www.glomdalen.no/tag/fengsel' => Http::response($this->teaser('/kongsvinger/s/80-19-1', 'Kongsvinger'), 200),
             'https://www.glomdalen.no/tag/kriminalomsorgen-innlandet' => Http::response($this->teaser('/innlandet/s/80-19-2', 'Innlandet'), 200),
             '*' => Http::response('', 404),
         ]);

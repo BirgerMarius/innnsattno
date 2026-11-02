@@ -38,7 +38,7 @@ class LocalNewsServiceTest extends TestCase
             'https://www.h-a.no/ilseng-fengsel/' => Http::response($this->html(
                 $this->teaser('/ilseng/s/5-139-1', 'Ilseng-sak').$this->teaser('https://www.glomdalen.no/feil/s/80-19-1', 'Feil vert')
             ), 200),
-            'https://www.glomdalen.no/kongsvinger-fengsel/' => Http::response($this->html(
+            'https://www.glomdalen.no/tag/fengsel' => Http::response($this->html(
                 $this->teaser('/kongsvinger/s/80-19-1', 'Kongsvinger-sak').$this->teaser('https://user@www.glomdalen.no/feil', 'Brukernavn')
             ), 200),
             'https://www.glomdalen.no/tag/kriminalomsorgen-innlandet' => Http::response($this->html($this->teaser('/tag/s/80-19-2', 'Innlandet-sak')), 200),
@@ -57,7 +57,7 @@ class LocalNewsServiceTest extends TestCase
     public function testKongsvingerMergesDeduplicatesAndSortsArticlesByPublishedDate(): void
     {
         Http::fake([
-            'https://www.glomdalen.no/kongsvinger-fengsel/' => Http::response($this->html(
+            'https://www.glomdalen.no/tag/fengsel' => Http::response($this->html(
                 $this->teaser('/eldre/s/80-19-1', 'Eldre sak', false, '2026-01-01T12:00:00+01:00')
                 .$this->teaser('/delt/s/80-19-2?utm_source=tag', 'Delt sak', false, '2026-01-03T12:00:00+01:00')
             ), 200),
@@ -77,7 +77,7 @@ class LocalNewsServiceTest extends TestCase
     public function testAFailedKongsvingerEntryDoesNotHideArticlesFromTheOtherEntry(): void
     {
         Http::fake([
-            'https://www.glomdalen.no/kongsvinger-fengsel/' => Http::response('', 503),
+            'https://www.glomdalen.no/tag/fengsel' => Http::response('', 503),
             'https://www.glomdalen.no/tag/kriminalomsorgen-innlandet' => Http::response($this->html(
                 $this->teaser('/tag/s/80-19-4', 'Sak fra fungerende tagg')
             ), 200),
