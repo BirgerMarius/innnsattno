@@ -254,8 +254,7 @@ og startes med funksjonen `innsatt`. Den bruker SSH-aliasene `docker01` og
 `innsatt-prod`. På en ny PC kopieres det versjonerte meny-skriptet til denne
 mappen, PowerShell-profilen får funksjonen `innsatt`, og SSH-aliasene konfigureres
 med brukerens egne nøkler. Ingen private nøkler eller passord skal legges i
-repositoryet. Menyskriptet er ikke ennå levert til repositoryet; når det foreligger,
-skal en kopi lagres som `tools/windows/innsatt.ps1`.
+repositoryet. Den versjonerte kopien ligger i `tools/windows/innsatt.ps1`.
 
 Se også [driftsdokumentasjonen](docs/server-changes.md#drift--målrettet-oppdatering-av-eksterne-data)
 for produksjonskommandoer og oppsett av den lokale PowerShell-menyen.

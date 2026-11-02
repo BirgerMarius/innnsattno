@@ -29,11 +29,35 @@ driftskontroller beholdes.
 
 PowerShell-menyen ligger på administratørens PC i
 `$HOME\PowerShellScripts\innsatt.ps1` og startes med funksjonen `innsatt`.
-Den bruker SSH-aliasene `docker01` og `innsatt-prod`. På en ny PC kopieres
-menyskriptet til denne mappen, funksjonen `innsatt` legges i PowerShell-profilen,
-og aliasene settes opp med brukerens egne SSH-nøkler. Ikke lagre nøkler eller
-passord i repositoryet. Når PowerShell-skriptet er ferdigstilt, skal en
-versjonert kopi ligge i `tools/windows/innsatt.ps1` og dermed følge vanlig deploy.
+Den bruker OpenSSH, VS Code og SSH-aliasene `docker01` og `innsatt-prod`.
+Funksjonen i PowerShell-profilen er:
+
+```powershell
+function innsatt { & "$HOME\PowerShellScripts\innsatt.ps1" }
+```
+
+Menyvalg 9 åpner cache-undermenyen. Der kan operatøren oppdatere alle data eller
+data for Ringerike, Ilseng eller Kongsvinger. Serverkommandoene over må være
+deployet før cachevalgene brukes.
+
+På en ny PC opprettes mappen og den versjonerte kopien installeres slik:
+
+```powershell
+New-Item -ItemType Directory -Force "$HOME\PowerShellScripts"
+Copy-Item .\tools\windows\innsatt.ps1 "$HOME\PowerShellScripts\innsatt.ps1"
+```
+
+Legg deretter funksjonen over i PowerShell-profilen og konfigurer `docker01` og
+`innsatt-prod` i brukerens SSH-konfigurasjon med egne nøkler. Ved oppdatering på
+en eksisterende PC skal gjeldende skript sikkerhetskopieres før overskriving:
+
+```powershell
+Copy-Item "$HOME\PowerShellScripts\innsatt.ps1" "$HOME\PowerShellScripts\innsatt.ps1.bak-$(Get-Date -Format yyyyMMddHHmmss)"
+Copy-Item .\tools\windows\innsatt.ps1 "$HOME\PowerShellScripts\innsatt.ps1"
+```
+
+Den versjonerte kopien ligger i `tools/windows/innsatt.ps1` og følger vanlig
+deploy. Ikke lagre private nøkler eller passord i repositoryet.
 
 ## 2026-10-24 – Servervedlikehold og oppdatert produksjonsstatus
 
