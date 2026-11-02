@@ -93,8 +93,8 @@ er ikke lagt til ennå, fordi de ikke har en verifisert VG-kanalidentitet.
 Utvalget er NRK1, NRK2, NRK3, TV 2 Direkte, TV 2 Zebra, TV 2 Livsstil,
 TV 2 Nyheter, TVNorge, BBC Nordic, Viasat Explore, History, Discovery Channel,
 Investigation Discovery, REX, MTV, SVT1, SVT2, Eurosport 1 og Al Jazeera English.
-Bønnetid.no sitt lokasjonsregister krever tilgang; sett den verifiserte
-`BONNETID_KONGSVINGER_LOCATION_ID` før bønnetidene for Kongsvinger åpnes.
+Bønnetider bruker Bønnetid.no sine verifiserte steds-ID-er: Ringerike 146,
+Ilseng 181 og Kongsvinger 153. ID-ene ligger fast i `config/prisons.php`.
 
 ## Felles header
 

@@ -42,12 +42,22 @@ class ManualExternalDataRefreshCommandTest extends TestCase
             ->assertExitCode(0);
     }
 
+    public function test_kongsvinger_refresh_uses_its_verified_prayer_location(): void
+    {
+        $this->app->instance(TvGuideService::class, $this->makeMock(TvGuideService::class, fn ($mock) => $mock->shouldReceive('refreshSchedule')->once()->andReturnTrue()));
+        $this->app->instance(LocalNewsService::class, $this->makeMock(LocalNewsService::class, fn ($mock) => $mock->shouldReceive('refresh')->once()->with('kongsvinger')));
+        $this->app->instance(WeatherForecastService::class, $this->makeMock(WeatherForecastService::class, fn ($mock) => $mock->shouldReceive('refresh')->once()->with('kongsvinger')));
+        $this->app->instance(PrayerTimeService::class, $this->makeMock(PrayerTimeService::class, fn ($mock) => $mock->shouldReceive('refreshMonth')->once()->with(153, Mockery::type('int'), Mockery::type('int'))));
+
+        $this->artisan('external-data:refresh', ['--prison' => 'kongsvinger'])->assertExitCode(0);
+    }
+
     public function test_all_refreshes_every_prison_and_shared_data_once(): void
     {
         $this->app->instance(TvGuideService::class, $this->makeMock(TvGuideService::class, fn ($mock) => $mock->shouldReceive('refreshSchedule')->times(3)->andReturnTrue()));
         $this->app->instance(LocalNewsService::class, $this->makeMock(LocalNewsService::class, fn ($mock) => $mock->shouldReceive('refresh')->once()->with('ringerike')->ordered()->shouldReceive('refresh')->once()->with('ilseng')->ordered()->shouldReceive('refresh')->once()->with('kongsvinger')->ordered()));
         $this->app->instance(WeatherForecastService::class, $this->makeMock(WeatherForecastService::class, fn ($mock) => $mock->shouldReceive('refresh')->times(3)));
-        $this->app->instance(PrayerTimeService::class, $this->makeMock(PrayerTimeService::class, fn ($mock) => $mock->shouldReceive('refreshMonth')->times(2)));
+        $this->app->instance(PrayerTimeService::class, $this->makeMock(PrayerTimeService::class, fn ($mock) => $mock->shouldReceive('refreshMonth')->times(3)));
         foreach ([PremierLeagueService::class, EliteserienService::class, ObosLigaenService::class, LaLigaService::class, BundesligaService::class, ChampionsLeagueService::class, EuropaLeagueService::class, ConferenceLeagueService::class, NationsLeagueService::class] as $class) {
             $this->app->instance($class, $this->makeMock($class, function ($mock) use ($class) {
                 $mock->shouldReceive('competitionKey')->once()->andReturn(class_basename($class));

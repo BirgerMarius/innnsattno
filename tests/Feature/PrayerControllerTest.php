@@ -175,6 +175,18 @@ class PrayerControllerTest extends TestCase
             ->assertSee('window.location.replace(returnUrl);', false);
     }
 
+    public function test_kongsvinger_uses_the_verified_provider_location(): void
+    {
+        Http::fake(['api.bonnetid.no/*' => Http::response([$this->bonnetidDay(['location' => 'Kongsvinger'])])]);
+
+        $this->get('/kongsvinger/bonnetider?year=2026&month=9')
+            ->assertOk()
+            ->assertSee('Bønnetider Kongsvinger fengsel')
+            ->assertDontSee('under klargjøring');
+
+        Http::assertSent(fn ($request) => $request->url() === 'https://api.bonnetid.no/prayertimes/153/2026/9/');
+    }
+
     public function test_ringerike_front_page_prayer_print_flow_keeps_the_prefix_when_query_context_conflicts(): void
     {
         Http::fake(['api.bonnetid.no/*' => Http::response([$this->bonnetidDay()])]);
@@ -227,7 +239,7 @@ class PrayerControllerTest extends TestCase
         return [
             'Ringerike' => ['ringerike', 'Ringerike fengsel', true],
             'Ilseng' => ['ilseng', 'Ilseng fengsel', true],
-            'Kongsvinger uten leverandør-ID' => ['kongsvinger', 'Kongsvinger fengsel', false],
+            'Kongsvinger' => ['kongsvinger', 'Kongsvinger fengsel', true],
         ];
     }
 

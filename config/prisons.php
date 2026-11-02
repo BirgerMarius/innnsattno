@@ -65,9 +65,7 @@ return [
                 'svt1', 'svt2', 'eurosport-1', 'eurosport-norge', 'al-jazeera-english',
             ],
             'weather_key' => 'kongsvinger',
-            // Bønnetid.no has no publicly readable location catalogue. Set the
-            // verified provider ID in production before enabling this page.
-            'prayer_location_id' => env('BONNETID_KONGSVINGER_LOCATION_ID'),
+            'prayer_location_id' => 153,
             'tv_available' => true,
             'visitation_available' => true,
             'visitation_departments' => [

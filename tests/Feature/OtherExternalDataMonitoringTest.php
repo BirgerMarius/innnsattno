@@ -85,6 +85,8 @@ class OtherExternalDataMonitoringTest extends TestCase
         }
         app(ExternalDataMonitor::class)->evaluate();
         $this->assertDatabaseHas('external_data_checks', ['service' => 'bonnetid-no', 'coverage_key' => '146-2026-10-19', 'failure_count' => 3]);
+        $this->assertDatabaseHas('external_data_checks', ['service' => 'bonnetid-no', 'coverage_key' => '153-2026-10-19', 'failure_count' => 3]);
+        Http::assertSent(fn ($request) => str_contains($request->url(), '/prayertimes/153/2026/10/'));
         Mail::assertSent(ExternalDataIncidentMail::class, fn ($mail) => $mail->service === 'bonnetid-no' && $mail->state === 'critical');
     }
 
