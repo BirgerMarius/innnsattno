@@ -13,6 +13,7 @@ sudo -u forge /usr/bin/php artisan external-data:refresh --all
 sudo -u forge /usr/bin/php artisan external-data:refresh --prison=ringerike
 sudo -u forge /usr/bin/php artisan external-data:refresh --prison=ilseng
 sudo -u forge /usr/bin/php artisan external-data:refresh --prison=kongsvinger
+sudo -u forge /usr/bin/php artisan external-data:warm --prison=kongsvinger
 ```
 
 `--all` oppdaterer dagens TV-guide, lokale nyheter, vær og eventuelle
@@ -21,6 +22,9 @@ VM-data én gang, samt navnedager, «Dagen i dag», kriminalomsorgsnyheter og
 aktive nyhetsfeeder. `--prison` oppdaterer bare dagens TV-guide, lokale
 nyheter, vær og eventuelle bønnetider for angitt fengsel. Felles data blir
 ikke hentet ved fengselsvalg; kjør `--all` når de også skal fornyes.
+For å fylle TV-data for en hel fotballuke etterpå brukes
+`external-data:warm --prison=<fengsel>`. Den henter fra åtte dager tilbake til
+tretten dager frem og tømmer ikke cache.
 
 Kommandoen skriver en rad for hver del som er oppdatert, hoppet over eller
 feilet. Uavhengige kilder fortsetter etter en feil, men kommandoen returnerer

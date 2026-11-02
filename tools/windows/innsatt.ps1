@@ -33,7 +33,8 @@ function Show-InnsattCacheMenu {
         Write-Host "0  Tilbake"
         Write-Host
         Write-Host "Fengselsvalg oppdaterer:"
-        Write-Host "Dagens TV-guide, lokale nyheter, vær og eventuelle bønnetider."
+        Write-Host "Lokale nyheter, vær og eventuelle bønnetider, samt TV-guide"
+        Write-Host "fra 8 dager tilbake til 13 dager fremover."
         Write-Host
         Write-Host "Oppdater alt inkluderer også:"
         Write-Host "Felles fotball-/VM-data, navnedager, Dagen i dag og nyhetsfeeder."
@@ -67,7 +68,8 @@ function Show-InnsattCacheMenu {
             Write-Host "Dette kan ta litt tid."
             Write-Host
 
-            $RemoteCommand = "cd /home/forge/innsatt.no/innnsattno && sudo -u forge /usr/bin/php artisan external-data:refresh $RefreshArgument"
+            $WarmArgument = if ($CacheChoice -eq "1") { "" } else { $RefreshArgument }
+            $RemoteCommand = "cd /home/forge/innsatt.no/innnsattno && sudo -u forge /usr/bin/php artisan external-data:refresh $RefreshArgument && sudo -u forge /usr/bin/php artisan external-data:warm $WarmArgument"
 
             ssh innsatt-prod $RemoteCommand
             $RefreshExitCode = $LASTEXITCODE

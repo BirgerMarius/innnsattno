@@ -221,6 +221,7 @@ Etter siste cachetømming fylles TV-data, også den ekstra mandagsdatoen, med:
 
 ```bash
 php artisan external-data:warm
+php artisan external-data:warm --prison=kongsvinger
 ```
 
 Etter deploy og migrering kan TV- og fotballdata fylles med
@@ -228,6 +229,9 @@ Etter deploy og migrering kan TV- og fotballdata fylles med
 beholder reservedata ved feil og avslutter med status 1 ved feil eller manglende
 nødvendige data for i dag/tidligere. Fremtidige TV-programmer kan være upubliserte.
 Scheduleren fortsetter med nye forsøk.
+Med `--prison=<fengsel>` forhåndshentes bare TV-guiden for valgt fengsel i samme
+vindu (åtte dager tilbake og tretten dager frem); felles fotball- og andre data
+berøres ikke.
 
 ### Manuell oppdatering av eksterne data
 

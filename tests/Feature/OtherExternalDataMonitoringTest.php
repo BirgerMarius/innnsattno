@@ -187,6 +187,27 @@ class OtherExternalDataMonitoringTest extends TestCase
         $this->assertSame(11, DB::table('external_data_checks')->where('service', 'sportsnext')->where('failure_count', 0)->count());
     }
 
+    public function test_warm_command_for_one_prison_fills_its_tv_window_without_refreshing_shared_data(): void
+    {
+        Http::fake(function ($request) {
+            if (str_contains($request->url(), 'tvguide.vg.no')) {
+                return Http::response($this->completeTvGuideResponse($request));
+            }
+
+            return Http::response([], 404);
+        });
+
+        $this->artisan('external-data:warm', ['--prison' => 'kongsvinger'])
+            ->expectsOutput('Forhåndshenting av TV-guide fullført.')
+            ->assertExitCode(0);
+
+        $this->assertSame(22, DB::table('external_data_checks')->where('service', 'tv-guide-vg')
+            ->where('coverage_key', 'like', 'kongsvinger-%')->count());
+        $this->assertSame(0, DB::table('external_data_checks')->where('service', 'tv-guide-vg')
+            ->where('coverage_key', 'not like', 'kongsvinger-%')->count());
+        $this->assertSame(0, DB::table('external_data_checks')->where('service', 'sportsnext')->count());
+    }
+
     /** A complete date-specific VG response, matching the requested local channel set. */
     private function completeTvGuideResponse($request): array
     {

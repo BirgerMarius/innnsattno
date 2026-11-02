@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Schema;
 
 class WarmExternalData extends Command
 {
-    protected $signature = 'external-data:warm';
+    protected $signature = 'external-data:warm {--prison= : Forhåndshent TV-guide for ett fengsel (ringerike, ilseng eller kongsvinger)}';
     protected $description = 'Forhåndshent TV- og fotballdata og rapporter datadekning';
 
     public function handle(TvGuideService $tv): int
@@ -30,12 +30,22 @@ class WarmExternalData extends Command
 
         $rows = [];
         $failed = false;
+        $prison = $this->option('prison');
+        if ($prison !== null && ! array_key_exists($prison, config('prisons.all', []))) {
+            $this->error('Ukjent fengsel: '.$prison.'.');
+
+            return self::INVALID;
+        }
         $today = now('Europe/Oslo')->startOfDay();
         $dates = [$today->copy()];
         for ($i = 1; $i <= 8; $i++) $dates[] = $today->copy()->subDays($i);
         for ($i = 1; $i <= 13; $i++) $dates[] = $today->copy()->addDays($i);
+        $selections = TvGuideService::prisonChannelSelections();
+        if ($prison !== null) {
+            $selections = [$prison => $selections[$prison]];
+        }
         foreach ($dates as $date) {
-            foreach (TvGuideService::prisonChannelSelections() as $selection => $channels) {
+            foreach ($selections as $selection => $channels) {
                 $ok = $tv->refreshSchedule($date, $channels, $selection);
                 $available = collect($tv->getSchedule($date, $channels, $selection))->contains(fn ($channel) => ! empty($channel['listings']));
                 $status = ! $ok ? ($available ? 'Feil, reservedata beholdt' : 'Feil, data mangler')
@@ -43,6 +53,17 @@ class WarmExternalData extends Command
                 $rows[] = [$selection.' '.$date->toDateString(), $status];
                 $failed = $failed || ! $ok || (! $date->gt($today) && ! $available);
             }
+        }
+        if ($prison !== null) {
+            $this->table(['Datadekning', 'Resultat'], $rows);
+            if ($failed) {
+                $this->error('Noen TV-hentinger feilet eller mangler data. Scheduleren prøver på nytt.');
+
+                return self::FAILURE;
+            }
+            $this->info('Forhåndshenting av TV-guide fullført.');
+
+            return self::SUCCESS;
         }
         foreach ([PremierLeagueService::class, EliteserienService::class, ObosLigaenService::class, LaLigaService::class, BundesligaService::class, ChampionsLeagueService::class, EuropaLeagueService::class, ConferenceLeagueService::class, NationsLeagueService::class] as $class) {
             $service = app($class);
