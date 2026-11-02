@@ -47,10 +47,10 @@ class RefreshExternalData extends Command
             // A manual operational refresh must not silently succeed merely
             // because the scheduler's generic VG check is still within its
             // normal interval. Keep this deliberately narrow: it refreshes
-            // today's two published prison selections, not the whole window.
+            // today's published prison selections, not the whole window.
             $today = now('Europe/Oslo')->startOfDay();
             $failed = false;
-            foreach (['ringerike' => TvGuideService::ringerikeChannels(), 'ilseng' => TvGuideService::ilsengChannels()] as $selection => $channels) {
+            foreach (TvGuideService::prisonChannelSelections() as $selection => $channels) {
                 $ok = $tv->refreshSchedule($today, $channels, $selection);
                 $this->line('TV '.$selection.' '.$today->format('Y-m-d').': '.($ok ? 'kontrollert' : 'kunne ikke kontrolleres'));
                 $failed = $failed || ! $ok;
@@ -72,7 +72,8 @@ class RefreshExternalData extends Command
         $end = $today->copy()->addDays(13);
         $checks = DB::table('external_data_checks')->where('service', 'tv-guide-vg')->get()->keyBy('coverage_key');
         $pending = [];
-        foreach (['ringerike' => TvGuideService::ringerikeChannels(), 'ilseng' => TvGuideService::ilsengChannels()] as $selection => $channels) {
+        $selections = TvGuideService::prisonChannelSelections();
+        foreach ($selections as $selection => $channels) {
             for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
                 if ($tv->refreshDeferred($date, $channels) && $tv->hasCachedSchedule($date, $channels)) {
                     continue;
@@ -92,12 +93,15 @@ class RefreshExternalData extends Command
         // Continue confirming every previously alerted date, even across a week boundary.
         $incident = DB::table('external_data_incidents')->where('service', 'tv-guide-vg')->first();
         foreach ($incident ? (json_decode($incident->affected_keys, true) ?: []) : [] as $key) {
-            if (! preg_match('/^(ringerike|ilseng)-(\d{4}-\d{2}-\d{2})$/', $key, $matches)) {
+            if (! preg_match('/^([a-z0-9-]+)-(\d{4}-\d{2}-\d{2})$/', $key, $matches)) {
                 continue;
             }
             $row = $checks[$key] ?? null;
             $date = Carbon::parse($matches[2], 'Europe/Oslo')->startOfDay();
-            $channels = $matches[1] === 'ilseng' ? TvGuideService::ilsengChannels() : TvGuideService::ringerikeChannels();
+            $channels = $selections[$matches[1]] ?? null;
+            if ($channels === null) {
+                continue;
+            }
             if (! $row || ((int) $row->failure_count === 0 && $row->usable) || $date->betweenIncluded($start, $end)
                 || ($tv->refreshDeferred($date, $channels) && $tv->hasCachedSchedule($date, $channels))
                 || ($row->last_check_at && Carbon::parse($row->last_check_at)->gt(now()->subMinutes(15)))) {

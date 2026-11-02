@@ -99,7 +99,7 @@
             <p class="text-muted mb-3">Åpne TV-guiden for en dato innenfor VGs tilgjengelige datovindu.</p>
             <form method="get" action="{{ route('admin.tv-print') }}" class="d-flex flex-wrap align-items-end gap-3" target="_blank">
                 <div><label for="tv_print_date" class="form-label">Dato</label><input type="date" id="tv_print_date" name="date" value="{{ $tvPrintDefaultDate }}" class="form-control" required></div>
-                <div><label for="tv_print_prison" class="form-label">Fengsel</label><select id="tv_print_prison" name="prison" class="form-select" required><option value="ringerike">Ringerike</option><option value="ilseng">Ilseng</option></select></div>
+                <div><label for="tv_print_prison" class="form-label">Fengsel</label><select id="tv_print_prison" name="prison" class="form-select" required>@foreach ($tvPrintPrisons as $tvPrintPrison)<option value="{{ $tvPrintPrison['slug'] }}">{{ $tvPrintPrison['name'] }}</option>@endforeach</select></div>
                 <button type="submit" class="btn btn-primary">Åpne TV-utskrift</button>
             </form>
         </div>

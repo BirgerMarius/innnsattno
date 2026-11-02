@@ -1,4 +1,4 @@
-@include('partials.tv-print-head', ['title' => 'TV-guide – Ringerike fengsel | Innsatt.no'])
+@include('partials.tv-print-head', ['title' => 'TV-guide – '.$prison['name'].' | Innsatt.no'])
 
 @php
     $now = \Carbon\Carbon::now('Europe/Oslo');
@@ -8,7 +8,7 @@
 
 
 <h2 style="text-align:center; margin-bottom:10px;">
-    TV-guide Ringerike fengsel
+    TV-guide {{ $prison['name'] }}
 </h2>
 
 <p style="text-align:center; margin-top:0; margin-bottom:20px;">
@@ -116,6 +116,6 @@
 
 </div>
 
-@include('partials.print-redirect', ['fallbackUrl' => route('tv', [], false), 'autoPrint' => true])
+@include('partials.print-redirect', ['fallbackUrl' => $prison['slug'] === 'ringerike' ? route('tv', [], false) : route('prison.home', $prison['slug'], false), 'autoPrint' => true])
 </body>
 </html>

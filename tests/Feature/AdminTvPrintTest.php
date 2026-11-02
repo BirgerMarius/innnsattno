@@ -25,7 +25,7 @@ class AdminTvPrintTest extends TestCase
         parent::tearDown();
     }
 
-    public function test_dashboard_has_a_tv_print_date_picker_with_today_as_default_and_both_prisons(): void
+    public function test_dashboard_has_a_tv_print_date_picker_with_today_as_default_and_all_active_tv_prisons(): void
     {
         $this->withSession(['admin_authenticated' => true])->get('/adm')
             ->assertOk()
@@ -34,6 +34,7 @@ class AdminTvPrintTest extends TestCase
             ->assertSee('name="date" value="2026-09-21"', false)
             ->assertSee('<option value="ringerike">Ringerike</option>', false)
             ->assertSee('<option value="ilseng">Ilseng</option>', false)
+            ->assertSee('<option value="kongsvinger">Kongsvinger</option>', false)
             ->assertSee(route('admin.tv-print'), false);
     }
 

@@ -274,6 +274,21 @@ class TvGuideService
         return array_values($definition['tv_channels'] ?? []);
     }
 
+    /** @return array<string, array<int, string>> Active TV selections per prison. */
+    public static function prisonChannelSelections(): array
+    {
+        $selections = [];
+
+        foreach (config('prisons.all', []) as $slug => $definition) {
+            $channels = is_array($definition) ? array_values($definition['tv_channels'] ?? []) : [];
+            if (($definition['tv_available'] ?? false) && $channels !== []) {
+                $selections[$slug] = $channels;
+            }
+        }
+
+        return $selections;
+    }
+
     /**
      * Return direct, identifiable football matches for one supported competition.
      * The cache is shared between all football pages and printouts. Nations

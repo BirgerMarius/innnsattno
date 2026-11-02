@@ -12,7 +12,7 @@ abstract class TestCase extends BaseTestCase
     protected function warmTv(\Carbon\CarbonInterface $start, int $days = 1, string $prison = 'ringerike'): void
     {
         $service = app(\App\Services\TvGuideService::class);
-        $channels = $prison === 'ilseng' ? $service::ilsengChannels() : $service::ringerikeChannels();
+        $channels = $service::channelsForPrison($prison);
         for ($i = 0; $i < $days; $i++) {
             $service->refreshSchedule($start->copy()->addDays($i), $channels, $prison);
         }

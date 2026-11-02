@@ -35,7 +35,7 @@ class WarmExternalData extends Command
         for ($i = 1; $i <= 8; $i++) $dates[] = $today->copy()->subDays($i);
         for ($i = 1; $i <= 13; $i++) $dates[] = $today->copy()->addDays($i);
         foreach ($dates as $date) {
-            foreach (['ringerike' => TvGuideService::ringerikeChannels(), 'ilseng' => TvGuideService::ilsengChannels()] as $selection => $channels) {
+            foreach (TvGuideService::prisonChannelSelections() as $selection => $channels) {
                 $ok = $tv->refreshSchedule($date, $channels, $selection);
                 $available = collect($tv->getSchedule($date, $channels, 'warm'))->contains(fn ($channel) => ! empty($channel['listings']));
                 $status = ! $ok ? ($available ? 'Feil, reservedata beholdt' : 'Feil, data mangler')

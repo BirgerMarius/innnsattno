@@ -11,6 +11,7 @@ use App\ResourceCategory;
 use App\Services\AdminStatisticsSummary;
 use App\Services\PlannedSiteChangesService;
 use App\Services\TvGuideChannelHealthService;
+use App\Services\TvGuideService;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 
@@ -62,6 +63,10 @@ class AdminDashboardController extends Controller
             'trafficDate' => $trafficDate,
             'trafficDateInvalid' => $requestedDate !== null && $trafficDate === null,
             'tvPrintDefaultDate' => now('Europe/Oslo')->format('Y-m-d'),
+            'tvPrintPrisons' => collect(TvGuideService::prisonChannelSelections())
+                ->map(fn (array $channels, string $slug) => ['slug' => $slug, 'name' => str_replace(' fengsel', '', (string) config("prisons.all.{$slug}.name"))])
+                ->values()
+                ->all(),
             'tvGuideChannelHealth' => $tvGuideHealth->dashboard(),
         ]);
     }

@@ -86,8 +86,14 @@ prefiksede adressen.
 
 Kongsvingers offisielle avdelinger har samme besøksadresse, Vardåsveien 190,
 2214 Kongsvinger. Værstedet bruker adressepunktet 60.2102457, 11.9851459.
-TV-guiden er uttrykkelig under klargjøring til en verifisert kanalliste er
-mottatt. Bønnetid.no sitt lokasjonsregister krever tilgang; sett den verifiserte
+Kongsvingers TV-guide bruker fengselets verifiserte kanalutvalg i
+`config/prisons.php`; både TV-guide, utskrift, fotballoversikter,
+cacheoppvarming og driftskontroller bruker samme utvalg. «5HD» og «Eurosport 2»
+er ikke lagt til ennå, fordi de ikke har en verifisert VG-kanalidentitet.
+Utvalget er NRK1, NRK2, NRK3, TV 2 Direkte, TV 2 Zebra, TV 2 Livsstil,
+TV 2 Nyheter, TVNorge, BBC Nordic, Viasat Explore, History, Discovery Channel,
+Investigation Discovery, REX, MTV, SVT1, SVT2, Eurosport 1 og Al Jazeera English.
+Bønnetid.no sitt lokasjonsregister krever tilgang; sett den verifiserte
 `BONNETID_KONGSVINGER_LOCATION_ID` før bønnetidene for Kongsvinger åpnes.
 
 ## Felles header
@@ -209,7 +215,8 @@ som starter 00.00–05.59 neste mandag. Den samme lokale datastrukturen brukes a
 nettsiden og plakaten. En konkret sending avdupliseres på VG `listing.id`, med
 kanal + sendestart + programidentitet som fallback; samme kamp kan derfor vises
 flere ganger når den faktisk sendes flere ganger. Kanalutvalget kommer fra
-`config/prisons.php`; Kongsvinger har bevisst en tom liste inntil den er mottatt.
+`config/prisons.php`; bare fengsler med aktivt kanalutvalg tas med i
+cacheoppvarming og datakontroller.
 Etter siste cachetømming fylles TV-data, også den ekstra mandagsdatoen, med:
 
 ```bash

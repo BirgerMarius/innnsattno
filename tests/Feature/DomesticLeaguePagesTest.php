@@ -37,7 +37,7 @@ class DomesticLeaguePagesTest extends TestCase
         $this->get('/ringerike/obos-ligaen')->assertOk()->assertSee('OBOS-ligaen 2026')->assertSee('Tabell')->assertSee('/ringerike/obos-ligaen/lag/1', false);
         $this->get('/ringerike/la-liga')->assertOk()->assertSee('La Liga 2026/27')->assertSee('Kun Ringerike – Lag')->assertSee('Kanalutvalg: Ringerike fengsel');
         $this->get('/ilseng/la-liga?fengsel=ringerike')->assertOk()->assertSee('Kun Ilseng – Lag')->assertDontSee('Kun Ringerike – Lag')->assertSee('Kanalutvalg: Ilseng fengsel');
-        $this->get('/kongsvinger/bundesliga')->assertOk()->assertSee('Bundesliga 2026/27')->assertSee('Kongsvinger fengsel – under klargjøring');
+        $this->get('/kongsvinger/bundesliga')->assertOk()->assertSee('Bundesliga 2026/27')->assertSee('Kanalutvalg: Kongsvinger fengsel');
         $this->get('/ringerike/bundesliga/utskrift')->assertOk()->assertSee('Bundesliga')->assertSee('const returnUrl = "/ringerike/bundesliga";', false);
         Carbon::setTestNow();
     }

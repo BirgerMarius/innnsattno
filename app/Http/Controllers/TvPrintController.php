@@ -85,6 +85,7 @@ class TvPrintController extends Controller
             'isSelectedDate' => $isSelectedDate,
             'tvAvailable' => $tvAvailable,
             'tvLastUpdated' => $tvLastUpdated,
+            'prison' => app(PrisonContext::class)->prison($prison),
         ]);
     }
 }

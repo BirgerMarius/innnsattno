@@ -13,8 +13,6 @@ use Illuminate\Validation\Rule;
 
 class AdminTvPrintController extends Controller
 {
-    private const PRISONS = ['ringerike', 'ilseng'];
-
     /* Verified against VG's TV API 21 September 2026: data was available from
        eight days back through thirteen days ahead; immediately outside it the
        API returned an empty schedule. */
@@ -25,7 +23,7 @@ class AdminTvPrintController extends Controller
     {
         $today = now('Europe/Oslo')->startOfDay();
         $validated = $request->validate([
-            'prison' => ['required', Rule::in(self::PRISONS)],
+            'prison' => ['required', Rule::in(array_keys(TvGuideService::prisonChannelSelections()))],
             'date' => [
                 'required',
                 'date_format:Y-m-d',

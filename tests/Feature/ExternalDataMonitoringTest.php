@@ -289,7 +289,7 @@ class ExternalDataMonitoringTest extends TestCase
         Mail::assertNothingSent();
     }
 
-    public function test_scheduled_tv_refresh_builds_both_prison_caches_and_page_views_make_no_requests(): void
+    public function test_scheduled_tv_refresh_builds_all_active_prison_caches_and_page_views_make_no_requests(): void
     {
         Http::fake([
             'tvguide.vg.no/*' => fn ($request) => Http::response($this->scheduleForRequest($request)),
@@ -298,9 +298,11 @@ class ExternalDataMonitoringTest extends TestCase
         $this->artisan('external-data:refresh', ['type' => 'tv'])->assertExitCode(0);
         $this->assertDatabaseHas('external_data_checks', ['service' => 'tv-guide-vg', 'coverage_key' => 'ringerike-2026-10-19', 'failure_count' => 0]);
         $this->assertDatabaseHas('external_data_checks', ['service' => 'tv-guide-vg', 'coverage_key' => 'ilseng-2026-10-19', 'failure_count' => 0]);
+        $this->assertDatabaseHas('external_data_checks', ['service' => 'tv-guide-vg', 'coverage_key' => 'kongsvinger-2026-10-19', 'failure_count' => 0]);
         $before = Http::recorded()->count();
         $this->get('/print')->assertOk()->assertSee('NRK1');
         $this->get('/print-ilseng')->assertOk()->assertSee('NRK1');
+        $this->get('/kongsvinger/tv-utskrift')->assertOk()->assertSee('NRK1');
         $this->assertCount($before, Http::recorded());
     }
 
@@ -326,7 +328,7 @@ class ExternalDataMonitoringTest extends TestCase
         Http::fake(['tvguide.vg.no/*' => fn ($request) => Http::response($this->scheduleForRequest($request))]);
 
         $dates = collect(range(-8, 13))->map(fn (int $offset) => now('Europe/Oslo')->startOfDay()->addDays($offset));
-        foreach (['ringerike' => TvGuideService::ringerikeChannels(), 'ilseng' => TvGuideService::ilsengChannels()] as $selection => $channels) {
+        foreach (TvGuideService::prisonChannelSelections() as $selection => $channels) {
             foreach ($dates as $date) {
                 $this->assertTrue($tv->refreshSchedule($date, $channels, $selection));
             }
