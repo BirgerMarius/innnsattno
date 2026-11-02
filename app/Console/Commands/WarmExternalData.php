@@ -37,9 +37,9 @@ class WarmExternalData extends Command
         foreach ($dates as $date) {
             foreach (TvGuideService::prisonChannelSelections() as $selection => $channels) {
                 $ok = $tv->refreshSchedule($date, $channels, $selection);
-                $available = collect($tv->getSchedule($date, $channels, 'warm'))->contains(fn ($channel) => ! empty($channel['listings']));
+                $available = collect($tv->getSchedule($date, $channels, $selection))->contains(fn ($channel) => ! empty($channel['listings']));
                 $status = ! $ok ? ($available ? 'Feil, reservedata beholdt' : 'Feil, data mangler')
-                    : ($tv->refreshDeferred($date, $channels) ? 'Reservedata beholdt; tomt kildesvar' : ($available ? 'Oppdatert' : ($date->gt($today) ? 'Ingen programmer publisert' : 'Data mangler')));
+                    : ($tv->refreshDeferred($date, $channels, $selection) ? 'Reservedata beholdt; tomt kildesvar' : ($available ? 'Oppdatert' : ($date->gt($today) ? 'Ingen programmer publisert' : 'Data mangler')));
                 $rows[] = [$selection.' '.$date->toDateString(), $status];
                 $failed = $failed || ! $ok || (! $date->gt($today) && ! $available);
             }

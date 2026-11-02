@@ -62,7 +62,7 @@ class WeeklyFootballTvTest extends TestCase
             ->assertSee('Barcelona')->assertSee('Sevilla')
             ->assertSee('Bayern')->assertSee('Dortmund')
             ->assertSee('La Liga')
-            ->assertSee('TV3+')->assertSee('V sport 1')
+            ->assertSee('TV3+')->assertDontSee('V sport 1')
             ->assertSee('href="http://localhost:8086/ringerike/ukens-fotball-pa-tv?uke=denne&amp;utvalg=utvidet"', false)
             ->assertDontSee('Studio – Magasin')
             ->assertSee('Sendestart')
@@ -172,7 +172,7 @@ class WeeklyFootballTvTest extends TestCase
     public function test_next_week_keeps_prison_selection_and_crosses_the_year_boundary(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-12-30 12:00:00', 'Europe/Oslo'));
-        Http::fake(['tvguide.vg.no/*' => Http::response([['channel' => ['name' => 'TV3+'], 'listings' => []]])]);
+        Http::fake(['tvguide.vg.no/*' => Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => []]])]);
 
         $this->get('/ilseng/ukens-fotball-pa-tv?fengsel=ringerike&uke=neste')->assertOk()
             ->assertSee('Neste ukes TV-sendte fotballkamper')
@@ -192,7 +192,7 @@ class WeeklyFootballTvTest extends TestCase
         Http::fake(function ($request) {
             parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
             $listings = ($query['date'] ?? '') === '2026-10-12' ? [$this->listing('Premier League', 'West Ham - Arsenal', '2026-10-12T17:00:00Z', 22)] : [];
-            return Http::response([['channel' => ['name' => 'TV3+'], 'listings' => $listings]]);
+            return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
         });
 
         $this->warmTv(now('Europe/Oslo')->startOfWeek(), 7);
@@ -205,7 +205,7 @@ class WeeklyFootballTvTest extends TestCase
 
     public function test_print_has_a4_layout_noindex_and_selected_prison(): void
     {
-        Http::fake(['tvguide.vg.no/*' => Http::response([['channel' => ['name' => 'V sport 1'], 'listings' => []]])]);
+        Http::fake(['tvguide.vg.no/*' => Http::response([['channel' => ['name' => 'V sport 1', 'slug' => 'v-sport-1'], 'listings' => []]])]);
 
         $this->get('/ilseng/ukens-fotball-pa-tv/utskrift?fengsel=ringerike')->assertOk()
             ->assertHeader('X-Robots-Tag', 'noindex, follow')
@@ -234,7 +234,7 @@ class WeeklyFootballTvTest extends TestCase
                     $listings[] = $this->listing('Premier League', 'Lag '.$number.' - Motstander '.$number, sprintf('2026-10-12T%02d:00:00Z', $number % 20), $number + 100);
                 }
             }
-            return Http::response([['channel' => ['name' => 'TV3+'], 'listings' => $listings]]);
+            return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
         });
 
         $this->warmTv(now('Europe/Oslo')->startOfWeek(), 7);

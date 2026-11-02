@@ -188,7 +188,7 @@ class RefreshExternalData extends Command
         $selections = TvGuideService::prisonChannelSelections();
         foreach ($selections as $selection => $channels) {
             for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
-                if ($tv->refreshDeferred($date, $channels) && $tv->hasCachedSchedule($date, $channels)) {
+                if ($tv->refreshDeferred($date, $channels, $selection) && $tv->hasCachedSchedule($date, $channels, $selection)) {
                     continue;
                 }
                 $key = $selection.'-'.$date->format('Y-m-d');
@@ -197,7 +197,7 @@ class RefreshExternalData extends Command
                 // The database records a source check, not the cache itself.
                 // Rebuild a missing local value even while the source check is
                 // still fresh, for example after a cache clear or a failed write.
-                if (! $tv->hasCachedSchedule($date, $channels)
+                if (! $tv->hasCachedSchedule($date, $channels, $selection)
                     || ! $row || ! $row->last_check_at || Carbon::parse($row->last_check_at)->lte(now()->subMinutes($interval))) {
                     $pending[] = ['selection' => $selection, 'channels' => $channels, 'date' => $date->copy(), 'today' => $date->isSameDay($today), 'checked' => $row->last_check_at ?? ''];
                 }
@@ -216,7 +216,7 @@ class RefreshExternalData extends Command
                 continue;
             }
             if (! $row || ((int) $row->failure_count === 0 && $row->usable) || $date->betweenIncluded($start, $end)
-                || ($tv->refreshDeferred($date, $channels) && $tv->hasCachedSchedule($date, $channels))
+                || ($tv->refreshDeferred($date, $channels, $matches[1]) && $tv->hasCachedSchedule($date, $channels, $matches[1]))
                 || ($row->last_check_at && Carbon::parse($row->last_check_at)->gt(now()->subMinutes(15)))) {
                 continue;
             }

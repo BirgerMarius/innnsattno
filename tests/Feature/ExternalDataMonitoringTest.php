@@ -241,7 +241,7 @@ class ExternalDataMonitoringTest extends TestCase
     public function test_coverage_lock_prevents_a_second_source_check_and_preserves_cache(): void
     {
         $date = now();
-        $identity = $date->format('Y-m-d').'|Europe/Oslo|nrk1';
+        $identity = $date->format('Y-m-d').'|Europe/Oslo|ringerike|nrk1';
         $cacheKey = 'tv-guide-vg.stale.'.$date->format('Y-m-d').'.'.sha1($identity);
         Cache::forever($cacheKey, $this->schedule());
         $lock = Cache::lock('fetch.'.$cacheKey, 45);
@@ -427,7 +427,7 @@ class ExternalDataMonitoringTest extends TestCase
 
     private function tvCacheKeys(Carbon $date, array $channels): array
     {
-        $identity = $date->format('Y-m-d').'|Europe/Oslo|'.implode(',', $channels);
+        $identity = $date->format('Y-m-d').'|Europe/Oslo|ringerike|'.implode(',', $channels);
         $suffix = $date->format('Y-m-d').'.'.sha1($identity);
 
         return [
@@ -439,7 +439,7 @@ class ExternalDataMonitoringTest extends TestCase
 
     private function tvUnpublishedKey(Carbon $date, array $channels): string
     {
-        $identity = $date->format('Y-m-d').'|Europe/Oslo|'.implode(',', $channels);
+        $identity = $date->format('Y-m-d').'|Europe/Oslo|ringerike|'.implode(',', $channels);
 
         return 'tv-guide-vg.updated.'.$date->format('Y-m-d').'.'.sha1($identity).'.unpublished';
     }

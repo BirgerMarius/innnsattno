@@ -46,11 +46,12 @@ class TvGuideServiceTest extends TestCase
     public function test_a_failed_cache_write_is_not_reported_as_a_successful_schedule_refresh(): void
     {
         $date = $this->date();
+        $channels = ['kanal-1', 'kanal-2'];
         $schedule = [
-            $this->channelWithListing('NRK1', 'nrk1', 'NRK1'),
-            $this->channelWithListing('NRK2', 'nrk2', 'NRK2'),
+            $this->channelWithListing('Kanal 1', 'kanal-1', 'Kanal 1'),
+            $this->channelWithListing('Kanal 2', 'kanal-2', 'Kanal 2'),
         ];
-        $identity = $date->format('Y-m-d').'|Europe/Oslo|'.implode(',', self::CHANNELS);
+        $identity = $date->format('Y-m-d').'|Europe/Oslo|ringerike|'.implode(',', $channels);
         $suffix = $date->format('Y-m-d').'.'.sha1($identity);
         $staleKey = 'tv-guide-vg.stale.'.$suffix;
         $originalCache = Cache::getFacadeRoot();
@@ -67,7 +68,7 @@ class TvGuideServiceTest extends TestCase
         Http::fake(['tvguide.vg.no/*' => Http::response($schedule)]);
 
         try {
-            $this->assertFalse($this->service()->refreshSchedule($date, self::CHANNELS, 'ringerike'));
+            $this->assertFalse($this->service()->refreshSchedule($date, $channels, 'ringerike'));
         } finally {
             Cache::swap($originalCache);
         }
@@ -485,7 +486,7 @@ class TvGuideServiceTest extends TestCase
 
     private function staleCacheKey(): string
     {
-        $identity = $this->date()->format('Y-m-d').'|Europe/Oslo|'.implode(',', self::CHANNELS);
+        $identity = $this->date()->format('Y-m-d').'|Europe/Oslo|ringerike|'.implode(',', self::CHANNELS);
 
         return 'tv-guide-vg.stale.'.$this->date()->format('Y-m-d').'.'.sha1($identity);
     }

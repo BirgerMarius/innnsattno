@@ -100,28 +100,28 @@ class TvGuideService
     public function getSchedule(CarbonInterface $date, array $channels, string $operation): array
     {
         $date = $date->copy()->setTimezone(self::TIMEZONE);
-        $keys = $this->cacheKeys($date, $channels);
+        $keys = $this->cacheKeys($date, $channels, $this->cacheSelection($channels, $operation));
         $schedule = Cache::get($keys['fresh'], Cache::get($keys['stale']));
         return is_array($schedule) ? $schedule : [];
     }
 
-    public function lastUpdated(CarbonInterface $date, array $channels): ?\Carbon\Carbon
+    public function lastUpdated(CarbonInterface $date, array $channels, ?string $selection = null): ?\Carbon\Carbon
     {
-        $value = Cache::get($this->cacheKeys($date, $channels)['updated']);
+        $value = Cache::get($this->cacheKeys($date, $channels, $this->cacheSelection($channels, $selection))['updated']);
         return is_string($value) ? \Carbon\Carbon::parse($value)->setTimezone(self::TIMEZONE) : null;
     }
 
-    public function refreshDeferred(CarbonInterface $date, array $channels): bool
+    public function refreshDeferred(CarbonInterface $date, array $channels, ?string $selection = null): bool
     {
         $date = $date->copy()->setTimezone(self::TIMEZONE);
-        return Cache::has($this->cacheKeys($date, $channels)['updated'].'.unpublished');
+        return Cache::has($this->cacheKeys($date, $channels, $this->cacheSelection($channels, $selection))['updated'].'.unpublished');
     }
 
     /** True when the page can read a date-specific local schedule without fetching. */
-    public function hasCachedSchedule(CarbonInterface $date, array $channels): bool
+    public function hasCachedSchedule(CarbonInterface $date, array $channels, ?string $selection = null): bool
     {
         $date = $date->copy()->setTimezone(self::TIMEZONE);
-        $keys = $this->cacheKeys($date, $channels);
+        $keys = $this->cacheKeys($date, $channels, $this->cacheSelection($channels, $selection));
 
         return is_array(Cache::get($keys['fresh'])) || is_array(Cache::get($keys['stale']));
     }
@@ -130,7 +130,7 @@ class TvGuideService
     public function refreshSchedule(CarbonInterface $date, array $channels, string $selection): bool
     {
         $date = $date->copy()->setTimezone(self::TIMEZONE)->startOfDay();
-        $keys = $this->cacheKeys($date, $channels);
+        $keys = $this->cacheKeys($date, $channels, $selection);
         $key = $selection.'-'.$date->format('Y-m-d');
         $lock = Cache::lock('fetch.'.$keys['stale'], 45);
         if (! $lock->get()) {
@@ -322,7 +322,7 @@ class TvGuideService
         $usingStaleData = false;
 
         foreach ($dates as $date) {
-            $keys = $this->cacheKeys($date, $channels);
+            $keys = $this->cacheKeys($date, $channels, $prison);
             $fresh = Cache::get($keys['fresh']);
             if (is_array($fresh)) {
                 $schedules[] = $fresh;
@@ -409,7 +409,7 @@ class TvGuideService
         // listing rather than a sporting event.
         $dates = collect(range(0, 7))->map(fn (int $offset) => $weekStart->copy()->addDays($offset))->all();
         $matches = [];
-        $originalBroadcasts = $this->weeklyOriginalBroadcasts($weekStart, $channels);
+        $originalBroadcasts = $this->weeklyOriginalBroadcasts($weekStart, $channels, $prison);
         $availableDates = [];
         $missingLocalDataDates = [];
         $unpublishedDates = [];
@@ -417,7 +417,7 @@ class TvGuideService
         $updatedAt = [];
 
         foreach ($dates as $date) {
-            $keys = $this->cacheKeys($date, $channels);
+            $keys = $this->cacheKeys($date, $channels, $prison);
             $schedule = Cache::get($keys['fresh']);
             $fromStale = false;
 
@@ -450,7 +450,7 @@ class TvGuideService
             foreach ($schedule as $channel) {
                 $channelName = trim((string) data_get($channel, 'channel.name', ''));
                 $channelSlug = trim((string) data_get($channel, 'channel.slug', ''));
-                if ($channelName === '') {
+                if ($channelName === '' || ! in_array($channelSlug, $channels, true)) {
                     continue;
                 }
                 foreach (($channel['listings'] ?? []) as $listing) {
@@ -516,7 +516,7 @@ class TvGuideService
             'hasUnpublishedDates' => $unpublishedDates !== [],
             'usingStaleData' => $usingStaleData,
             'weekOffset' => $weekOffset,
-            'channelSelection' => $prison === 'ilseng' ? 'Ilseng fengsel' : 'Ringerike fengsel',
+            'channelSelection' => (string) config("prisons.all.{$prison}.name", 'Ukjent fengsel'),
             // With partial coverage this is the oldest timestamp of the data
             // being shown.  The separate coverage warning makes clear that it
             // does not describe dates which are missing locally.
@@ -687,12 +687,12 @@ class TvGuideService
      * are intentionally used because the scheduled refresh retains that
      * period. Missing history is simply inconclusive, never a source failure.
      */
-    private function weeklyOriginalBroadcasts(\Carbon\CarbonInterface $weekStart, array $channels): array
+    private function weeklyOriginalBroadcasts(\Carbon\CarbonInterface $weekStart, array $channels, string $prison): array
     {
         $originals = [];
         foreach (range(-8, 7) as $offset) {
             $date = $weekStart->copy()->addDays($offset);
-            $keys = $this->cacheKeys($date, $channels);
+            $keys = $this->cacheKeys($date, $channels, $prison);
             $schedule = Cache::get($keys['fresh'], Cache::get($keys['stale']));
             if (! is_array($schedule)) continue;
             foreach ($schedule as $channel) foreach (($channel['listings'] ?? []) as $listing) {
@@ -1079,9 +1079,9 @@ class TvGuideService
         return false;
     }
 
-    private function cacheKeys(CarbonInterface $date, array $channels): array
+    private function cacheKeys(CarbonInterface $date, array $channels, string $selection): array
     {
-        $identity = $date->format('Y-m-d').'|'.self::TIMEZONE.'|'.implode(',', $channels);
+        $identity = $date->format('Y-m-d').'|'.self::TIMEZONE.'|'.$selection.'|'.implode(',', $channels);
         $suffix = $date->format('Y-m-d').'.'.sha1($identity);
 
         return [
@@ -1089,6 +1089,37 @@ class TvGuideService
             'stale' => 'tv-guide-vg.stale.'.$suffix,
             'updated' => 'tv-guide-vg.updated.'.$suffix,
         ];
+    }
+
+    /** Resolve historical operation labels while keeping prison caches isolated. */
+    private function cacheSelection(array $channels, ?string $selection): string
+    {
+        $selection = (string) $selection;
+        foreach (array_keys(config('prisons.all', [])) as $prison) {
+            if ($selection === $prison || str_starts_with($selection, $prison.'-')) {
+                return $prison;
+            }
+        }
+
+        $matches = [];
+        foreach (config('prisons.all', []) as $prison => $definition) {
+            if (is_array($definition) && array_values($definition['tv_channels'] ?? []) === array_values($channels)) {
+                $matches[] = $prison;
+            }
+        }
+
+        if ($matches === []) {
+            foreach (config('prisons.all', []) as $prison => $definition) {
+                if (is_array($definition) && $channels !== []
+                    && array_diff($channels, $definition['tv_channels'] ?? []) === []) {
+                    $matches[] = $prison;
+                }
+            }
+        }
+
+        // Preserve the pre-prison API behaviour for callers that use an
+        // ad-hoc channel subset and an old generic operation label.
+        return count($matches) === 1 ? $matches[0] : 'ringerike';
     }
 
     /**

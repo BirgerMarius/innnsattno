@@ -43,7 +43,7 @@ class TvPrintController extends Controller
             $tvGuideService->getSchedule($date, $channels, $prison.'-print'),
         );
         $tvAvailable = $tvChannels !== [];
-        $tvLastUpdated = $tvGuideService->lastUpdated($date, $channels);
+        $tvLastUpdated = $tvGuideService->lastUpdated($date, $channels, $prison);
 
         if ($prison === 'ilseng') {
             return view('pdf-ilseng', [

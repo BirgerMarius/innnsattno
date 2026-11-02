@@ -488,7 +488,7 @@ class TvGuidePrintTest extends TestCase
         $channels = $prison === 'ilseng'
             ? \App\Services\TvGuideService::ilsengChannels()
             : \App\Services\TvGuideService::ringerikeChannels();
-        $identity = $date->copy()->setTimezone('Europe/Oslo')->format('Y-m-d').'|Europe/Oslo|'.implode(',', $channels);
+        $identity = $date->copy()->setTimezone('Europe/Oslo')->format('Y-m-d').'|Europe/Oslo|'.$prison.'|'.implode(',', $channels);
         $suffix = $date->copy()->setTimezone('Europe/Oslo')->format('Y-m-d').'.'.sha1($identity);
         Cache::forever('tv-guide-vg.stale.'.$suffix, $schedule);
         Cache::put('tv-guide-vg.fresh.'.$suffix, $schedule, now()->addHour());
