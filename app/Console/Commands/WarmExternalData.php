@@ -39,7 +39,9 @@ class WarmExternalData extends Command
         $today = now('Europe/Oslo')->startOfDay();
         $dates = [$today->copy()];
         for ($i = 1; $i <= 8; $i++) $dates[] = $today->copy()->subDays($i);
-        for ($i = 1; $i <= 13; $i++) $dates[] = $today->copy()->addDays($i);
+        // A league TV box includes next week's night to Monday. On a Monday
+        // that is fourteen days ahead, so keep the cache horizon inclusive.
+        for ($i = 1; $i <= 14; $i++) $dates[] = $today->copy()->addDays($i);
         $selections = TvGuideService::prisonChannelSelections();
         if ($prison !== null) {
             $selections = [$prison => $selections[$prison]];

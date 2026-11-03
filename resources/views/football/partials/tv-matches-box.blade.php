@@ -1,6 +1,6 @@
 @php($tvBoxId = 'football-tv-'.$tvBoxContext)
 <section class="football-tv-box {{ $tvBoxClass ?? '' }}" aria-labelledby="{{ $tvBoxId }}">
-    <h2 id="{{ $tvBoxId }}">{{ $tvBoxTeam ?? false ? 'Neste' : 'Direktesendt' }} {{ $tvMatches['competitionLabel'] }} på TV</h2>
+    <h2 id="{{ $tvBoxId }}">{{ $tvBoxTeam ?? false ? 'Neste' : '' }} {{ $tvMatches['competitionLabel'] }} på TV</h2>
     @if($tvBoxShowSelection ?? true)<p class="football-tv-box__selection">Kanalutvalg: {{ $tvMatches['channelSelection'] ?? 'Ukjent fengsel' }}</p>@endif
     @if(count($tvMatches['matches']))
         <div class="football-tv-box__list">
@@ -9,20 +9,23 @@
                 <article class="football-tv-box__match{{ $isNorwayMatch ? ' football-tv-box__match--norway' : '' }}">
                     <strong>@if(isset($match['homeTeam']))@if($match['homeEmblemUrl'])<img class="football-tv-box__emblem football-participant-visual--{{ $match['homeEmblemType'] ?? 'crest' }}" src="{{ $match['homeEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['homeTeam'] }} – @if($match['awayEmblemUrl'])<img class="football-tv-box__emblem football-participant-visual--{{ $match['awayEmblemType'] ?? 'crest' }}" src="{{ $match['awayEmblemUrl'] }}" alt="" onerror="this.remove()">@endif{{ $match['awayTeam'] }}@else{{ $match['name'] }}@endif</strong>
                     @if($isNorwayMatch)<span class="football-tv-box__norway-badge">🇳🇴 Norge</span>@endif
-                    <span>{{ $match['startsAt']->locale('nb')->translatedFormat('D j. F') }} · Sendestart {{ $match['startsAt']->format('H.i') }} · {{ $match['channel'] }}</span>
+                    <span>{{ $match['startsAt']->locale('nb')->translatedFormat('D j. F') }} · Sendestart {{ $match['startsAt']->format('H.i') }} · {{ $match['channel'] }} · {{ $match['broadcastType'] }}</span>
                 </article>
             @endforeach
         </div>
     @elseif($tvMatches['missingMatchNames'])
-        <p class="football-tv-box__status">Direktesendt {{ $tvMatches['competitionLabel'] }} er oppført, men kampnavn mangler.</p>
+        <p class="football-tv-box__status">{{ $tvMatches['competitionLabel'] }} er oppført, men kampnavn mangler.</p>
     @elseif($tvMatches['hasSourceFailure'])
-        <p class="football-tv-box__status">TV-opplysninger kunne ikke lastes akkurat nå.</p>
+        <p class="football-tv-box__status">Lokale TV-data mangler for deler av perioden. Listen kan være ufullstendig.</p>
+    @elseif($tvMatches['unpublishedDates'])
+        <p class="football-tv-box__status">TV-programmet er foreløpig ikke publisert for deler av perioden.</p>
     @else
-        <p class="football-tv-box__status">Ingen identifiserbar direktesendt {{ $tvMatches['competitionLabel'] }}-kamp er oppført de neste 7 dagene.</p>
+        <p class="football-tv-box__status">Ingen identifiserbar {{ $tvMatches['competitionLabel'] }}-kamp er oppført på fengselets kanaler fram til og med {{ $tvMatches['periodEnd']->locale('nb')->translatedFormat('D j. F') }}.</p>
     @endif
     @if($tvMatches['hasSourceFailure'] && (count($tvMatches['matches']) || $tvMatches['missingMatchNames']))
         <p class="football-tv-box__note">TV-oversikten kan være ufullstendig{{ $tvMatches['usingStaleData'] ? '; sist lagrede data vises der det finnes.' : '.' }}</p>
     @elseif($tvMatches['usingStaleData'])
         <p class="football-tv-box__note">Viser sist lagrede TV-data. Oppdateringen kan være forsinket.</p>
     @endif
+    @if($tvMatches['unpublishedDates'])<p class="football-tv-box__note">TV-programmet er foreløpig ikke publisert for {{ count($tvMatches['unpublishedDates']) }} {{ count($tvMatches['unpublishedDates']) === 1 ? 'dato' : 'datoer' }}.</p>@endif
 </section>

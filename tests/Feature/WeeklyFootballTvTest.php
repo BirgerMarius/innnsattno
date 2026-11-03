@@ -266,7 +266,7 @@ class WeeklyFootballTvTest extends TestCase
         $this->assertTrue($debugbar->disabled);
     }
 
-    public function test_monday_night_uses_tv_start_time_filters_replays_and_deduplicates_the_concrete_listing(): void
+    public function test_monday_night_uses_tv_start_time_keeps_explicit_replays_and_deduplicates_the_concrete_listing(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-10-25 12:00:00', 'Europe/Oslo'));
         Http::fake(function ($request) {
@@ -295,11 +295,11 @@ class WeeklyFootballTvTest extends TestCase
         $thisWeek = $service->getWeeklyFootballMatches(now('Europe/Oslo'), 'ringerike', 'weekly-test');
         $nextWeek = $service->getWeeklyFootballMatches(now('Europe/Oslo'), 'ringerike', 'weekly-test', 1);
 
-        $this->assertSame(['Barcelona – Real Madrid', 'Før seks – Kamp'], array_column($thisWeek['mondayNightMatches'], 'name'));
-        $this->assertSame(['Sendetype ikke oppgitt', 'Direkte'], array_column($thisWeek['mondayNightMatches'], 'broadcastType'));
-        $this->assertSame(['Strømmen – Strømsgodset'], array_column($thisWeek['matches'], 'name'));
-        $this->assertSame('Direkte', $thisWeek['matches'][0]['broadcastType']);
-        $this->assertSame(['Barcelona – Real Madrid', 'Før seks – Kamp', 'Etter seks – Kamp'], array_column($nextWeek['matches'], 'name'));
+        $this->assertSame(['Barcelona – Real Madrid', 'Real Sociedad – Levante', 'Celta – Real Betis', 'Før seks – Kamp'], array_column($thisWeek['mondayNightMatches'], 'name'));
+        $this->assertSame(['Sendetype ikke oppgitt', 'Reprise', 'Reprise', 'Direkte'], array_column($thisWeek['mondayNightMatches'], 'broadcastType'));
+        $this->assertContains('Strømmen – Strømsgodset', array_column($thisWeek['matches'], 'name'));
+        $this->assertContains('Reprise', array_column($thisWeek['matches'], 'broadcastType'));
+        $this->assertSame(['Barcelona – Real Madrid', 'Real Sociedad – Levante', 'Celta – Real Betis', 'Før seks – Kamp', 'Etter seks – Kamp', 'Barcelona – Real Madrid'], array_column($nextWeek['matches'], 'name'));
         $this->assertSame([], $nextWeek['mondayNightMatches']);
 
         $this->get('/ringerike/ukens-fotball-pa-tv?utvalg=utvidet')->assertOk()
@@ -361,7 +361,7 @@ class WeeklyFootballTvTest extends TestCase
             ->assertDontSee('Kamper uten bekreftet sluttstatus kan fortsatt vises.');
     }
 
-    public function test_replay_evidence_is_filtered_without_guessing_from_an_older_sportsnext_fixture_or_repeated_teams(): void
+    public function test_replay_evidence_keeps_all_broadcasts_without_guessing_from_an_older_sportsnext_fixture_or_repeated_teams(): void
     {
         Cache::put('schibsted_sports.premier_league.9186.last_good', ['matches' => [
             ['homeTeam' => 'Arsenal', 'awayTeam' => 'Chelsea', 'startsAt' => Carbon::parse('2026-10-10 20:00', 'Europe/Oslo'), 'isFinished' => true, 'homeScore' => 1, 'awayScore' => 0, 'statusLabel' => 'Ferdig'],
@@ -386,8 +386,10 @@ class WeeklyFootballTvTest extends TestCase
 
         $service = app(\App\Services\TvGuideService::class);
         $matches = $service->getWeeklyFootballMatches(now('Europe/Oslo'), 'ringerike', 'weekly-test');
-        $this->assertSame(['Arsenal – Chelsea', 'Arsenal – Chelsea'], array_column($matches['matches'], 'name'));
-        $this->assertSame(['2026-10-13 00:00', '2026-10-15 20:00'], array_map(fn (array $match) => $match['startsAt']->format('Y-m-d H:i'), $matches['matches']));
+        $this->assertCount(5, $matches['matches']);
+        $this->assertSame(['2026-10-12 20:00', '2026-10-12 22:00', '2026-10-13 00:00', '2026-10-13 01:00', '2026-10-15 20:00'], array_map(fn (array $match) => $match['startsAt']->format('Y-m-d H:i'), $matches['matches']));
+        $this->assertSame('Reprise', $matches['matches'][0]['broadcastType']);
+        $this->assertSame('Sendetype ikke oppgitt', $matches['matches'][3]['broadcastType']);
     }
 
     private function listing(string $title, string $name, string $startsAt, int $id): array

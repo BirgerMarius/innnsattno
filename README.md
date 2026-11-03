@@ -161,7 +161,7 @@ deaktivert. Schedulerens registrerte cronjobb kjører hvert minutt som brukeren
 
 Kildekontroller for VG TV-guide og SportsNext kjøres av Laravels scheduler;
 sidene leser lokal cache og venter ikke på disse kildene. TV-data for begge
-fengsler og datovinduet åtte dager tilbake til tretten dager frem hentes omtrent hver time i avgrensede
+fengsler og datovinduet åtte dager tilbake til fjorten dager frem hentes omtrent hver time i avgrensede
 puljer. SportsNext hentes hvert 30. minutt, og hvert femte minutt rundt kamper.
 Ved feil prøves manglende, sentrale data på nytt hvert femte minutt; andre
 feilkontroller normalt hvert kvarter. DW-programmet hentes omtrent hver time.
@@ -218,6 +218,12 @@ kanal + sendestart + programidentitet som fallback; samme kamp kan derfor vises
 flere ganger når den faktisk sendes flere ganger. Kanalutvalget kommer fra
 `config/prisons.php`; bare fengsler med aktivt kanalutvalg tas med i
 cacheoppvarming og datakontroller.
+TV-boksene på ligesidene leser også bare lokal VG-cache, fra nå til og med
+neste ukes natt til mandag kl. 05.59. De viser både direkte og eksplisitt
+merkede repriser. SportsNext brukes bare som lokal, valgfri kampkobling når
+turnering, begge lag, lokal dato og sendestart passer entydig; den erstatter
+aldri VG-sendestarten. Manglende lokal cache og upublisert TV-program vises
+som ulike tilstander.
 Etter siste cachetømming fylles TV-data, også den ekstra mandagsdatoen, med:
 
 ```bash
@@ -231,7 +237,7 @@ beholder reservedata ved feil og avslutter med status 1 ved feil eller manglende
 nødvendige data for i dag/tidligere. Fremtidige TV-programmer kan være upubliserte.
 Scheduleren fortsetter med nye forsøk.
 Med `--prison=<fengsel>` forhåndshentes bare TV-guiden for valgt fengsel i samme
-vindu (åtte dager tilbake og tretten dager frem); felles fotball- og andre data
+vindu (åtte dager tilbake og fjorten dager frem); felles fotball- og andre data
 berøres ikke.
 
 ### Manuell oppdatering av eksterne data

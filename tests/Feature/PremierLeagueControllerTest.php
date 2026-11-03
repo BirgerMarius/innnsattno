@@ -39,7 +39,7 @@ class PremierLeagueControllerTest extends TestCase
     }
 
     /** @test */
-    public function screen_page_shows_up_to_three_cached_tv3_plus_matches_between_the_hero_and_table(): void
+    public function screen_page_shows_all_cached_tv_matches_between_the_hero_and_table(): void
     {
         Cache::flush();
         Carbon::setTestNow(Carbon::parse('2026-09-10 10:00:00', 'Europe/Oslo'));
@@ -61,16 +61,16 @@ class PremierLeagueControllerTest extends TestCase
         $this->warmTv(now('Europe/Oslo'), 7);
 
         $response = $this->get('/premier-league')->assertOk()
-            ->assertSeeInOrder(['Direktesendt Premier League på TV', 'Tabell'])
+            ->assertSeeInOrder(['Premier League på TV', 'Tabell'])
             ->assertSee('Hjemmelag 1 – Bortelag 1')
             ->assertSee('Hjemmelag 3 – Bortelag 3')
-            ->assertDontSee('Hjemmelag 4 – Bortelag 4')
+            ->assertSee('Hjemmelag 4 – Bortelag 4')
             ->assertSee('Sendestart 20.55')
             ->assertSee('TV3+')
             ->assertSee('Kanalutvalg: Ringerike fengsel')
             ->assertSee('.pl-tv3-plus-match { align-items: flex-start; flex-direction: column;', false);
 
-        $this->assertSame(3, substr_count($response->getContent(), '<article class="pl-tv3-plus-match">'));
+        $this->assertSame(4, substr_count($response->getContent(), '<article class="pl-tv3-plus-match">'));
         Carbon::setTestNow();
     }
 

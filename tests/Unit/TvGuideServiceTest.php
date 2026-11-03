@@ -322,7 +322,7 @@ class TvGuideServiceTest extends TestCase
         $this->assertNull($this->service()->norwayMensMatchLabel($unsupportedFootball));
     }
 
-    public function test_upcoming_tv3_plus_matches_use_seven_cached_daily_requests_and_exclude_non_matches(): void
+    public function test_upcoming_tv_matches_use_the_extended_weekly_period_and_keep_explicit_replays(): void
     {
         $now = Carbon::parse('2026-09-10 10:00:00', 'Europe/Oslo');
         Http::fake(function ($request) {
@@ -340,13 +340,14 @@ class TvGuideServiceTest extends TestCase
             return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
         });
 
-        $this->warmTv($now, 7);
+        $this->warmTv($now, 15);
 
         $result = $this->service()->getUpcomingPremierLeagueOnTv3Plus($now, 'premier-league-tv3-plus-print', 3);
 
         $this->assertSame('Brentford – Chelsea', $result['matches'][0]['name']);
-        $this->assertCount(3, $result['matches']);
-        $this->assertSame('Liverpool – Wolves', $result['matches'][2]['name']);
+        $this->assertCount(5, $result['matches']);
+        $this->assertSame('Reprise', $result['matches'][2]['broadcastType']);
+        $this->assertSame('Liverpool – Wolves', $result['matches'][3]['name']);
         $this->assertSame('2026-09-10 20:55', $result['matches'][0]['startsAt']->format('Y-m-d H:i'));
         $this->assertSame(1, $result['missingMatchNames']);
         $this->assertSame(1, $result['excludedNonMatchProgrammes']);
@@ -372,6 +373,25 @@ class TvGuideServiceTest extends TestCase
         $this->assertTrue($result['hasSourceFailure']);
         $this->assertSame(0, $result['missingMatchNames']);
         Mail::assertNothingSent();
+    }
+
+    public function test_league_tv_period_keeps_next_monday_night_when_today_is_monday(): void
+    {
+        $now = Carbon::parse('2026-09-07 12:00:00', 'Europe/Oslo');
+        Http::fake(function ($request) {
+            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+            $listings = ($query['date'] ?? null) === '2026-09-21'
+                ? [$this->premierLeagueListing('2026-09-21T03:59:00Z', 'Mandagsnatt - Kamp')]
+                : [];
+
+            return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
+        });
+
+        $this->warmTv($now, 15);
+
+        $result = $this->service()->getUpcomingPremierLeagueOnTv3Plus($now, 'premier-league-tv3-plus-print', 0);
+
+        $this->assertSame('2026-09-21 05:59:59', $result['periodEnd']->format('Y-m-d H:i:s'));
     }
 
     public function test_competition_matching_uses_exact_verified_titles_not_unreliable_uefa_slugs(): void
@@ -403,7 +423,7 @@ class TvGuideServiceTest extends TestCase
         $this->assertGreaterThan(7, count(Http::recorded()));
     }
 
-    public function test_nations_league_box_shows_scheduled_fixture_broadcasts_but_excludes_non_matches_and_replays(): void
+    public function test_nations_league_box_shows_scheduled_fixture_broadcasts_and_explicit_replays(): void
     {
         $now = Carbon::parse('2026-09-24 10:00:00', 'Europe/Oslo');
         Http::fake(function ($request) {
@@ -421,7 +441,8 @@ class TvGuideServiceTest extends TestCase
 
         $result = $this->service()->getUpcomingCompetitionMatches($now, 'nations-league', 'nations-league-test', 3);
         $this->assertSame('Nations League', $result['competitionLabel']);
-        $this->assertSame(['Norge – Danmark', 'Norge – Portugal'], array_column($result['matches'], 'name'));
+        $this->assertSame(['Norge – Danmark', 'Norge – Danmark', 'Norge – Portugal'], array_column($result['matches'], 'name'));
+        $this->assertSame('Reprise', $result['matches'][1]['broadcastType']);
         $this->assertSame(1, $result['excludedNonMatchProgrammes']);
     }
 
@@ -445,12 +466,12 @@ class TvGuideServiceTest extends TestCase
         $this->warmTv($now->copy()->startOfWeek(), 7);
 
         $result = $this->service()->getUpcomingCompetitionMatches($now, 'nations-league', 'nations-league-week-test', 0);
-        $this->assertSame(['Sverige – Romania', 'Norge – Danmark', 'Tsjekkia – Kroatia', 'Norge – Portugal'], array_column($result['matches'], 'name'));
-        $this->assertCount(4, $result['matches']);
+        $this->assertSame(['Sverige – Romania', 'Norge – Danmark', 'Tsjekkia – Kroatia', 'Norge – Danmark', 'Norge – Portugal', 'Utenfor uke – Lag'], array_column($result['matches'], 'name'));
+        $this->assertCount(6, $result['matches']);
         $this->assertSame(1, $result['excludedNonMatchProgrammes']);
     }
 
-    public function test_nations_league_rolling_window_excludes_started_broadcasts_and_includes_its_exact_end(): void
+    public function test_nations_league_box_uses_the_shared_extended_weekly_period(): void
     {
         $now = Carbon::parse('2026-09-24 10:00:00', 'Europe/Oslo');
         Http::fake(function ($request) {
@@ -474,8 +495,8 @@ class TvGuideServiceTest extends TestCase
 
         $result = $this->service()->getUpcomingCompetitionMatches($now, 'nations-league', 'nations-league-rolling-test', 0, true);
 
-        $this->assertSame(['Nå – Kamp', 'Slutt – Kamp'], array_column($result['matches'], 'name'));
-        $this->assertSame('2026-10-01 10:00:00', $result['periodEnd']->format('Y-m-d H:i:s'));
+        $this->assertSame(['Nå – Kamp', 'Slutt – Kamp', 'Etter slutt – Kamp'], array_column($result['matches'], 'name'));
+        $this->assertSame('2026-10-05 05:59:59', $result['periodEnd']->format('Y-m-d H:i:s'));
         $this->assertGreaterThan(8, count(Http::recorded()));
     }
 

@@ -180,9 +180,9 @@ class RefreshExternalData extends Command
             app(DwScheduleService::class)->refresh();
         }
         $today = now('Europe/Oslo')->startOfDay();
-        // Admin print supports eight days back and thirteen ahead; this also covers both weekly views.
+        // League TV boxes include next week's night to Monday; on a Monday that is fourteen days ahead.
         $start = $today->copy()->subDays(8);
-        $end = $today->copy()->addDays(13);
+        $end = $today->copy()->addDays(14);
         $checks = DB::table('external_data_checks')->where('service', 'tv-guide-vg')->get()->keyBy('coverage_key');
         $pending = [];
         $selections = TvGuideService::prisonChannelSelections();

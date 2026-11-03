@@ -14,7 +14,7 @@ use Illuminate\Validation\Rule;
 class AdminTvPrintController extends Controller
 {
     /* Verified against VG's TV API 21 September 2026: data was available from
-       eight days back through thirteen days ahead; immediately outside it the
+       eight days back through fourteen days ahead; immediately outside it the
        API returned an empty schedule. */
     private const PAST_DAYS = 8;
     private const FUTURE_DAYS = 13;

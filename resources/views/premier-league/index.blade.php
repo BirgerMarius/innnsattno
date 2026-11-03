@@ -175,29 +175,32 @@
         </section>
 
         <section class="pl-section p-3 p-md-4 mb-3" aria-labelledby="pl-tv3-plus-heading">
-            <h2 id="pl-tv3-plus-heading" class="h4 mb-3">Direktesendt Premier League på TV</h2>
+            <h2 id="pl-tv3-plus-heading" class="h4 mb-3">Premier League på TV</h2>
             <p class="pl-tv3-plus-note mt-n2 mb-3">Kanalutvalg: {{ $tv3Plus['channelSelection'] }}</p>
             @if(count($tv3Plus['matches']))
                 <div class="pl-tv3-plus-list">
                     @foreach($tv3Plus['matches'] as $match)
                         <article class="pl-tv3-plus-match">
                             <strong>{{ $match['name'] }}</strong>
-                            <span class="pl-tv3-plus-meta">{{ $match['startsAt']->locale('nb')->translatedFormat('D j. F') }} · Sendestart {{ $match['startsAt']->format('H.i') }} · {{ $match['channel'] }}</span>
+                            <span class="pl-tv3-plus-meta">{{ $match['startsAt']->locale('nb')->translatedFormat('D j. F') }} · Sendestart {{ $match['startsAt']->format('H.i') }} · {{ $match['channel'] }} · {{ $match['broadcastType'] }}</span>
                         </article>
                     @endforeach
                 </div>
             @elseif($tv3Plus['missingMatchNames'])
                 <p class="pl-empty">Direktesendt Premier League på TV3+ er oppført, men kampnavn mangler.</p>
             @elseif($tv3Plus['hasSourceFailure'])
-                <p class="pl-empty">TV-opplysninger kunne ikke lastes akkurat nå.</p>
+                <p class="pl-empty">Lokale TV-data mangler for deler av perioden. Listen kan være ufullstendig.</p>
+            @elseif($tv3Plus['unpublishedDates'])
+                <p class="pl-empty">TV-programmet er foreløpig ikke publisert for deler av perioden.</p>
             @else
-                <p class="pl-empty">Ingen direktesendt Premier League-kamp på TV3+ er oppført de neste 7 dagene.</p>
+                <p class="pl-empty">Ingen Premier League-kamp er oppført på fengselets kanaler fram til og med {{ $tv3Plus['periodEnd']->locale('nb')->translatedFormat('D j. F') }}.</p>
             @endif
             @if($tv3Plus['hasSourceFailure'] && (count($tv3Plus['matches']) || $tv3Plus['missingMatchNames']))
                 <p class="pl-tv3-plus-note">TV-oversikten kan være ufullstendig{{ $tv3Plus['usingStaleData'] ? '; sist lagrede data vises der det finnes.' : '.' }}</p>
             @elseif($tv3Plus['usingStaleData'])
                 <p class="pl-tv3-plus-note">Viser sist lagrede TV-data. Oppdateringen kan være forsinket.</p>
             @endif
+            @if($tv3Plus['unpublishedDates'])<p class="pl-tv3-plus-note">TV-programmet er foreløpig ikke publisert for {{ count($tv3Plus['unpublishedDates']) }} {{ count($tv3Plus['unpublishedDates']) === 1 ? 'dato' : 'datoer' }}.</p>@endif
         </section>
 
         <section class="pl-section p-3 p-md-4 mb-3">

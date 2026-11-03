@@ -146,9 +146,8 @@ class TvGuideService
                     // VG uses an empty root response outside its publication window.
                     // It is not a channel-level source failure and must neither overwrite
                     // same-date data nor be reported as a complete, usable refresh.
+                    Cache::put($keys['updated'].'.unpublished', true, now()->addMinutes(15));
                     if (is_array($existing) && $existing !== []) {
-                        Cache::put($keys['updated'].'.unpublished', true, now()->addMinutes(15));
-
                         return true;
                     }
                     app(ExternalDataMonitor::class)->checked('tv-guide-vg', $key, 'tv', $selection.' – '.$date->format('Y-m-d').' (TV og fotball)', false, true, false, null, $date->copy()->endOfDay()->setTimezone(config('app.timezone')));
@@ -303,37 +302,41 @@ class TvGuideService
 
         $definition = self::FOOTBALL_COMPETITIONS[$competition];
         $now = $now->copy()->setTimezone(self::TIMEZONE);
-        $useCalendarWeek = ($definition['calendar_week'] ?? false) && ! $useRollingSevenDayPeriod;
-        $periodStart = $useCalendarWeek
-            ? $now->copy()->startOfWeek(\Carbon\Carbon::MONDAY)
-            : $now->copy();
-        $end = $useCalendarWeek
-            ? $now->copy()->endOfWeek(\Carbon\Carbon::SUNDAY)
-            : ($useRollingSevenDayPeriod
-                ? $now->copy()->addDays(self::UPCOMING_DAYS)
-                : $now->copy()->addDays(self::UPCOMING_DAYS - 1)->endOfDay());
+        [$periodStart, $end] = $this->competitionTvPeriod($now);
         $dates = collect(range(0, $periodStart->diffInDays($end)))
             ->map(fn (int $offset) => $periodStart->copy()->addDays($offset)->startOfDay())
             ->all();
         $channels = self::channelsForPrison($prison);
-        if ($channels === []) return ['competitionLabel' => $definition['label'], 'channelSelection' => 'Kongsvinger fengsel – under klargjøring', 'matches' => [], 'hasSourceFailure' => false, 'usingStaleData' => false, 'missingMatchNames' => 0, 'excludedNonMatchProgrammes' => 0, 'periodEnd' => $end, 'tvPending' => true];
+        if ($channels === []) return ['competitionLabel' => $definition['label'], 'channelSelection' => 'Kongsvinger fengsel – under klargjøring', 'matches' => [], 'hasSourceFailure' => false, 'usingStaleData' => false, 'missingMatchNames' => 0, 'excludedNonMatchProgrammes' => 0, 'periodStart' => $periodStart, 'periodEnd' => $end, 'missingLocalDataDates' => [], 'unpublishedDates' => [], 'hasIncompleteProgramData' => false, 'tvPending' => true];
         $schedules = [];
-        $hasSourceFailure = false;
+        $missingLocalDataDates = [];
+        $unpublishedDates = [];
+        $hasIncompleteProgramData = false;
         $usingStaleData = false;
 
         foreach ($dates as $date) {
             $keys = $this->cacheKeys($date, $channels, $prison);
             $fresh = Cache::get($keys['fresh']);
             if (is_array($fresh)) {
+                if ($fresh === []) {
+                    $unpublishedDates[] = $date;
+                }
                 $schedules[] = $fresh;
                 continue;
             }
             $stale = Cache::get($keys['stale']);
             if (is_array($stale)) {
+                if ($stale === []) {
+                    $unpublishedDates[] = $date;
+                }
                 $schedules[] = $stale;
                 $usingStaleData = true;
             } else {
-                $hasSourceFailure = true;
+                if (Cache::has($keys['updated'].'.unpublished')) {
+                    $unpublishedDates[] = $date;
+                } else {
+                    $missingLocalDataDates[] = $date;
+                }
             }
         }
 
@@ -363,11 +366,14 @@ class TvGuideService
                         $excludedNonMatchProgrammes++;
                         continue;
                     }
-                    $matches[(string) data_get($listing, 'sportsEvent.id', $startsAt->toIso8601String().'|'.$eventName)] = [
+                    $matches[(string) data_get($listing, 'id', $startsAt->toIso8601String().'|'.$eventName)] = [
                         'name' => $this->formatEventName($eventName),
                         'startsAt' => $startsAt,
                         'channel' => trim((string) data_get($channel, 'channel.name', 'TV-kanal')),
+                        'competition' => $definition['label'],
+                        'broadcastType' => $this->broadcastType($listing),
                     ];
+                    $hasIncompleteProgramData = $hasIncompleteProgramData || (($channel['programDataStatus'] ?? null) === 'missing');
                 }
             }
         }
@@ -375,13 +381,17 @@ class TvGuideService
 
         return [
             'competitionLabel' => $definition['label'],
-            'matches' => $limit > 0 ? array_slice(array_values($matches), 0, $limit) : array_values($matches),
+            'matches' => $this->withSportsNextMatchStatus(array_values($matches)),
             'channelSelection' => config("prisons.all.{$prison}.name", 'Ukjent fengsel'),
-            'hasSourceFailure' => $hasSourceFailure,
+            'hasSourceFailure' => $missingLocalDataDates !== [],
             'usingStaleData' => $usingStaleData,
             'missingMatchNames' => $missingMatchNames,
             'excludedNonMatchProgrammes' => $excludedNonMatchProgrammes,
+            'periodStart' => $periodStart,
             'periodEnd' => $end,
+            'missingLocalDataDates' => $missingLocalDataDates,
+            'unpublishedDates' => $unpublishedDates,
+            'hasIncompleteProgramData' => $hasIncompleteProgramData,
         ];
     }
 
@@ -409,7 +419,6 @@ class TvGuideService
         // listing rather than a sporting event.
         $dates = collect(range(0, 7))->map(fn (int $offset) => $weekStart->copy()->addDays($offset))->all();
         $matches = [];
-        $originalBroadcasts = $this->weeklyOriginalBroadcasts($weekStart, $channels, $prison);
         $availableDates = [];
         $missingLocalDataDates = [];
         $unpublishedDates = [];
@@ -463,10 +472,6 @@ class TvGuideService
                         continue;
                     }
                     $startsAt = \Carbon\Carbon::parse($startsAtValue)->setTimezone(self::TIMEZONE);
-                    if ($this->isCertainWeeklyFootballReplay($listing)
-                        || $this->isWeeklyFootballReplayWithEarlierOriginal($listing, $startsAt, $originalBroadcasts)) {
-                        continue;
-                    }
                     $nightToMonday = $startsAt->isSameDay($weekEnd->copy()->addDay())
                         && $startsAt->format('H:i:s') < '06:00:00';
                     if (($startsAt->lessThan($weekStart) || $startsAt->greaterThan($weekEnd)) && ! $nightToMonday) {
@@ -525,6 +530,21 @@ class TvGuideService
         ];
     }
 
+    /**
+     * League TV boxes use the same reader-facing horizon as the two weekly
+     * views: from now through next calendar week and the following Monday
+     * night.  Cache reads remain strictly local.
+     *
+     * @return array{\Carbon\CarbonInterface, \Carbon\CarbonInterface}
+     */
+    private function competitionTvPeriod(CarbonInterface $now): array
+    {
+        $start = $now->copy()->setTimezone(self::TIMEZONE);
+        $nextWeekEnd = $start->copy()->startOfWeek(\Carbon\Carbon::MONDAY)->addWeek()->endOfWeek(\Carbon\Carbon::SUNDAY);
+
+        return [$start, $nextWeekEnd->copy()->addDay()->setTime(5, 59, 59)];
+    }
+
     private function fetch(CarbonInterface $date, array $channels): array
     {
         $response = null;
@@ -575,9 +595,7 @@ class TvGuideService
     {
         return is_array($listing)
             && data_get($listing, 'title.type') === 'sportsTitle'
-            && data_get($listing, 'title.title') === $definition['title']
-            && ($listing['isRerun'] ?? false) !== true
-            && (($definition['allow_scheduled'] ?? false) || ($listing['isLive'] ?? false) === true);
+            && data_get($listing, 'title.title') === $definition['title'];
     }
 
     private function weeklyFootballCompetition(mixed $listing): ?string
@@ -744,7 +762,12 @@ class TvGuideService
         $sources = [
             'Premier League' => ['prefix' => 'premier_league', 'season' => 'premier_league_season_id'],
             'Eliteserien' => ['prefix' => 'eliteserien', 'season' => 'eliteserien_season_id'],
+            'OBOS-ligaen' => ['prefix' => 'obos_ligaen', 'season' => 'obos_ligaen_season_id'],
+            'La Liga' => ['prefix' => 'la_liga', 'season' => 'la_liga_season_id'],
+            'Bundesliga' => ['prefix' => 'bundesliga', 'season' => 'bundesliga_season_id'],
             'Champions League' => ['prefix' => 'champions_league', 'season' => 'champions_league_season_id'],
+            'Europa League' => ['prefix' => 'europa_league', 'season' => 'europa_league_season_id'],
+            'Conference League' => ['prefix' => 'conference_league', 'season' => 'conference_league_season_id'],
             'Nations League' => ['prefix' => 'nations_league', 'season' => 'nations_league_season_id'],
         ];
         $sportsNext = [];
@@ -768,8 +791,11 @@ class TvGuideService
             if ($teams === null) continue;
             $candidates = array_values(array_filter($sportsNext[$match['competition']], function (array $candidate) use ($teams, $match): bool {
                 if (! ($candidate['startsAt'] ?? null) instanceof \Carbon\CarbonInterface) return false;
-                return $this->normalizedTeamName((string) ($candidate['homeTeam'] ?? '')) === $this->normalizedTeamName($teams[0])
-                    && $this->normalizedTeamName((string) ($candidate['awayTeam'] ?? '')) === $this->normalizedTeamName($teams[1])
+                $sameOrder = $this->normalizedTeamName((string) ($candidate['homeTeam'] ?? '')) === $this->normalizedTeamName($teams[0])
+                    && $this->normalizedTeamName((string) ($candidate['awayTeam'] ?? '')) === $this->normalizedTeamName($teams[1]);
+                $reversedOrder = $this->normalizedTeamName((string) ($candidate['homeTeam'] ?? '')) === $this->normalizedTeamName($teams[1])
+                    && $this->normalizedTeamName((string) ($candidate['awayTeam'] ?? '')) === $this->normalizedTeamName($teams[0]);
+                return ($sameOrder || $reversedOrder)
                     && $candidate['startsAt']->isSameDay($match['startsAt'])
                     && abs($candidate['startsAt']->diffInMinutes($match['startsAt'], false)) <= 240;
             }));

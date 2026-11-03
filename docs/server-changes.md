@@ -24,7 +24,7 @@ nyheter, vær og eventuelle bønnetider for angitt fengsel. Felles data blir
 ikke hentet ved fengselsvalg; kjør `--all` når de også skal fornyes.
 For å fylle TV-data for en hel fotballuke etterpå brukes
 `external-data:warm --prison=<fengsel>`. Den henter fra åtte dager tilbake til
-tretten dager frem og tømmer ikke cache.
+fjorten dager frem og tømmer ikke cache.
 
 Kommandoen skriver en rad for hver del som er oppdatert, hoppet over eller
 feilet. Uavhengige kilder fortsetter etter en feil, men kommandoen returnerer
