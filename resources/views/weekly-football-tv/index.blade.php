@@ -21,23 +21,25 @@
 
     <section class="weekly-football-selector" aria-label="Velg fotballoversikt">
         <div class="weekly-football-selector__copy">
+            @unless($isCombinedOverview)
             <nav class="weekly-football-selector__choices" aria-label="Velg utvalg">
                 <span class="weekly-football-selector__label">Velg utvalg</span>
                 <a class="{{ ! $showAll ? 'active' : '' }}" @if(! $showAll) aria-current="true" @endif href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne', 'utvalg' => 'standard']) }}">Standard</a>
                 <a class="{{ $showAll ? 'active' : '' }}" @if($showAll) aria-current="true" @endif href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne', 'utvalg' => 'utvidet']) }}">Utvidet</a>
             </nav>
+            @endunless
             <p class="weekly-football-selector__description">{{ $weeklyFootball['selectionDescription'] }}</p>
-            <p>Valgt uke: {{ $weeklyFootball['weekStart']->locale('nb')->translatedFormat('j. F') }}–{{ $weeklyFootball['weekEnd']->locale('nb')->translatedFormat('j. F Y') }} · Aktivt utvalg: {{ $weeklyFootball['selectionLabel'] }} · {{ count($weeklyFootball['matches']) + count($weeklyFootball['mondayNightMatches'] ?? []) }} kamper.</p>
+            <p>Valgt uke: {{ $weeklyFootball['weekStart']->locale('nb')->translatedFormat('j. F') }}–{{ $weeklyFootball['weekEnd']->locale('nb')->translatedFormat('j. F Y') }} · @unless($isCombinedOverview)Aktivt utvalg: {{ $weeklyFootball['selectionLabel'] }} · @endunless{{ count($weeklyFootball['matches']) + count($weeklyFootball['mondayNightMatches'] ?? []) }} kamper.</p>
             <p class="weekly-football-selector__description">Repriser, høydepunkter og studioprogrammer filtreres bort så langt datagrunnlaget tillater.</p>
         </div>
         <div class="weekly-football-selector__actions">
-            <a class="btn btn-success weekly-football-selector__print" data-weekly-football-print href="{{ route('prison.weekly-football-tv.print', ['prison' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne', 'utvalg' => $showAll ? 'utvidet' : 'standard']) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut oversikten</a>
+            <a class="btn btn-success weekly-football-selector__print" data-weekly-football-print href="{{ route('prison.weekly-football-tv.print', array_filter(['prison' => $prison, 'uke' => $weekOffset ? 'neste' : 'denne', 'utvalg' => $isCombinedOverview ? null : ($showAll ? 'utvidet' : 'standard')])) }}"><i class="far fa-print" aria-hidden="true"></i> Skriv ut oversikten</a>
         </div>
     </section>
 
     <nav class="weekly-football-week-tabs" aria-label="Velg uke">
-        <a class="{{ $weekOffset === 0 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'utvalg' => $showAll ? 'utvidet' : 'standard']) }}">Denne uken</a>
-        <a class="{{ $weekOffset === 1 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', ['prison' => $prison, 'uke' => 'neste', 'utvalg' => $showAll ? 'utvidet' : 'standard']) }}">Neste uke</a>
+        <a class="{{ $weekOffset === 0 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', array_filter(['prison' => $prison, 'utvalg' => $isCombinedOverview ? null : ($showAll ? 'utvidet' : 'standard')])) }}">Denne uken</a>
+        <a class="{{ $weekOffset === 1 ? 'active' : '' }}" href="{{ route('prison.weekly-football-tv', array_filter(['prison' => $prison, 'uke' => 'neste', 'utvalg' => $isCombinedOverview ? null : ($showAll ? 'utvidet' : 'standard')])) }}">Neste uke</a>
     </nav>
 
     @if($weeklyFootball['tvPending'] ?? false)
@@ -54,7 +56,7 @@
     @endif
 
     @if($weeklyFootball['matches'] === [] && ($weeklyFootball['mondayNightMatches'] ?? []) === [] && ! $weeklyFootball['hasMissingLocalData'] && ! $weeklyFootball['hasUnpublishedDates'])
-        <p class="weekly-football-empty">Ingen TV-sendte kamper i valgt utvalg er oppført denne uken.</p>
+        <p class="weekly-football-empty">Ingen TV-sendte kamper{{ $isCombinedOverview ? '' : ' i valgt utvalg' }} er oppført denne uken.</p>
     @else
         @foreach(range(0, 6) as $offset)
             @php($date = $weeklyFootball['weekStart']->copy()->addDays($offset))

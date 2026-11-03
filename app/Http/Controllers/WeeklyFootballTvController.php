@@ -38,7 +38,8 @@ class WeeklyFootballTvController extends Controller
     private function render(string $prison, Request $request, TvGuideService $tvGuideService, WeeklyFootballTeamLogoService $teamLogos, bool $print = false)
     {
         $weekOffset = $request->query('uke') === 'neste' ? 1 : 0;
-        $showAll = $request->query('utvalg') === 'utvidet';
+        $isCombinedOverview = $prison === 'kongsvinger';
+        $showAll = $isCombinedOverview || $request->query('utvalg') === 'utvidet';
         $weeklyFootball = $tvGuideService->getWeeklyFootballMatches(
             now('Europe/Oslo'),
             $prison,
@@ -50,9 +51,11 @@ class WeeklyFootballTvController extends Controller
             $weeklyFootball['mondayNightMatches'] = $this->standardCompetitions($weeklyFootball['mondayNightMatches'] ?? []);
         }
         $weeklyFootball['selectionLabel'] = $showAll ? 'Utvidet' : 'Standard';
-        $weeklyFootball['selectionDescription'] = $showAll
-            ? 'Utskriften viser alle identifiserbare fotballkamper i TV-guiden i valgt uke, uavhengig av liga eller turnering.'
-            : 'Utskriften viser TV-sendte kamper fra Eliteserien, Premier League, Nations League og Champions League i valgt uke.';
+        $weeklyFootball['selectionDescription'] = $isCombinedOverview
+            ? 'Oversikten viser ukens fotballkamper på TV-kanalene som er tilgjengelige ved Kongsvinger fengsel. Velg denne eller neste uke, og åpne plakaten for utskrift.'
+            : ($showAll
+                ? 'Utskriften viser alle identifiserbare fotballkamper i TV-guiden i valgt uke, uavhengig av liga eller turnering.'
+                : 'Utskriften viser TV-sendte kamper fra Eliteserien, Premier League, Nations League og Champions League i valgt uke.');
         $statusUpdates = array_filter(array_merge(
             array_column($weeklyFootball['matches'], 'sportsNextUpdatedAt'),
             array_column($weeklyFootball['mondayNightMatches'], 'sportsNextUpdatedAt'),
@@ -63,7 +66,7 @@ class WeeklyFootballTvController extends Controller
         $weeklyFootball['matches'] = $this->withTeamLogos($weeklyFootball['matches'], $teamLogos);
         $weeklyFootball['mondayNightMatches'] = $this->withTeamLogos($weeklyFootball['mondayNightMatches'] ?? [], $teamLogos);
 
-        return view($print ? 'weekly-football-tv.print' : 'weekly-football-tv.index', compact('weeklyFootball', 'prison', 'weekOffset', 'showAll'));
+        return view($print ? 'weekly-football-tv.print' : 'weekly-football-tv.index', compact('weeklyFootball', 'prison', 'weekOffset', 'showAll', 'isCombinedOverview'));
     }
 
     private function standardCompetitions(array $matches): array

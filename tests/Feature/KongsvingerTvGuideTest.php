@@ -30,6 +30,7 @@ class KongsvingerTvGuideTest extends TestCase
             $date = $query['date'] ?? '';
             $listings = $date === now('Europe/Oslo')->startOfWeek()->toDateString() ? [
                 $this->footballListing('Kongsvingerlaget - Motstander', 1),
+                $this->footballListing('Kongsvinger ekstra - Motstander', 3, 'La Liga'),
             ] : [];
 
             return Http::response([
@@ -47,25 +48,46 @@ class KongsvingerTvGuideTest extends TestCase
             'kongsvinger',
         );
         $this->assertSame('Kongsvingerlaget - Motstander', $schedule[0]['listings'][0]['sportsEvent']['name']);
-        $this->assertSame(['Kongsvingerlaget – Motstander'], array_column(
+        $this->assertSame(['Kongsvingerlaget – Motstander', 'Kongsvinger ekstra – Motstander'], array_column(
             app(TvGuideService::class)->getWeeklyFootballMatches(now('Europe/Oslo'), 'kongsvinger', 'test')['matches'],
             'name',
         ));
 
-        $this->get('/kongsvinger/ukens-fotball-pa-tv?utvalg=utvidet')->assertOk()
+        $standardPage = $this->get('/kongsvinger/ukens-fotball-pa-tv?utvalg=standard')->assertOk()
             ->assertSee('Kongsvinger fengsel')
             ->assertSee('Kongsvingerlaget')
+            ->assertSee('Kongsvinger ekstra')
+            ->assertSee('La Liga')
             ->assertSee('Eurosport Norge')
             ->assertDontSee('Utelatt lag')
             ->assertDontSee('Ringerike fengsel')
-            ->assertSee('/kongsvinger/ukens-fotball-pa-tv?utvalg=utvidet', false)
-            ->assertSee('/kongsvinger/ukens-fotball-pa-tv/utskrift?uke=denne&amp;utvalg=utvidet', false)
-            ->assertSee('/kongsvinger/ukens-fotball-pa-tv?uke=neste&amp;utvalg=utvidet', false);
+            ->assertSee('Oversikten viser ukens fotballkamper på TV-kanalene som er tilgjengelige ved Kongsvinger fengsel. Velg denne eller neste uke, og åpne plakaten for utskrift.')
+            ->assertDontSee('Standard')
+            ->assertDontSee('Utvidet')
+            ->assertSee('/kongsvinger/ukens-fotball-pa-tv/utskrift?uke=denne', false)
+            ->assertSee('/kongsvinger/ukens-fotball-pa-tv?uke=neste', false)
+            ->assertDontSee('utvalg=', false);
 
-        $this->get('/kongsvinger/ukens-fotball-pa-tv/utskrift?utvalg=utvidet')->assertOk()
+        $this->get('/kongsvinger/ukens-fotball-pa-tv?utvalg=utvidet')->assertOk()
+            ->assertSee('Kongsvingerlaget')
+            ->assertSee('Kongsvinger ekstra')
+            ->assertSee('La Liga')
+            ->assertDontSee('Standard')
+            ->assertDontSee('Utvidet');
+
+        $this->get('/kongsvinger/ukens-fotball-pa-tv?uke=neste&utvalg=standard')->assertOk()
+            ->assertSee('/kongsvinger/ukens-fotball-pa-tv/utskrift?uke=neste', false)
+            ->assertDontSee('utvalg=', false);
+
+        $this->get('/kongsvinger/ukens-fotball-pa-tv/utskrift?uke=neste&utvalg=standard')->assertOk()
             ->assertSee('Kanalutvalg: Kongsvinger fengsel')
-            ->assertSee('href="http://localhost:8086/kongsvinger/ukens-fotball-pa-tv?uke=denne&amp;utvalg=utvidet"', false)
-            ->assertDontSee('Ringerike fengsel');
+            ->assertSee('Neste uke')
+            ->assertSee('poster--all', false)
+            ->assertSee('href="http://localhost:8086/kongsvinger/ukens-fotball-pa-tv?uke=neste"', false)
+            ->assertDontSee('Ringerike fengsel')
+            ->assertDontSee('Standard')
+            ->assertDontSee('Utvidet')
+            ->assertDontSee('utvalg=', false);
 
         Http::assertSent(function ($request) {
             parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
@@ -130,12 +152,12 @@ class KongsvingerTvGuideTest extends TestCase
         });
     }
 
-    private function footballListing(string $name, int $id): array
+    private function footballListing(string $name, int $id, string $competition = 'Premier League'): array
     {
         return [
             'id' => $id,
             'startsAt' => now('Europe/Oslo')->startOfWeek()->addHours(18)->toIso8601String(),
-            'title' => ['type' => 'sportsTitle', 'title' => 'Premier League'],
+            'title' => ['type' => 'sportsTitle', 'title' => $competition],
             'sportsEvent' => ['id' => $id, 'name' => $name],
             'isLive' => true,
             'isRerun' => false,

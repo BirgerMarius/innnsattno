@@ -205,10 +205,11 @@ tittelaliaser), og studio, magasin, oppsummering og høydepunkter tas ikke med.
 andre tilfeller er «Sendetype ikke oppgitt». `startsAt` fra TV-guiden er alltid
 sendestarten i Europe/Oslo og erstattes aldri av SportsNext-kampstart.
 
-Ukeoversikten og en direkteåpnet plakat viser som standard alle verifiserte
-turneringer unntatt La Liga. Avkrysningen «Vis alle kamper» bruker samme lokale
-datasett, men legger til La Liga; valget sendes videre i `vis_alle=1` til plakat,
-ukevalg og retur.
+Ukeoversikten har valgene «Standard» og «Utvidet» for Ringerike og Ilseng.
+Kongsvinger viser alltid én samlet oversikt med samme kampgrunnlag som
+«Utvidet», filtrert til fengselets egne tilgjengelige TV-kanaler. Eldre
+Kongsvinger-lenker med `utvalg=standard` eller `utvalg=utvidet` støttes fortsatt,
+men viser den samme samlede oversikten.
 
 Kalenderuken går mandag–søndag og har i tillegg «Natt til mandag» for sendinger
 som starter 00.00–05.59 neste mandag. Den samme lokale datastrukturen brukes av
