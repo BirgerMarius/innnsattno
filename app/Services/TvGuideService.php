@@ -799,7 +799,23 @@ class TvGuideService
                     && $candidate['startsAt']->isSameDay($match['startsAt'])
                     && abs($candidate['startsAt']->diffInMinutes($match['startsAt'], false)) <= 240;
             }));
-            if (count($candidates) !== 1) continue;
+            if (count($candidates) > 1) continue;
+            if ($candidates === []) {
+                $candidates = array_values(array_filter($sportsNext[$match['competition']], function (array $candidate) use ($teams, $match): bool {
+                    if (! ($candidate['startsAt'] ?? null) instanceof \Carbon\CarbonInterface) return false;
+                    $sameOrder = $this->normalizedTeamName((string) ($candidate['homeTeam'] ?? '')) === $this->normalizedTeamName($teams[0])
+                        && $this->normalizedTeamName((string) ($candidate['awayTeam'] ?? '')) === $this->normalizedTeamName($teams[1]);
+                    $reversedOrder = $this->normalizedTeamName((string) ($candidate['homeTeam'] ?? '')) === $this->normalizedTeamName($teams[1])
+                        && $this->normalizedTeamName((string) ($candidate['awayTeam'] ?? '')) === $this->normalizedTeamName($teams[0]);
+                    return ($sameOrder || $reversedOrder)
+                        && $candidate['startsAt']->betweenIncluded($match['startsAt']->copy()->subDays(7), $match['startsAt']->copy()->subMinutes(180));
+                }));
+                if (count($candidates) !== 1) continue;
+                // Three hours after kick-off leaves room for normal stoppage time,
+                // extra time and a short delay.  It is only fallback evidence;
+                // VG's explicit isRerun remains authoritative.
+                if ($match['broadcastType'] === 'Sendetype ikke oppgitt') $match['broadcastType'] = 'Reprise';
+            }
             $candidate = $candidates[0];
             $match['statusLabel'] = $candidate['statusLabel'] ?? null;
             $match['isFinished'] = ($candidate['isFinished'] ?? false) === true;
