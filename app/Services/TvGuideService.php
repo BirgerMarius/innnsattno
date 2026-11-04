@@ -677,7 +677,7 @@ class TvGuideService
     private function broadcastType(array $listing): string
     {
         if (($listing['isRerun'] ?? false) === true) return 'Reprise';
-        if (($listing['isLive'] ?? false) === true) return 'Direkte';
+        if (($listing['isLive'] ?? false) === true) return 'Vises direkte';
 
         return 'Sendetype ikke oppgitt';
     }
@@ -782,6 +782,7 @@ class TvGuideService
         }
 
         foreach ($matches as &$match) {
+            $match['matchStatusLabel'] = null;
             $match['statusLabel'] = null;
             $match['result'] = null;
             $match['isFinished'] = false;
@@ -799,7 +800,10 @@ class TvGuideService
                     && $candidate['startsAt']->isSameDay($match['startsAt'])
                     && abs($candidate['startsAt']->diffInMinutes($match['startsAt'], false)) <= 240;
             }));
-            if (count($candidates) > 1) continue;
+            if (count($candidates) > 1) {
+                if ($match['broadcastType'] === 'Vises direkte') $match['broadcastType'] = 'Sendetype ikke oppgitt';
+                continue;
+            }
             if ($candidates === []) {
                 $candidates = array_values(array_filter($sportsNext[$match['competition']], function (array $candidate) use ($teams, $match): bool {
                     if (! ($candidate['startsAt'] ?? null) instanceof \Carbon\CarbonInterface) return false;
@@ -815,13 +819,17 @@ class TvGuideService
                 // extra time and a short delay.  It is only fallback evidence;
                 // VG's explicit isRerun remains authoritative.
                 if ($match['broadcastType'] === 'Sendetype ikke oppgitt') $match['broadcastType'] = 'Reprise';
+                if ($match['broadcastType'] === 'Vises direkte') $match['broadcastType'] = 'Sendetype ikke oppgitt';
             }
             $candidate = $candidates[0];
-            $match['statusLabel'] = $candidate['statusLabel'] ?? null;
+            $match['matchStatusLabel'] = $candidate['statusLabel'] ?? null;
+            $match['statusLabel'] = $match['broadcastType'] === 'Sendetype ikke oppgitt'
+                ? $match['matchStatusLabel'] : $match['broadcastType'];
             $match['isFinished'] = ($candidate['isFinished'] ?? false) === true;
             $match['sportsNextUpdatedAt'] = $updatedAt !== [] ? min($updatedAt) : null;
             if ($match['isFinished'] && is_numeric($candidate['homeScore'] ?? null) && is_numeric($candidate['awayScore'] ?? null)) {
-                $match['result'] = (int) $candidate['homeScore'].'–'.(int) $candidate['awayScore'];
+                $match['result'] = $match['broadcastType'] === 'Sendetype ikke oppgitt'
+                    ? (int) $candidate['homeScore'].'–'.(int) $candidate['awayScore'] : null;
             }
         }
         unset($match);

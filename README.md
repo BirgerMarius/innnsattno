@@ -201,8 +201,13 @@ Kontroller alltid gjeldende crontab på serveren før manuelle endringer.
 sidevisning; SportsNext er kun valgfri logo-berikelse. Hele kamper klassifiseres
 fra verifiserte VG `sportsTitle`-identifikatorer (ID/slug før dokumenterte
 tittelaliaser), og studio, magasin, oppsummering og høydepunkter tas ikke med.
-`isRerun=true` vises som «Reprise», ellers vises `isLive=true` som «Direkte»;
-andre tilfeller er «Sendetype ikke oppgitt». `startsAt` fra TV-guiden er alltid
+`isRerun=true` vises som «Reprise», ellers vises `isLive=true` som «Vises
+direkte»; andre tilfeller er «Sendetype ikke oppgitt». En eksplisitt reprise
+eller direktesending vises foran kampstatus og resultat. Dermed røper ikke en
+reprise et lagret sluttresultat. Når VG ikke har oppgitt sendetype, kan en
+entydig SportsNext-kamp med samme lag og turnering inntil sju dager tidligere
+gi den konservative merkingen «Reprise» etter minst tre timer; flere mulige
+kamper lar sendetypen stå som ukjent. `startsAt` fra TV-guiden er alltid
 sendestarten i Europe/Oslo og erstattes aldri av SportsNext-kampstart.
 
 Ukeoversikten har valgene «Standard» og «Utvidet» for Ringerike og Ilseng.

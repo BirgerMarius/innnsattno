@@ -296,7 +296,7 @@ class WeeklyFootballTvTest extends TestCase
         $nextWeek = $service->getWeeklyFootballMatches(now('Europe/Oslo'), 'ringerike', 'weekly-test', 1);
 
         $this->assertSame(['Barcelona – Real Madrid', 'Real Sociedad – Levante', 'Celta – Real Betis', 'Før seks – Kamp'], array_column($thisWeek['mondayNightMatches'], 'name'));
-        $this->assertSame(['Sendetype ikke oppgitt', 'Reprise', 'Reprise', 'Direkte'], array_column($thisWeek['mondayNightMatches'], 'broadcastType'));
+        $this->assertSame(['Sendetype ikke oppgitt', 'Reprise', 'Reprise', 'Vises direkte'], array_column($thisWeek['mondayNightMatches'], 'broadcastType'));
         $this->assertContains('Strømmen – Strømsgodset', array_column($thisWeek['matches'], 'name'));
         $this->assertContains('Reprise', array_column($thisWeek['matches'], 'broadcastType'));
         $this->assertSame(['Barcelona – Real Madrid', 'Real Sociedad – Levante', 'Celta – Real Betis', 'Før seks – Kamp', 'Etter seks – Kamp', 'Barcelona – Real Madrid'], array_column($nextWeek['matches'], 'name'));
@@ -309,7 +309,7 @@ class WeeklyFootballTvTest extends TestCase
             ->assertSee('Natt til mandag')->assertSee('Sendetype ikke oppgitt');
     }
 
-    public function test_legacy_remaining_period_url_keeps_all_matches_and_statuses(): void
+    public function test_legacy_remaining_period_url_keeps_all_matches_and_verified_live_broadcasts(): void
     {
         Cache::put('schibsted_sports.premier_league.9186.last_good', [
             'sourceFetchedAt' => '2026-10-14T11:55:00+02:00',
@@ -339,19 +339,19 @@ class WeeklyFootballTvTest extends TestCase
         $this->warmTv(now('Europe/Oslo')->startOfWeek(), 7);
 
         $this->get('/ringerike/ukens-fotball-pa-tv')->assertOk()
-            ->assertSee('Sluttresultat 2–1')->assertSee('Pågår')->assertSee('Ikke startet')->assertSee('Avlyst');
+            ->assertSee('Vises direkte')->assertDontSee('Sluttresultat 2–1')->assertDontSee('Ikke startet');
         $remainingPage = $this->get('/ringerike/ukens-fotball-pa-tv?uke=denne&utvalg=standard&periode=gjenstaende')->assertOk()
             ->assertSee('Arsenal')->assertSee('Man City')->assertSee('Liverpool')->assertSee('Brentford')->assertSee('Villa')
-            ->assertSee('Sluttresultat 2–1')->assertSee('Pågår')->assertSee('Ikke startet')->assertSee('Avlyst')
+            ->assertSee('Vises direkte')->assertDontSee('Sluttresultat 2–1')->assertDontSee('Ikke startet')
             ->assertSee('/ringerike/ukens-fotball-pa-tv/utskrift?uke=denne&amp;utvalg=standard', false)
             ->assertDontSee('periode=', false)
             ->assertDontSee('Bare gjenstående kamper');
         preg_match('/href="([^"]*ukens-fotball-pa-tv\/utskrift\?[^"]*)"/', $remainingPage->getContent(), $remainingPrintLink);
         $this->assertNotEmpty($remainingPrintLink[1] ?? null);
         $this->get(html_entity_decode($remainingPrintLink[1]))->assertOk()
-            ->assertSee('Arsenal')->assertSee('Man City')->assertSee('Liverpool')->assertSee('Pågår');
+            ->assertSee('Arsenal')->assertSee('Man City')->assertSee('Liverpool')->assertSee('Vises direkte');
         $this->get('/ringerike/ukens-fotball-pa-tv/utskrift?periode=gjenstaende')->assertOk()
-            ->assertSee('Arsenal')->assertSee('Liverpool')->assertSee('Pågår')->assertSee('Avlyst')
+            ->assertSee('Arsenal')->assertSee('Liverpool')->assertSee('Vises direkte')
             ->assertDontSee('Kamper uten bekreftet sluttstatus kan fortsatt vises.');
         $this->get('/ringerike/ukens-fotball-pa-tv?utvalg=utvidet&periode=gjenstaende')->assertOk()
             ->assertSee('Arsenal')->assertSee('Man City')->assertSee('Liverpool')
@@ -361,7 +361,7 @@ class WeeklyFootballTvTest extends TestCase
             ->assertDontSee('Kamper uten bekreftet sluttstatus kan fortsatt vises.');
     }
 
-    public function test_replay_evidence_keeps_all_broadcasts_without_guessing_from_an_older_sportsnext_fixture_or_repeated_teams(): void
+    public function test_replay_evidence_marks_a_unique_older_sportsnext_fixture_without_losing_broadcasts(): void
     {
         Cache::put('schibsted_sports.premier_league.9186.last_good', ['matches' => [
             ['homeTeam' => 'Arsenal', 'awayTeam' => 'Chelsea', 'startsAt' => Carbon::parse('2026-10-10 20:00', 'Europe/Oslo'), 'isFinished' => true, 'homeScore' => 1, 'awayScore' => 0, 'statusLabel' => 'Ferdig'],
@@ -389,7 +389,35 @@ class WeeklyFootballTvTest extends TestCase
         $this->assertCount(5, $matches['matches']);
         $this->assertSame(['2026-10-12 20:00', '2026-10-12 22:00', '2026-10-13 00:00', '2026-10-13 01:00', '2026-10-15 20:00'], array_map(fn (array $match) => $match['startsAt']->format('Y-m-d H:i'), $matches['matches']));
         $this->assertSame('Reprise', $matches['matches'][0]['broadcastType']);
-        $this->assertSame('Sendetype ikke oppgitt', $matches['matches'][3]['broadcastType']);
+        $this->assertSame('Reprise', $matches['matches'][3]['broadcastType']);
+    }
+
+    public function test_known_broadcast_type_overrides_fixture_status_and_hides_replay_result_on_page_and_print(): void
+    {
+        Cache::put('schibsted_sports.premier_league.9186.last_good', ['matches' => [
+            ['homeTeam' => 'Arsenal', 'awayTeam' => 'Chelsea', 'startsAt' => Carbon::parse('2026-10-16 20:00', 'Europe/Oslo'), 'isFinished' => false, 'statusLabel' => 'Ikke startet'],
+            ['homeTeam' => 'Liverpool', 'awayTeam' => 'Everton', 'startsAt' => Carbon::parse('2026-10-16 18:00', 'Europe/Oslo'), 'isFinished' => true, 'homeScore' => 3, 'awayScore' => 1, 'statusLabel' => 'Ferdig'],
+        ]], now()->addDay());
+        Http::fake(function ($request) {
+            parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+            $listings = ($query['date'] ?? '') === '2026-10-16' ? [
+                $this->listing('Premier League', 'Arsenal - Chelsea', '2026-10-16T18:55:00Z', 81),
+                array_merge($this->listing('Premier League', 'Liverpool - Everton', '2026-10-16T21:00:00Z', 82), ['isRerun' => true]),
+            ] : [];
+            return Http::response([['channel' => ['name' => 'TV3+', 'slug' => 'tv3-plus'], 'listings' => $listings]]);
+        });
+        $this->warmTv(now('Europe/Oslo')->startOfWeek(), 7);
+
+        $matches = app(\App\Services\TvGuideService::class)->getWeeklyFootballMatches(now('Europe/Oslo'), 'ringerike', 'weekly-test');
+        $this->assertSame(['Vises direkte', 'Reprise'], array_column($matches['matches'], 'broadcastType'));
+        $this->assertSame(['Vises direkte', 'Reprise'], array_column($matches['matches'], 'statusLabel'));
+        $this->assertSame([null, null], array_column($matches['matches'], 'result'));
+
+        foreach (['/ringerike/ukens-fotball-pa-tv', '/ringerike/ukens-fotball-pa-tv/utskrift'] as $route) {
+            $this->get($route)->assertOk()
+                ->assertSee('Vises direkte')->assertSee('Reprise')
+                ->assertDontSee('Ikke startet')->assertDontSee('Sluttresultat 3–1');
+        }
     }
 
     private function listing(string $title, string $name, string $startsAt, int $id): array
