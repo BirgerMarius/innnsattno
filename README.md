@@ -51,8 +51,12 @@ endringer.
 Den midlertidige koordinatoroversikten åpnes fra klokken i den delte headeren
 og ligger på `/{fengsel}/aktivitetsrom`. Rom og bookinger er bare JavaScript-
 tilstand i den åpne fanen: de lagres eller sendes ikke til serveren, og Clarity
-lastes ikke på denne siden. Vanlig deploy via «innsatt»-menyen er tilstrekkelig;
-funksjonen har ingen migreringer, cacheoppvarming eller andre driftssteg.
+lastes ikke på denne siden. Starttid velges mellom 07:00 og 20:00 i 15-minutters-
+intervaller, eller skrives manuelt innenfor samme tidsrom. Tilbakemeldingsskjemaet
+nederst lagres i den eksisterende tilbakemeldingsløsningen og varsler
+`innsatt@innsatt.no` (kan overstyres med `ACTIVITY_ROOM_FEEDBACK_NOTIFICATION_EMAIL`).
+Vanlig deploy via «innsatt»-menyen er tilstrekkelig; funksjonen har ingen
+migreringer, cacheoppvarming eller andre driftssteg.
 
 ### Fengselskontekst på felles sider
 

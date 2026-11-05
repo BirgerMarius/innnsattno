@@ -55,6 +55,10 @@ Route::get('/', function () {
 Route::get('/tv', [FrontPageController::class, 'index'])->name('tv');
 Route::get('/{prison}/aktivitetsrom', [ActivityRoomController::class, 'index'])
     ->where('prison', 'ringerike|ilseng|kongsvinger')->name('prison.activity-rooms');
+Route::post('/{prison}/aktivitetsrom/tilbakemelding', [FeedbackSubmissionController::class, 'storeActivityRoom'])
+    ->where('prison', 'ringerike|ilseng|kongsvinger')
+    ->middleware('throttle:5,1')
+    ->name('prison.activity-rooms.feedback.store');
 Route::get('/{prison}', [FrontPageController::class, 'index'])
     ->where('prison', 'ringerike|ilseng|kongsvinger')->name('prison.home');
 Route::get('/header-message', [HeaderMessageController::class, 'show'])->name('header-message.show');
