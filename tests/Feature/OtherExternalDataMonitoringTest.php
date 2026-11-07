@@ -185,7 +185,7 @@ class OtherExternalDataMonitoringTest extends TestCase
             ]);
         });
         $this->artisan('external-data:warm')->expectsOutput('Forhåndshenting fullført.')->assertExitCode(0);
-        $this->assertSame(66, DB::table('external_data_checks')->where('service', 'tv-guide-vg')->count());
+        $this->assertSame(69, DB::table('external_data_checks')->where('service', 'tv-guide-vg')->count());
         $this->assertSame(11, DB::table('external_data_checks')->where('service', 'sportsnext')->where('failure_count', 0)->count());
     }
 
@@ -203,7 +203,7 @@ class OtherExternalDataMonitoringTest extends TestCase
             ->expectsOutput('Forhåndshenting av TV-guide fullført.')
             ->assertExitCode(0);
 
-        $this->assertSame(22, DB::table('external_data_checks')->where('service', 'tv-guide-vg')
+        $this->assertSame(23, DB::table('external_data_checks')->where('service', 'tv-guide-vg')
             ->where('coverage_key', 'like', 'kongsvinger-%')->count());
         $this->assertSame(0, DB::table('external_data_checks')->where('service', 'tv-guide-vg')
             ->where('coverage_key', 'not like', 'kongsvinger-%')->count());

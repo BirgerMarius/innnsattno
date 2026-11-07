@@ -45,7 +45,6 @@ class FrontPageThemeTest extends TestCase
                 ->assertSee('Designforhåndsvisning')
                 ->assertSee($theme['name'])
                 ->assertSee('Skriv ut TV-guide – Ringerike fengsel')
-                ->assertSee('Skriv ut TV-guide – Ilseng fengsel')
                 ->assertSee('Har du en idé?');
         }
     }

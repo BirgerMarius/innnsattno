@@ -151,7 +151,7 @@ class NationsLeagueControllerTest extends TestCase
                         $this->tvListing('Tsjekkia - Kroatia', '2026-09-24T19:00:00Z'),
                         $this->tvListing('Norge - Portugal', '2026-09-27T18:55:00Z', false),
                         $this->tvListing('Studio', '2026-09-24T15:00:00Z'),
-                        $this->tvListing('Utenfor uke - Lag', '2026-09-28T18:00:00Z'),
+                        $this->tvListing('Utenfor periode - Lag', '2026-10-05T05:00:00Z'),
                     ],
                 ]] : []);
             },
@@ -163,14 +163,14 @@ class NationsLeagueControllerTest extends TestCase
         $this->warmTv(now('Europe/Oslo')->startOfWeek(), 8);
             $this->get('/nations-league')->assertOk()
                 ->assertSeeInOrder(['Sverige – Romania', 'Norge – Danmark', 'Tsjekkia – Kroatia', 'Norge – Portugal'])
-                ->assertDontSee('Studio')->assertDontSee('Utenfor uke')->assertDontSee('Kanalutvalg: Ringerike fengsel');
+                ->assertDontSee('Studio')->assertDontSee('Utenfor periode')->assertDontSee('Kanalutvalg: Ringerike fengsel');
 
             $this->get('/nations-league/utskrift')->assertOk()
                 ->assertSeeInOrder(['Sverige – Romania', 'Norge', 'Danmark', 'Tsjekkia – Kroatia', 'Norge', 'Portugal'])
                 ->assertSee('https://example.test/norge.png', false)
                 ->assertSee('https://example.test/danmark.png', false)
                 ->assertSee('football-tv-box__emblem', false)
-                ->assertDontSee('Studio')->assertDontSee('Utenfor uke')->assertDontSee('Kanalutvalg: Ringerike fengsel');
+                ->assertDontSee('Studio')->assertDontSee('Utenfor periode')->assertDontSee('Kanalutvalg: Ringerike fengsel');
         } finally {
             Carbon::setTestNow();
         }

@@ -21,7 +21,7 @@ class UefaCompetitionControllerTest extends TestCase
         $this->warmCompetition(9170);
         $this->get('/europa-league')->assertOk()
             ->assertSee('Europa League')
-            ->assertSee('Direktesendt Europa League på TV')
+            ->assertSee('Europa League på TV')
             ->assertSee('Kanalutvalg: Ringerike fengsel')
             ->assertSee('/europa-league/lag/101', false)
             ->assertSee('Ligafasemotstander')
@@ -52,7 +52,7 @@ class UefaCompetitionControllerTest extends TestCase
         $this->warmCompetition(9171);
         $this->get('/conference-league')->assertOk()
             ->assertSee('Conference League')
-            ->assertSee('Direktesendt Conference League på TV')
+            ->assertSee('Conference League på TV')
             ->assertSee('Kanalutvalg: Ringerike fengsel')
             ->assertSee('/conference-league/lag/101', false)
             ->assertSee('Ligafasemotstander')

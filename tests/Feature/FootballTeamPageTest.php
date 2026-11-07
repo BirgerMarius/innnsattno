@@ -129,7 +129,7 @@ class FootballTeamPageTest extends TestCase
         $this->fakeCompetition(9186, [], 503);
 
         $this->get('/premier-league/lag/1/utskrift')->assertOk()
-            ->assertSee('TV-opplysninger kunne ikke lastes akkurat nå.')
+            ->assertSee('Lokale TV-data mangler for deler av perioden. Listen kan være ufullstendig.')
             ->assertSee('football-tv-box', false);
 
         $this->assertStringContainsString('.football-team-print-page .football-tv-box { break-inside: avoid;', File::get(public_path('css/custom/app.css')));

@@ -107,7 +107,7 @@ class FangenyttTest extends TestCase
             ->assertSee('href="'.url('/fangenytt?prison=ringerike').'"', false)
             ->assertSee('front-page-btn--fangenytt', false)
             ->assertSeeInOrder([
-                'ℹ️ Ilseng fengsel',
+                'ℹ️ Ringerike fengsel',
                 'Fangenytt',
                 'Premier League',
             ]);

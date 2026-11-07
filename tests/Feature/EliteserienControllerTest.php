@@ -5,10 +5,25 @@ namespace Tests\Feature;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 class EliteserienControllerTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Carbon::setTestNow(Carbon::parse('2026-07-01 12:00:00', 'Europe/Oslo'));
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+
+        parent::tearDown();
+    }
+
     /** @test */
     public function public_page_responds_with_eliteserien_data(): void
     {
@@ -17,17 +32,29 @@ class EliteserienControllerTest extends TestCase
         Http::fake([
             '*/tournaments/seasons/8766/schedule' => Http::response($this->schedulePayload(), 200),
             '*/tournaments/seasons/8766/standings' => Http::response($this->standingsPayload(), 200),
+            'tvguide.vg.no/*' => Http::response([[
+                'channel' => ['name' => 'TV 2 Sport 1', 'slug' => 'tv-2-sport-1'],
+                'listings' => [[
+                    'title' => ['type' => 'sportsTitle', 'slug' => 'eliteserien', 'title' => 'Eliteserien'],
+                    'sportsEvent' => ['id' => 1, 'name' => 'Hjemmelag - Bortelag'],
+                    'startsAt' => '2026-07-01T18:00:00Z',
+                    'isLive' => true,
+                    'isRerun' => false,
+                ]],
+            ]], 200),
         ]);
 
         $this->warmCompetition(8766);
+        $this->warmTv(now('Europe/Oslo'), 1);
 
         $response = $this->get('/eliteserien');
 
         $response->assertOk();
         $response->assertSee('Eliteserien 2026');
         $response->assertSee('Tabell');
-        $response->assertSee('Direktesendt Eliteserien på TV');
+        $response->assertSee('Eliteserien på TV');
         $response->assertSee('Kanalutvalg: Ringerike fengsel');
+        $response->assertSee('Hjemmelag – Bortelag');
         $response->assertSee('Kommende kamper');
         $response->assertSee('Siste resultater');
         $response->assertSee('Kilde: Schibsted/VG SportsNext-data.');

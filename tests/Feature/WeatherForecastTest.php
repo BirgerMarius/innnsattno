@@ -37,8 +37,8 @@ class WeatherForecastTest extends TestCase
 
         $this->get(route('tv'))
             ->assertOk()
-            ->assertSee('Værmelding – Tyristrand/Ringerike fengsel')
-            ->assertSee('href="'.route('weather.index').'"', false);
+            ->assertSee('Værmelding – Ringerike fengsel')
+            ->assertSee('href="/ringerike/vaer"', false);
     }
 
     public function testWeatherProviderFailureShowsFriendlyMessage(): void
