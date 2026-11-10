@@ -114,7 +114,7 @@ class WeatherForecastNotifierTest extends TestCase
 
         $this->get('/vaer')
             ->assertOk()
-            ->assertSee('Vi klarte dessverre ikke å hente værmeldingen akkurat nå.');
+            ->assertSee('Værinformasjon er ikke tilgjengelig akkurat nå.');
     }
 
     private function payload(string $location = 'Ringerike'): array

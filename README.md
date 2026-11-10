@@ -328,6 +328,17 @@ fengsel har egen cache, reservecache og lås med fengselssluggen, mens hver
 inngang har egen driftskontroll. Scheduleren oppdaterer alle konfigurerte
 fengselskilder omtrent hver time.
 
+På forsiden betyr «Ingen lokale nyheter funnet akkurat nå» at minst én
+konfigurert kilde svarte, men uten offentlige teasere. «Lokale nyheter er ikke
+tilgjengelige akkurat nå» vises bare når verken et nytt svar eller en brukbar
+lokal reserve finnes. Reserveinnhold vises ellers på vanlig måte. Det finnes
+ingen fast offentlig aldersgrense for lokale saker: artikkeldatoen er ikke et
+mål på når kildeutvalget sist var gyldig.
+
+Værsiden vurderer et varsel som utdatert når det ikke dekker dagens dato i
+Europe/Oslo. Da vises fortsatt brukbare data med METs oppdateringstidspunkt;
+tidspunktet brukes ikke som påstand om når værinformasjonen gjelder.
+
 ### Sesjonscookie i produksjon
 
 Sesjonscookien er `Secure` som standard når `APP_ENV=production`; sett likevel

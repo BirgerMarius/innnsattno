@@ -88,6 +88,18 @@ class LocalNewsServiceTest extends TestCase
         $this->assertSame(['Sak fra fungerende tagg'], array_column($articles, 'title'));
     }
 
+    public function testSuccessfulLookupWithoutArticlesHasAnEmptyResultStatus(): void
+    {
+        Http::fake([
+            'https://www.ringblad.no/ringerike-fengsel/' => Http::response($this->html(''), 200),
+        ]);
+
+        $result = app(LocalNewsService::class)->latestWithStatus('ringerike');
+
+        $this->assertSame([], $result['articles']);
+        $this->assertSame('empty', $result['status']);
+    }
+
     public function testCachesStaleArticlesAndFailuresSeparatelyPerPrison(): void
     {
         $service = app(LocalNewsService::class);

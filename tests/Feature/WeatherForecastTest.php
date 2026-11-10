@@ -23,6 +23,7 @@ class WeatherForecastTest extends TestCase
                 $this->day('2026-07-24', 'Regn', '🌧️', 10, 17, 6.2, 4.8),
             ],
         ]);
+        $service->shouldReceive('coversToday')->once()->andReturnTrue();
         $this->app->instance(WeatherForecastService::class, $service);
 
         $this->get('/vaer')
@@ -48,7 +49,7 @@ class WeatherForecastTest extends TestCase
 
         $this->get('/vaer')
             ->assertOk()
-            ->assertSee('Vi klarte dessverre ikke å hente værmeldingen akkurat nå.')
+            ->assertSee('Værinformasjon er ikke tilgjengelig akkurat nå.')
             ->assertDontSee('API unavailable');
     }
 
@@ -140,7 +141,7 @@ class WeatherForecastTest extends TestCase
         $this->get(route('weather.ilseng'))
             ->assertOk()
             ->assertSee('Værmelding – Ilseng fengsel')
-            ->assertSee('Vi klarte dessverre ikke å hente værmeldingen akkurat nå.')
+            ->assertSee('Værinformasjon er ikke tilgjengelig akkurat nå.')
             ->assertDontSee('API unavailable');
     }
 

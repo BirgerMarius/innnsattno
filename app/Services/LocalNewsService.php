@@ -18,8 +18,19 @@ class LocalNewsService
 
     public function latest(string $prison, bool $check = false): array
     {
+        return $this->latestWithStatus($prison, $check)['articles'];
+    }
+
+    /**
+     * @return array{articles: array, status: 'available'|'empty'|'unavailable'}
+     */
+    public function latestWithStatus(string $prison, bool $check = false): array
+    {
         $cached = Cache::get($this->cacheKey($prison));
-        if (! $check && is_array($cached) && $this->hasImageFields($cached)) return $cached;
+        if (! $check && is_array($cached) && $this->hasImageFields($this->articlesFromCache($cached))) {
+            return $this->cachedResult($cached);
+        }
+
         return $this->fetch($prison, $check);
     }
 
@@ -80,18 +91,20 @@ class LocalNewsService
         return $articles;
     }
 
+    /** @return array{articles: array, status: 'available'|'empty'|'unavailable'} */
     private function fetch(string $prison, bool $check): array
     {
         $news = $this->newsConfig($prison);
         $articles = [];
         $seenUrls = [];
         $sourceOrder = 0;
+        $successfulSources = 0;
         foreach ($this->sources($prison) as $sourceIndex => $source) {
             try {
                 $response = Http::withHeaders(['User-Agent' => self::USER_AGENT, 'Accept' => 'text/html,application/xhtml+xml'])
                     ->connectTimeout(2)->timeout(4)->get($source['url'])->throw();
                 $parsed = $this->parse($response->body(), $source);
-                if ($parsed === []) throw new \RuntimeException($news['source_name'].'-siden inneholdt ingen gjenkjennelige artikler.');
+                $successfulSources++;
                 $this->failureNotifier->reportSuccess($this->serviceName($prison, $sourceIndex), $this->operationKey($prison, $sourceIndex));
                 if ($check) app(ExternalDataMonitor::class)->checked($this->serviceName($prison, $sourceIndex), $this->operationKey($prison, $sourceIndex), 'news', $this->description($news, $sourceIndex), false, true, true);
                 foreach ($parsed as $article) {
@@ -109,19 +122,35 @@ class LocalNewsService
                 if ($check) app(ExternalDataMonitor::class)->checked($this->serviceName($prison, $sourceIndex), $this->operationKey($prison, $sourceIndex), 'news', $this->description($news, $sourceIndex), false, false, false, $this->failureSummary($news, $exception));
             }
         }
-        if ($articles === []) return $this->stale($prison);
+        if ($successfulSources === 0) return $this->stale($prison);
         usort($articles, fn (array $left, array $right) => ($right['sort_published_at'] <=> $left['sort_published_at']) ?: ($left['sort_order'] <=> $right['sort_order']));
         foreach ($articles as &$article) unset($article['sort_published_at'], $article['sort_order']);
         unset($article);
-        Cache::put($this->cacheKey($prison), $articles, self::CACHE_TTL_SECONDS);
-        Cache::put($this->staleCacheKey($prison), $articles, self::STALE_CACHE_TTL_SECONDS);
-        return $articles;
+        $result = ['articles' => $articles, 'status' => $articles === [] ? 'empty' : 'available', 'fetched_at' => now('Europe/Oslo')->toIso8601String()];
+        Cache::put($this->cacheKey($prison), $result, self::CACHE_TTL_SECONDS);
+        Cache::put($this->staleCacheKey($prison), $result, self::STALE_CACHE_TTL_SECONDS);
+        return $this->cachedResult($result);
     }
 
+    /** @return array{articles: array, status: 'available'|'empty'|'unavailable'} */
     private function stale(string $prison): array
     {
         $stale = Cache::get($this->staleCacheKey($prison));
-        return is_array($stale) ? $stale : [];
+        return is_array($stale) ? $this->cachedResult($stale) : ['articles' => [], 'status' => 'unavailable'];
+    }
+
+    /** @return array{articles: array, status: 'available'|'empty'|'unavailable'} */
+    private function cachedResult(array $cached): array
+    {
+        $articles = $this->articlesFromCache($cached);
+        $status = $cached['status'] ?? ($articles === [] ? 'empty' : 'available');
+
+        return ['articles' => $articles, 'status' => in_array($status, ['available', 'empty'], true) ? $status : 'unavailable'];
+    }
+
+    private function articlesFromCache(array $cached): array
+    {
+        return isset($cached['articles']) && is_array($cached['articles']) ? $cached['articles'] : $cached;
     }
 
     private function newsConfig(string $prison): array

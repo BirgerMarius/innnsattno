@@ -71,7 +71,12 @@ class WeatherForecastService
         } finally { $lock->release(); }
     }
 
-    private function coversToday(array $forecast): bool
+    public function coversToday(array $forecast): bool
+    {
+        return $this->forecastCoversToday($forecast);
+    }
+
+    private function forecastCoversToday(array $forecast): bool
     {
         foreach ($forecast['days'] ?? [] as $day) {
             try { if (Carbon::parse($day['date'])->isSameDay(now('Europe/Oslo'))) return true; } catch (Throwable $ignored) {}

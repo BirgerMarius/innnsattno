@@ -412,6 +412,12 @@
     margin: 2px 0 16px;
 }
 
+.data-status-notice {
+    color: #5f4a16;
+    font-size: .9rem;
+    margin: 0 0 16px;
+}
+
 .front-page-news-group-heading {
     color: #173f72;
     font-size: 1rem;

@@ -49,10 +49,15 @@ class FrontPageController extends Controller
         $today = Carbon::now(FlagDayService::TIMEZONE);
         $prison ??= app(PrisonContext::class)->prison();
 
+        $localNewsResult = ($prison['features']['local_news'] ?? false)
+            ? $localNews->latestWithStatus($prison['slug'])
+            : ['articles' => [], 'status' => 'disabled'];
+
         return view('tv.guide', [
             'changeHistory' => $changeHistory->get(),
             'flagDayOverview' => $flagDays->overview(),
-            'localNews' => ($prison['features']['local_news'] ?? false) ? array_slice($localNews->latest($prison['slug']), 0, 3) : [],
+            'localNews' => array_slice($localNewsResult['articles'], 0, 3),
+            'localNewsStatus' => $localNewsResult['status'],
             'localNewsSource' => $prison['local_news'] ?? null,
             'correctionalNews' => $correctionalNews->frontPage(),
             'isThemePreview' => $isThemePreview,

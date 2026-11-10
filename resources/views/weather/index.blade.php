@@ -18,12 +18,25 @@
             <div class="alert alert-warning text-center" role="alert">
                 {{ $error }}
             </div>
+        @elseif ($status === 'unavailable')
+            <div class="alert alert-warning text-center" role="alert">
+                Værinformasjon er ikke tilgjengelig akkurat nå.
+            </div>
         @elseif ($forecast && count($forecast['days']))
             @php($today = $forecast['days'][0])
 
+            @if ($status === 'outdated')
+                <p class="data-status-notice" role="status">
+                    Værvarselet er ikke lenger aktuelt.
+                    @if (!empty($forecast['updated_at']))
+                        Sist oppdatert {{ $forecast['updated_at']->locale('nb')->translatedFormat('j. F Y \\k\\l. H:i') }}.
+                    @endif
+                </p>
+            @endif
+
             <section class="weather-today mb-4" aria-labelledby="today-heading">
                 <div>
-                    <p class="weather-eyebrow mb-1">Dagens vær</p>
+                    <p class="weather-eyebrow mb-1">{{ $status === 'current' ? 'Dagens vær' : 'Værvarsel' }}</p>
                     <h2 id="today-heading" class="h3 mb-2">
                         {{ ucfirst($today['date']->locale('nb')->translatedFormat('l j. F')) }}
                     </h2>

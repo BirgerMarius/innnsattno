@@ -430,12 +430,19 @@ $isEvenWeek = $weekNumber % 2 === 0;
 
     </section>
 
-    @if (!empty($localNews) || !empty($correctionalNews['national']))
+    @if (($prison['features']['local_news'] ?? false) || !empty($correctionalNews['national']))
         <section class="local-news-section" aria-labelledby="local-news-heading">
             <header class="local-news-section-header">
                 <h2 id="local-news-heading">Lokale nyheter om {{ $prison['name'] }}</h2>
-                <p>{{ $localNewsSource['description'] ?? 'Lokale nyheter om '.$prison['name'].' fra '.$localNewsSource['source_name'] }}</p>
+                @if ($prison['features']['local_news'] ?? false)
+                    <p>{{ $localNewsSource['description'] ?? 'Lokale nyheter om '.$prison['name'].' fra '.$localNewsSource['source_name'] }}</p>
+                @endif
             </header>
+            @if (($prison['features']['local_news'] ?? false) && $localNewsStatus === 'unavailable')
+                <p class="data-status-notice" role="status">Lokale nyheter er ikke tilgjengelige akkurat nå.</p>
+            @elseif (($prison['features']['local_news'] ?? false) && $localNewsStatus === 'empty')
+                <p class="data-status-notice" role="status">Ingen lokale nyheter funnet akkurat nå.</p>
+            @endif
             @if (!empty($localNews))
                 <h3 class="front-page-news-group-heading">Lokalt</h3>
                 <div class="local-news-grid">
