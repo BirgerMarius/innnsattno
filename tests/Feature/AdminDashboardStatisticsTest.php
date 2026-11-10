@@ -208,7 +208,7 @@ class AdminDashboardStatisticsTest extends TestCase
         $this->withSession(['admin_authenticated' => true])->get('/adm')
             ->assertOk()
             ->assertSee('admin-theme-thumbnail', false)
-            ->assertSee(route('design-test.preview', 'host'), false)
+            ->assertSee(route('admin.design-test.preview', 'host'), false)
             ->assertSee('/img/theme-previews/host.png', false)
             ->assertSee('loading="lazy"', false);
     }

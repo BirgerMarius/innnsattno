@@ -10,32 +10,9 @@ use Tests\TestCase;
 class PremierLeagueControllerTest extends TestCase
 {
     /** @test */
-    public function test_page_exposes_verified_premier_league_configuration_and_counts(): void
+    public function test_diagnostic_route_is_unavailable_outside_local_environment(): void
     {
-        Cache::flush();
-
-        Http::fake([
-            '*/tournaments/seasons/9186/schedule' => Http::response($this->schedulePayload(), 200),
-            '*/tournaments/seasons/9186/standings' => Http::response($this->standingsPayload(), 200),
-        ]);
-
-        $this->warmCompetition(9186);
-
-        $response = $this->get('/premier-league/test');
-
-        $response->assertOk();
-        $response->assertViewHas('tournamentId', 3);
-        $response->assertViewHas('seasonId', 9186);
-        $response->assertViewHas('apiConfigured', true);
-        $response->assertViewHas('standingCount', 20);
-        $response->assertViewHas('fixtureCount', 12);
-        $response->assertViewHas('resultCount', 12);
-        $response->assertSee('Schibsted turnerings-ID');
-        $response->assertSee('9186');
-
-        $this->get('/premier-league')->assertOk()
-            ->assertSee('Trykk på lagnavnet for å se hele sesongens kamper')
-            ->assertDontSee('Beta');
+        $this->get('/premier-league/test')->assertNotFound();
     }
 
     /** @test */

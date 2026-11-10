@@ -63,47 +63,17 @@ class EliteserienControllerTest extends TestCase
     }
 
     /** @test */
-    public function test_page_exposes_verified_eliteserien_configuration_and_counts(): void
+    public function test_diagnostic_route_is_unavailable_outside_local_environment(): void
     {
-        Cache::flush();
-
-        Http::fake([
-            '*/tournaments/seasons/8766/schedule' => Http::response($this->schedulePayload(), 200),
-            '*/tournaments/seasons/8766/standings' => Http::response($this->standingsPayload(), 200),
-        ]);
-
-        $this->warmCompetition(8766);
-
-        $response = $this->get('/eliteserien/test');
-
-        $response->assertOk();
-        $response->assertViewHas('tournamentId', 38);
-        $response->assertViewHas('seasonId', 8766);
-        $response->assertViewHas('apiConfigured', true);
-        $response->assertViewHas('standingCount', 16);
-        $response->assertViewHas('fixtureCount', 12);
-        $response->assertViewHas('resultCount', 12);
-        $response->assertSee('Schibsted turnerings-ID');
-        $response->assertSee('8766');
-        $response->assertSee('/tournaments/seasons/8766/schedule');
+        $this->get('/eliteserien/test')->assertNotFound();
     }
 
     /** @test */
-    public function test_page_reports_api_failure_without_exposing_secrets(): void
+    public function test_diagnostic_route_stays_unavailable_when_external_data_fails(): void
     {
-        Cache::flush();
+        Http::fake(['*' => Http::response([], 500)]);
 
-        Http::fake([
-            '*' => Http::response([], 500),
-        ]);
-
-        $response = $this->get('/eliteserien/test');
-
-        $response->assertOk();
-        $response->assertViewHas('apiError', true);
-        $response->assertSee('API-feil ved siste forsøk');
-        $response->assertDontSee('SCHIBSTED_SPORTS_BASE_URL');
-        $response->assertDontSee('SCHIBSTED_ELITESERIEN_SEASON_ID');
+        $this->get('/eliteserien/test')->assertNotFound();
     }
 
     /** @test */

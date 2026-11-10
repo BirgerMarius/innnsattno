@@ -24,21 +24,23 @@ class FrontPageThemeTest extends TestCase
             ->assertDontSee('Designforhåndsvisning');
     }
 
-    public function testThemeOverviewLinksToAllPreviews(): void
+    public function testThemeOverviewLinksToAllAdminPreviews(): void
     {
-        $response = $this->get('/design-test');
+        $this->get('/design-test')->assertNotFound();
+
+        $response = $this->withSession(['admin_authenticated' => true])->get('/admin/design-test');
 
         $response->assertOk()->assertSee('Sesongtemaer for Innsatt.no');
 
         foreach (array_keys(config('front_page_themes.themes')) as $theme) {
-            $response->assertSee(route('design-test.preview', $theme), false);
+            $response->assertSee(route('admin.design-test.preview', $theme), false);
         }
     }
 
     public function testEverySeasonalPreviewUsesTheSharedFrontPageContent(): void
     {
         foreach (config('front_page_themes.themes') as $id => $theme) {
-            $this->get(route('design-test.preview', $id))
+            $this->withSession(['admin_authenticated' => true])->get(route('admin.design-test.preview', $id))
                 ->assertOk()
                 ->assertSee('front-page-theme--'.$id, false)
                 ->assertSee('front-page-theme-art--'.$id, false)
@@ -51,19 +53,19 @@ class FrontPageThemeTest extends TestCase
 
     public function testUnknownThemeIsHandledAsNotFound(): void
     {
-        $this->get('/design-test/ikke-et-tema')->assertNotFound();
+        $this->withSession(['admin_authenticated' => true])->get('/admin/design-test/ikke-et-tema')->assertNotFound();
     }
 
     public function testNationalDayAndEasterPreviewsRenderTheirSpecificDecorations(): void
     {
-        $this->get('/design-test/17-mai')
+        $this->withSession(['admin_authenticated' => true])->get('/admin/design-test/17-mai')
             ->assertOk()
             ->assertSee('theme-art-norwegian-flags', false)
             ->assertSee('theme-art-flag-red', false)
             ->assertSee('theme-art-flag-white', false)
             ->assertSee('theme-art-flag-blue', false);
 
-        $this->get('/design-test/paske')
+        $this->withSession(['admin_authenticated' => true])->get('/admin/design-test/paske')
             ->assertOk()
             ->assertSee('theme-art-eggs', false)
             ->assertSee('theme-art-bunny', false)

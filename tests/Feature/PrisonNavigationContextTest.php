@@ -13,7 +13,10 @@ class PrisonNavigationContextTest extends TestCase
             $this->get('/tidsfordriv?prison='.$prison)
                 ->assertOk()
                 ->assertSee('data-prison-context="'.$prison.'"', false)
-                ->assertSee('href="/'.$prison.'"', false);
+                ->assertSee('href="/'.$prison.'"', false)
+                ->assertSee('site-header__prison-context', false)
+                ->assertSee(config('prisons.all.'.$prison.'.name'))
+                ->assertSee('Til forsiden');
         }
     }
 
@@ -45,6 +48,26 @@ class PrisonNavigationContextTest extends TestCase
             ->assertOk()
             ->assertSee('href="/ilseng"', false)
             ->assertSee('data-prison-context="ilseng"', false);
+    }
+
+    public function test_prefixed_pages_show_their_own_prison_context(): void
+    {
+        foreach (['ringerike', 'ilseng', 'kongsvinger'] as $prison) {
+            $this->get('/'.$prison.'/aktivitetsrom?prison=ringerike')
+                ->assertOk()
+                ->assertSee('site-header__prison-context', false)
+                ->assertSee(config('prisons.all.'.$prison.'.name'))
+                ->assertSee('href="/'.$prison.'"', false);
+        }
+    }
+
+    public function test_front_pages_do_not_repeat_the_prison_context_line(): void
+    {
+        foreach (['ringerike', 'ilseng', 'kongsvinger'] as $prison) {
+            $this->get('/'.$prison)
+                ->assertOk()
+                ->assertDontSee('site-header__prison-context', false);
+        }
     }
 
     public function test_shared_link_builder_preserves_query_and_prefixed_urls(): void

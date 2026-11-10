@@ -106,7 +106,7 @@ class FrontPageThemeResolverTest extends TestCase
         Carbon::setTestNow(Carbon::create(2026, 8, 25, 12, 0, 0, 'Europe/Oslo'));
         config(['front_page_themes.active' => 'jul']);
 
-        $this->get('/design-test/host')
+        $this->withSession(['admin_authenticated' => true])->get('/admin/design-test/host')
             ->assertOk()
             ->assertSee('front-page-theme--host', false)
             ->assertDontSee('front-page-theme--jul', false)

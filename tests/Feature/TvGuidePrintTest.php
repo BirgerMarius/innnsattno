@@ -28,7 +28,7 @@ class TvGuidePrintTest extends TestCase
     /**
      * @dataProvider printRoutes
      */
-    public function test_print_page_returns_to_tv_guide_after_print_dialog_closes(string $route): void
+    public function test_print_page_returns_to_its_prison_after_print_dialog_closes(string $route, string $returnUrl): void
     {
         $this->fakeHttp([
             'tvguide.vg.no/*' => Http::response([], 200),
@@ -39,17 +39,29 @@ class TvGuidePrintTest extends TestCase
             ->assertSee("window.addEventListener('afterprint'", false)
             ->assertSee('if (!printStarted || returned) return;', false)
             ->assertSee('window.location.replace(returnUrl)', false)
-            ->assertSee('const returnUrl = "/tv";', false)
+            ->assertSee('const returnUrl = '.json_encode($returnUrl, JSON_UNESCAPED_SLASHES).';', false)
             ->assertSee('window.print()', false)
-            ->assertSee('{ once: true }', false);
+            ->assertSee('{ once: true }', false)
+            ->assertDontSee('site-header__prison-context', false);
     }
 
     public function printRoutes(): array
     {
         return [
-            'Ringerike print page' => ['/print'],
-            'Ilseng print page' => ['/print-ilseng'],
+            'Ringerike print page' => ['/print', '/tv'],
+            'Ilseng print page' => ['/print-ilseng', '/ilseng'],
         ];
+    }
+
+    public function test_ilseng_print_keeps_a_valid_explicit_return_url(): void
+    {
+        $this->fakeHttp([
+            'tvguide.vg.no/*' => Http::response([], 200),
+        ]);
+
+        $this->get('/ilseng/tv-utskrift?'.http_build_query(['return_to' => '/ilseng/vaer']))
+            ->assertOk()
+            ->assertSee('const returnUrl = "/ilseng/vaer";', false);
     }
 
     public function test_ringerike_print_includes_viasat_explore_without_changing_ilseng_channels(): void

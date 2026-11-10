@@ -14,7 +14,7 @@
 
         <section class="design-test-grid" aria-label="Velg designvariant">
             @foreach ($themes as $theme)
-                <a class="design-test-card front-page-theme--{{ $theme['id'] }}" href="{{ route('design-test.preview', $theme['id']) }}">
+                <a class="design-test-card front-page-theme--{{ $theme['id'] }}" href="{{ route('admin.design-test.preview', $theme['id']) }}">
                     <span class="design-test-card-swatch" aria-hidden="true"></span>
                     <h2>{{ $theme['name'] }}</h2>
                     <p>{{ $theme['description'] }}</p>

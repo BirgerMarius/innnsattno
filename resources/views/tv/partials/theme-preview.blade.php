@@ -2,6 +2,6 @@
     <aside class="front-page-theme-preview" aria-label="Designforhåndsvisning">
         <span>Designforhåndsvisning</span>
         <strong>{{ $theme['name'] }}</strong>
-        <a href="{{ route('design-test.index') }}">Alle varianter</a>
+        <a href="{{ route('admin.design-test.index') }}">Alle varianter</a>
     </aside>
 @endif

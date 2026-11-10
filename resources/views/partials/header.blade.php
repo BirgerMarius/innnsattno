@@ -1,4 +1,11 @@
 <div class="container mt-4 site-header site-header--has-message">
+    @unless (request()->routeIs('prison.home', 'tv', 'admin.design-test.*'))
+        <p class="site-header__prison-context">
+            <span>{{ app(\App\Services\PrisonContext::class)->prison()['name'] }}</span>
+            <span aria-hidden="true">·</span>
+            <a href="{{ $prisonHomeUrl }}">Til forsiden</a>
+        </p>
+    @endunless
     <div class="site-header__brand-row">
         <a href="{{ route('prison.activity-rooms', app(\App\Services\PrisonContext::class)->prison()['slug']) }}" class="oslo-clock-link" target="_blank" rel="noopener" aria-label="Åpne Aktivitetsrom – test i ny fane">
             @include('partials.oslo-clock')

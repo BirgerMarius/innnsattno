@@ -2332,6 +2332,22 @@
 .site-header--has-message {
     margin-bottom: 1rem;
 }
+.site-header__prison-context {
+    color: #566a67;
+    font-size: .85rem;
+    margin: 0 auto .45rem;
+    text-align: center;
+}
+.site-header__prison-context a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: .15em;
+}
+.site-header__prison-context a:focus-visible {
+    border-radius: 2px;
+    outline: 2px solid #173f72;
+    outline-offset: 2px;
+}
 .clock-change-reminder {
     display: flex;
     align-items: center;
@@ -2384,7 +2400,7 @@
     .clock-change-reminder__hour { animation: none; }
 }
 @media print {
-    .clock-change-reminder, .daily-word, .daily-word-print-actions { display: none; }
+    .clock-change-reminder, .daily-word, .daily-word-print-actions, .site-header__prison-context { display: none; }
 }
 
 /* The header uses the compact reminder at desktop widths so it fits beside the logo. */

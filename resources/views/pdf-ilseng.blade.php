@@ -115,6 +115,6 @@
 
 </div>
 
-@include('partials.print-redirect', ['fallbackUrl' => route('tv', [], false), 'autoPrint' => true])
+@include('partials.print-redirect', ['fallbackUrl' => route('prison.home', 'ilseng', false), 'autoPrint' => true])
 </body>
 </html>

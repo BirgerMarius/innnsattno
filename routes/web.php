@@ -71,9 +71,6 @@ Route::get('/podkast/betjenten-og-psyken/hor', function () {
     return redirect()->away('https://open.spotify.com/show/4DCB36GYqnR3D1d9WIBMHe', 302)
         ->header('Cache-Control', 'no-store');
 })->name('podcast-recommendation.listen');
-Route::get('/design-test', [FrontPageController::class, 'overview'])->name('design-test.index');
-Route::get('/design-test/{theme}', [FrontPageController::class, 'preview'])->name('design-test.preview');
-
 Route::get('/endringer', [ChangeHistoryController::class, 'index'])->name('change-history.index');
 
 Route::get('/dagen-i-dag/{date?}', [TodayController::class, 'show'])
@@ -138,6 +135,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->middleware('throttle:5,1')
         ->name('login.store');
     Route::middleware('admin.auth')->group(function () {
+        Route::get('/design-test', [FrontPageController::class, 'overview'])->name('design-test.index');
+        Route::get('/design-test/{theme}', [FrontPageController::class, 'preview'])->name('design-test.preview');
         Route::get('/tv-utskrift', AdminTvPrintController::class)->name('tv-print');
         Route::post('/logout', [AdminAuthController::class, 'logout'])
             ->name('logout');
@@ -188,9 +187,14 @@ Route::get('/print', [TvPrintController::class, 'ringerike']);
 Route::get('/print-ilseng', [TvPrintController::class, 'ilseng']);
 Route::get('/{prison}/tv-utskrift', [TvPrintController::class, 'prison'])->where('prison', 'ringerike|ilseng|kongsvinger')->name('prison.tv-print');
 
-Route::get('/test', function () {
-    return '<h1>Dette er testsiden min</h1>';
-});
+if (app()->environment('local')) {
+    Route::get('/test', function () {
+        return '<h1>Dette er testsiden min</h1>';
+    });
+
+    Route::get('/eliteserien/test', [EliteserienController::class, 'test'])->name('eliteserien.test');
+    Route::get('/premier-league/test', [PremierLeagueController::class, 'test']);
+}
 
 Route::get('/fotball', [FootballController::class, 'index']);
 Route::get('/football', [FootballController::class, 'index']);
@@ -203,7 +207,6 @@ Route::get('/eliteserien', [EliteserienController::class, 'index'])->name('elite
 Route::get('/eliteserien/utskrift', [EliteserienController::class, 'print'])->name('eliteserien.print');
 Route::get('/eliteserien/lag/{teamId}', [EliteserienController::class, 'team'])->whereNumber('teamId')->middleware('throttle:football-team-pages')->name('eliteserien.team');
 Route::get('/eliteserien/lag/{teamId}/utskrift', [EliteserienController::class, 'teamPrint'])->whereNumber('teamId')->middleware('throttle:football-team-pages')->name('eliteserien.team.print');
-Route::get('/eliteserien/test', [EliteserienController::class, 'test'])->name('eliteserien.test');
 Route::get('/champions-league', [ChampionsLeagueController::class, 'index'])->name('champions-league.index');
 Route::get('/champions-league/print', [ChampionsLeagueController::class, 'print'])->name('champions-league.print');
 Route::get('/champions-league/lag/{teamId}', [ChampionsLeagueController::class, 'team'])->whereNumber('teamId')->middleware('throttle:football-team-pages')->name('champions-league.team');
@@ -224,7 +227,6 @@ Route::get('/premier-league', [PremierLeagueController::class, 'index'])->name('
 Route::get('/premier-league/utskrift', [PremierLeagueController::class, 'print'])->name('premier-league.print');
 Route::get('/premier-league/lag/{teamId}', [PremierLeagueController::class, 'team'])->whereNumber('teamId')->middleware('throttle:football-team-pages')->name('premier-league.team');
 Route::get('/premier-league/lag/{teamId}/utskrift', [PremierLeagueController::class, 'teamPrint'])->whereNumber('teamId')->middleware('throttle:football-team-pages')->name('premier-league.team.print');
-Route::get('/premier-league/test', [PremierLeagueController::class, 'test']);
 
 Route::prefix('{prison}')->where(['prison' => 'ringerike|ilseng|kongsvinger'])->name('prison.')->group(function () {
     Route::get('/premier-league', [PremierLeagueController::class, 'index'])->name('premier-league.index');
