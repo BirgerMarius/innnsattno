@@ -49,7 +49,8 @@
     <script>
         (() => {
             const prison = document.body.dataset.prisonContext;
-            const prisonPath = /^\/(?:ringerike|ilseng|kongsvinger)(?:\/|$)/;
+            const prisonSlugs = @json(array_keys(config('prisons.all', [])));
+            const prisonPath = new RegExp(`^/(?:${prisonSlugs.map((slug) => slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(?:/|$)`);
             const shouldCarryContext = (url) => url.origin === window.location.origin
                 && url.pathname.startsWith('/')
                 && !prisonPath.test(url.pathname)

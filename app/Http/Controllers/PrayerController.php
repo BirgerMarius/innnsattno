@@ -15,7 +15,8 @@ class PrayerController extends Controller
     private function prisons(): array
     {
         return collect(config('prisons.all'))->map(fn (array $prison, string $slug) => [
-            'id' => $prison['prayer_location_id'], 'name' => $prison['name'], 'slug' => $slug,
+            'id' => $prison['prayer_location_id'] ?? null, 'name' => $prison['name'], 'slug' => $slug,
+            'available' => $prison['features']['prayer'] ?? false,
         ])->all();
     }
 
@@ -74,6 +75,7 @@ class PrayerController extends Controller
         ];
 
         $location = $this->prisons()[$prison];
+        abort_unless($location['available'], 404);
         if (! is_int($location['id']) && ! ctype_digit((string) $location['id'])) {
             return view($print ? 'prayer.print' : 'prayer.index', [
                 'days' => [], 'prison' => $location, 'year' => $year, 'month' => $month,

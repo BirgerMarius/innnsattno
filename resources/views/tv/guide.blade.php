@@ -297,12 +297,16 @@ $isEvenWeek = $weekNumber % 2 === 0;
     @endif
 
     <section class="prison-actions prison-actions--with-task-wheel" aria-label="Tjenester for {{ $prison['name'] }}">
-        @if ($prison['tv_available'])
+        @if ($prison['features']['tv'] ?? false)
         <div class="prison-actions-column prison-actions-column--{{ $prison['slug'] }}">
             <a href="/{{ $prison['slug'] }}/tv-utskrift" class="btn btn-primary btn-lg front-page-btn" role="button"><i class="far fa-print" aria-hidden="true"></i> Skriv ut TV-guide – {{ $prison['name'] }}</a>
+            @if ($prison['features']['prayer'] ?? false)
             <a href="/{{ $prison['slug'] }}/bonnetider" class="btn btn-primary btn-lg front-page-btn" role="button">🕌 Bønnetider – {{ $prison['name'] }}</a>
+            @endif
+            @if ($prison['features']['weather'] ?? false)
             <a href="/{{ $prison['slug'] }}/vaer" class="btn btn-primary btn-lg front-page-btn" role="button">🌦️ Værmelding – {{ $prison['name'] }}</a>
-            @if ($prison['visitation_available'])
+            @endif
+            @if ($prison['features']['visitation'] ?? false)
             <a href="{{ route('prison.visitation', $prison['slug']) }}" class="btn btn-primary btn-lg front-page-btn" role="button">
                 <svg class="front-page-wheel-icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <circle cx="12" cy="13" r="8"></circle>
@@ -311,14 +315,22 @@ $isEvenWeek = $weekNumber % 2 === 0;
                 Visitasjonsrullett – {{ $prison['name'] }}
             </a>
             @endif
+            @if (!empty($prison['official_url']))
             <a href="{{ $prison['official_url'] }}" target="_blank" rel="noopener" class="btn btn-primary btn-lg front-page-btn" role="button">ℹ️ {{ $prison['name'] }}</a>
+            @endif
         </div>
         @else
         <div class="prison-actions-column">
-            <a href="/{{ $prison['slug'] }}/tv-utskrift" class="btn btn-secondary btn-lg front-page-btn" role="button">TV-guiden er under klargjøring</a>
+            @if (!empty($prison['tv_pending_message']))
+            <span class="btn btn-secondary btn-lg front-page-btn">{{ $prison['tv_pending_message'] }}</span>
+            @endif
+            @if ($prison['features']['prayer'] ?? false)
             <a href="/{{ $prison['slug'] }}/bonnetider" class="btn btn-primary btn-lg front-page-btn" role="button">🕌 Bønnetider – {{ $prison['name'] }}</a>
+            @endif
+            @if ($prison['features']['weather'] ?? false)
             <a href="/{{ $prison['slug'] }}/vaer" class="btn btn-primary btn-lg front-page-btn" role="button">🌦️ Værmelding – {{ $prison['name'] }}</a>
-            @if ($prison['visitation_available'])
+            @endif
+            @if ($prison['features']['visitation'] ?? false)
             <a href="{{ route('prison.visitation', $prison['slug']) }}" class="btn btn-primary btn-lg front-page-btn" role="button">
                 <svg class="front-page-wheel-icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <circle cx="12" cy="13" r="8"></circle>
@@ -345,10 +357,12 @@ $isEvenWeek = $weekNumber % 2 === 0;
             <small>Magasin for innsatte – klar til utskrift</small>
         </a>
 
+        @if ($prison['features']['tv'] ?? false)
         <a href="/{{ $prison['slug'] }}/ukens-fotball-pa-tv" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             <span class="front-page-btn-title">⚽ Fotball på TV @if($showWeeklyFootballTvNewBadge)<span class="front-page-new-badge" aria-label="Nyhet">Nyhet</span>@endif</span>
             <small>Ukeoversikt og plakat</small>
         </a>
+        @endif
 
         <a href="/{{ $prison['slug'] }}/premier-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
             ⚽ Premier League 2026/27

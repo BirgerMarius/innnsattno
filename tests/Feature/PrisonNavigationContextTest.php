@@ -9,7 +9,7 @@ class PrisonNavigationContextTest extends TestCase
 {
     public function test_shared_pages_build_the_home_link_from_the_url_context(): void
     {
-        foreach (['ringerike', 'ilseng', 'kongsvinger'] as $prison) {
+        foreach (array_keys(config('prisons.all')) as $prison) {
             $this->get('/tidsfordriv?prison='.$prison)
                 ->assertOk()
                 ->assertSee('data-prison-context="'.$prison.'"', false)
@@ -22,7 +22,7 @@ class PrisonNavigationContextTest extends TestCase
 
     public function test_each_front_page_keeps_its_context_for_shared_and_prefixed_pages(): void
     {
-        foreach (['ringerike', 'ilseng', 'kongsvinger'] as $prison) {
+        foreach (array_keys(config('prisons.all')) as $prison) {
             $this->get('/'.$prison)
                 ->assertOk()
                 ->assertSee('href="/tidsfordriv?prison='.$prison.'"', false)
@@ -52,7 +52,7 @@ class PrisonNavigationContextTest extends TestCase
 
     public function test_prefixed_pages_show_their_own_prison_context(): void
     {
-        foreach (['ringerike', 'ilseng', 'kongsvinger'] as $prison) {
+        foreach (array_keys(config('prisons.all')) as $prison) {
             $this->get('/'.$prison.'/aktivitetsrom?prison=ringerike')
                 ->assertOk()
                 ->assertSee('site-header__prison-context', false)

@@ -22,9 +22,7 @@ class TvPrintController extends Controller
     public function prison(string $prison, TvGuideService $tvGuideService, DwScheduleService $dwScheduleService, PrisonContext $prisons)
     {
         $context = $prisons->prison($prison);
-        if (! $context['tv_available']) {
-            return view('tv.pending', ['prison' => $context]);
-        }
+        abort_unless($context['features']['tv'] ?? false, 404);
 
         return $this->render($prison, now('Europe/Oslo'), false, $tvGuideService, $dwScheduleService);
     }

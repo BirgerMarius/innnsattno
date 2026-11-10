@@ -280,7 +280,7 @@ class TvGuideService
 
         foreach (config('prisons.all', []) as $slug => $definition) {
             $channels = is_array($definition) ? array_values($definition['tv_channels'] ?? []) : [];
-            if (($definition['tv_available'] ?? false) && $channels !== []) {
+            if (($definition['features']['tv'] ?? false) && $channels !== []) {
                 $selections[$slug] = $channels;
             }
         }

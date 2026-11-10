@@ -22,7 +22,9 @@ class WeatherController extends Controller
     {
         $context = $prisons->prison($prison);
 
-        return $this->show($weather, $context['weather_key'], 'Værmelding – '.$context['name']);
+        abort_unless($context['features']['weather'] ?? false, 404);
+
+        return $this->show($weather, $prison, 'Værmelding – '.$context['name']);
     }
 
     private function show(WeatherForecastService $weather, string $locationKey, string $heading)

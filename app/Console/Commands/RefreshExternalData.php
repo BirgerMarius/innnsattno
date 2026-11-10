@@ -80,17 +80,23 @@ class RefreshExternalData extends Command
         foreach ($prisons as $prison) {
             $config = config('prisons.all.'.$prison);
             $today = now('Europe/Oslo')->startOfDay();
-            $ok = $this->attempt($rows, $prison, 'TV-guide (i dag)', fn () => $tv->refreshSchedule($today, $config['tv_channels'], $prison));
-            $failed = $failed || !$ok;
-            $ok = $this->attempt($rows, $prison, 'Lokale nyheter', fn () => app(LocalNewsService::class)->refresh($prison));
-            $failed = $failed || !$ok;
-            $ok = $this->attempt($rows, $prison, 'Værvarsel', fn () => app(WeatherForecastService::class)->refresh($config['weather_key']));
-            $failed = $failed || !$ok;
+            if ($config['features']['tv'] ?? false) {
+                $ok = $this->attempt($rows, $prison, 'TV-guide (i dag)', fn () => $tv->refreshSchedule($today, $config['tv_channels'], $prison));
+                $failed = $failed || !$ok;
+            }
+            if ($config['features']['local_news'] ?? false) {
+                $ok = $this->attempt($rows, $prison, 'Lokale nyheter', fn () => app(LocalNewsService::class)->refresh($prison));
+                $failed = $failed || !$ok;
+            }
+            if ($config['features']['weather'] ?? false) {
+                $ok = $this->attempt($rows, $prison, 'Værvarsel', fn () => app(WeatherForecastService::class)->refresh($prison));
+                $failed = $failed || !$ok;
+            }
             $locationId = $config['prayer_location_id'] ?? null;
-            if (is_int($locationId) || ctype_digit((string) $locationId)) {
+            if (($config['features']['prayer'] ?? false) && (is_int($locationId) || ctype_digit((string) $locationId))) {
                 $ok = $this->attempt($rows, $prison, 'Bønnetider (denne måneden)', fn () => app(PrayerTimeService::class)->refreshMonth((int) $locationId, $today->year, $today->month));
                 $failed = $failed || !$ok;
-            } else {
+            } elseif ($config['features']['prayer'] ?? false) {
                 $rows[] = [$prison, 'Bønnetider', 'Hoppet over: ingen verifisert steds-ID'];
             }
         }

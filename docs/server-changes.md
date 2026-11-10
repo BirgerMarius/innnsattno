@@ -1,67 +1,89 @@
-# Manuelle produksjonsendringer
+# Produksjonsdrift
 
-Denne filen er en løpende changelog og huskeliste for endringer som gjøres direkte på produksjonsserveren og derfor ikke automatisk ligger i Git-repositoryet. Dokumenter blant annet Nginx-, systemd-, cron-/timer-, firewall- og annen manuell serverkonfigurasjon her.
+Dette er gjeldende, korte driftsveiledning for innsatt.no. Den versjonerte
+PowerShell-menyen er [tools/windows/innsatt.ps1](../tools/windows/innsatt.ps1).
+Historiske serverendringer starter under «Historikk» og er ikke en deployoppskrift.
 
-## Drift – målrettet oppdatering av eksterne data
+## Vanlig deploy
 
-Etter vanlig deploy kan data oppdateres som `forge` fra prosjektmappen, uten
-`cache:clear` eller `optimize:clear`:
+1. Kontroller at riktig commit er pushet til `origin/main`, og at arbeidsområdet
+   er rent for den aktuelle endringen.
+2. Start `innsatt` på administratør-PC-en og velg **3 – Deploy innsatt.no til
+   produksjon**. Bekreft med `j`. Menyen kjører `innsatt-deploy` via SSH-aliaset
+   `innsatt-prod`.
+3. Les hele resultatet. En feilstatus betyr at deployen ikke er godkjent.
+4. Kontroller etterpå `https://innsatt.no/ringerike`, `/ilseng` og
+   `/kongsvinger`, inkludert en aktuell fengselsspesifikk lenke når den berørte
+   endringen krever det.
 
-```bash
-cd /home/forge/innsatt.no/innnsattno
-sudo -u forge /usr/bin/php artisan external-data:refresh --all
-sudo -u forge /usr/bin/php artisan external-data:refresh --prison=ringerike
-sudo -u forge /usr/bin/php artisan external-data:refresh --prison=ilseng
-sudo -u forge /usr/bin/php artisan external-data:refresh --prison=kongsvinger
-sudo -u forge /usr/bin/php artisan external-data:warm --prison=kongsvinger
-```
+Vanlig deploy er tilstrekkelig for kode- og konfigurasjonsendringer. Ikke kjør
+`cache:clear` eller `optimize:clear` som del av rutinen: applikasjonsoptimalisering
+er noe annet enn datacachene for eksterne kilder. Deployen skal bevare de siste
+brukbare eksterne dataene.
 
-`--all` oppdaterer dagens TV-guide, lokale nyheter, vær og eventuelle
-bønnetider for alle fengsler. Den henter deretter felles fotball- og
-VM-data én gang, samt navnedager, «Dagen i dag», kriminalomsorgsnyheter og
-aktive nyhetsfeeder. `--prison` oppdaterer bare dagens TV-guide, lokale
-nyheter, vær og eventuelle bønnetider for angitt fengsel. Felles data blir
-ikke hentet ved fengselsvalg; kjør `--all` når de også skal fornyes.
-For å fylle TV-data for en hel fotballuke etterpå brukes
-`external-data:warm --prison=<fengsel>`. Den henter fra åtte dager tilbake til
-fjorten dager frem og tømmer ikke cache.
+## Når eksterne data må oppdateres
 
-Kommandoen skriver en rad for hver del som er oppdatert, hoppet over eller
-feilet. Uavhengige kilder fortsetter etter en feil, men kommandoen returnerer
-feilkode ved hel eller delvis feil. Tjenestenes egne låser, reservecacher og
-driftskontroller beholdes.
+Velg **9 – Oppdater cache/data** i samme meny bare når data faktisk må fornyes.
+Velg ett fengsel for dets TV-guide, lokale nyheter, vær og eventuelle bønnetider;
+velg «alt» når også felles fotball-, kalender- og nyhetsdata skal fornyes.
+Menyen bruker `external-data:refresh` etterfulgt av `external-data:warm`, uten å
+tømme cache. Les resultatet: kommandoen beholder reservecache der dette støttes,
+men returnerer feilstatus også ved delvis feil.
 
-PowerShell-menyen ligger på administratørens PC i
-`$HOME\PowerShellScripts\innsatt.ps1` og startes med funksjonen `innsatt`.
-Den bruker OpenSSH, VS Code og SSH-aliasene `docker01` og `innsatt-prod`.
-Funksjonen i PowerShell-profilen er:
-
-```powershell
-function innsatt { & "$HOME\PowerShellScripts\innsatt.ps1" }
-```
-
-Menyvalg 9 åpner cache-undermenyen. Der kan operatøren oppdatere alle data eller
-data for Ringerike, Ilseng eller Kongsvinger. Serverkommandoene over må være
-deployet før cachevalgene brukes.
-
-På en ny PC opprettes mappen og den versjonerte kopien installeres slik:
+Menyen installeres på en ny Windows-PC fra den versjonerte filen:
 
 ```powershell
 New-Item -ItemType Directory -Force "$HOME\PowerShellScripts"
 Copy-Item .\tools\windows\innsatt.ps1 "$HOME\PowerShellScripts\innsatt.ps1"
+function innsatt { & "$HOME\PowerShellScripts\innsatt.ps1" }
 ```
 
-Legg deretter funksjonen over i PowerShell-profilen og konfigurer `docker01` og
-`innsatt-prod` i brukerens SSH-konfigurasjon med egne nøkler. Ved oppdatering på
-en eksisterende PC skal gjeldende skript sikkerhetskopieres før overskriving:
+`docker01` og `innsatt-prod` må finnes som personlige SSH-aliaser med egne
+nøkler. Ikke lagre nøkler eller passord i repositoryet.
 
-```powershell
-Copy-Item "$HOME\PowerShellScripts\innsatt.ps1" "$HOME\PowerShellScripts\innsatt.ps1.bak-$(Get-Date -Format yyyyMMddHHmmss)"
-Copy-Item .\tools\windows\innsatt.ps1 "$HOME\PowerShellScripts\innsatt.ps1"
-```
+## Ved mislykket deploy eller tilbakeføring
 
-Den versjonerte kopien ligger i `tools/windows/innsatt.ps1` og følger vanlig
-deploy. Ikke lagre private nøkler eller passord i repositoryet.
+1. Stopp etter den feilede deployen; ikke tøm cache eller start dataoppdatering
+   for å skjule feilen.
+2. Ta vare på deployutskriften og bruk menyvalg **8** for å undersøke serveren.
+   Prosjektet ligger dokumentert som `/home/forge/innsatt.no/innnsattno`.
+3. Kontroller de tre inngangssidene når tjenesten igjen svarer. Hvis siste
+   godkjente versjon må gjenopprettes, bruk serverens vanlige deploy-/release-
+  mekanisme med sist kjente gode commit og dokumenter utfallet her.
+
+Det finnes ikke en versjonert, verifisert manuell rollback-kommando i dette
+repositoryet. Ikke gjett en slik kommando; avklar den med serveransvarlig før
+tilbakeføring.
+
+## Legge til et nytt fengsel
+
+1. Kopier den kommenterte malen i `config/prisons.example.php` inn i
+   `config/prisons.php` under `all`. Bruk en unik URL-ID, verifisert navn og
+   bare dokumenterte lokale data.
+2. Sett alle funksjonsbrytere. Deaktiverte tjenester skal stå `false` og skal
+   ikke få kanaler, nyhetskilder eller visitasjonsdata fra et annet fengsel.
+3. Legg bare inn verifiserte værkoordinater, TV-kanaler fra VGs TV-guide,
+   bønnetids-ID, offentlige nyhetskilder og eventuelle visitasjonsceller.
+   Nye værmiljøvariabler følger mønsteret `WEATHER_<ID>_LATITUDE/LONGITUDE`.
+4. Kjør `php artisan prisons:validate`, målrettede tester og test det nye
+   `/{fengsel}`-prefikset lokalt. Kommandoen gjør ingen nettverkskall eller
+   dataendringer.
+5. Commit og push, og gjennomfør vanlig manuell deploy. Oppdater PowerShell-
+   menyen dersom den skal tilby et eget valg for målrettet dataoppdatering av
+   fengselet; dette er det eneste manuelle tilleggssteget utenfor registeret.
+
+Ruter, kontekstnavigasjon og planlagte kontroller leser aktive fengsler fra
+registeret. Felles sider og visninger gjenbrukes; et nytt fengsel skal ikke ha
+egne sidekopier.
+
+## Mer dokumentasjon
+
+- `PROJECT.md` og `context/project-rules.md`: arbeidsflyt, testing og Git.
+- `README.md`: utviklings- og datakildedokumentasjon.
+- `docs/`: avgrenset fag- og tjenestedokumentasjon.
+- Resten av denne filen: bekreftet historikk for manuelle serverendringer.
+
+## Historikk – manuelle produksjonsendringer
 
 ## 2026-10-24 – Servervedlikehold og oppdatert produksjonsstatus
 

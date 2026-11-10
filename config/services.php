@@ -98,29 +98,6 @@ return [
         'user_agent' => env('WEATHER_USER_AGENT', 'innsatt.no/1.0 innsatt@innsatt.no'),
         'cache_ttl' => env('WEATHER_CACHE_TTL', 1800),
         'timeout' => env('WEATHER_TIMEOUT', 10),
-        'locations' => [
-            'ringerike' => [
-                'name' => 'Tyristrand / Ringerike fengsel',
-                'latitude' => env('WEATHER_RINGERIKE_LATITUDE', 60.087),
-                'longitude' => env('WEATHER_RINGERIKE_LONGITUDE', 10.099),
-                'cache_key' => 'weather.ringerike.forecast',
-            ],
-            'ilseng' => [
-                'name' => 'Ilseng fengsel',
-                // Ilseng fengsel, Linjevegen 50, Stange (60.779295 N, 11.2281577 E).
-                'latitude' => env('WEATHER_ILSENG_LATITUDE', 60.779295),
-                'longitude' => env('WEATHER_ILSENG_LONGITUDE', 11.2281577),
-                'cache_key' => 'weather.ilseng.forecast',
-            ],
-            'kongsvinger' => [
-                'name' => 'Kongsvinger fengsel – Vardåsveien 190',
-                // Official address: Vardåsveien 190, 2214 Kongsvinger. The
-                // coordinate is the address point (OpenStreetMap/Nominatim).
-                'latitude' => env('WEATHER_KONGSVINGER_LATITUDE', 60.2102457),
-                'longitude' => env('WEATHER_KONGSVINGER_LONGITUDE', 11.9851459),
-                'cache_key' => 'weather.kongsvinger.forecast',
-            ],
-        ],
     ],
 
     'prayer_times' => [

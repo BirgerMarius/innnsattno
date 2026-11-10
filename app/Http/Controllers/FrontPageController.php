@@ -52,8 +52,8 @@ class FrontPageController extends Controller
         return view('tv.guide', [
             'changeHistory' => $changeHistory->get(),
             'flagDayOverview' => $flagDays->overview(),
-            'localNews' => array_slice($localNews->latest($prison['slug']), 0, 3),
-            'localNewsSource' => $prison['local_news'],
+            'localNews' => ($prison['features']['local_news'] ?? false) ? array_slice($localNews->latest($prison['slug']), 0, 3) : [],
+            'localNewsSource' => $prison['local_news'] ?? null,
             'correctionalNews' => $correctionalNews->frontPage(),
             'isThemePreview' => $isThemePreview,
             'theme' => $theme,

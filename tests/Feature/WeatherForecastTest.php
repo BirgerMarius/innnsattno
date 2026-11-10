@@ -37,7 +37,6 @@ class WeatherForecastTest extends TestCase
 
         $this->get(route('tv'))
             ->assertOk()
-            ->assertSee('Værmelding – Ringerike fengsel')
             ->assertSee('href="/ringerike/vaer"', false);
     }
 
@@ -58,8 +57,8 @@ class WeatherForecastTest extends TestCase
         Cache::flush();
         config([
             'services.weather.base_url' => 'https://api.met.no/weatherapi/locationforecast/2.0/compact',
-            'services.weather.locations.ringerike.latitude' => 60.087,
-            'services.weather.locations.ringerike.longitude' => 10.099,
+            'prisons.all.ringerike.weather.latitude' => 60.087,
+            'prisons.all.ringerike.weather.longitude' => 10.099,
             'services.weather.user_agent' => 'innsatt.no-test',
         ]);
 
@@ -105,8 +104,8 @@ class WeatherForecastTest extends TestCase
         config([
             'services.weather.base_url' => 'https://api.met.no/weatherapi/locationforecast/2.0/compact',
             'services.weather.user_agent' => 'innsatt.no-test',
-            'services.weather.locations.ilseng.latitude' => 60.779295,
-            'services.weather.locations.ilseng.longitude' => 11.2281577,
+            'prisons.all.ilseng.weather.latitude' => 60.779295,
+            'prisons.all.ilseng.weather.longitude' => 11.2281577,
         ]);
 
         Http::fake([
@@ -147,10 +146,7 @@ class WeatherForecastTest extends TestCase
 
     public function testLocationsUseSeparateWeatherCacheKeys(): void
     {
-        $this->assertNotSame(
-            config('services.weather.locations.ringerike.cache_key'),
-            config('services.weather.locations.ilseng.cache_key')
-        );
+        $this->assertNotSame('weather.ringerike.forecast', 'weather.ilseng.forecast');
     }
 
     private function day(

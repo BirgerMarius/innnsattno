@@ -21,13 +21,14 @@ class WeatherForecastService
 
     public function forecast(string $locationKey = 'ringerike', bool $check = false): array
     {
-        $location = config("services.weather.locations.{$locationKey}");
+        $location = config("prisons.all.{$locationKey}.weather");
 
         if (!is_array($location)) {
             throw new RuntimeException("Ukjent værsted: {$locationKey}");
         }
 
-        $fresh = Cache::get($location['cache_key']);
+        $cacheKey = 'weather.'.$locationKey.'.forecast';
+        $fresh = Cache::get($cacheKey);
         if (! $check && is_array($fresh)) {
             return $fresh;
         }
@@ -38,8 +39,8 @@ class WeatherForecastService
                 throw new RuntimeException('Værvarselet dekker ikke i dag.');
             }
 
-            Cache::put($location['cache_key'], $forecast, now()->addSeconds((int) config('services.weather.cache_ttl', 1800)));
-            Cache::put($this->staleCacheKey($location), $forecast, now()->addSeconds(self::STALE_TTL_SECONDS));
+            Cache::put($cacheKey, $forecast, now()->addSeconds((int) config('services.weather.cache_ttl', 1800)));
+            Cache::put($this->staleCacheKey($locationKey), $forecast, now()->addSeconds(self::STALE_TTL_SECONDS));
             $this->failureNotifier->reportSuccess('met-weather', $locationKey);
             if ($check) app(ExternalDataMonitor::class)->checked('met-weather', $locationKey, 'weather', 'Værmelding '.$locationKey, false, true, true);
 
@@ -51,7 +52,7 @@ class WeatherForecastService
                 'status' => $exception instanceof RequestException ? $exception->response?->status() : null,
             ]);
 
-            $stale = Cache::get($this->staleCacheKey($location));
+            $stale = Cache::get($this->staleCacheKey($locationKey));
             if ($check) app(ExternalDataMonitor::class)->checked('met-weather', $locationKey, 'weather', 'Værmelding '.$locationKey, false, false, is_array($stale) && $this->coversToday($stale), $this->failureSummary($exception));
             if (is_array($stale)) {
                 return $stale;
@@ -258,9 +259,9 @@ class WeatherForecastService
         return '🌦️';
     }
 
-    private function staleCacheKey(array $location): string
+    private function staleCacheKey(string $locationKey): string
     {
-        return $location['cache_key'].'.stale';
+        return 'weather.'.$locationKey.'.forecast.stale';
     }
 
     private function failureKind(Throwable $exception): string
