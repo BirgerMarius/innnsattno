@@ -6,6 +6,7 @@ use Illuminate\Support\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use App\Services\PlannedSiteChangesService;
 use Tests\TestCase;
 
@@ -16,6 +17,7 @@ class AdminDashboardStatisticsTest extends TestCase
     private $summaryPath;
     private array $originalThemeConfig;
     private array $originalMourningConfig;
+    private array $originalPrisonsConfig;
 
     protected function setUp(): void
     {
@@ -23,6 +25,7 @@ class AdminDashboardStatisticsTest extends TestCase
         $this->summaryPath = storage_path('framework/testing/admin-summary-' . uniqid() . '.json');
         $this->originalThemeConfig = config('front_page_themes');
         $this->originalMourningConfig = config('mourning_flag');
+        $this->originalPrisonsConfig = config('prisons');
         config()->set('admin.statistics_summary_path', $this->summaryPath);
     }
 
@@ -31,6 +34,7 @@ class AdminDashboardStatisticsTest extends TestCase
         Carbon::setTestNow();
         config(['front_page_themes' => $this->originalThemeConfig]);
         config(['mourning_flag' => $this->originalMourningConfig]);
+        config(['prisons' => $this->originalPrisonsConfig]);
         @unlink($this->summaryPath);
         parent::tearDown();
     }
@@ -95,6 +99,29 @@ class AdminDashboardStatisticsTest extends TestCase
             ->assertSee('Tidligere programdatoer (1 hendelse)')->assertSee('Historiske hendelser')
             ->assertSee('Bruker tidligere hentede programmer for samme dato')
             ->assertSee('Historisk');
+    }
+
+    public function test_dashboard_shows_read_only_external_data_statuses_with_fixed_time(): void
+    {
+        Carbon::setTestNow('2026-11-10 12:00:00 Europe/Oslo');
+        Http::fake();
+        config()->set('prisons.all.ilseng.features.prayer', false);
+
+        $this->externalCheck('met-weather', 'ringerike', true, true, '2026-11-10 10:00:00', '2026-11-10 10:00:00');
+        $this->externalCheck('local-news-ringerike-source-0', 'front-page-news-ringerike-source-0', false, true, '2026-11-10 10:05:00', '2026-11-10 09:00:00');
+        $this->externalCheck('met-weather', 'kongsvinger', false, false, '2026-11-10 10:10:00', null);
+
+        $this->withSession(['admin_authenticated' => true])->get('/adm')->assertOk()
+            ->assertSee('Kildekontroller og brukbare data')
+            ->assertSee('10.11.2026 10:00')
+            ->assertSee('Kilden svarer')
+            ->assertSee('Brukbare reservedata')
+            ->assertSee('Data mangler')
+            ->assertSee('Ikke registrert')
+            ->assertSee('Deaktivert')
+            ->assertSee('Scheduler hvert 5. minutt; kilde hentes ved behov.');
+
+        Http::assertNothingSent();
     }
 
     public function testDashboardShowsFallbackWhenSummaryIsMissingOrInvalid()
@@ -519,6 +546,17 @@ class AdminDashboardStatisticsTest extends TestCase
             ];
         }
         return $periods;
+    }
+
+    private function externalCheck(string $service, string $key, bool $success, bool $usable, string $attempt, ?string $lastSuccess): void
+    {
+        DB::table('external_data_checks')->insert([
+            'service' => $service, 'coverage_key' => $key, 'datatype' => 'weather', 'description' => $service,
+            'essential' => false, 'usable' => $usable, 'last_success_at' => $lastSuccess, 'last_check_at' => $attempt,
+            'first_failure_at' => $success ? null : $attempt, 'active_until' => null,
+            'failure_count' => $success ? 0 : 1, 'last_error' => $success ? null : 'Kontroll feilet.',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
     }
 
     private function dailyStatistics(): array

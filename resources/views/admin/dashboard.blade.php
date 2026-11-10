@@ -74,6 +74,15 @@
             </div>
     </section>
 
+    <section class="card admin-dashboard-section mb-4" aria-labelledby="external-data-status-title">
+        <div class="card-body p-lg-4">
+            <p class="admin-card-label mb-1">Automatiske dataoppdateringer</p>
+            <h2 class="h4 mb-2" id="external-data-status-title">Kildekontroller og brukbare data</h2>
+            <p class="text-muted mb-3">Viser lagret status fra planlagte jobber. En vellykket kontroll betyr at kilden svarte, ikke nødvendigvis at innholdet er endret. TV-programavvik vises separat over.</p>
+            @include('admin.partials.external-data-status-table')
+        </div>
+    </section>
+
     <section class="mb-4" aria-labelledby="innhold-title">
         <h2 class="h4 mb-3" id="innhold-title">Innhold og handlinger</h2>
         <div class="admin-action-grid">

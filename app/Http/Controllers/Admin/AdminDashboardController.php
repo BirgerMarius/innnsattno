@@ -9,6 +9,7 @@ use App\NewsSource;
 use App\ProfessionalResource;
 use App\ResourceCategory;
 use App\Services\AdminStatisticsSummary;
+use App\Services\AdminExternalDataStatusService;
 use App\Services\PlannedSiteChangesService;
 use App\Services\TvGuideChannelHealthService;
 use App\Services\TvGuideService;
@@ -17,7 +18,7 @@ use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
-    public function index(Request $request, AdminStatisticsSummary $statistics, PlannedSiteChangesService $plannedSiteChanges, TvGuideChannelHealthService $tvGuideHealth)
+    public function index(Request $request, AdminStatisticsSummary $statistics, PlannedSiteChangesService $plannedSiteChanges, TvGuideChannelHealthService $tvGuideHealth, AdminExternalDataStatusService $externalDataStatus)
     {
         $statusCounts = ProfessionalResource::query()
             ->selectRaw('status, count(*) as aggregate')
@@ -68,6 +69,7 @@ class AdminDashboardController extends Controller
                 ->values()
                 ->all(),
             'tvGuideChannelHealth' => $tvGuideHealth->dashboard(),
+            'externalDataStatus' => $externalDataStatus->dashboard(),
         ]);
     }
 
