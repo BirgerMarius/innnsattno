@@ -748,6 +748,23 @@
 .front-page-btn--football .front-page-btn-title { align-items: center; display: inline-flex; gap: .35rem; }
 .front-page-btn--football small { display: block; font-size: .82em; margin-top: .45rem; opacity: .92; text-align: center; }
 
+.front-page-btn--pastimes {
+    flex-direction: column;
+    gap: .45rem;
+    min-height: 82px;
+    padding: .75rem 1rem;
+}
+
+.front-page-btn--pastimes .front-page-btn-title,
+.front-page-btn--pastimes .front-page-btn-description {
+    display: block;
+}
+
+.front-page-btn--pastimes .front-page-btn-description {
+    font-size: .82em;
+    line-height: 1.2;
+}
+
 .weekly-football-page { max-width: 980px; }
 .weekly-football-back { color: #176b46; font-weight: 600; }
 .weekly-football-header { align-items: flex-end; border-bottom: 2px solid #176b46; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; margin: 1rem 0; padding-bottom: 1rem; }

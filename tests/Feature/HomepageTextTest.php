@@ -131,6 +131,18 @@ class HomepageTextTest extends TestCase
         Carbon::setTestNow();
     }
 
+    public function test_tidsfordriv_button_has_separate_title_and_description_blocks_for_every_prison_front_page(): void
+    {
+        foreach (array_keys(config('prisons.all')) as $prison) {
+            $content = (string) $this->get('/'.$prison)->assertOk()->getContent();
+
+            $this->assertSame(1, preg_match(
+                '/href="\/tidsfordriv\?prison='.$prison.'"[^>]*front-page-btn--pastimes[^>]*>\s*<span class="front-page-btn-title">🧩 Tidsfordriv.*?<\/span>\s*<small class="front-page-btn-description">Spill og oppgaver – på skjerm og papir<\/small>/s',
+                $content,
+            ));
+        }
+    }
+
     public function testActivitiesNewBadgeUsesTheFixedOsloPublicationTimeAndExpiresAfterFourteenDays(): void
     {
         Config::set('activities.published_at', '2026-10-09 09:00:00');
