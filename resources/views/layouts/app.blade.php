@@ -8,11 +8,7 @@
 
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
-    <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
-    rel="stylesheet">
+    <link href="{{ asset('vendor/bootstrap/5.3.7/css/bootstrap.min.css') }}" rel="stylesheet">
 
     <link rel="stylesheet"
           href="https://pro.fontawesome.com/releases/v5.13.0/css/all.css">
@@ -45,7 +41,7 @@
 
     @yield('content')
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('vendor/bootstrap/5.3.7/js/bootstrap.bundle.min.js') }}"></script>
     <script>
         (() => {
             const prison = document.body.dataset.prisonContext;
