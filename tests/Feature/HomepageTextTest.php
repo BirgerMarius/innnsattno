@@ -49,6 +49,21 @@ class HomepageTextTest extends TestCase
         );
     }
 
+    public function testEveryPrisonHomepageKeepsTheSharedHeaderAndTaskWheel(): void
+    {
+        foreach (config('prisons.all') as $slug => $prison) {
+            $this->get('/'.$slug)
+                ->assertOk()
+                ->assertSee('site-header__brand-row', false)
+                ->assertSee('data-oslo-clock', false)
+                ->assertSee('site-header__message-slot', false)
+                ->assertSee('prison-actions--with-task-wheel', false)
+                ->assertSee('front-page-btn--task-wheel', false)
+                ->assertSee('Spinn hjulet')
+                ->assertSee('href="/oppdrag?prison='.$slug.'"', false);
+        }
+    }
+
     public function testHomepageMarksQuizAsUnderDevelopment(): void
     {
         Cache::put(app(LocalNewsService::class)->cacheKey('ringerike'), [[

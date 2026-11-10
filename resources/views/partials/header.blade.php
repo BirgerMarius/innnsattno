@@ -11,7 +11,7 @@
             @include('partials.oslo-clock')
         </a>
 
-        <a href="{{ $prisonHomeUrl }}" class="site-header__logo-link text-center mb-3 d-block" aria-label="Gå til forsiden">
+        <a href="{{ $prisonHomeUrl }}" class="site-header__logo-link text-center d-block" aria-label="Gå til forsiden">
             <img
                 src="{{ asset('img/innsatt-logo-v2.png') }}"
                 alt="INNSATT.NO"

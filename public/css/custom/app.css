@@ -295,11 +295,11 @@
 ======================================== */
 
 .site-header__brand-row {
-    align-items: start;
+    align-items: center;
     display: grid;
-    grid-template-columns: minmax(5.25rem, 1fr) minmax(0, 700px) minmax(5.25rem, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 700px) minmax(0, 1fr);
 }
-.site-header__logo-link { grid-column: 2; min-width: 0; }
+.site-header__logo-link { grid-column: 2; margin-bottom: 0; min-width: 0; width: 100%; }
 .oslo-clock-link { grid-column: 1; justify-self: center; text-decoration: none; }
 .oslo-clock-link:focus-visible { border-radius: .25rem; outline: 3px solid #173f72; outline-offset: 3px; }
 .site-header__message-slot { align-self: center; grid-column: 3; justify-self: center; max-width: 100%; min-width: 0; width: 17rem; }
@@ -323,7 +323,7 @@
     flex-direction: column;
     gap: .12rem;
     justify-self: center;
-    margin-bottom: .75rem;
+    margin-bottom: 0;
     text-shadow: 0 1px 1px rgba(23, 63, 114, .12);
 }
 .oslo-clock__face { filter: drop-shadow(0 2px 2px rgba(23, 63, 114, .18)); height: 4.15rem; overflow: visible; transition: filter .3s ease; width: 4.15rem; }
@@ -356,15 +356,12 @@
     .site-header--has-message .clock-change-reminder, .site-header--has-message .daily-word { margin: 0; width: 100%; }
 }
 @media (max-width: 1199.98px) {
-    .site-header--has-message .site-header__brand-row { row-gap: .5rem; }
-    .site-header__message-slot { grid-column: 1 / -1; grid-row: 2; width: min(32rem, 100%); }
+    .site-header__brand-row { grid-template-columns: minmax(0, 700px); justify-content: center; row-gap: .75rem; }
+    .site-header__logo-link, .oslo-clock-link, .site-header__message-slot { grid-column: 1; }
+    .site-header__message-slot { width: min(32rem, 100%); }
 }
 @media (max-width: 767.98px) {
-    .site-header__brand-row { grid-template-columns: minmax(0, 700px); justify-content: center; }
-    .site-header__logo-link { grid-column: 1; }
-    .oslo-clock-link { display: none; }
-    .site-header__message-slot { grid-column: 1; }
-    .oslo-clock { display: none; }
+    .site-header__brand-row { row-gap: .5rem; }
 }
 @media (prefers-reduced-motion: reduce) {
     .oslo-clock__face, .oslo-clock__bezel, .oslo-clock__rim, .oslo-clock__dial, .oslo-clock__inner-ring, .oslo-clock__markers, .oslo-clock__numerals, .oslo-clock__hand--second, .oslo-clock__pin, .oslo-clock__digital { transition: none; }
@@ -852,7 +849,7 @@
 }
 
 .prison-actions--with-task-wheel .front-page-btn--task-wheel {
-    align-self: start;
+    align-self: center;
     margin: 0 auto;
 }
 

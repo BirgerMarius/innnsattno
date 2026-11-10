@@ -101,7 +101,7 @@ class HomepageResponsiveCssTest extends TestCase
     public function testTaskWheelUsesTheOpenDesktopColumnAndStacksBeforeSharedActionsOnMobile(): void
     {
         $this->assertMatchesRegularExpression(
-            '/\.prison-actions--with-task-wheel\s+\.front-page-btn--task-wheel\s*\{[^}]*align-self:\s*start;[^}]*margin:\s*0\s+auto;/s',
+            '/\.prison-actions--with-task-wheel\s+\.front-page-btn--task-wheel\s*\{[^}]*align-self:\s*center;[^}]*margin:\s*0\s+auto;/s',
             $this->css
         );
         $this->assertMatchesRegularExpression(
