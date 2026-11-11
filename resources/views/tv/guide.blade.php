@@ -365,39 +365,39 @@ $isEvenWeek = $weekNumber % 2 === 0;
         @endif
 
         <a href="/{{ $prison['slug'] }}/premier-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
-            ⚽ Premier League 2026/27
+            ⚽ Premier League {{ $sportsNextSeasonLabels['premier_league'] }}
         </a>
 
         <a href="/{{ $prison['slug'] }}/eliteserien" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
-            ⚽ Eliteserien 2026
+            ⚽ Eliteserien {{ $sportsNextSeasonLabels['eliteserien'] }}
         </a>
 
         <a href="/{{ $prison['slug'] }}/obos-ligaen" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
-            ⚽ OBOS-ligaen 2026
+            ⚽ OBOS-ligaen {{ $sportsNextSeasonLabels['obos_ligaen'] }}
         </a>
 
         <a href="/{{ $prison['slug'] }}/la-liga" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
-            ⚽ La Liga 2026/27
+            ⚽ La Liga {{ $sportsNextSeasonLabels['la_liga'] }}
         </a>
 
         <a href="/{{ $prison['slug'] }}/bundesliga" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
-            ⚽ Bundesliga 2026/27
+            ⚽ Bundesliga {{ $sportsNextSeasonLabels['bundesliga'] }}
         </a>
 
         <a href="/{{ $prison['slug'] }}/champions-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
-            ⚽ Champions League 2026/27
+            ⚽ Champions League {{ $sportsNextSeasonLabels['champions_league'] }}
         </a>
 
         <a href="/{{ $prison['slug'] }}/europa-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
-            ⚽ Europa League 2026/27
+            ⚽ Europa League {{ $sportsNextSeasonLabels['europa_league'] }}
         </a>
 
         <a href="/{{ $prison['slug'] }}/conference-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
-            ⚽ Conference League 2026/27
+            ⚽ Conference League {{ $sportsNextSeasonLabels['conference_league'] }}
         </a>
 
         <a href="/{{ $prison['slug'] }}/nations-league" class="btn btn-lg btn-block front-page-btn front-page-btn--shared front-page-btn--football" role="button">
-            ⚽ Nations League 2026/28
+            ⚽ Nations League {{ $sportsNextSeasonLabels['nations_league'] }}
             @if($showNationsLeagueNewBadge)<span class="front-page-new-badge" aria-label="Ny tjeneste">NY</span>@endif
         </a>
 

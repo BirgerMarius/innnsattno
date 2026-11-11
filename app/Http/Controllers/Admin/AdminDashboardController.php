@@ -51,7 +51,8 @@ class AdminDashboardController extends Controller
             'activeNewsSourceCount' => NewsSource::where('is_active', true)->count(),
             'sportsNextSeasons' => collect(config('services.schibsted_sports.competitions', []))->map(function ($definition, $key) use ($seasonSelections) {
                 $default = (int) config('services.schibsted_sports.'.$definition['season_config']);
-                return ['key' => $key, 'definition' => $definition, 'row' => $seasonSelections->row($key, $default), 'effective' => $seasonSelections->effectiveSeasonId($key, $default), 'default' => $default,
+                $effective = $seasonSelections->effectiveSeasonId($key, $default);
+                return ['key' => $key, 'definition' => $definition, 'row' => $seasonSelections->row($key, $default), 'effective' => $effective, 'effectiveLabel' => $seasonSelections->label($key, $effective), 'default' => $default,
                     'history' => Schema::hasTable('sportsnext_season_switches') ? DB::table('sportsnext_season_switches')->where('competition_key', $key)->latest()->limit(3)->get() : collect()];
             })->values(),
             'newsSourceErrorCount' => NewsSource::where('is_active', true)

@@ -10,6 +10,7 @@ use App\Services\LocalNewsService;
 use App\Services\CorrectionalNewsService;
 use App\Services\TimedVisibilityService;
 use App\Services\PrisonContext;
+use App\Services\SportsNextSeasonSelectionService;
 use Illuminate\Support\Carbon;
 
 class FrontPageController extends Controller
@@ -18,7 +19,7 @@ class FrontPageController extends Controller
     {
     }
 
-    public function index(LocalNewsService $localNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory, FrontPageThemeResolver $themeResolver, PrisonContext $prisons, ?string $prison = null)
+    public function index(LocalNewsService $localNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory, FrontPageThemeResolver $themeResolver, PrisonContext $prisons, SportsNextSeasonSelectionService $seasons, ?string $prison = null)
     {
         return $this->frontPage(
             $localNews,
@@ -26,7 +27,7 @@ class FrontPageController extends Controller
             $flagDays,
             $namedays,
             $changeHistory,
-            $themeResolver->resolve(), false, $prisons->prison($prison)
+            $themeResolver->resolve(), false, $prisons->prison($prison), $seasons
         );
     }
 
@@ -44,7 +45,7 @@ class FrontPageController extends Controller
         return view('design-test.index', ['themes' => config('front_page_themes.themes', [])]);
     }
 
-    private function frontPage(LocalNewsService $localNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory, ?array $theme = null, bool $isThemePreview = false, ?array $prison = null)
+    private function frontPage(LocalNewsService $localNews, CorrectionalNewsService $correctionalNews, FlagDayService $flagDays, NamedayService $namedays, ChangeHistoryService $changeHistory, ?array $theme = null, bool $isThemePreview = false, ?array $prison = null, ?SportsNextSeasonSelectionService $seasons = null)
     {
         $today = Carbon::now(FlagDayService::TIMEZONE);
         $prison ??= app(PrisonContext::class)->prison();
@@ -64,6 +65,7 @@ class FrontPageController extends Controller
             'theme' => $theme,
             'prison' => $prison,
             'prisons' => config('prisons.all'),
+            'sportsNextSeasonLabels' => collect(config('services.schibsted_sports.competitions', []))->mapWithKeys(function ($definition, $key) use ($seasons) { $id = $seasons?->effectiveSeasonId($key, (int) config('services.schibsted_sports.'.$definition['season_config'])) ?? (int) config('services.schibsted_sports.'.$definition['season_config']); return [$key => $seasons?->label($key, $id) ?? 'Sesong-ID: '.$id]; })->all(),
             'todayNamedays' => $namedays->forDate($today)['names'] ?? [],
             'showNationsLeagueNewBadge' => $this->timedVisibility->isVisible(
                 config('nations_league_badge.starts_at'),

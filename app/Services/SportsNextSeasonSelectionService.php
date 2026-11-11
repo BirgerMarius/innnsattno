@@ -5,6 +5,7 @@ namespace App\Services;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Cache;
 
 class SportsNextSeasonSelectionService
 {
@@ -19,6 +20,16 @@ class SportsNextSeasonSelectionService
     {
         return Schema::hasTable('sportsnext_season_selections')
             ? DB::table('sportsnext_season_selections')->where('competition_key', $key)->first() : null;
+    }
+
+    /** Read-only label: database metadata first, then the matching local cache. */
+    public function label(string $key, int $seasonId): ?string
+    {
+        $row = $this->row($key, $seasonId);
+        if ($row && (int) ($row->api_current_season_id ?? 0) === $seasonId && trim((string) $row->api_current_season_name) !== '') return $row->api_current_season_name;
+        if ($row && (int) ($row->candidate_season_id ?? 0) === $seasonId && trim((string) $row->candidate_name) !== '') return $row->candidate_name;
+        $cached = Cache::get('schibsted_sports.'.$key.'.'.$seasonId.'.last_good');
+        return is_array($cached) && trim((string) ($cached['seasonName'] ?? '')) !== '' ? $cached['seasonName'] : null;
     }
 
     public function setAutomatic(string $key, bool $enabled): void

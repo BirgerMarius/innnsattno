@@ -25,6 +25,16 @@ viser siste vellykkede kontroll og begrunnelse. En tilbakeføring slår av
 automatikk og blokkerer samme kandidat til administrator aktivt slår den på igjen.
 Historikk ligger i `sportsnext_season_switches`.
 
+Offentlige sesongtekster leser bare den valgte sesongens vedvarende metadata
+eller tilsvarende lokale `last_good`-cache; de gjør ingen API-kall. Før første
+vellykkede kontroll vises `Sesong-ID: …` i stedet for et gjettet årstall.
+En kandidat påvirker aldri offentlig tekst før den faktisk er valgt.
+
+SportsNext kan levere en planlagt eller feilaktig `endDate`. La Liga sesong-ID
+9227 er observert med 2026-08-16–2027-08-17; datoen kommer fra SportsNext og
+behandles ikke lokalt. Den brukes bare som varselgrunnlag sammen med 14 dagers
+karenstid og komplette gamle/nye kampdata; usikker dato gir derfor ikke bytte.
+
 Ved utrulling: kjør bare `php artisan migrate --force`; ikke kjør `cache:clear`
 eller `optimize:clear`, fordi de kan fjerne fungerende datacache. Kontroller så
 med `php artisan sportsnext:season-control --competition=premier_league`.

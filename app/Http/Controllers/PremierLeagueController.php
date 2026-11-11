@@ -32,6 +32,8 @@ class PremierLeagueController extends Controller
             'apiConfigured' => $competition['apiConfigured'],
             'apiError' => $competition['apiError'],
             'usingStaleData' => $competition['usingStaleData'],
+            'seasonName' => $competition['seasonName'] ?? null,
+            'seasonId' => $competition['seasonId'] ?? $this->premierLeagueService->seasonId(),
             'tv3Plus' => $this->tv3PlusMatches(3, 'premier-league-tv3-plus-screen', $this->prison()),
         ]);
     }

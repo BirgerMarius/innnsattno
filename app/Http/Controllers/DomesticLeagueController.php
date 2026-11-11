@@ -19,7 +19,7 @@ abstract class DomesticLeagueController extends Controller
 
         return view('football.domestic-league', [
             'prison' => $this->prison(), 'leagueName' => $this->competitionName(), 'routePrefix' => $this->routePrefix(),
-            'seasonLabel' => $this->seasonLabel(), 'standings' => $competition['standings'],
+            'seasonLabel' => $competition['seasonName'] ?? $this->seasonLabel(), 'standings' => $competition['standings'],
             'standingsGroups' => $competition['standingsGroups'] ?? [],
             'upcomingFixtures' => $competition['upcomingFixtures'],
             'upcomingFixturesByDate' => collect($competition['upcomingFixtures'])->groupBy('dateLabel'),

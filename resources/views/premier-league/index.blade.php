@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Premier League 2026/27 | INNSATT.NO')
+@section('title', 'Premier League '.($seasonName ?? 'Sesong-ID: '.$seasonId).' | INNSATT.NO')
 
 @push('styles')
 <style>
@@ -145,7 +145,7 @@
             <div class="d-flex flex-wrap align-items-start justify-content-between">
                 <div>
                     <div class="pl-title-row mb-2">
-                        <h1 class="h2 mb-0">Premier League 2026/27</h1>
+                        <h1 class="h2 mb-0">Premier League {{ $seasonName ?? 'Sesong-ID: '.$seasonId }}</h1>
                     </div>
                     <p class="lead mb-2">
                         Kampoversikt, siste resultater og tabell hentet fra VG/Schibsted sitt sports-API.

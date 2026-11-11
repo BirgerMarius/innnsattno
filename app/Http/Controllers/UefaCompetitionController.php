@@ -27,7 +27,7 @@ abstract class UefaCompetitionController extends Controller
         usort($upcomingFixtures, fn (array $a, array $b) => strcmp((string) $a['sortDate'], (string) $b['sortDate']));
         usort($recentResults, fn (array $a, array $b) => strcmp((string) $b['sortDate'], (string) $a['sortDate']));
 
-        return view('champions-league.index', array_merge($this->viewData(), [
+        return view('champions-league.index', array_merge($this->viewData($competition['seasonName'] ?? null), [
             'prison' => $this->prison(),
             'standings' => $competition['standings'],
             // Old cache entries created before grouped standings were added
@@ -52,7 +52,7 @@ abstract class UefaCompetitionController extends Controller
     {
         $printData = $this->competitionService->getPrintData($this->competitionName());
 
-        return view('champions-league.print', array_merge($printData, $this->viewData(), [
+        return view('champions-league.print', array_merge($printData, $this->viewData($printData['seasonName'] ?? null), [
             'returnUrl' => '/'.$this->prison().'/'.$this->routePrefix(),
             'knockoutRounds' => $this->competitionService->buildKnockoutRounds($printData['matches']),
             'tvMatches' => $this->tvMatches(3, $this->routePrefix().'-tv-print', $this->prison()),
@@ -67,7 +67,7 @@ abstract class UefaCompetitionController extends Controller
 
         [$results, $fixtures] = $this->splitLeaguePhaseMatches($teamSeason['teamMatches']);
 
-        return view('champions-league.team', array_merge($teamSeason, $this->viewData(), [
+        return view('champions-league.team', array_merge($teamSeason, $this->viewData($teamSeason['seasonName'] ?? null), [
             'results' => $results,
             'fixtures' => $fixtures,
             'tvMatches' => $this->tvMatches(1, $this->routePrefix().'-team-tv-screen', $this->prison()),
@@ -81,18 +81,18 @@ abstract class UefaCompetitionController extends Controller
         $teamSeason = $this->competitionService->getTeamPhaseData($teamId, $this->competitionName(), ['group']);
         abort_unless($teamSeason, 404);
 
-        return view('football.team-print', array_merge($teamSeason, $this->viewData(), [
+        return view('football.team-print', array_merge($teamSeason, $this->viewData($teamSeason['seasonName'] ?? null), [
             'teamUrl' => '/'.$this->prison().'/'.$this->routePrefix().'/lag/'.$teamId,
             'backUrl' => '/'.$this->prison().'/'.$this->routePrefix(),
             'tvMatches' => $this->tvMatches(1, $this->routePrefix().'-team-tv-print', $this->prison()),
         ]));
     }
 
-    private function viewData(): array
+    private function viewData(?string $seasonName = null): array
     {
         return [
             'competitionName' => $this->competitionName(),
-            'seasonLabel' => '2026/27',
+            'seasonLabel' => $seasonName ?? 'Sesong-ID: '.$this->competitionService->seasonId(),
             'competitionRoute' => $this->routePrefix().'.index',
             'printRoute' => $this->routePrefix().'.print',
             'teamRoute' => $this->routePrefix().'.team',
