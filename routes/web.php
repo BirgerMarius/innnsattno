@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\AdminAuthController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\SportsNextSeasonAdminController;
 use App\Http\Controllers\Admin\AdminTvPrintController;
 use App\Http\Controllers\Admin\FeedbackAdminController;
 use App\Http\Controllers\Admin\ProfessionalResourceAdminController;
@@ -145,6 +146,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/tv-utskrift', AdminTvPrintController::class)->name('tv-print');
         Route::post('/logout', [AdminAuthController::class, 'logout'])
             ->name('logout');
+        Route::post('/sportsnext-sesonger/{competition}/kontroller', [SportsNextSeasonAdminController::class, 'check'])->name('sportsnext-seasons.check');
+        Route::patch('/sportsnext-sesonger/{competition}/automatikk', [SportsNextSeasonAdminController::class, 'automatic'])->name('sportsnext-seasons.automatic');
+        Route::post('/sportsnext-sesonger/{competition}/godkjenn', [SportsNextSeasonAdminController::class, 'approve'])->name('sportsnext-seasons.approve');
+        Route::post('/sportsnext-sesonger/{competition}/tilbakestill', [SportsNextSeasonAdminController::class, 'rollback'])->name('sportsnext-seasons.rollback');
+        Route::post('/sportsnext-sesonger/{competition}/lest', [SportsNextSeasonAdminController::class, 'read'])->name('sportsnext-seasons.read');
         Route::get('/fagstoff', [ProfessionalResourceAdminController::class, 'index'])
             ->name('professional-resources.index');
         Route::get('/fagstoff/opprett', [ProfessionalResourceAdminController::class, 'create'])

@@ -91,6 +91,23 @@ return [
             9171,
             8889,
         ],
+        // A selection in the database overrides these defaults. The scheduler
+        // never writes environment variables or this versioned configuration.
+        'season_switch_grace_days' => env('SCHIBSTED_SEASON_SWITCH_GRACE_DAYS', 14),
+        'season_switch_observation_hours' => env('SCHIBSTED_SEASON_SWITCH_OBSERVATION_HOURS', 12),
+        'competitions' => [
+            'premier_league' => ['name' => 'Premier League', 'tournament_id' => 3, 'season_config' => 'premier_league_season_id', 'automatic_supported' => true],
+            'eliteserien' => ['name' => 'Eliteserien', 'tournament_id' => 38, 'season_config' => 'eliteserien_season_id', 'automatic_supported' => true],
+            'obos_ligaen' => ['name' => 'OBOS-ligaen', 'tournament_id' => 40, 'season_config' => 'obos_ligaen_season_id', 'automatic_supported' => true],
+            'la_liga' => ['name' => 'La Liga', 'tournament_id' => 2, 'season_config' => 'la_liga_season_id', 'automatic_supported' => true],
+            'bundesliga' => ['name' => 'Bundesliga', 'tournament_id' => 6, 'season_config' => 'bundesliga_season_id', 'automatic_supported' => true],
+            // UEFA publishes qualifiers and knockout fixtures progressively.
+            'champions_league' => ['name' => 'Champions League', 'tournament_id' => 1, 'season_config' => 'champions_league_season_id', 'automatic_supported' => false],
+            'europa_league' => ['name' => 'Europa League', 'tournament_id' => 14, 'season_config' => 'europa_league_season_id', 'automatic_supported' => false],
+            'conference_league' => ['name' => 'Conference League', 'tournament_id' => 469, 'season_config' => 'conference_league_season_id', 'automatic_supported' => false],
+            // A multi-year season must never be inferred from a temporary gap.
+            'nations_league' => ['name' => 'UEFA Nations League', 'tournament_id' => 187, 'season_config' => 'nations_league_season_id', 'automatic_supported' => false],
+        ],
     ],
 
     'weather' => [

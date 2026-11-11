@@ -83,6 +83,28 @@
         </div>
     </section>
 
+    <section class="card admin-dashboard-section mb-4" aria-labelledby="sportsnext-season-title">
+        <div class="card-body p-lg-4">
+            <p class="admin-card-label mb-1">SportsNext</p>
+            <h2 class="h4 mb-2" id="sportsnext-season-title">Sesongvalg for fotball</h2>
+            <p class="text-muted mb-3">Automatikk er avslått som standard. UEFA-turneringene og Nations League krever alltid manuell godkjenning.</p>
+            @if(session('sportsnext_season_message'))<p class="alert alert-info">{{ session('sportsnext_season_message') }}</p>@endif
+            <div class="table-responsive"><table class="table table-sm align-middle"><thead><tr><th>Turnering</th><th>Effektiv sesong</th><th>API / kandidat</th><th>Kontroll</th><th>Handling</th></tr></thead><tbody>
+            @foreach($sportsNextSeasons as $item) @php($row=$item['row'])
+                <tr><td><strong>{{ $item['definition']['name'] }}</strong><br><small>{{ ($item['definition']['automatic_supported'] ?? false) ? 'Kan automatiseres etter kontroll' : 'Krever manuell godkjenning' }}</small></td>
+                <td>{{ $item['effective'] }} @if($row?->effective_start_date)<br><small>{{ $row->effective_start_date }}–{{ $row->effective_end_date }}</small>@endif</td>
+                <td>{{ $row?->api_current_season_id ?? 'Ikke kontrollert' }}@if($row?->candidate_season_id)<br><small>Kandidat {{ $row->candidate_name }} ({{ $row->candidate_season_id }}), {{ $row->candidate_observations }}/2 observasjoner</small>@endif</td>
+                <td>{{ $row?->status ?? 'Ikke kontrollert' }}<br><small>{{ $row?->status_reason ?? 'Ingen kontroll er kjørt ennå.' }}@if($row?->last_success_at)<br>Sist vellykket: {{ \Carbon\Carbon::parse($row->last_success_at)->timezone('Europe/Oslo')->format('d.m.Y H:i') }}@endif</small></td>
+                <td class="d-flex flex-wrap gap-1"><form method="post" action="{{ route('admin.sportsnext-seasons.check',$item['key']) }}">@csrf<button class="btn btn-sm btn-outline-primary">Kontroller</button></form>
+                    @if($item['definition']['automatic_supported'] ?? false)<form method="post" action="{{ route('admin.sportsnext-seasons.automatic',$item['key']) }}">@csrf @method('PATCH')<input type="hidden" name="automatic_enabled" value="{{ $row?->automatic_enabled ? '0' : '1' }}"><button class="btn btn-sm btn-outline-secondary">{{ $row?->automatic_enabled ? 'Slå av automatikk' : 'Slå på automatikk' }}</button></form>@endif
+                    @if($row?->status === 'Klar for manuell godkjenning')<form method="post" action="{{ route('admin.sportsnext-seasons.approve',$item['key']) }}">@csrf<button class="btn btn-sm btn-success">Godkjenn kandidat</button></form>@endif
+                    @if($row?->status === 'Byttet' && ! $row?->notice_read_at)<form method="post" action="{{ route('admin.sportsnext-seasons.read',$item['key']) }}">@csrf<button class="btn btn-sm btn-outline-secondary">Marker bytte som lest</button></form>@endif
+                    @foreach($item['history'] as $change) @if($change->from_season_id)<form method="post" action="{{ route('admin.sportsnext-seasons.rollback',$item['key']) }}">@csrf<input type="hidden" name="season_id" value="{{ $change->from_season_id }}"><button class="btn btn-sm btn-outline-danger">Gå tilbake til {{ $change->from_season_id }}</button></form>@break @endif @endforeach
+                </td></tr>
+            @endforeach</tbody></table></div>
+        </div>
+    </section>
+
     <section class="mb-4" aria-labelledby="innhold-title">
         <h2 class="h4 mb-3" id="innhold-title">Innhold og handlinger</h2>
         <div class="admin-action-grid">

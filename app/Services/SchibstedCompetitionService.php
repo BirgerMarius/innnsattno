@@ -324,8 +324,8 @@ abstract class SchibstedCompetitionService
     public function seasonId(): ?int
     {
         $seasonId = config($this->seasonConfigKey());
-
-        return $seasonId ? (int) $seasonId : null;
+        if (! $seasonId) return null;
+        return app(SportsNextSeasonSelectionService::class)->effectiveSeasonId($this->cachePrefix(), (int) $seasonId);
     }
 
     public function tournamentId(): ?int

@@ -774,7 +774,8 @@ class TvGuideService
         $updatedAt = [];
 
         foreach ($sources as $competition => $source) {
-            $season = (int) config('services.schibsted_sports.'.$source['season']);
+            $configuredSeason = (int) config('services.schibsted_sports.'.$source['season']);
+            $season = app(SportsNextSeasonSelectionService::class)->effectiveSeasonId($source['prefix'], $configuredSeason);
             $cached = Cache::get('schibsted_sports.'.$source['prefix'].'.'.$season.'.last_good');
             if (! is_array($cached) || ! is_array($cached['matches'] ?? null)) continue;
             $sportsNext[$competition] = $cached['matches'];

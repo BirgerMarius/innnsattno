@@ -13,12 +13,15 @@ use App\Services\AdminExternalDataStatusService;
 use App\Services\PlannedSiteChangesService;
 use App\Services\TvGuideChannelHealthService;
 use App\Services\TvGuideService;
+use App\Services\SportsNextSeasonSelectionService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
-    public function index(Request $request, AdminStatisticsSummary $statistics, PlannedSiteChangesService $plannedSiteChanges, TvGuideChannelHealthService $tvGuideHealth, AdminExternalDataStatusService $externalDataStatus)
+    public function index(Request $request, AdminStatisticsSummary $statistics, PlannedSiteChangesService $plannedSiteChanges, TvGuideChannelHealthService $tvGuideHealth, AdminExternalDataStatusService $externalDataStatus, SportsNextSeasonSelectionService $seasonSelections)
     {
         $statusCounts = ProfessionalResource::query()
             ->selectRaw('status, count(*) as aggregate')
@@ -46,6 +49,11 @@ class AdminDashboardController extends Controller
             'activeCategoryCount' => ResourceCategory::where('is_active', true)->count(),
             'pendingNewsCount' => NewsArticle::where('status', NewsArticle::STATUS_PENDING)->count(),
             'activeNewsSourceCount' => NewsSource::where('is_active', true)->count(),
+            'sportsNextSeasons' => collect(config('services.schibsted_sports.competitions', []))->map(function ($definition, $key) use ($seasonSelections) {
+                $default = (int) config('services.schibsted_sports.'.$definition['season_config']);
+                return ['key' => $key, 'definition' => $definition, 'row' => $seasonSelections->row($key, $default), 'effective' => $seasonSelections->effectiveSeasonId($key, $default), 'default' => $default,
+                    'history' => Schema::hasTable('sportsnext_season_switches') ? DB::table('sportsnext_season_switches')->where('competition_key', $key)->latest()->limit(3)->get() : collect()];
+            })->values(),
             'newsSourceErrorCount' => NewsSource::where('is_active', true)
                 ->whereNotNull('last_error')
                 ->where('last_error', '<>', '')
