@@ -51,6 +51,7 @@ class SportsNextSeasonSelectionService
                 'status' => 'Byttet', 'status_reason' => $reason, 'notice_read_at' => null,
             ]);
             DB::table('sportsnext_season_switches')->insert(['competition_key' => $key, 'from_season_id' => $from, 'to_season_id' => $seasonId, 'method' => $method, 'reason' => $reason, 'created_at' => now(), 'updated_at' => now()]);
+            app(SportsNextSeasonReportService::class)->record($key, 'bytte', ['turnering'=>config('services.schibsted_sports.competitions.'.$key.'.name',$key),'fra'=>$from,'til'=>$seasonId,'type'=>$method,'begrunnelse'=>$reason,'tidspunkt'=>now()->toIso8601String()]);
         });
     }
 

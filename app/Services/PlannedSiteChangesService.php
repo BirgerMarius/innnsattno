@@ -13,6 +13,7 @@ class PlannedSiteChangesService
         private ClockChangeReminderService $clockChanges,
         private DailyWordService $dailyWords,
         private TimedVisibilityService $timedVisibility,
+        private SportsNextSeasonSelectionService $seasons,
     ) {
     }
 
@@ -52,13 +53,18 @@ class PlannedSiteChangesService
         }, $this->flagDays->upcomingMourningChanges($today));
 
         $changes = array_values(array_filter(
-            array_merge($themeChanges, $mourningChanges, $this->dailyWordChanges($today), $this->clockChanges->upcomingChanges($now), $this->timedVisibilityChanges()),
-            fn (array $change) => $change['date']->greaterThan($now)
+            array_merge($themeChanges, $mourningChanges, $this->dailyWordChanges($today), $this->clockChanges->upcomingChanges($now), $this->timedVisibilityChanges(), $this->seasonCandidates($now)),
+            fn (array $change) => ($change['season_candidate'] ?? false) || $change['date']->greaterThan($now)
         ));
 
         usort($changes, fn (array $a, array $b) => $a['date']->getTimestamp() <=> $b['date']->getTimestamp());
 
         return $changes;
+    }
+
+    private function seasonCandidates(CarbonImmutable $now): array
+    {
+        $changes=[]; foreach(config('services.schibsted_sports.competitions',[]) as $key=>$definition){ $default=(int)config('services.schibsted_sports.'.$definition['season_config']); $row=$this->seasons->row($key,$default); if(!$row || !$row->candidate_season_id || in_array($row->status,['Aktuell','Byttet'],true))continue; $earliest=$row->effective_end_date?CarbonImmutable::parse($row->effective_end_date,'Europe/Oslo')->addDays((int)config('services.schibsted_sports.season_switch_grace_days',14)):null; $changes[]=['date'=>$earliest??$now,'title'=>'SportsNext-sesong avventer','description'=>$definition['name'].': valgt '.$this->seasons->effectiveSeasonId($key,$default).' · kandidat '.($row->candidate_name?:$row->candidate_season_id).' · '.$row->status_reason,'type'=>'sportsnext-season','season_candidate'=>true,'earliest'=>$earliest]; } return $changes;
     }
 
     public function manualTheme(): ?array

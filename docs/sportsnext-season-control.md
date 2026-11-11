@@ -25,6 +25,10 @@ viser siste vellykkede kontroll og begrunnelse. En tilbakeføring slår av
 automatikk og blokkerer samme kandidat til administrator aktivt slår den på igjen.
 Historikk ligger i `sportsnext_season_switches`.
 
+Gjennomførte bytter tas med én gang i den eksisterende ukesrapporten og
+markeres først rapportert etter vellykket utsending. Kandidater som avventer
+vises under planlagte endringer; uten forsvarlig dato står de uten dato.
+
 Offentlige sesongtekster leser bare den valgte sesongens vedvarende metadata
 eller tilsvarende lokale `last_good`-cache; de gjør ingen API-kall. Før første
 vellykkede kontroll vises `Sesong-ID: …` i stedet for et gjettet årstall.

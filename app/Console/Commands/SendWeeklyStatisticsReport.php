@@ -16,7 +16,7 @@ class SendWeeklyStatisticsReport extends Command
     protected $signature = 'statistics:weekly-report {--week= : Mandagen som starter uken (YYYY-MM-DD)}';
     protected $description = 'Sender forrige fullførte kalenderukes statistikkrapport når datagrunnlaget er klart';
 
-    public function handle(WeeklyStatisticsReport $reports): int
+    public function handle(WeeklyStatisticsReport $reports, \App\Services\SportsNextSeasonReportService $seasonReports): int
     {
         if (! config('weekly_statistics.enabled')) {
             $this->line('Ukentlig statistikkrapport er deaktivert.');
@@ -39,9 +39,11 @@ class SendWeeklyStatisticsReport extends Command
                 return self::SUCCESS;
             }
             $delivery->increment('attempts', 1, ['last_attempt_at' => now(), 'last_error' => null]);
+            $seasonEvents = $seasonReports->pending(); $report['sportsnext'] = $seasonEvents;
             try {
                 Mail::to(config('weekly_statistics.recipient'))->send(new WeeklyStatisticsReportMail($report));
                 $delivery->forceFill(['sent_at' => now(), 'last_error' => null])->save();
+                $seasonReports->markReported($seasonEvents);
                 $this->info('Ukentlig statistikkrapport sendt.');
                 return self::SUCCESS;
             } catch (\Throwable $exception) {

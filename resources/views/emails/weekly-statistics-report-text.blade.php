@@ -1,4 +1,10 @@
 {{ $report['subject'] }}
+@if(!empty($report['sportsnext']))
+SportsNext-sesonger:
+@foreach($report['sportsnext'] as $event){{ $event['turnering'] }}: {{ $event['kind'] === 'bytte' ? 'Sesongbytte '.$event['fra'].' → '.$event['til'].' ('.$event['type'].')' : $event['begrunnelse'] }}
+@endforeach
+Administrasjon: {{ url('/adm') }}
+@endif
 
 Periode: {{ $report['week_start']->format('d.m.Y H:i') }}–{{ $report['week_end_exclusive']->format('d.m.Y H:i') }} (Europe/Oslo, eksklusiv sluttgrense)
 Forsidevisninger: {{ $report['metrics']['front_pageviews'] }}
