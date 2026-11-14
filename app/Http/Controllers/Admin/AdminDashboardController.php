@@ -14,6 +14,7 @@ use App\Services\PlannedSiteChangesService;
 use App\Services\TvGuideChannelHealthService;
 use App\Services\TvGuideService;
 use App\Services\SportsNextSeasonSelectionService;
+use App\Services\DailyWordService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Carbon;
@@ -21,7 +22,7 @@ use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
-    public function index(Request $request, AdminStatisticsSummary $statistics, PlannedSiteChangesService $plannedSiteChanges, TvGuideChannelHealthService $tvGuideHealth, AdminExternalDataStatusService $externalDataStatus, SportsNextSeasonSelectionService $seasonSelections)
+    public function index(Request $request, AdminStatisticsSummary $statistics, PlannedSiteChangesService $plannedSiteChanges, TvGuideChannelHealthService $tvGuideHealth, AdminExternalDataStatusService $externalDataStatus, SportsNextSeasonSelectionService $seasonSelections, DailyWordService $dailyWords)
     {
         $statusCounts = ProfessionalResource::query()
             ->selectRaw('status, count(*) as aggregate')
@@ -42,6 +43,10 @@ class AdminDashboardController extends Controller
         $plannedChanges = $showMorePlannedChanges
             ? $plannedChangesInPeriod
             : array_slice($plannedChangesInPeriod, 0, 10);
+        $upcomingDailyWords = array_slice(array_values(array_filter(
+            $allPlannedChanges,
+            fn (array $change) => $change['type'] === 'daily-word'
+        )), 0, 10);
 
         return view('admin.dashboard', [
             'publishedCount' => (int) ($statusCounts[ProfessionalResource::STATUS_PUBLISHED] ?? 0),
@@ -69,6 +74,8 @@ class AdminDashboardController extends Controller
             'showMorePlannedChanges' => $showMorePlannedChanges,
             'hasMorePlannedChanges' => count($plannedChangesInPeriod) > 10,
             'manualTheme' => $plannedSiteChanges->manualTheme(),
+            'upcomingDailyWords' => $upcomingDailyWords,
+            'inactiveDailyWords' => $dailyWords->inactiveWords(),
             'trafficPeriod' => $period,
             'trafficDate' => $trafficDate,
             'trafficDateInvalid' => $requestedDate !== null && $trafficDate === null,

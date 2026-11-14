@@ -53,7 +53,7 @@ class PlannedSiteChangesService
         }, $this->flagDays->upcomingMourningChanges($today));
 
         $changes = array_values(array_filter(
-            array_merge($themeChanges, $mourningChanges, $this->dailyWordChanges($today), $this->clockChanges->upcomingChanges($now), $this->timedVisibilityChanges(), $this->seasonCandidates($now)),
+            array_merge($themeChanges, $mourningChanges, $this->upcomingDailyWords($today), $this->clockChanges->upcomingChanges($now), $this->timedVisibilityChanges(), $this->seasonCandidates($now)),
             fn (array $change) => ($change['season_candidate'] ?? false) || $change['date']->greaterThan($now)
         ));
 
@@ -79,8 +79,9 @@ class PlannedSiteChangesService
      *
      * @return array<int, array{date: CarbonImmutable, title: string, description: string, type: string, word_id: string}>
      */
-    private function dailyWordChanges(CarbonImmutable $today): array
+    public function upcomingDailyWords(?CarbonImmutable $today = null): array
     {
+        $today ??= CarbonImmutable::now(FlagDayService::TIMEZONE)->startOfDay();
         $changes = [];
 
         for ($offset = 1; $offset <= 400; $offset++) {

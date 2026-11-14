@@ -25,7 +25,17 @@ planhorisont som de automatiske temaskiftene. Dager der klokkestillingsmeldingen
 har prioritet, tas ikke med som planlagte Dagens ord. Mottoet der lenker til
 utskriften med den samme stabile tekst-ID-en.
 
-Hvert Dagens ord er en vanlig tastaturtilgjengelig lenke til en stående
-A4-utskrift. Den automatiske utskrifts- og returfunksjonen er den samme som
-for nettstedets øvrige utskrifter. Selve utskriften inneholder bare mottoet og
-den lille avsenderen «innsatt.no».
+På forsiden er overskriften en egen lenke til `/{fengsel}/dagens-ord`, der alle
+aktive tekster kan velges for utskrift. Selve ordteksten lenker fortsatt direkte
+til utskriften av dagens tekst. Den automatiske utskrifts- og returfunksjonen er
+den samme som for nettstedets øvrige utskrifter. Selve utskriften inneholder
+bare mottoet og den lille avsenderen «innsatt.no».
+
+Administratorer kan deaktivere en tekst fra seksjonen «Dagens ord» på
+administrasjonssiden. Statusen lagres på den stabile tekst-ID-en i
+`daily_word_statuses`; teksten fjernes ikke fra konfigurasjonen. Deaktiverte
+tekster tas umiddelbart ut av både rotasjonen og utskriftsvalgsiden. Rotasjonen
+bruker bare aktive tekster, slik at kommende datoer kan forskyves. En deaktivert
+tekst kan aktiveres igjen fra den sammenleggbare listen på samme side. Når alle
+tekster er deaktivert, skjules meldingen på forsiden og valgsiden viser en
+tomtilstand.

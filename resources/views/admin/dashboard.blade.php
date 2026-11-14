@@ -12,6 +12,10 @@
         <p class="mb-0">Oversikt, oppfølging og driftsverktøy samlet på ett sted.</p>
     </header>
 
+    @if (session('status'))
+        <div class="alert alert-success" role="status">{{ session('status') }}</div>
+    @endif
+
     <section class="mb-4" aria-labelledby="oppfolging-title">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-2 mb-3">
             <div>
@@ -172,6 +176,47 @@
                 <a href="{{ route('admin.index', request()->except('planned_changes')) }}#planned-changes-title" class="btn btn-outline-secondary btn-sm mt-3">Vis kun neste 100 dager</a>
             @elseif ($hasLaterPlannedChanges)
                 <a href="{{ route('admin.index', array_merge(request()->query(), ['planned_changes' => 'all'])) }}#planned-changes-title" class="btn btn-outline-secondary btn-sm mt-3">Vis alle planlagte endringer</a>
+            @endif
+        </div>
+    </section>
+
+    <section class="card admin-dashboard-section mb-4" aria-labelledby="daily-words-title">
+        <div class="card-body p-lg-4">
+            <p class="admin-card-label mb-1">Automatikk</p>
+            <h2 class="h4 mb-1" id="daily-words-title">Dagens ord</h2>
+            <p class="text-muted">Kommende datoer bruker samme aktive rotasjon som forsiden. Deaktivering gjelder umiddelbart for alle fengsler.</p>
+
+            @if (count($upcomingDailyWords))
+                <ol class="list-group list-group-numbered mb-3">
+                    @foreach ($upcomingDailyWords as $dailyWord)
+                        <li class="list-group-item d-flex flex-column flex-md-row gap-2 justify-content-between align-items-md-center">
+                            <div><strong>{{ $dailyWord['date']->setTimezone('Europe/Oslo')->format('d.m.Y') }}</strong><br>{{ $dailyWord['description'] }}</div>
+                            <form method="post" action="{{ route('admin.daily-words.deactivate', ['word' => $dailyWord['word_id']]) }}">
+                                @csrf
+                                <button class="btn btn-outline-danger btn-sm" type="submit">Deaktiver</button>
+                            </form>
+                        </li>
+                    @endforeach
+                </ol>
+            @else
+                <div class="alert alert-light border mb-3" role="status">Ingen aktive Dagens ord er tilgjengelig. Forsidemeldingen er skjult til minst én tekst aktiveres igjen.</div>
+            @endif
+
+            @if (count($inactiveDailyWords))
+                <details>
+                    <summary><strong>Deaktiverte tekster ({{ count($inactiveDailyWords) }})</strong></summary>
+                    <ul class="list-group mt-3">
+                        @foreach ($inactiveDailyWords as $dailyWord)
+                            <li class="list-group-item d-flex flex-column flex-md-row gap-2 justify-content-between align-items-md-center">
+                                <span>{{ $dailyWord['text'] }}</span>
+                                <form method="post" action="{{ route('admin.daily-words.activate', ['word' => $dailyWord['id']]) }}">
+                                    @csrf
+                                    <button class="btn btn-outline-success btn-sm" type="submit">Aktiver igjen</button>
+                                </form>
+                            </li>
+                        @endforeach
+                    </ul>
+                </details>
             @endif
         </div>
     </section>

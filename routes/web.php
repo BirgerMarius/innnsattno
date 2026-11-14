@@ -34,6 +34,8 @@ use App\Http\Controllers\LearningController;
 use App\Http\Controllers\FrontPageController;
 use App\Http\Controllers\HeaderMessageController;
 use App\Http\Controllers\DailyWordPrintController;
+use App\Http\Controllers\DailyWordController;
+use App\Http\Controllers\Admin\DailyWordAdminController;
 use App\Http\Controllers\TvPrintController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\FangenyttController;
@@ -67,6 +69,10 @@ Route::post('/{prison}/aktivitetsrom/tilbakemelding', [FeedbackSubmissionControl
     ->name('prison.activity-rooms.feedback.store');
 Route::get('/{prison}', [FrontPageController::class, 'index'])
     ->where('prison', $prisonRoutePattern)->name('prison.home');
+Route::get('/{prison}/dagens-ord', [DailyWordController::class, 'index'])
+    ->where('prison', $prisonRoutePattern)->name('prison.daily-word.index');
+Route::get('/{prison}/dagens-ord/utskrift/{word}', [DailyWordPrintController::class, 'showForPrison'])
+    ->where('prison', $prisonRoutePattern)->name('prison.daily-word.print');
 Route::get('/header-message', [HeaderMessageController::class, 'show'])->name('header-message.show');
 Route::get('/dagens-ord/utskrift/{word}', [DailyWordPrintController::class, 'show'])->name('daily-word.print');
 Route::get('/podkast/betjenten-og-psyken/les-mer', function () {
@@ -151,6 +157,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/sportsnext-sesonger/{competition}/godkjenn', [SportsNextSeasonAdminController::class, 'approve'])->name('sportsnext-seasons.approve');
         Route::post('/sportsnext-sesonger/{competition}/tilbakestill', [SportsNextSeasonAdminController::class, 'rollback'])->name('sportsnext-seasons.rollback');
         Route::post('/sportsnext-sesonger/{competition}/lest', [SportsNextSeasonAdminController::class, 'read'])->name('sportsnext-seasons.read');
+        Route::post('/dagens-ord/{word}/deaktiver', [DailyWordAdminController::class, 'deactivate'])->name('daily-words.deactivate');
+        Route::post('/dagens-ord/{word}/aktiver', [DailyWordAdminController::class, 'activate'])->name('daily-words.activate');
         Route::get('/fagstoff', [ProfessionalResourceAdminController::class, 'index'])
             ->name('professional-resources.index');
         Route::get('/fagstoff/opprett', [ProfessionalResourceAdminController::class, 'create'])
