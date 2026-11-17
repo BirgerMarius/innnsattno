@@ -260,7 +260,7 @@ class AdminDashboardStatisticsTest extends TestCase
         $response = $this->withSession(['admin_authenticated' => true])->get('/adm?traffic_period=30');
 
         $response->assertOk();
-        $response->assertSee('Sidevisninger etter filtrering');
+        $response->assertSee('Antatt menneskelig trafikk');
         $response->assertSee('3 000');
         $response->assertSee('Anslåtte menneskelige besøksøkter');
         $response->assertSee('Datakvalitet: under innkjøring');
@@ -367,10 +367,10 @@ class AdminDashboardStatisticsTest extends TestCase
 
     public function testReadRejectsInvalidOrUnknownSchemaFourClassifierVersions(): void
     {
-        // v8 is the active production classifier and is covered by the
+        // v9 is the active production classifier and is covered by the
         // acceptance test above. Keep this test focused on genuinely unknown
         // versions and invalid JSON types.
-        foreach ([[3], [9], ['5'], [5.5]] as $versions) {
+        foreach ([[3], [10], ['5'], [5.5]] as $versions) {
             $this->writeSummary([
                 'schema_version' => 4,
                 'periods' => $this->currentPeriods($versions),

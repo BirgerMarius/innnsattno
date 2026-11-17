@@ -7,6 +7,7 @@ use App\Services\FootballApi\Providers\ApiFootballProvider;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use App\Services\HeaderMessageService;
+use App\Services\PrintReturnUrl;
 use App\Services\PrisonContext;
 
 class AppServiceProvider extends ServiceProvider
@@ -46,7 +47,7 @@ class AppServiceProvider extends ServiceProvider
 
             $returnTo = request()->input('return_to');
 
-            if (! is_string($returnTo) || ! $this->isSafePrintReturnUrl($returnTo)) {
+            if (! is_string($returnTo) || ! app(PrintReturnUrl::class)->isSafe($returnTo)) {
                 return;
             }
 
@@ -54,17 +55,4 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 
-    private function isSafePrintReturnUrl(string $url): bool
-    {
-        $parts = parse_url($url);
-
-        if ($parts === false || isset($parts['scheme'], $parts['host'], $parts['user'], $parts['pass'])
-            || ! str_starts_with($url, '/') || str_starts_with($url, '//')) {
-            return false;
-        }
-
-        $path = $parts['path'] ?? '';
-
-        return ! preg_match('#(?:^|/)(?:print|utskrift|fasit)$#', $path);
-    }
 }

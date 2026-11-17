@@ -48,7 +48,7 @@
      alt="TV-guide Ringerike Fengsel">
 
 
-<a href="/print" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
+<a href="/ilseng/tv-utskrift" class="btn btn-success btn-lg btn-block" tabindex="1" role="button">
     <i class="far fa-print"></i> Skriv ut TV-guide for i dag
 </a>
 

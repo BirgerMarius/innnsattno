@@ -21,15 +21,15 @@ class AdminStatisticsSummary
             return null;
         }
 
-        if (! is_array($data) || ! in_array($data['schema_version'] ?? null, [1, 2, 3, 4, 5], true)) {
+        if (! is_array($data) || ! in_array($data['schema_version'] ?? null, [1, 2, 3, 4, 5, 6], true)) {
             return null;
         }
 
-        if (in_array($data['schema_version'], [3, 4, 5], true)) {
+        if (in_array($data['schema_version'], [3, 4, 5, 6], true)) {
             if (! $this->validTimestamp($data['generated_at'] ?? null) || ! is_bool($data['test_data'] ?? null)) {
                 return null;
             }
-            $currentMethodology = in_array($data['schema_version'], [4, 5], true);
+            $currentMethodology = in_array($data['schema_version'], [4, 5, 6], true);
             $periods = $this->validHumanPeriods($data['periods'] ?? null, $currentMethodology);
             if ($periods === null) {
                 return null;
@@ -42,7 +42,7 @@ class AdminStatisticsSummary
             if (($data['daily'] ?? null) !== null && $daily === null) {
                 return null;
             }
-            $calendarWeeks = $data['schema_version'] === 5
+            $calendarWeeks = in_array($data['schema_version'], [5, 6], true)
                 ? $this->validCalendarWeeks($data['calendar_weeks'] ?? null) : [];
             if ($calendarWeeks === null) {
                 return null;
@@ -301,10 +301,14 @@ class AdminStatisticsSummary
                 || ! $period['from']->isSameDay($start) || ! $period['to']->isSameDay($start->copy()->addDays(6))) {
                 return null;
             }
-            foreach (['ringerike', 'ilseng', 'other'] as $key) {
-                if (! $this->validCount($prints[$key] ?? null)) {
+            foreach (['ringerike', 'ilseng', 'kongsvinger', 'other'] as $key) {
+                // Schema 5 predates Kongsvinger's prefixed TV print route.
+                // Treat its omitted category as zero without altering its
+                // historical totals or trying to combine finished aggregates.
+                if (! $this->validCount($prints[$key] ?? ($key === 'kongsvinger' ? 0 : null))) {
                     return null;
                 }
+                $prints[$key] ??= 0;
             }
             if (array_sum($prints) !== $period['print_pageviews']) {
                 return null;
@@ -336,7 +340,7 @@ class AdminStatisticsSummary
             $previous = $date;
         }
         foreach ($coverage['classifier_versions'] as $version) {
-            if (! is_int($version) || ! in_array($version, [4, 5, 6, 7, 8], true)) {
+            if (! is_int($version) || ! in_array($version, [4, 5, 6, 7, 8, 9], true)) {
                 return null;
             }
         }

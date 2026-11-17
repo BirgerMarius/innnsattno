@@ -21,8 +21,8 @@ PAGE_NAMES = {
     "/oppdrag": "Spin the wheel – oppdrag",
     "/visitasjon": "Visitasjonsrullett",
     "/tv": "Forside",
-    "/print": "TV-utskrift Ringerike",
-    "/print-ilseng": "TV-utskrift Ilseng",
+    "/print": "TV-utskrift Ringerike (eldre adresse)",
+    "/print-ilseng": "TV-utskrift Ilseng (eldre adresse)",
     "/bonnetider": "Bønnetider Ringerike",
     "/bonnetider-ilseng": "Bønnetider Ilseng",
     "/bonnetider/utskrift": "Bønnetider Ringerike – utskrift",
@@ -43,7 +43,7 @@ def function_name(path):
     """Return a stable, human-readable feature category for public paths."""
     if path == '/tv':
         return 'Forside'
-    if path in ('/print', '/print-ilseng'):
+    if tv_print_prison(path) is not None:
         return 'TV-utskrifter'
     if path == '/ordjakt' or path.startswith('/ordjakt/'):
         return 'Ordjakt'
@@ -61,7 +61,18 @@ def function_name(path):
 
 
 def is_print_path(path):
-    return path in ('/print', '/print-ilseng', '/fotball-utskrift') or path.endswith('/utskrift')
+    return tv_print_prison(path) is not None or path == '/fotball-utskrift' or path.endswith('/utskrift')
+
+
+def tv_print_prison(path):
+    if path == '/print':
+        return 'ringerike'
+    if path == '/print-ilseng':
+        return 'ilseng'
+    for prison in ('ringerike', 'ilseng', 'kongsvinger'):
+        if path == f'/{prison}/tv-utskrift':
+            return prison
+    return None
 
 
 def column(columns, candidates, table):
@@ -95,6 +106,9 @@ def scalar(connection, sql, parameters=()):
 
 
 def page_name(path):
+    prison = tv_print_prison(path)
+    if prison is not None and path not in PAGE_NAMES:
+        return 'TV-utskrift '+prison.capitalize()
     if path.startswith("/dagen-i-dag/"):
         return "Dagen i dag"
     if path in PAGE_NAMES:
@@ -198,13 +212,12 @@ def page_statistics(connection, first, latest):
 def print_statistics(connection, first, latest):
     """Return exhaustive, mutually exclusive print-opening categories."""
     bounds = (first.isoformat(), latest.isoformat())
-    result = {
-        # These labels intentionally mean the two TV print routes only.
-        'ringerike': scalar(connection, "SELECT SUM(pageviews) FROM daily_page_ip_stats "
-                             "WHERE date BETWEEN ? AND ? AND path = '/print'", bounds),
-        'ilseng': scalar(connection, "SELECT SUM(pageviews) FROM daily_page_ip_stats "
-                          "WHERE date BETWEEN ? AND ? AND path = '/print-ilseng'", bounds),
-    }
+    result = {'ringerike': 0, 'ilseng': 0, 'kongsvinger': 0}
+    for row in connection.execute("SELECT path, SUM(pageviews) views FROM daily_page_ip_stats "
+                                  "WHERE date BETWEEN ? AND ? GROUP BY path", bounds):
+        prison = tv_print_prison(row['path'])
+        if prison is not None:
+            result[prison] += max(0, int(row['views'] or 0))
     # All remaining paths counted by is_print_path() belong here: prayer,
     # football and every other /utskrift route.
     result['other'] = scalar(connection,
@@ -259,11 +272,11 @@ def human_periods_for_days(connection, latest_date, days):
     known_automated = sum(classified.get(category, 0) for category in ('bot', 'monitoring', 'scanner', 'excluded'))
     coverage = coverage_for_period(connection, first, latest_date)
     comparison = None
-    if coverage and coverage['complete'] and coverage['classifier_versions'] == [8]:
+    if coverage and coverage['complete'] and coverage['classifier_versions'] == [9]:
         previous_latest = first - dt.timedelta(days=1)
         previous_first = previous_latest - dt.timedelta(days=days - 1)
         previous_coverage = coverage_for_period(connection, previous_first, previous_latest)
-        if previous_coverage and previous_coverage['complete'] and previous_coverage['classifier_versions'] == [8]:
+        if previous_coverage and previous_coverage['complete'] and previous_coverage['classifier_versions'] == [9]:
             comparison = {
                 'from': previous_first.isoformat(), 'to': previous_latest.isoformat(),
                 'pageviews': scalar(connection, "SELECT SUM(pageviews) FROM daily_page_ip_stats WHERE date BETWEEN ? AND ?", (previous_first.isoformat(), previous_latest.isoformat())),
@@ -363,7 +376,7 @@ def generate(database, test_data=False):
         periods = human_periods(connection, latest_date)
         if periods is not None:
             payload = {
-                'schema_version': 5 if is_current_methodology else 3,
+                'schema_version': 6 if is_current_methodology else 3,
                 'generated_at': payload['generated_at'],
                 'test_data': payload['test_data'],
                 'periods': periods,

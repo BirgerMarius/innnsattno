@@ -8,7 +8,7 @@ Administrasjon: {{ url('/adm') }}
 
 Periode: {{ $report['week_start']->format('d.m.Y H:i') }}–{{ $report['week_end_exclusive']->format('d.m.Y H:i') }} (Europe/Oslo, eksklusiv sluttgrense)
 Forsidevisninger: {{ $report['metrics']['front_pageviews'] }}
-Filtrerte sidevisninger: {{ $report['metrics']['pageviews'] }}
+Antatt menneskelig trafikk: {{ $report['metrics']['pageviews'] }}
 Anslåtte menneskelige økter: {{ $report['metrics']['sessions'] }}
 Unike besøksnettverk: {{ $report['metrics']['networks'] }}
 Åpninger av utskriftssider: {{ $report['metrics']['print_opens'] }}
@@ -23,6 +23,6 @@ Sider og funksjoner:
 @foreach($report['pages'] as $page){{ $page['name'] }} ({{ $page['path'] }}): {{ $page['pageviews'] }} visninger, {{ $page['unique_visitors'] }} nettverk
 @endforeach
 
-Utskriftssider: TV-utskrift Ringerike {{ $report['prints_by_prison']['ringerike'] }}, TV-utskrift Ilseng {{ $report['prints_by_prison']['ilseng'] }}, Andre utskriftssider {{ $report['prints_by_prison']['other'] }}.
+Utskriftssider: TV-utskrift Ringerike {{ $report['prints_by_prison']['ringerike'] }}, TV-utskrift Ilseng {{ $report['prints_by_prison']['ilseng'] }}, TV-utskrift Kongsvinger {{ $report['prints_by_prison']['kongsvinger'] }}, Andre utskriftssider {{ $report['prints_by_prison']['other'] }}.
 Loggdekning: {{ $report['coverage']['covered_days'] }}/{{ $report['coverage']['expected_days'] }}. Klassifisererversjoner: {{ implode(', ', $report['classifier_versions']) }}. Oppdatert {{ $report['generated_at']->format('d.m.Y H:i') }}.
 Nettverk og økter er estimater; utskriftsåpning bekrefter ikke fysisk utskrift.

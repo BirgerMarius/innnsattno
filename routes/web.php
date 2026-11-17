@@ -44,6 +44,8 @@ use App\Http\Controllers\RecipeController;
 use App\Http\Controllers\ActivityRoomController;
 use App\Http\Controllers\Admin\NewsAdminController;
 use App\Http\Controllers\Admin\NewsSourceAdminController;
+use App\Services\PrintReturnUrl;
+use Illuminate\Http\Request;
 
 $prisonRoutePattern = implode('|', array_map(
     fn (string $slug) => preg_quote($slug, '#'),
@@ -202,8 +204,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
 });
 
-Route::get('/print', [TvPrintController::class, 'ringerike']);
-Route::get('/print-ilseng', [TvPrintController::class, 'ilseng']);
+Route::get('/print', function (Request $request, PrintReturnUrl $returnUrls) {
+    return redirect()->route('prison.tv-print', array_filter([
+        'prison' => 'ringerike',
+        'return_to' => $returnUrls->fromRequest($request),
+    ]), 301);
+});
+Route::get('/print-ilseng', function (Request $request, PrintReturnUrl $returnUrls) {
+    return redirect()->route('prison.tv-print', array_filter([
+        'prison' => 'ilseng',
+        'return_to' => $returnUrls->fromRequest($request),
+    ]), 301);
+});
 Route::get('/{prison}/tv-utskrift', [TvPrintController::class, 'prison'])->where('prison', $prisonRoutePattern)->name('prison.tv-print');
 
 if (app()->environment('local')) {

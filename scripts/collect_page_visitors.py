@@ -64,6 +64,10 @@ TECHNICAL_PUBLIC_PATHS = frozenset({
     # filename. Nginx can still return the application's 200 page for it.
     # Keep this exact; public downloads can legitimately use other extensions.
     '/web.config',
+    # Fetched by the shared page layout to refresh a header fragment. It is
+    # JSON, not a page opening, even when a browser has another HTML page in
+    # the same session.
+    '/header-message',
 })
 
 
@@ -198,7 +202,11 @@ def sessionize(events, excluded=None):
         chunks, current = [], []
         previous = None
         for item in group:
-            if previous and item[1].when - previous > SESSION_GAP:
+            # A session crossing Oslo midnight belongs to two daily reports.
+            # Without this boundary the following day's pageviews can have no
+            # corresponding session, and the preceding day gets the session.
+            if previous and (item[1].when - previous > SESSION_GAP
+                             or item[1].day != previous.date().isoformat()):
                 chunks.append(current); current = []
             current.append(item); previous = item[1].when
         if current:
@@ -347,7 +355,17 @@ def collect(log_paths, admin_ip=None, today=None, retention_days=60, excluded_ip
     latest = today or dt.datetime.now(OSLO_TIMEZONE).date()
     first = latest - dt.timedelta(days=retention_days - 1)
     events = []
+    # The production wrapper already deduplicates its log list, but doing it
+    # here too makes repeated arguments harmless and prevents doubled rows if
+    # a rotation pattern happens to include the same physical file twice.
+    unique_paths = []
+    seen_paths = set()
     for path in log_paths:
+        identity = str(Path(path).resolve())
+        if identity not in seen_paths:
+            seen_paths.add(identity)
+            unique_paths.append(path)
+    for path in unique_paths:
         with open_log(path) as handle:
             for line in handle:
                 event = parse_event(line)
@@ -408,7 +426,7 @@ def replace_database_rows(database, pages, traffic, first, latest):
             connection.executemany('INSERT INTO daily_traffic_classification_stats(date,category,metric,count) VALUES (?,?,?,?)',
                                    [(day, category, metric, count) for (day, category, metric), count in traffic.items()])
             connection.executemany('INSERT INTO daily_statistics_coverage(date,classifier_version,updated_at) VALUES (?,?,?)',
-                                   [(day, 8, dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()) for day in covered_days])
+                                   [(day, 9, dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()) for day in covered_days])
             connection.execute('DELETE FROM daily_page_ip_stats WHERE date < ?', (first.isoformat(),))
             connection.execute('DELETE FROM daily_traffic_classification_stats WHERE date < ?', (first.isoformat(),))
     finally:

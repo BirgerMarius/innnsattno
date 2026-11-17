@@ -70,7 +70,7 @@
     </script>
     <script>
         (() => {
-            const isPrintPath = (path) => /(?:^|\/)(?:print|utskrift|fasit)$/.test(path);
+            const isPrintPath = (path) => /(?:^|\/)(?:[^/]*print|[^/]*utskrift|fasit)$/.test(path);
             const returnTo = window.location.pathname + window.location.search + window.location.hash;
 
             document.querySelectorAll('a[href]').forEach((link) => {

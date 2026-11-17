@@ -47,7 +47,7 @@ class WeeklyStatisticsReportTest extends TestCase
             'coverage' => ['complete' => true, 'covered_days' => 7, 'expected_days' => 7, 'classifier_versions' => [8]],
             'features' => [], 'comparison' => null,
             'pages' => [['name' => 'Forside', 'path' => '/tv', 'pageviews' => 7, 'unique_visitors' => 2]],
-            'prints_by_prison' => ['ringerike' => 7, 'ilseng' => 7, 'other' => 0],
+            'prints_by_prison' => ['ringerike' => 7, 'ilseng' => 7, 'kongsvinger' => 0, 'other' => 0],
         ];
         $daily = [];
         for ($i = 0; $i < 7; $i++) $daily[$start->copy()->addDays($i)->toDateString()] = ['suspected_human_pageviews' => 3, 'sessions' => 1];

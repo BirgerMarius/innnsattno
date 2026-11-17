@@ -114,7 +114,7 @@ Siden legges ned 7. januar 2025</h1>
         (Husk å velge 2 sider pr. ark, og printe dobbeltsidig så unngår man å bruke for mye papir)
         <br />
         <br />
-        <a href="/print" class="btn btn-primary btn-lg btn-block" tabindex="1" role="button" aria-disabled="true"><i
+        <a href="/ringerike/tv-utskrift" class="btn btn-primary btn-lg btn-block" tabindex="1" role="button" aria-disabled="true"><i
                 class="far fa-print"></i> TV-guide for i dag</a>
         <br />
         <br />

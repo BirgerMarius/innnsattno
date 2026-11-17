@@ -136,7 +136,7 @@ class GenerateAdminStatisticsTest(unittest.TestCase):
             """)
             connection.commit(); connection.close()
             data = GENERATOR.generate(database)
-            self.assertEqual(5, data['schema_version'])
+            self.assertEqual(6, data['schema_version'])
             self.assertEqual('Forside', data['top_pages']['1']['pages'][0]['name'])
             self.assertFalse(data['periods']['7']['coverage']['complete'])
             self.assertEqual(2, data['periods']['1']['features'][1]['print_pageviews'])
@@ -195,7 +195,7 @@ class GenerateAdminStatisticsTest(unittest.TestCase):
                 "AND (path = '/print' OR path = '/print-ilseng' OR path = '/fotball-utskrift' OR path LIKE '%/utskrift')",
                 ('2026-10-12', '2026-10-18'))
             connection.close()
-            self.assertEqual({'ringerike': 62, 'ilseng': 15, 'other': 8}, categories)
+            self.assertEqual({'ringerike': 62, 'ilseng': 15, 'kongsvinger': 0, 'other': 8}, categories)
             self.assertEqual(85, total)
             self.assertEqual(total, sum(categories.values()))
 
@@ -218,6 +218,28 @@ class GenerateAdminStatisticsTest(unittest.TestCase):
             self.assertEqual(4, quiz['pageviews'])
             self.assertEqual(2, quiz['unique_networks'])
             self.assertNotIn('ip', quiz)
+
+    def test_prefixed_tv_prints_share_the_tv_category_without_summing_networks(self):
+        with tempfile.TemporaryDirectory() as directory:
+            database = Path(directory) / 'history.sqlite3'
+            connection = sqlite3.connect(database)
+            connection.execute('CREATE TABLE daily_page_ip_stats (date TEXT, path TEXT, ip TEXT, pageviews INTEGER)')
+            connection.executemany('INSERT INTO daily_page_ip_stats VALUES (?,?,?,?)', [
+                ('2026-11-17', '/print', '203.0.113.10', 1),
+                ('2026-11-17', '/ringerike/tv-utskrift', '203.0.113.10', 2),
+                ('2026-11-17', '/ilseng/tv-utskrift', '203.0.113.11', 3),
+                ('2026-11-17', '/kongsvinger/tv-utskrift', '203.0.113.12', 4),
+            ])
+            connection.row_factory = sqlite3.Row
+            features = GENERATOR.feature_statistics(connection, date(2026, 11, 17), date(2026, 11, 17))
+            prints = GENERATOR.print_statistics(connection, date(2026, 11, 17), date(2026, 11, 17))
+            connection.close()
+            tv = next(feature for feature in features if feature['name'] == 'TV-utskrifter')
+            self.assertEqual(10, tv['pageviews'])
+            self.assertEqual(3, tv['unique_networks'])
+            self.assertEqual({'ringerike': 3, 'ilseng': 3, 'kongsvinger': 4, 'other': 0}, prints)
+            self.assertEqual('TV-utskrift Ringerike (eldre adresse)', GENERATOR.page_name('/print'))
+            self.assertEqual('TV-utskrift Kongsvinger', GENERATOR.page_name('/kongsvinger/tv-utskrift'))
 
 
 if __name__ == "__main__":

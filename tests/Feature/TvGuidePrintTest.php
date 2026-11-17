@@ -48,9 +48,36 @@ class TvGuidePrintTest extends TestCase
     public function printRoutes(): array
     {
         return [
-            'Ringerike print page' => ['/print', '/tv'],
-            'Ilseng print page' => ['/print-ilseng', '/ilseng'],
+            'Ringerike print page' => ['/ringerike/tv-utskrift', '/tv'],
+            'Ilseng print page' => ['/ilseng/tv-utskrift', '/ilseng'],
         ];
+    }
+
+    public function test_legacy_tv_print_routes_redirect_permanently_to_the_prison_routes_and_keep_safe_return_urls(): void
+    {
+        $this->get('/print?prison=ilseng&return_to=%2Fadm%3Ftraffic_period%3D1%23mest-brukte-sider')
+            ->assertStatus(301)
+            ->assertRedirect('/ringerike/tv-utskrift?return_to=%2Fadm%3Ftraffic_period%3D1%23mest-brukte-sider');
+        $this->get('/print-ilseng?return_to=%2Filseng%2Fvaer')
+            ->assertStatus(301)
+            ->assertRedirect('/ilseng/tv-utskrift?return_to=%2Filseng%2Fvaer');
+    }
+
+    public function test_legacy_tv_print_routes_discard_unsafe_return_urls(): void
+    {
+        $this->get('/print?return_to=https%3A%2F%2Fexample.test')
+            ->assertStatus(301)
+            ->assertRedirect('/ringerike/tv-utskrift');
+        $this->get('/print-ilseng?return_to=%2Filseng%2Ftv-utskrift')
+            ->assertStatus(301)
+            ->assertRedirect('/ilseng/tv-utskrift');
+    }
+
+    public function test_shared_layout_marks_prefixed_tv_prints_as_print_links_for_return_context(): void
+    {
+        $layout = file_get_contents(resource_path('views/layouts/app.blade.php'));
+
+        $this->assertStringContainsString('[^/]*utskrift', $layout);
     }
 
     public function test_ilseng_print_keeps_a_valid_explicit_return_url(): void
@@ -76,11 +103,11 @@ class TvGuidePrintTest extends TestCase
         $this->warmTv(now('Europe/Oslo'));
         $this->warmTv(now('Europe/Oslo'), 1, 'ilseng');
 
-        $this->get('/print')
+        $this->get('/ringerike/tv-utskrift')
             ->assertOk()
             ->assertSee('Viasat Explore');
 
-        $this->get('/print-ilseng')->assertOk();
+        $this->get('/ilseng/tv-utskrift')->assertOk();
 
         Http::assertSent(function ($request) {
             parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
@@ -123,8 +150,8 @@ class TvGuidePrintTest extends TestCase
         $this->warmTv(now('Europe/Oslo'));
         $this->warmTv(now('Europe/Oslo'), 1, 'ilseng');
 
-        $this->get('/print')->assertOk()->assertSee('⚽ Norge – Danmark');
-        $this->get('/print-ilseng')->assertOk()->assertSee('⚽ Norge – Danmark');
+        $this->get('/ringerike/tv-utskrift')->assertOk()->assertSee('⚽ Norge – Danmark');
+        $this->get('/ilseng/tv-utskrift')->assertOk()->assertSee('⚽ Norge – Danmark');
 
         Http::assertSent(function ($request) {
             parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
@@ -151,7 +178,7 @@ class TvGuidePrintTest extends TestCase
         $this->warmTv(now('Europe/Oslo'), 1, 'ilseng');
         app(\App\Services\DwScheduleService::class)->refresh();
 
-        $this->get('/print')
+        $this->get('/ringerike/tv-utskrift')
             ->assertOk()
             ->assertSeeInOrder(['BBC World News', 'DW News', 'Al Jazeera English']);
     }
@@ -167,8 +194,8 @@ class TvGuidePrintTest extends TestCase
         $this->warmTv(now('Europe/Oslo'), 1, 'ilseng');
         app(\App\Services\DwScheduleService::class)->refresh();
 
-        $this->get('/print')->assertOk()->assertDontSee('DW News');
-        $this->get('/print-ilseng')->assertOk();
+        $this->get('/ringerike/tv-utskrift')->assertOk()->assertDontSee('DW News');
+        $this->get('/ilseng/tv-utskrift')->assertOk();
 
         Http::assertSent(fn ($request) => $request->url() === 'https://contentsearch.rikstv.no/1/channel/69/epg/'.now('Europe/Oslo')->format('Y-m-d'));
         Http::assertSent(fn ($request) => $request->url() === 'https://contentsearch.rikstv.no/1/channel/71/epg/'.now('Europe/Oslo')->format('Y-m-d'));
@@ -184,8 +211,8 @@ class TvGuidePrintTest extends TestCase
             'www.dw.com/graph-api/en/livestream/english' => Http::response($this->dwResponse([]), 200),
         ]);
 
-        $this->get('/print')->assertOk();
-        $this->get('/print-ilseng')->assertOk();
+        $this->get('/ringerike/tv-utskrift')->assertOk();
+        $this->get('/ilseng/tv-utskrift')->assertOk();
 
         Mail::assertNothingSent();
     }
@@ -217,8 +244,8 @@ class TvGuidePrintTest extends TestCase
     public function printStatusRoutes(): array
     {
         return [
-            'Ringerike' => ['ringerike', '/print', 'NRK1'],
-            'Ilseng' => ['ilseng', '/print-ilseng', 'TV6'],
+            'Ringerike' => ['ringerike', '/ringerike/tv-utskrift', 'NRK1'],
+            'Ilseng' => ['ilseng', '/ilseng/tv-utskrift', 'TV6'],
         ];
     }
 
@@ -239,8 +266,8 @@ class TvGuidePrintTest extends TestCase
     public function printTimezoneRoutes(): array
     {
         return [
-            'Ringerike after summer time starts' => ['ringerike', '/print', '2026-03-29 10:00:00', '2026-03-29T18:00:00Z', '20:00'],
-            'Ilseng after summer time ends' => ['ilseng', '/print-ilseng', '2026-10-25 10:00:00', '2026-10-25T18:00:00Z', '19:00'],
+            'Ringerike after summer time starts' => ['ringerike', '/ringerike/tv-utskrift', '2026-03-29 10:00:00', '2026-03-29T18:00:00Z', '20:00'],
+            'Ilseng after summer time ends' => ['ilseng', '/ilseng/tv-utskrift', '2026-10-25 10:00:00', '2026-10-25T18:00:00Z', '19:00'],
         ];
     }
 
@@ -268,7 +295,7 @@ class TvGuidePrintTest extends TestCase
         $this->warmTv(now('Europe/Oslo'));
         $this->warmTv(now('Europe/Oslo'), 1, 'ilseng');
 
-        $response = $this->get('/print')->assertOk();
+        $response = $this->get('/ringerike/tv-utskrift')->assertOk();
 
         $response
             ->assertSee($longTitle)
@@ -346,7 +373,7 @@ class TvGuidePrintTest extends TestCase
         $this->warmTv(now('Europe/Oslo'));
         $this->warmTv(now('Europe/Oslo'), 1, 'ilseng');
 
-        $response = $this->get('/print-ilseng')->assertOk();
+        $response = $this->get('/ilseng/tv-utskrift')->assertOk();
 
         $response
             ->assertSee($longTitle)

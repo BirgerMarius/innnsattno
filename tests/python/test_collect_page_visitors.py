@@ -183,7 +183,7 @@ class CollectPageVisitorsTest(unittest.TestCase):
             COLLECTOR.replace_database_rows(database, pages, traffic, first, latest)
             connection = sqlite3.connect(database)
             self.assertEqual(7, connection.execute("SELECT pageviews FROM daily_page_ip_stats WHERE date = '2026-08-02'").fetchone()[0])
-            self.assertEqual([('2026-08-04', 8)], connection.execute('SELECT date,classifier_version FROM daily_statistics_coverage').fetchall())
+            self.assertEqual([('2026-08-04', 9)], connection.execute('SELECT date,classifier_version FROM daily_statistics_coverage').fetchall())
             connection.close()
 
     def test_fast_broad_tour_with_browser_agent_is_scanner_not_human(self):
@@ -414,6 +414,44 @@ class CollectPageVisitorsTest(unittest.TestCase):
             )
             pages, _, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
             self.assertEqual(1, pages[('2026-08-04', '/tidsfordriv', '203.0.113.66')])
+
+    def test_header_message_is_technical_and_never_a_pageview(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(
+                line('203.0.113.90', '04/Aug/2026', '/tv', time='12:00:00')
+                + line('203.0.113.90', '04/Aug/2026', '/header-message', time='12:00:01')
+                + line('203.0.113.90', '04/Aug/2026', '/quiz', time='12:00:02')
+            )
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 4))
+            self.assertEqual(2, traffic[('2026-08-04', 'human', 'pageviews')])
+            self.assertNotIn(('2026-08-04', '/header-message', '203.0.113.90'), pages)
+            self.assertEqual(1, traffic[('2026-08-04', 'other', 'requests')])
+
+    def test_session_is_split_at_oslo_midnight(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            # UTC is one hour behind Oslo on this date: these are 23:59 and
+            # 00:01 local time on consecutive calendar days.
+            log.write_text(
+                line('203.0.113.91', '04/Aug/2026', '/tv', time='21:59:00')
+                + line('203.0.113.91', '04/Aug/2026', '/quiz', time='21:59:10')
+                + line('203.0.113.91', '04/Aug/2026', '/tv', time='22:01:00')
+                + line('203.0.113.91', '04/Aug/2026', '/quiz', time='22:01:10')
+            )
+            pages, traffic, _, _ = COLLECTOR.collect([log], today=date(2026, 8, 5))
+            self.assertEqual(2, traffic[('2026-08-04', 'human', 'pageviews')])
+            self.assertEqual(2, traffic[('2026-08-05', 'human', 'pageviews')])
+            self.assertEqual(1, traffic[('2026-08-04', 'human', 'sessions')])
+            self.assertEqual(1, traffic[('2026-08-05', 'human', 'sessions')])
+
+    def test_repeated_log_argument_does_not_double_count_requests(self):
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / 'access.log'
+            log.write_text(line('203.0.113.92', '04/Aug/2026', '/tv') + line('203.0.113.92', '04/Aug/2026', '/quiz'))
+            pages, traffic, _, _ = COLLECTOR.collect([log, log], today=date(2026, 8, 4))
+            self.assertEqual(2, traffic[('2026-08-04', 'human', 'pageviews')])
+            self.assertEqual(1, pages[('2026-08-04', '/tv', '203.0.113.92')])
 
 
 if __name__ == '__main__':
