@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\PremierLeagueService;
 use App\Services\TvGuideService;
+use App\Services\FootballSeasonLabelFormatter;
 
 class PremierLeagueController extends Controller
 {
@@ -12,6 +13,7 @@ class PremierLeagueController extends Controller
     public function __construct(
         PremierLeagueService $premierLeagueService,
         private TvGuideService $tvGuideService,
+        private FootballSeasonLabelFormatter $footballSeasonLabels,
     )
     {
         $this->premierLeagueService = $premierLeagueService;
@@ -32,7 +34,7 @@ class PremierLeagueController extends Controller
             'apiConfigured' => $competition['apiConfigured'],
             'apiError' => $competition['apiError'],
             'usingStaleData' => $competition['usingStaleData'],
-            'seasonName' => $competition['seasonName'] ?? null,
+            'seasonName' => $this->footballSeasonLabels->season($competition['seasonName'] ?? null),
             'seasonId' => $competition['seasonId'] ?? $this->premierLeagueService->seasonId(),
             'tv3Plus' => $this->tv3PlusMatches(3, 'premier-league-tv3-plus-screen', $this->prison()),
         ]);
@@ -58,8 +60,10 @@ class PremierLeagueController extends Controller
 
     public function print()
     {
+        $printData = $this->premierLeagueService->getPrintData('Premier League');
+        $printData['seasonName'] = $this->footballSeasonLabels->season($printData['seasonName'] ?? null);
         return view('football.competition-print', array_merge(
-            $this->premierLeagueService->getPrintData('Premier League'),
+            $printData,
             [
                 'returnUrl' => '/'.$this->prison().'/premier-league',
                 'tv3Plus' => $this->tv3PlusMatches(3, 'premier-league-tv3-plus-print', $this->prison()),
@@ -72,6 +76,7 @@ class PremierLeagueController extends Controller
         $teamId ??= (int) $prisonOrTeamId;
         $teamSeason = $this->premierLeagueService->getTeamSeasonData($teamId, 'Premier League');
         abort_unless($teamSeason, 404);
+        $teamSeason['seasonName'] = $this->footballSeasonLabels->season($teamSeason['seasonName'] ?? null);
 
         return view('football.team', array_merge($teamSeason, [
             'backUrl' => '/'.$this->prison().'/premier-league',
@@ -84,6 +89,7 @@ class PremierLeagueController extends Controller
         $teamId ??= (int) $prisonOrTeamId;
         $teamSeason = $this->premierLeagueService->getTeamSeasonData($teamId, 'Premier League');
         abort_unless($teamSeason, 404);
+        $teamSeason['seasonName'] = $this->footballSeasonLabels->season($teamSeason['seasonName'] ?? null);
 
         return view('football.team-print', array_merge($teamSeason, [
             'backUrl' => '/'.$this->prison().'/premier-league',

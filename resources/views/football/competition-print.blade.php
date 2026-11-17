@@ -77,7 +77,7 @@
 <body class="competition-print{{ in_array($leagueName, ['Premier League', 'La Liga'], true) ? ' competition-print--compact' : '' }}{{ $hasStandingRules ? ' competition-print--has-standing-rules' : '' }}">
     <div class="actions no-print"><button type="button" onclick="window.print()">Skriv ut</button></div>
     <header>
-        <div><strong>Innsatt.no</strong><h1>{{ $leagueName }}</h1></div>
+        <div><strong>Innsatt.no</strong><h1>{{ $leagueName }}@if($seasonName) {{ $seasonName }}@endif</h1></div>
         <div class="meta">
             Generert {{ $generatedAt->locale('nb')->translatedFormat('j. F Y \k\l. H.i') }}<br>
             Siste og neste 7 døgn

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Eliteserien 2026 | INNSATT.NO')
+@section('title', 'Eliteserien '.$seasonLabel.' | INNSATT.NO')
 
 @push('styles')
 <style>
@@ -122,7 +122,7 @@
             <div class="d-flex flex-wrap align-items-start justify-content-between">
                 <div>
                     <div class="es-title-row mb-2">
-                        <h1 class="h2 mb-0">Eliteserien 2026</h1>
+                        <h1 class="h2 mb-0">Eliteserien {{ $seasonLabel }}</h1>
                     </div>
                     <p class="lead mb-2">
                         Kampoversikt, siste resultater og tabell hentet fra Schibsted/VG sitt sports-API.

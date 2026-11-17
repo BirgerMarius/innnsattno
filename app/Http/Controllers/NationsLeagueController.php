@@ -4,10 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Services\NationsLeagueService;
 use App\Services\TvGuideService;
+use App\Services\FootballSeasonLabelFormatter;
 
 class NationsLeagueController extends Controller
 {
-    public function __construct(private NationsLeagueService $nationsLeague, private TvGuideService $tvGuideService)
+    public function __construct(private NationsLeagueService $nationsLeague, private TvGuideService $tvGuideService, private FootballSeasonLabelFormatter $footballSeasonLabels)
     {
     }
 
@@ -42,7 +43,7 @@ class NationsLeagueController extends Controller
 
         return view('champions-league.team', array_merge($teamSeason, [
             'competitionName' => 'Nations League',
-            'seasonLabel' => $teamSeason['seasonName'] ?? 'Sesong-ID: '.$this->nationsLeague->seasonId(),
+            'seasonLabel' => $this->footballSeasonLabels->season($teamSeason['seasonName'] ?? 'Sesong-ID: '.$this->nationsLeague->seasonId()),
             'competitionRoute' => 'nations-league.index',
             'teamPrintRoute' => 'nations-league.team.print',
             'competitionUrl' => '/'.$this->prison().'/nations-league',
@@ -63,7 +64,7 @@ class NationsLeagueController extends Controller
 
         return view('football.team-print', array_merge($teamSeason, [
             'competitionName' => 'Nations League',
-            'seasonLabel' => $teamSeason['seasonName'] ?? 'Sesong-ID: '.$this->nationsLeague->seasonId(),
+            'seasonLabel' => $this->footballSeasonLabels->season($teamSeason['seasonName'] ?? 'Sesong-ID: '.$this->nationsLeague->seasonId()),
             'backUrl' => '/'.$this->prison().'/nations-league', 'teamUrl' => '/'.$this->prison().'/nations-league/lag/'.$teamId,
             'tvMatches' => $this->tvMatches(1, 'nations-league-team-tv-print', false, $this->prison()),
         ]));
@@ -87,7 +88,7 @@ class NationsLeagueController extends Controller
     {
         return [
             'competitionName' => 'UEFA Nations League',
-            'seasonLabel' => $competition['seasonName'] ?? 'Sesong-ID: '.$this->nationsLeague->seasonId(),
+            'seasonLabel' => $this->footballSeasonLabels->season($competition['seasonName'] ?? 'Sesong-ID: '.$this->nationsLeague->seasonId()),
             'norwayTeamId' => NationsLeagueService::NORWAY_TEAM_ID,
             'norwayGroup' => $this->nationsLeague->norwayGroup($competition['standingsGroups'] ?? []),
         ];

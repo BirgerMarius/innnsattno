@@ -19,7 +19,7 @@ abstract class DomesticLeagueController extends Controller
 
         return view('football.domestic-league', [
             'prison' => $this->prison(), 'leagueName' => $this->competitionName(), 'routePrefix' => $this->routePrefix(),
-            'seasonLabel' => $competition['seasonName'] ?? $this->seasonLabel(), 'standings' => $competition['standings'],
+            'seasonLabel' => $this->formatSeasonLabel($competition['seasonName'] ?? $this->seasonLabel()), 'standings' => $competition['standings'],
             'standingsGroups' => $competition['standingsGroups'] ?? [],
             'upcomingFixtures' => $competition['upcomingFixtures'],
             'upcomingFixturesByDate' => collect($competition['upcomingFixtures'])->groupBy('dateLabel'),
@@ -33,7 +33,9 @@ abstract class DomesticLeagueController extends Controller
 
     public function print()
     {
-        return view('football.competition-print', array_merge($this->competitionService->getPrintData($this->competitionName()), [
+        $printData = $this->competitionService->getPrintData($this->competitionName());
+        $printData['seasonName'] = $this->formatSeasonLabel($printData['seasonName'] ?? null);
+        return view('football.competition-print', array_merge($printData, [
             'returnUrl' => '/'.$this->prison().'/'.$this->routePrefix(),
             'tvMatches' => $this->tvMatches(3, $this->routePrefix().'-tv-print'),
         ]));
@@ -44,6 +46,7 @@ abstract class DomesticLeagueController extends Controller
         $teamId ??= (int) $prisonOrTeamId;
         $teamSeason = $this->competitionService->getTeamSeasonData($teamId, $this->competitionName());
         abort_unless($teamSeason, 404);
+        $teamSeason['seasonName'] = $this->formatSeasonLabel($teamSeason['seasonName'] ?? null);
         return view('football.team', array_merge($teamSeason, [
             'backUrl' => '/'.$this->prison().'/'.$this->routePrefix(),
             'printUrl' => '/'.$this->prison().'/'.$this->routePrefix().'/lag/'.$teamId.'/utskrift',
@@ -56,6 +59,7 @@ abstract class DomesticLeagueController extends Controller
         $teamId ??= (int) $prisonOrTeamId;
         $teamSeason = $this->competitionService->getTeamSeasonData($teamId, $this->competitionName());
         abort_unless($teamSeason, 404);
+        $teamSeason['seasonName'] = $this->formatSeasonLabel($teamSeason['seasonName'] ?? null);
         return view('football.team-print', array_merge($teamSeason, [
             'backUrl' => '/'.$this->prison().'/'.$this->routePrefix(),
             'teamUrl' => '/'.$this->prison().'/'.$this->routePrefix().'/lag/'.$teamId,
@@ -64,5 +68,6 @@ abstract class DomesticLeagueController extends Controller
     }
 
     private function prison(): string { return app(\App\Services\PrisonContext::class)->prison()['slug']; }
+    private function formatSeasonLabel(?string $seasonName): ?string { return app(\App\Services\FootballSeasonLabelFormatter::class)->season($seasonName); }
     private function tvMatches(int $limit, string $operation): array { return $this->tvGuideService->getUpcomingCompetitionMatches(now('Europe/Oslo'), $this->routePrefix(), $operation, $limit, false, $this->prison()); }
 }

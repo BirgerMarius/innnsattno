@@ -92,7 +92,7 @@ abstract class UefaCompetitionController extends Controller
     {
         return [
             'competitionName' => $this->competitionName(),
-            'seasonLabel' => $seasonName ?? 'Sesong-ID: '.$this->competitionService->seasonId(),
+            'seasonLabel' => app(\App\Services\FootballSeasonLabelFormatter::class)->season($seasonName ?? 'Sesong-ID: '.$this->competitionService->seasonId()),
             'competitionRoute' => $this->routePrefix().'.index',
             'printRoute' => $this->routePrefix().'.print',
             'teamRoute' => $this->routePrefix().'.team',

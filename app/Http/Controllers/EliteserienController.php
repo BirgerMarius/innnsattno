@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Services\EliteserienService;
 use App\Services\TvGuideService;
+use App\Services\FootballSeasonLabelFormatter;
 
 class EliteserienController extends Controller
 {
     private EliteserienService $eliteserienService;
 
-    public function __construct(EliteserienService $eliteserienService, private TvGuideService $tvGuideService)
+    public function __construct(EliteserienService $eliteserienService, private TvGuideService $tvGuideService, private FootballSeasonLabelFormatter $footballSeasonLabels)
     {
         $this->eliteserienService = $eliteserienService;
     }
@@ -29,6 +30,7 @@ class EliteserienController extends Controller
             'apiConfigured' => $competition['apiConfigured'],
             'apiError' => $competition['apiError'],
             'usingStaleData' => $competition['usingStaleData'],
+            'seasonLabel' => $this->footballSeasonLabels->season($competition['seasonName'] ?? 'Sesong-ID: '.($competition['seasonId'] ?? $this->eliteserienService->seasonId())),
             'tvMatches' => $this->tvMatches(3, 'eliteserien-tv-screen', $this->prison()),
         ]);
     }
@@ -53,8 +55,10 @@ class EliteserienController extends Controller
 
     public function print()
     {
+        $printData = $this->eliteserienService->getPrintData('Eliteserien');
+        $printData['seasonName'] = $this->footballSeasonLabels->season($printData['seasonName'] ?? null);
         return view('football.competition-print', array_merge(
-            $this->eliteserienService->getPrintData('Eliteserien'),
+            $printData,
             ['returnUrl' => '/'.$this->prison().'/eliteserien', 'tvMatches' => $this->tvMatches(3, 'eliteserien-tv-print', $this->prison())],
         ));
     }
@@ -64,6 +68,7 @@ class EliteserienController extends Controller
         $teamId ??= (int) $prisonOrTeamId;
         $teamSeason = $this->eliteserienService->getTeamSeasonData($teamId, 'Eliteserien');
         abort_unless($teamSeason, 404);
+        $teamSeason['seasonName'] = $this->footballSeasonLabels->season($teamSeason['seasonName'] ?? null);
 
         return view('football.team', array_merge($teamSeason, [
             'backUrl' => '/'.$this->prison().'/eliteserien', 'printUrl' => '/'.$this->prison().'/eliteserien/lag/'.$teamId.'/utskrift',
@@ -76,6 +81,7 @@ class EliteserienController extends Controller
         $teamId ??= (int) $prisonOrTeamId;
         $teamSeason = $this->eliteserienService->getTeamSeasonData($teamId, 'Eliteserien');
         abort_unless($teamSeason, 404);
+        $teamSeason['seasonName'] = $this->footballSeasonLabels->season($teamSeason['seasonName'] ?? null);
 
         return view('football.team-print', array_merge($teamSeason, [
             'backUrl' => '/'.$this->prison().'/eliteserien', 'teamUrl' => '/'.$this->prison().'/eliteserien/lag/'.$teamId,

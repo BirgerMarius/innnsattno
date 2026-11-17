@@ -82,7 +82,7 @@ class EliteserienControllerTest extends TestCase
         $response = $this->get('/tv');
 
         $response->assertOk();
-        $response->assertSee('Eliteserien 2026');
+        $response->assertSee('Eliteserien Sesong-ID: 8766');
         $response->assertSee('/eliteserien');
     }
 

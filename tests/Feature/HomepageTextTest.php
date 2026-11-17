@@ -64,6 +64,43 @@ class HomepageTextTest extends TestCase
         }
     }
 
+    public function testEveryPrisonHomepageShowsEachFootballCompetitionNameOnlyOnce(): void
+    {
+        $providerSeasonNames = [
+            'premier_league' => 'Premier League 2026/2027',
+            'eliteserien' => 'Eliteserien 2026',
+            'obos_ligaen' => 'OBOS-ligaen 2026',
+            'la_liga' => 'LaLiga 2026/2027',
+            'bundesliga' => 'Bundesliga 2026/2027',
+            'champions_league' => 'Champions League 2026/2027',
+            'europa_league' => 'Europa League 2026/2027',
+            'conference_league' => 'UEFA Europa Conference League 2026/2027',
+            'nations_league' => 'UEFA Nations League 2026/2028',
+        ];
+
+        foreach ($providerSeasonNames as $key => $seasonName) {
+            $seasonId = config('services.schibsted_sports.'.$key.'_season_id');
+            Cache::forever('schibsted_sports.'.$key.'.'.$seasonId.'.last_good', ['seasonName' => $seasonName]);
+        }
+
+        foreach (config('prisons.all') as $slug => $prison) {
+            $response = $this->get('/'.$slug)->assertOk();
+
+            foreach ([
+                'Premier League 2026/2027', 'Eliteserien 2026', 'OBOS-ligaen 2026',
+                'La Liga 2026/2027', 'Bundesliga 2026/2027', 'Champions League 2026/2027',
+                'Europa League 2026/2027', 'Conference League 2026/2027', 'Nations League 2026/2028',
+            ] as $label) {
+                $response->assertSee($label);
+            }
+
+            $response->assertDontSee('Premier League Premier League')
+                ->assertDontSee('La Liga LaLiga')
+                ->assertDontSee('Conference League UEFA')
+                ->assertDontSee('Nations League UEFA');
+        }
+    }
+
     public function testHomepageMarksQuizAsUnderDevelopment(): void
     {
         Cache::put(app(LocalNewsService::class)->cacheKey('ringerike'), [[
