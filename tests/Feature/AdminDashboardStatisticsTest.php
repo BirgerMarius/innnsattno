@@ -7,6 +7,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Symfony\Component\Process\Process;
 use App\Services\PlannedSiteChangesService;
 use Tests\TestCase;
 
@@ -285,6 +286,21 @@ class AdminDashboardStatisticsTest extends TestCase
             ->assertSee('TV-utskrifter')->assertSee('Unike besøksnettverk')
             ->assertSee('En utskriftsvisning betyr')->assertSee('1 av 1 dager med faktisk logggrunnlag')
             ->assertDontSee('203.0.113.42');
+    }
+
+    public function testReaderAcceptsActualSchemaSixGeneratorOutputWithPrefixedTvPrint(): void
+    {
+        $process = new Process([
+            'python3', base_path('tests/fixtures/generate_admin_statistics_reader_fixture.py'), base_path(), $this->summaryPath,
+        ]);
+        $process->mustRun();
+
+        $summary = app(\App\Services\AdminStatisticsSummary::class)->read();
+
+        $this->assertNotNull($summary);
+        $this->assertTrue($summary['current_methodology']);
+        $this->assertSame(30, $summary['periods']['30']['print_pageviews']);
+        $this->assertSame(30, $summary['periods']['30']['features'][1]['print_pageviews']);
     }
 
     public function testReadAcceptsCompleteSchemaFourReportWithClassifierVersionFive(): void

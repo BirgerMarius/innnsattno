@@ -267,7 +267,8 @@ def human_periods_for_days(connection, latest_date, days):
     single_page_candidates = scalar(connection, "SELECT SUM(count) FROM daily_traffic_classification_stats "
                                     "WHERE date BETWEEN ? AND ? AND category = 'other' AND metric = 'single_page_candidates'", bounds)
     prints = scalar(connection, "SELECT SUM(pageviews) FROM daily_page_ip_stats WHERE date BETWEEN ? AND ? "
-                     "AND (path = '/print' OR path = '/print-ilseng' OR path = '/fotball-utskrift' OR path LIKE '%/utskrift')", bounds)
+                     "AND (path IN ('/print', '/print-ilseng', '/ringerike/tv-utskrift', '/ilseng/tv-utskrift', '/kongsvinger/tv-utskrift', '/fotball-utskrift') "
+                     "OR path LIKE '%/utskrift')", bounds)
     raw_requests = sum(classified.values())
     known_automated = sum(classified.get(category, 0) for category in ('bot', 'monitoring', 'scanner', 'excluded'))
     coverage = coverage_for_period(connection, first, latest_date)

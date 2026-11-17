@@ -3,6 +3,7 @@ FROM php:8.1-cli
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         git \
+        python3 \
         unzip \
         libzip-dev \
         libicu-dev \

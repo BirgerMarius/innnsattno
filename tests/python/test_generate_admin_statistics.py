@@ -233,11 +233,13 @@ class GenerateAdminStatisticsTest(unittest.TestCase):
             connection.row_factory = sqlite3.Row
             features = GENERATOR.feature_statistics(connection, date(2026, 11, 17), date(2026, 11, 17))
             prints = GENERATOR.print_statistics(connection, date(2026, 11, 17), date(2026, 11, 17))
+            print_pageviews = GENERATOR.scalar(connection, "SELECT SUM(pageviews) FROM daily_page_ip_stats WHERE date = ? AND (path IN ('/print', '/print-ilseng', '/ringerike/tv-utskrift', '/ilseng/tv-utskrift', '/kongsvinger/tv-utskrift', '/fotball-utskrift') OR path LIKE '%/utskrift')", ('2026-11-17',))
             connection.close()
             tv = next(feature for feature in features if feature['name'] == 'TV-utskrifter')
             self.assertEqual(10, tv['pageviews'])
             self.assertEqual(3, tv['unique_networks'])
             self.assertEqual({'ringerike': 3, 'ilseng': 3, 'kongsvinger': 4, 'other': 0}, prints)
+            self.assertEqual(10, print_pageviews)
             self.assertEqual('TV-utskrift Ringerike (eldre adresse)', GENERATOR.page_name('/print'))
             self.assertEqual('TV-utskrift Kongsvinger', GENERATOR.page_name('/kongsvinger/tv-utskrift'))
 
