@@ -75,3 +75,78 @@ Følgende oppfølginger er aktive:
 - Kontroller faktisk dekning for automatiske sikkerhetsoppdateringer, inkludert
   tredjepartskilder.
 - Oppgrader Laravel 9 til en støttet versjon.
+
+## Automatisk kontroll av tilgjengelige oppdateringer
+
+Kontrollen skiller privilegert APT-innhenting fra Laravel. Det root-eide
+`scripts/server-maintenance-collect.sh` kjører `apt-get update` med tidsgrense,
+simulerer oppgradering og publiserer bare et avgrenset JSON-resultat. Skriptet
+installerer, fjerner eller endrer aldri pakker, kilder, låser eller omstart.
+
+Laravel leser JSON via `server-maintenance:process-status`; kommandoen og HTTP
+gjør ingen APT-kall. Siste gode pakkeliste beholdes ved innhentings- eller
+JSON-feil, så feil vises aldri som «ingen oppdateringer». Statusen klassifiserer
+heller ikke pakker som sikkerhetsoppdateringer uten separat kildegrunnlag.
+
+### Manuell installasjon på produksjonsserveren
+
+Stegene gjennomføres av serveransvarlig etter godkjent applikasjonsdeploy og
+migrering; repositoryet aktiverer ikke jobben.
+
+1. Fra `/home/forge/innsatt.no/innnsattno`, kjør som root:
+
+   ```bash
+   install -o root -g root -m 0750 scripts/server-maintenance-collect.sh /usr/local/sbin/innsatt-server-maintenance-collect
+   install -o root -g root -m 0644 deploy/systemd/innsatt-server-maintenance.service /etc/systemd/system/innsatt-server-maintenance.service
+   install -o root -g root -m 0644 deploy/systemd/innsatt-server-maintenance.timer /etc/systemd/system/innsatt-server-maintenance.timer
+   install -d -o root -g forge -m 0750 /var/lib/innsatt-server-maintenance
+   ```
+
+2. Status- og feilstatusfilen opprettes atomisk som `root:forge`, modus `0640`.
+   Sett
+   `SERVER_MAINTENANCE_STATUS_PATH=/var/lib/innsatt-server-maintenance/status.json`.
+   Sett også `SERVER_MAINTENANCE_ERROR_PATH=/var/lib/innsatt-server-maintenance/status.error.json`.
+   `forge` skal ikke få sudo.
+3. Angi `SERVER_MAINTENANCE_EMAIL_RECIPIENT=<driftsmottaker>`. La
+   `SERVER_MAINTENANCE_EMAIL_ENABLED=false` stå til status og mottaker er
+   verifisert.
+   De nøyaktige miljøvariablene er:
+
+   ```dotenv
+   SERVER_MAINTENANCE_STATUS_PATH=/var/lib/innsatt-server-maintenance/status.json
+   SERVER_MAINTENANCE_ERROR_PATH=/var/lib/innsatt-server-maintenance/status.error.json
+   SERVER_MAINTENANCE_EMAIL_ENABLED=false
+   SERVER_MAINTENANCE_EMAIL_RECIPIENT=<driftsmottaker>
+   SERVER_MAINTENANCE_STALE_AFTER_HOURS=30
+   ```
+
+   Kjør deretter, som `forge` fra prosjektet, `php artisan migrate --force`.
+4. Kjør `systemctl daemon-reload` og
+   `systemctl start innsatt-server-maintenance.service`. Kontroller med:
+
+   ```bash
+   systemctl status innsatt-server-maintenance.service --no-pager
+   cat /var/lib/innsatt-server-maintenance/status.json
+   sudo -u forge test -r /var/lib/innsatt-server-maintenance/status.json
+   ```
+5. Kjør `php artisan server-maintenance:process-status` som `forge`, kontroller
+   `/adm`, og aktiver deretter mail og
+   `systemctl enable --now innsatt-server-maintenance.timer`.
+
+Root-jobben er planlagt 04:45 med inntil ti minutters tilfeldig forsinkelse.
+Laravel behandler filen 05:10 Europe/Oslo. Begge bruker låsing og tidsgrenser.
+Pakkelisten omfatter kandidater fra alle aktive APT-kilder, også tredjepart.
+
+### Varsling, kontroll og deaktivering
+
+Nye eller endrede pakkeversjoner gir høyst én ordinær e-post per døgn; uendret
+ventende status gir høyst én påminnelse per sju dager. Kontrollfeil gir ett
+deduplisert feilvarsel og én friskmelding etter en vellykket kontroll. Levering
+lagres varig og feilet sending prøves igjen uten å markeres som levert. En
+vellykket kontroll uten oppdateringer sender ingen e-post.
+
+Kontroller `/adm`, Laravel-logg og tabellene `server_maintenance_statuses` og
+`server_maintenance_mail_deliveries`. For å deaktivere root-jobben, kjør
+`systemctl disable --now innsatt-server-maintenance.timer`; behold statusfil og
+historikk for feilsøking. Sett `SERVER_MAINTENANCE_EMAIL_ENABLED=false` for å
+stanse e-post. Ikke bruk `autoremove` eller endre pakkelåser ved deaktivering.

@@ -1,0 +1,8 @@
+[Unit]
+Description=Daglig APT-statuskontroll for Innsatt.no
+[Timer]
+OnCalendar=*-*-* 04:45:00
+Persistent=true
+RandomizedDelaySec=10min
+[Install]
+WantedBy=timers.target

@@ -15,6 +15,7 @@ use App\Services\TvGuideChannelHealthService;
 use App\Services\TvGuideService;
 use App\Services\SportsNextSeasonSelectionService;
 use App\Services\DailyWordService;
+use App\Services\ServerMaintenanceStatusService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Carbon;
@@ -22,7 +23,7 @@ use Illuminate\Http\Request;
 
 class AdminDashboardController extends Controller
 {
-    public function index(Request $request, AdminStatisticsSummary $statistics, PlannedSiteChangesService $plannedSiteChanges, TvGuideChannelHealthService $tvGuideHealth, AdminExternalDataStatusService $externalDataStatus, SportsNextSeasonSelectionService $seasonSelections, DailyWordService $dailyWords)
+    public function index(Request $request, AdminStatisticsSummary $statistics, PlannedSiteChangesService $plannedSiteChanges, TvGuideChannelHealthService $tvGuideHealth, AdminExternalDataStatusService $externalDataStatus, SportsNextSeasonSelectionService $seasonSelections, DailyWordService $dailyWords, ServerMaintenanceStatusService $serverMaintenance)
     {
         $statusCounts = ProfessionalResource::query()
             ->selectRaw('status, count(*) as aggregate')
@@ -86,6 +87,7 @@ class AdminDashboardController extends Controller
                 ->all(),
             'tvGuideChannelHealth' => $tvGuideHealth->dashboard(),
             'externalDataStatus' => $externalDataStatus->dashboard(),
+            'serverMaintenanceStatus' => $serverMaintenance->dashboard(),
         ]);
     }
 

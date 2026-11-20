@@ -13,6 +13,7 @@ use App\Console\Commands\PruneExternalDataSourceEvents;
 use App\Console\Commands\PrecacheFootballTeams;
 use App\Console\Commands\ControlSportsNextSeasons;
 use App\Console\Commands\SendWeeklyStatisticsReport;
+use App\Console\Commands\ProcessServerMaintenanceStatus;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -35,6 +36,7 @@ class Kernel extends ConsoleKernel
         PrecacheFootballTeams::class,
         ControlSportsNextSeasons::class,
         SendWeeklyStatisticsReport::class,
+        ProcessServerMaintenanceStatus::class,
     ];
 
     /**
@@ -57,6 +59,8 @@ class Kernel extends ConsoleKernel
         // The reporting command refuses incomplete post-midnight JSON and retries
         // every five minutes for the rest of Monday.
         $schedule->command('statistics:weekly-report')->cron('5-59/5 * * * 1')->timezone('Europe/Oslo')->withoutOverlapping();
+        // Reads a root-published file only; this command never invokes APT.
+        $schedule->command('server-maintenance:process-status')->dailyAt('05:10')->timezone('Europe/Oslo')->withoutOverlapping();
     }
 
     /**

@@ -87,6 +87,22 @@
         </div>
     </section>
 
+    <section class="card admin-dashboard-section mb-4" aria-labelledby="server-maintenance-title">
+        <div class="card-body p-lg-4">
+            <p class="admin-card-label mb-1">Servervedlikehold</p>
+            <h2 class="h4 mb-2" id="server-maintenance-title">Tilgjengelige pakkeoppdateringer</h2>
+            @php($serverState = $serverMaintenanceStatus['state'])
+            @if ($serverState === 'updates')<p class="alert alert-warning">{{ count($serverMaintenanceStatus['packages']) }} oppdateringer er tilgjengelige. Ingen pakker installeres automatisk.</p>
+            @elseif ($serverState === 'current')<p class="alert alert-success">Ingen oppdateringer er registrert ved siste vellykkede kontroll.</p>
+            @elseif ($serverState === 'missing')<p class="alert alert-secondary">Kontrolloppsettet mangler eller er ikke aktivert.</p>
+            @elseif ($serverState === 'stale')<p class="alert alert-warning">Siste vellykkede kontroll er foreldet. Siste gode pakkeliste vises nedenfor.</p>
+            @else<p class="alert alert-danger">Kontrollen feilet. Dette betyr ikke at serveren er oppdatert. Siste gode pakkeliste beholdes nedenfor.</p>@endif
+            <p class="text-muted small mb-2">Sist kontrollert: {{ !empty($serverMaintenanceStatus['checked_at']) ? $serverMaintenanceStatus['checked_at']->timezone('Europe/Oslo')->format('d.m.Y H:i') : 'ikke registrert' }} · Sist vellykket: {{ !empty($serverMaintenanceStatus['last_success_at']) ? $serverMaintenanceStatus['last_success_at']->timezone('Europe/Oslo')->format('d.m.Y H:i') : 'ikke registrert' }}@if (!empty($serverMaintenanceStatus['reboot_required'])) · Omstart kreves@endif</p>
+            @if (!empty($serverMaintenanceStatus['detail']))<p class="text-muted small">{{ $serverMaintenanceStatus['detail'] }}</p>@endif
+            @if (count($serverMaintenanceStatus['packages']))<details><summary><strong>Vis pakkeliste ({{ count($serverMaintenanceStatus['packages']) }})</strong></summary><div class="table-responsive mt-2"><table class="table table-sm mb-0"><thead><tr><th>Pakke</th><th>Installert</th><th>Tilgjengelig</th><th>Lås</th></tr></thead><tbody>@foreach ($serverMaintenanceStatus['packages'] as $package)<tr><td>{{ $package['name'] }}</td><td>{{ $package['installed_version'] }}</td><td>{{ $package['candidate_version'] }}</td><td>{{ $package['held'] ? 'På hold' : '–' }}</td></tr>@endforeach</tbody></table></div></details>@endif
+        </div>
+    </section>
+
     <section class="card admin-dashboard-section mb-4" aria-labelledby="sportsnext-season-title">
         <div class="card-body p-lg-4">
             <p class="admin-card-label mb-1">SportsNext</p>
