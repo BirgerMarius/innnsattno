@@ -25,13 +25,15 @@ class ServerMaintenanceStatusService
         }
         usort($packages, fn ($a, $b) => $a['name'] <=> $b['name']);
         $success = ['state' => 'ok', 'checked_at' => Carbon::parse($data['checked_at']), 'packages' => $packages, 'reboot_required' => $data['reboot_required'], 'fingerprint' => hash('sha256', json_encode([$packages, $data['reboot_required']]))];
-        return $error && $error['checked_at']->gt($success['checked_at']) ? $error : $success;
+        if ($error && (! isset($error['checked_at']) || $error['checked_at']->gt($success['checked_at']))) return $error;
+        return $success;
     }
 
     public function dashboard(): array
     {
         $row = ServerMaintenanceStatus::latest('id')->first();
         if (! $row) return ['state' => 'missing', 'detail' => 'Kontrolloppsettet er ikke registrert ennå.', 'packages' => []];
+        if ($row->state === 'missing') return ['state' => 'missing', 'detail' => $row->last_error, 'checked_at' => $row->checked_at, 'last_success_at' => null, 'packages' => $row->packages ?: [], 'reboot_required' => false];
         $stale = $row->last_success_at && $row->last_success_at->lt(now()->subHours(config('server_maintenance.stale_after_hours')));
         $state = $row->state === 'error' ? 'error' : ($stale ? 'stale' : (count($row->packages ?: []) ? 'updates' : 'current'));
         return ['state' => $state, 'detail' => $row->last_error, 'checked_at' => $row->checked_at, 'last_success_at' => $row->last_success_at, 'packages' => $row->packages ?: [], 'reboot_required' => $row->reboot_required];

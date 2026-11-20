@@ -26,8 +26,9 @@ class ProcessServerMaintenanceStatus extends Command
             $row = $previous ?: new ServerMaintenanceStatus();
             $wasError = $previous && $previous->state === 'error';
             if ($input['state'] !== 'ok') {
-                $row->forceFill(['state' => $input['state'], 'checked_at' => $input['checked_at'] ?? now(), 'last_error' => $input['error'], 'error_alert_sent' => $wasError ? $row->error_alert_sent : false])->save();
-                if (! $wasError) $this->queue('error:'.$row->checked_at->format('YmdHis'), 'error', ['error' => $input['error'], 'last_success_at' => optional($row->last_success_at)->timezone('Europe/Oslo')->format('d.m.Y H:i')]);
+                $checkedAt = $input['checked_at'] ?? now();
+                $row->forceFill(['state' => $input['state'], 'checked_at' => $checkedAt, 'last_error' => $input['error'], 'error_alert_sent' => $wasError ? $row->error_alert_sent : false])->save();
+                if (! $wasError) $this->queue('error:'.$checkedAt->format('YmdHis'), 'error', ['error' => $input['error'], 'last_success_at' => $row->last_success_at ? $row->last_success_at->timezone('Europe/Oslo')->format('d.m.Y H:i') : null]);
             } else {
                 $changed = ! $previous || $previous->fingerprint !== $input['fingerprint'];
                 $hadSentError = $wasError && $previous->error_alert_sent;

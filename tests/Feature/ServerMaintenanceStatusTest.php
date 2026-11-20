@@ -14,16 +14,18 @@ class ServerMaintenanceStatusTest extends TestCase
     use RefreshDatabase;
 
     private string $path;
+    private string $errorPath;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->path = storage_path('framework/testing/server-maintenance-'.uniqid().'.json');
-        config(['server_maintenance.status_path' => $this->path, 'server_maintenance.enabled' => true, 'server_maintenance.recipient' => 'drift@example.test']);
+        $this->errorPath = storage_path('framework/testing/server-maintenance-error-'.uniqid().'.json');
+        config(['server_maintenance.status_path' => $this->path, 'server_maintenance.error_path' => $this->errorPath, 'server_maintenance.enabled' => true, 'server_maintenance.recipient' => 'drift@example.test']);
         Mail::fake();
     }
 
-    protected function tearDown(): void { @unlink($this->path); parent::tearDown(); }
+    protected function tearDown(): void { @unlink($this->path); @unlink($this->errorPath); parent::tearDown(); }
 
     public function testUpdatesHeldPackagesAndDeduplicatedMailAreRecorded(): void
     {
@@ -45,6 +47,42 @@ class ServerMaintenanceStatusTest extends TestCase
         $this->artisan('server-maintenance:process-status')->assertExitCode(0);
         $this->assertSame('error', ServerMaintenanceStatus::first()->state);
         Mail::assertSent(ServerMaintenanceStatusMail::class, 1);
+    }
+
+    public function testFirstRunWithMissingStatusFileIsControlledWithoutException(): void
+    {
+        $this->artisan('server-maintenance:process-status')->assertExitCode(0);
+        $this->assertSame('missing', ServerMaintenanceStatus::firstOrFail()->state);
+        Mail::assertSent(ServerMaintenanceStatusMail::class, 1);
+        $this->withSession(['admin_authenticated' => true])->get('/adm')->assertOk()
+            ->assertSee('Kontrolloppsettet mangler eller er ikke aktivert.');
+    }
+
+    public function testInvalidErrorStatusFileAlongsideValidStatusIsControlled(): void
+    {
+        $this->write(['status' => 'ok', 'packages' => [], 'reboot_required' => false]);
+        file_put_contents($this->errorPath, '{invalid');
+        $this->artisan('server-maintenance:process-status')->assertExitCode(0);
+        $this->assertSame('error', ServerMaintenanceStatus::firstOrFail()->state);
+        $this->assertSame('Feilstatusfilen er ugyldig JSON.', ServerMaintenanceStatus::firstOrFail()->last_error);
+    }
+
+    public function testAdminRendersFirstErrorStatusWithoutLastSuccessAt(): void
+    {
+        $this->write(['status' => 'error', 'error' => 'APT failed']);
+        $this->artisan('server-maintenance:process-status')->assertExitCode(0);
+        $this->assertNull(ServerMaintenanceStatus::firstOrFail()->last_success_at);
+        $this->withSession(['admin_authenticated' => true])->get('/adm')->assertOk()
+            ->assertSee('Kontrollen feilet. Dette betyr ikke at serveren er oppdatert.');
+    }
+
+    public function testAdminRendersAfterSuccessfulStatusWithPackages(): void
+    {
+        $this->write(['status' => 'ok', 'packages' => [['name' => 'nginx', 'installed_version' => '1.0', 'candidate_version' => '1.1', 'held' => false]], 'reboot_required' => false]);
+        $this->artisan('server-maintenance:process-status')->assertExitCode(0);
+        $this->withSession(['admin_authenticated' => true])->get('/adm')->assertOk()
+            ->assertSee('Tilgjengelige pakkeoppdateringer')
+            ->assertSee('Vis pakkeliste (1)');
     }
 
     public function testErrorKeepsLastGoodPackagesAndRecoveryIsSent(): void

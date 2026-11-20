@@ -91,7 +91,8 @@ heller ikke pakker som sikkerhetsoppdateringer uten separat kildegrunnlag.
 ### Manuell installasjon på produksjonsserveren
 
 Stegene gjennomføres av serveransvarlig etter godkjent applikasjonsdeploy og
-migrering; repositoryet aktiverer ikke jobben.
+migrering; repositoryet aktiverer ikke jobben. Miljøvariablene i steg 3 må
+legges inn før første Laravel-kommando eller scheduler-kjøring.
 
 1. Fra `/home/forge/innsatt.no/innnsattno`, kjør som root:
 
