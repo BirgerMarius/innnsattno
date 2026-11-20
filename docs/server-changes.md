@@ -2,7 +2,9 @@
 
 Dette er gjeldende, korte driftsveiledning for innsatt.no. Den versjonerte
 PowerShell-menyen er [tools/windows/innsatt.ps1](../tools/windows/innsatt.ps1).
-Historiske serverendringer starter under «Historikk» og er ikke en deployoppskrift.
+Se [rutine for servervedlikehold](server-maintenance.md) for planlegging,
+gjennomføring og kontroll av operativsystem- og pakkevedlikehold. Historiske
+serverendringer starter under «Historikk» og er ikke en deployoppskrift.
 
 ## Vanlig deploy
 
@@ -80,10 +82,52 @@ egne sidekopier.
 
 - `PROJECT.md` og `context/project-rules.md`: arbeidsflyt, testing og Git.
 - `README.md`: utviklings- og datakildedokumentasjon.
+- [Rutine for servervedlikehold](server-maintenance.md): kontrollert
+  operativsystem- og pakkevedlikehold.
 - `docs/`: avgrenset fag- og tjenestedokumentasjon.
 - Resten av denne filen: bekreftet historikk for manuelle serverendringer.
 
 ## Historikk – manuelle produksjonsendringer
+
+## 2026-11-20 – NGINX- og PHP-vedlikehold
+
+### Utførte endringer
+
+- Serveren kjører Ubuntu 24.04 LTS.
+- NGINX ble byttet fra Sury-pakken 1.28.0 til nginx.org mainline
+  1.31.9-1~noble. `nginx-common` ble fjernet som del av pakkebyttet.
+- Eksisterende `/etc/nginx/nginx.conf` og `fastcgi_params` ble beholdt. Ingen
+  dynamiske NGINX-moduler ble funnet i aktiv konfigurasjon.
+- PHP-kilden ble flyttet fra `ondrej/php`-PPA-et til
+  `https://packages.sury.org/php/` for `noble`, med egen Signed-By-nøkkel.
+  Den gamle kildefilen er beholdt med endelsen `.sources.disabled`.
+- PHP ble oppgradert fra 8.3.36 til 8.3.37 og er fortsatt på PHP 8.3.
+  Nettsidene bruker fortsatt `php8.3-fpm.sock`.
+
+### Kontroller
+
+- `nginx -t` besto, NGINX ble restartet, tjenesten var aktiv og HTTP svarte
+  200.
+- HTTP/2 var aktivert. Oppdateringen håndterer DigitalOcean-varselet om
+  CVE-2026-123633 og CVE-2026-123007.
+- `php-fpm8.3 -t` besto, PHP-FPM ble restartet og var aktiv.
+- `https://innsatt.no/tv` svarte HTTP 200 etter både NGINX- og
+  PHP-oppdateringen.
+- `apt-get check` besto. Siste kontrollerte `apt-mark showhold` viste bare
+  `libgd3`.
+- Tidsstemplede `tar.gz`-sikkerhetskopier av `/etc/nginx`, `/etc/php` og
+  `/etc/apt` ble lagret under `/root` før endringene.
+- `pgrep -a java` fant ingen kjørende Java-prosesser. Dette er ikke en
+  fullstendig kontroll av eventuelle container-runtimer.
+
+### Avgrensning og oppfølging
+
+- Ingen Laravel-deploy eller cachetømming ble utført.
+- NGINX-låsen fra oktober er nå løst: NGINX er ikke lenger på hold.
+- `libgd3` er fortsatt på hold. Vurder låsen og eventuell APT-pinning.
+- Kontroller faktisk dekning for automatiske sikkerhetsoppdateringer,
+  inkludert tredjepartskilder.
+- Oppfølgingen om oppgradering fra Laravel 9 til en støttet versjon består.
 
 ## 2026-10-24 – Servervedlikehold og oppdatert produksjonsstatus
 
@@ -128,9 +172,8 @@ oppdatert 24.10.2026. Serveren ble deretter startet på nytt.
 ### Kjente oppfølgingspunkter
 
 - Laravel 9 må oppgraderes til en støttet versjon.
-- `nginx` og `nginx-common` er midlertidig satt på hold på grunn av forskjeller
-  mellom pakkekilder. En trygg oppgraderingsstrategi må vurderes før låsene
-  eventuelt fjernes.
+- NGINX-låsen og `nginx-common`-problematikken er løst ved vedlikeholdet
+  20.11.2026; se den nyere historikkoppføringen over.
 - `libgd3` er midlertidig satt på hold for å beholde Ubuntu-versjonen fremfor
   Sury-versjonen. Vurder APT-pinning slik at sikkerhetsoppdateringer fortsatt
   kan mottas.
