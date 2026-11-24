@@ -389,11 +389,6 @@ installert på produksjonsserveren.
 publiserte databaseutgaver. Den siste brukes for å opprette manglende covers uten ny
 nedlasting; `--force` regenererer eksisterende covers.
 
-En fremtidig e-post- eller nettsteddetektor skal ikke importere filer selv. Den skal
-bare sende kandidatdata (`number`, `original_url`, valgfri `edition`, `published_at`
-og `source`, for eksempel `email` eller `website`) til `FangenyttImporter`. Ingen
-e-postintegrasjon eller automatisk schedulerjobb er aktivert ennå.
-
 Ved rollback av denne migrasjonen fjernes bare metadata-tabellen; lokale PDF-er og
 covers slettes ikke. En ny `migrate` etterfulgt av seed-kommandoen registrerer nr.
 1–18 på nytt. Metadata for senere dynamisk importerte utgaver må ved behov gjenopprettes
@@ -455,3 +450,21 @@ php artisan statistics:weekly-report:test-send 2026-10-12 --to=innsatt@innsatt.n
 
 Sjekk alltid hvilke faktiske `access_log`-filer nettstedet bruker før kjøring,
 for eksempel med `sudo nginx -T`. Ikke kopier rålogger til repositoryet.
+
+### Automatisk Fangenytt-kontroll
+
+Scheduleren kjører `fangenytt:check` daglig kl. 05.30 Oslo-tid. Etter en
+vellykket kontroll ventes 14 dager; ved feil prøves det igjen neste dag. Kontroll
+kan startes fra /adm eller med `php artisan fangenytt:check --force`. Det sendes
+ikke e-post. Nye nummer verifiseres mot første side av PDF-en, og hele PDF-en
+kontrolleres med `pdfinfo` før den publiseres. Kildeendringer som ikke kan
+tolkes sikkert vises som feil i /adm. `poppler-utils` må inneholde `pdfinfo`,
+`pdftotext` og `pdftoppm`. Status lagres i databasen; cachetømming påvirker den
+ikke. Nye PDF-er og forsider lagres i samme vedvarende `storage/app/fangenytt/`
+som det eksisterende arkivet. Web- og schedulerbrukeren må ha skrivetilgang og
+dele denne katalogen, inkludert låsefilen. Vanlig deploy må bevare hele
+`storage/` mellom releaser og ha database og filarkiv på samme vedvarende lagring;
+kontroller dette i deployverktøyet før deploy. Kjør migreringene ved deploy.
+Ta sikkerhetskopi av både database og filarkiv. Eldre utgaver får ikke nytt
+publiseringstidspunkt. Siste automatiske publisering vises i /adm, og merkes på
+forsiden i sju dager.

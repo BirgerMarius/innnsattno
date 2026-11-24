@@ -76,10 +76,16 @@ class FrontPageController extends Controller
             ),
             'showActivitiesNewBadge' => $this->showActivitiesNewBadge($today),
             'showTidsfordrivNewBadge' => $this->showNewBadge($today, config('tidsfordriv.published_at')),
-            'showFangenyttNewBadge' => $this->showNewBadge($today, config('fangenytt.published_at')),
+            'showFangenyttNewBadge' => $this->showFangenyttBadge($today),
             'showWeeklyFootballTvNewBadge' => $this->showNewBadge($today, config('weekly_football_tv.published_at')),
             'showPodcastRecommendation' => $this->showPodcastRecommendation($today),
         ]);
+    }
+
+    private function showFangenyttBadge(Carbon $now): bool
+    {
+        $time = \App\FangenyttIssue::where('status', \App\FangenyttIssue::STATUS_PUBLISHED)->whereNotNull('published_locally_at')->max('published_locally_at');
+        return $this->timedVisibility->isVisible($time ? Carbon::parse($time, config('app.timezone'))->toIso8601String() : null, 7, $now);
     }
 
     private function showActivitiesNewBadge(Carbon $now): bool

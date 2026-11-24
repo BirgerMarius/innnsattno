@@ -11,10 +11,11 @@ class FangenyttIssue extends Model
     public const STATUS_FAILED = 'failed';
 
     protected $fillable = [
-        'number', 'edition', 'published_at', 'original_url', 'local_file', 'cover_file', 'source', 'status',
+        'number', 'edition', 'published_at', 'published_locally_at', 'original_url', 'local_file', 'cover_file', 'source', 'status',
     ];
 
     protected $casts = [
         'published_at' => 'datetime',
+        'published_locally_at' => 'datetime',
     ];
 }

@@ -353,7 +353,7 @@ $isEvenWeek = $weekNumber % 2 === 0;
     <section class="shared-actions" aria-label="Sport, tidsfordriv og utskrift">
         <div class="front-page-grid">
         <a href="{{ $prisonUrl(route('fangenytt.index')) }}" class="btn btn-lg btn-block front-page-btn front-page-btn--fangenytt front-page-btn--wide" role="button">
-            <span class="front-page-btn-title"><i class="far fa-newspaper" aria-hidden="true"></i> Fangenytt @if($showFangenyttNewBadge)<span class="front-page-new-badge front-page-new-badge--fangenytt" aria-label="Nyhet">Nyhet</span>@endif</span>
+            <span class="front-page-btn-title"><i class="far fa-newspaper" aria-hidden="true"></i> Fangenytt @if($showFangenyttNewBadge)<span class="front-page-new-badge front-page-new-badge--fangenytt" aria-label="Ny utgave">Ny utgave</span>@endif</span>
             <small>Magasin for innsatte – klar til utskrift</small>
         </a>
 

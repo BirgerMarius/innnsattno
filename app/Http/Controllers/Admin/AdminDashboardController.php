@@ -50,6 +50,7 @@ class AdminDashboardController extends Controller
         )), 0, 10);
 
         return view('admin.dashboard', [
+            'fangenyttStatus' => app(\App\Services\FangenyttCheck::class)->status(),
             'publishedCount' => (int) ($statusCounts[ProfessionalResource::STATUS_PUBLISHED] ?? 0),
             'draftCount' => (int) ($statusCounts[ProfessionalResource::STATUS_DRAFT] ?? 0),
             'activeCategoryCount' => ResourceCategory::where('is_active', true)->count(),
@@ -89,6 +90,12 @@ class AdminDashboardController extends Controller
             'externalDataStatus' => $externalDataStatus->dashboard(),
             'serverMaintenanceStatus' => $serverMaintenance->dashboard(),
         ]);
+    }
+
+    public function checkFangenytt(\App\Services\FangenyttCheck $check)
+    {
+        $result = $check->run(true);
+        return redirect()->route('admin.index')->with('status', $result['message']);
     }
 
     private function validTrafficDate($value): ?string

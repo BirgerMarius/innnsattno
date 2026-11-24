@@ -117,17 +117,17 @@ class FangenyttTest extends TestCase
         $this->assertMatchesRegularExpression('/front-page-btn--fangenytt[^>]*>\s*<span class="front-page-btn-title">.*?Fangenytt.*?<\/span>\s*<small>Magasin for innsatte – klar til utskrift<\/small>/s', (string) $response->getContent());
     }
 
-    public function testHomepageShowsFangenyttNewBadgeForFourteenDays(): void
+    public function testHomepageShowsFangenyttNewBadgeForSevenDays(): void
     {
-        Config::set('fangenytt.published_at', '2026-10-03 10:00:00');
+        \App\FangenyttIssue::where('number', 18)->update(['published_locally_at' => Carbon::parse('2026-10-03 10:00:00', 'Europe/Oslo')]);
 
         Carbon::setTestNow(Carbon::parse('2026-10-03 09:59:59', 'Europe/Oslo'));
         $this->get(route('tv'))->assertOk()->assertDontSee('front-page-new-badge--fangenytt', false);
 
-        Carbon::setTestNow(Carbon::parse('2026-10-17 09:59:59', 'Europe/Oslo'));
-        $this->get(route('tv'))->assertOk()->assertSee('front-page-new-badge--fangenytt', false)->assertSee('>Nyhet<', false);
+        Carbon::setTestNow(Carbon::parse('2026-10-10 09:59:59', 'Europe/Oslo'));
+        $this->get(route('tv'))->assertOk()->assertSee('front-page-new-badge--fangenytt', false)->assertSee('>Ny utgave<', false);
 
-        Carbon::setTestNow(Carbon::parse('2026-10-17 10:00:00', 'Europe/Oslo'));
+        Carbon::setTestNow(Carbon::parse('2026-10-10 10:00:00', 'Europe/Oslo'));
         $this->get(route('tv'))->assertOk()->assertDontSee('front-page-new-badge--fangenytt', false);
         Carbon::setTestNow();
     }

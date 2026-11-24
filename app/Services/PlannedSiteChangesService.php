@@ -118,7 +118,6 @@ class PlannedSiteChangesService
     {
         return array_merge(
             $this->windowChanges(config('activities.published_at'), 14, 'Spillforslag', 'Nyhet-merket'),
-            $this->windowChanges(config('fangenytt.published_at'), 14, 'Fangenytt', 'Nyhet-merket'),
             $this->windowChanges(config('weekly_football_tv.published_at'), 14, 'Fotball på TV', 'Nyhet-merket'),
             $this->windowChanges(config('podcast_recommendation.published_at'), 28, 'Anbefalt podkast', 'Anbefalingen'),
             $this->windowChanges(config('nations_league_badge.starts_at'), (int) config('nations_league_badge.duration_days', 7), 'Nations League', 'Nyhet-merket'),

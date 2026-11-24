@@ -47,6 +47,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
+        $schedule->command('fangenytt:check')->dailyAt('05:30')->timezone('Europe/Oslo')->withoutOverlapping();
         // RSS feeds are not time-critical enough to justify polling every 15/30 minutes.
         $schedule->command('external-data:check-others')->everyFiveMinutes()->withoutOverlapping();
         $schedule->command('news:prune')->hourly()->withoutOverlapping();

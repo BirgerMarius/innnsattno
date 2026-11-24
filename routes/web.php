@@ -149,6 +149,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->middleware('throttle:5,1')
         ->name('login.store');
     Route::middleware('admin.auth')->group(function () {
+        Route::post('/fangenytt/kontroller', [AdminDashboardController::class, 'checkFangenytt'])->name('fangenytt.check');
         Route::get('/design-test', [FrontPageController::class, 'overview'])->name('design-test.index');
         Route::get('/design-test/{theme}', [FrontPageController::class, 'preview'])->name('design-test.preview');
         Route::get('/tv-utskrift', AdminTvPrintController::class)->name('tv-print');

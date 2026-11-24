@@ -44,6 +44,20 @@
         </div>
     </section>
 
+    <section class="card admin-dashboard-section mb-4" aria-labelledby="fangenytt-status-title"><div class="card-body">
+        <h2 class="h4" id="fangenytt-status-title">Fangenytt</h2>
+        @if($fangenyttStatus['announcement'])
+            <p>Ny utgave av Fangenytt er tilgjengelig: <a href="{{ route('fangenytt.pdf', ['number' => $fangenyttStatus['announcement']->number]) }}">Fangenytt nr. {{ $fangenyttStatus['announcement']->number }}</a>. Lastet opp {{ $fangenyttStatus['announcement']->published_locally_at->copy()->setTimezone('Europe/Oslo')->format('d.m.Y H:i') }}.</p>
+        @endif
+        <p>Siste vellykkede kontroll: {{ optional($fangenyttStatus['success'])->copy()?->setTimezone('Europe/Oslo')->format('d.m.Y H:i') ?? 'Aldri' }}<br>
+        Neste kontroll: {{ optional($fangenyttStatus['next'])->copy()?->setTimezone('Europe/Oslo')->format('d.m.Y H:i') ?? 'Ved neste planlagte kjøring' }}<br>
+        Siste publiserte utgave: {{ $fangenyttStatus['latest'] ? 'Fangenytt nr. '.$fangenyttStatus['latest']->number : 'Ingen' }}<br>
+        @if($fangenyttStatus['error']) Kontrollfeil: {{ $fangenyttStatus['error'] }}<br> @endif
+        <a href="https://www.fangeforeningen.no/nyhetsbrev">Kildeside</a>
+        @if($fangenyttStatus['latest']) · <a href="{{ route('fangenytt.pdf', ['number' => $fangenyttStatus['latest']->number]) }}">Lokal PDF</a> @endif</p>
+        <form method="post" action="{{ route('admin.fangenytt.check') }}">@csrf<button class="btn btn-sm btn-outline-primary">Kontroller nå</button></form>
+    </div></section>
+
     <section class="card admin-dashboard-section mb-4" aria-labelledby="tv-guide-status-title">
             <div class="card-body p-lg-4">
                 <p class="admin-card-label mb-1">Driftsstatus</p>
