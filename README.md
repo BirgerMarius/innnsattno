@@ -454,7 +454,7 @@ for eksempel med `sudo nginx -T`. Ikke kopier rålogger til repositoryet.
 ### Automatisk Fangenytt-kontroll
 
 Scheduleren kjører `fangenytt:check` daglig kl. 05.30 Oslo-tid. Etter en
-vellykket kontroll ventes 14 dager; ved feil prøves det igjen neste dag. Kontroll
+vellykket kontroll ventes to dager; ved feil prøves det igjen neste dag. Kontroll
 kan startes fra /adm eller med `php artisan fangenytt:check --force`. Det sendes
 ikke e-post. Nye nummer verifiseres mot første side av PDF-en, og hele PDF-en
 kontrolleres med `pdfinfo` før den publiseres. Kildeendringer som ikke kan

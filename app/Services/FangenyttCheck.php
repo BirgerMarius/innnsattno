@@ -22,7 +22,7 @@ class FangenyttCheck
         $row = DB::table('fangenytt_check_status')->where('id', 1)->first();
         $success = $row && $row->last_success_at ? Carbon::parse($row->last_success_at) : null;
         $attempt = $row && $row->last_attempt_at ? Carbon::parse($row->last_attempt_at) : null;
-        $next = $row && $row->last_error && $attempt ? $attempt->copy()->addDay() : ($success ? $success->copy()->addDays(14) : null);
+        $next = $row && $row->last_error && $attempt ? $attempt->copy()->addDay() : ($success ? $success->copy()->addDays(2) : null);
         return ['success' => $success, 'next' => $next, 'error' => $row->last_error ?? null,
             'latest' => FangenyttIssue::where('status', FangenyttIssue::STATUS_PUBLISHED)->orderByDesc('number')->first(),
             'announcement' => FangenyttIssue::where('status', FangenyttIssue::STATUS_PUBLISHED)->whereNotNull('published_locally_at')->orderByDesc('published_locally_at')->first()];

@@ -44,19 +44,20 @@ class FangenyttCheckTest extends TestCase
         Http::fake([FangenyttCheck::SOURCE => Http::response('<figure><a href="'.self::PDF.'"><img></a></figure>', 200), self::PDF => Http::response($pdf, $status)]);
     }
 
-    public function testPublishesOnceAndUsesFourteenDayInterval(): void
+    public function testPublishesOnceAndUsesTwoDayInterval(): void
     {
         $this->fakeSource($this->pdf());
         $check = app(FangenyttCheck::class);
         $this->assertTrue($check->run()['success']);
+        $this->assertTrue($check->status()['next']->equalTo(now()->addDays(2)));
         $issue = FangenyttIssue::where('number', 19)->firstOrFail();
         $published = $issue->published_locally_at->toDateTimeString();
         Storage::disk('fangenytt')->assertExists('fangenytt-19.pdf');
-        $this->withSession(['admin_authenticated' => true])->get('/adm')->assertOk()->assertSee('Ny utgave av Fangenytt er tilgjengelig')->assertSee('Fangenytt nr. 19')->assertSee(route('fangenytt.pdf', ['number' => 19]));
+        $this->withSession(['admin_authenticated' => true])->get('/adm')->assertOk()->assertSee('Ny utgave av Fangenytt er tilgjengelig')->assertSee('Fangenytt nr. 19')->assertSee(route('fangenytt.pdf', ['number' => 19]))->assertSee($check->status()['next']->copy()->setTimezone('Europe/Oslo')->format('d.m.Y H:i'));
         $this->assertTrue($check->run(true)['success']);
         $this->assertSame($published, $issue->fresh()->published_locally_at->toDateTimeString());
         Http::fake();
-        $this->travel(13)->days();
+        $this->travel(1)->days();
         $this->assertTrue($check->run()['success']);
         Http::assertNothingSent();
         $this->travel(1)->days();
@@ -64,6 +65,18 @@ class FangenyttCheckTest extends TestCase
         $this->assertTrue($check->run()['success']);
         Http::assertSentCount(1);
         $this->assertSame($published, $issue->fresh()->published_locally_at->toDateTimeString());
+    }
+
+    public function testExistingSuccessfulCheckUsesNewIntervalWithoutChangingStoredStatus(): void
+    {
+        $lastSuccess = now()->subDays(3);
+        \Illuminate\Support\Facades\DB::table('fangenytt_check_status')->insert(['id' => 1, 'last_success_at' => $lastSuccess, 'last_attempt_at' => $lastSuccess]);
+        $check = app(FangenyttCheck::class);
+        $this->assertTrue($check->status()['next']->equalTo($lastSuccess->copy()->addDays(2)));
+        $this->assertDatabaseHas('fangenytt_check_status', ['id' => 1, 'last_success_at' => $lastSuccess->toDateTimeString()]);
+        Http::fake([FangenyttCheck::SOURCE => Http::response('error', 503)]);
+        $this->assertFalse($check->run()['success']);
+        $this->assertTrue($check->status()['next']->equalTo(now()->addDay()));
     }
 
     public function testInvalidOrInterruptedPdfDoesNotPublishAndRetriesNextDay(): void
