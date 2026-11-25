@@ -34,6 +34,7 @@
             @endif
 
             <form action="{{ route('feedback.store') }}" method="POST" class="feedback-form" data-disable-on-submit>
+                <div hidden aria-hidden="true"><label for="feedback-website">Nettside</label><input id="feedback-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
                 @csrf
 
                 <div class="mb-3">

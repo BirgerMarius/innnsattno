@@ -48,4 +48,11 @@ class ActivityRoomFeedbackTest extends TestCase
         $response->assertUnprocessable()->assertJsonValidationErrors(['message', 'email']);
         $this->assertSame(0, FeedbackSubmission::count());
     }
+    public function test_honeypot_blocks_activity_feedback_and_email(): void
+    {
+        Mail::fake();
+        $this->postJson(route('prison.activity-rooms.feedback.store', 'ringerike'), ['message' => 'Spam', 'website' => 'spam'])->assertCreated();
+        $this->assertSame(0, FeedbackSubmission::count());
+        Mail::assertNothingSent();
+    }
 }

@@ -204,6 +204,22 @@ class FeedbackSubmissionTest extends TestCase
         $this->assertSame(0, FeedbackSubmission::count());
     }
 
+    public function test_honeypot_blocks_storage_and_email(): void
+    {
+        Mail::fake();
+        config()->set('feedback.notification_email', 'varsling@example.test');
+        $this->post(route('feedback.store'), array_merge($this->validAnonymousPayload(), ['website' => 'spam']))->assertRedirect();
+        $this->assertSame(0, FeedbackSubmission::count());
+        Mail::assertNothingSent();
+    }
+
+    public function test_short_english_feedback_with_link_is_accepted(): void
+    {
+        $payload = array_merge($this->validAnonymousPayload(), ['title' => 'Link', 'message' => 'See https://example.test']);
+        $this->post(route('feedback.store'), $payload)->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('feedback_submissions', ['message' => $payload['message']]);
+    }
+
     private function renderFeedbackMail(NewFeedbackSubmissionNotification $mail): string
     {
         return view('emails.feedback.new-submission', [

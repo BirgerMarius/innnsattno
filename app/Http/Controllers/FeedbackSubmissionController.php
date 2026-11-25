@@ -21,6 +21,10 @@ class FeedbackSubmissionController extends Controller
 
     public function store(StoreFeedbackSubmissionRequest $request)
     {
+        if ($request->input('website') !== null && $request->input('website') !== '') {
+            return redirect()->route('feedback.create')->with('success', 'Tusen takk for innspillet!');
+        }
+
         $validated = $request->validated();
 
         $feedbackSubmission = FeedbackSubmission::create([
@@ -41,6 +45,10 @@ class FeedbackSubmissionController extends Controller
 
     public function storeActivityRoom(Request $request, string $prison)
     {
+        if ($request->input('website') !== null && $request->input('website') !== '') {
+            return response()->json(['message' => 'Takk for tilbakemeldingen. Den er sendt.'], 201);
+        }
+
         $validated = $request->validate([
             'message' => ['required', 'string', 'max:5000'],
             'name' => ['nullable', 'string', 'max:150'],

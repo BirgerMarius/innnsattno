@@ -62,4 +62,12 @@ class FeedbackAdminController extends Controller
             ->route('admin.feedback.index')
             ->with('success', 'Forslaget ble oppdatert.');
     }
+
+    public function destroy(Request $request, FeedbackSubmission $feedbackSubmission)
+    {
+        $request->validate(['confirm_delete' => ['accepted']]);
+        $feedbackSubmission->delete();
+
+        return redirect()->route('admin.feedback.index')->with('success', 'Innspillet ble slettet permanent.');
+    }
 }

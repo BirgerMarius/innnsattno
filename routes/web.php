@@ -196,6 +196,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             ->name('feedback.index');
         Route::patch('/forslag/{feedbackSubmission}', [FeedbackAdminController::class, 'update'])
             ->name('feedback.update');
+        Route::delete('/forslag/{feedbackSubmission}', [FeedbackAdminController::class, 'destroy'])
+            ->name('feedback.destroy');
         Route::get('/nyheter', [NewsAdminController::class, 'index'])->name('news.index');
         Route::patch('/nyheter/{newsArticle}', [NewsAdminController::class, 'update'])->name('news.update');
         Route::patch('/nyheter/{newsArticle}/status', [NewsAdminController::class, 'status'])->name('news.status');

@@ -143,6 +143,12 @@
                         <button type="submit" class="btn btn-success">Lagre</button>
                     </div>
                 </form>
+                <form method="POST" action="{{ route('admin.feedback.destroy', $feedbackSubmission) }}" class="mt-3">
+                    @csrf
+                    @method('DELETE')
+                    <label><input type="checkbox" name="confirm_delete" value="1" required> Jeg bekrefter at dette innspillet skal slettes permanent. Dette kan ikke angres.</label>
+                    <button type="submit" class="btn btn-danger">Slett permanent</button>
+                </form>
             </div>
         </div>
     @empty

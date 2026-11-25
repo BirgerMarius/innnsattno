@@ -468,3 +468,18 @@ kontroller dette i deployverktøyet før deploy. Kjør migreringene ved deploy.
 Ta sikkerhetskopi av både database og filarkiv. Eldre utgaver får ikke nytt
 publiseringstidspunkt. Siste automatiske publisering vises i /adm, og merkes på
 forsiden i sju dager.
+
+## Forslag og spam
+
+Forslagsskjemaet og tilbakemeldingen fra aktivitetsrommet har en skjult
+felle for automatiske innsendinger og en grense på fem forespørsler per minutt
+per IP-adresse. Fellen stopper ikke all spam, og det gjøres ingen filtrering på
+språk, lenker eller tekstmønstre. Gamle faner avvises ikke på grunn av alder.
+
+Etter deploy kan administrator finne aktuelle innspill under «Henvendelser»,
+kontrollere tittel, dato og innhold, og velge «Slett permanent» etter å ha
+krysset av bekreftelsen. Sletting kan ikke angres; arkivering er fortsatt et
+alternativ. Finn eksemplene «Question about your Google visibility» (25.11.2026)
+og «QSyXWwjFHDaWWWebdRN» (24.11.2026) og kontroller detaljene før sletting.
+Ingen eksisterende poster slettes automatisk. Endringen krever ingen migrering
+eller nye miljøvariabler; vanlig deploy via «innsatt»-menyen er tilstrekkelig.

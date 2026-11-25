@@ -196,6 +196,23 @@ class AdminFeedbackTest extends TestCase
         ]);
     }
 
+    public function test_deletion_requires_admin_and_confirmation(): void
+    {
+        $feedback = $this->createFeedbackSubmission();
+        $this->delete(route('admin.feedback.destroy', $feedback), ['confirm_delete' => '1'])->assertRedirect(route('admin.login'));
+        $this->withSession(['admin_authenticated' => true])->from('/admin/forslag')->delete(route('admin.feedback.destroy', $feedback))->assertSessionHasErrors('confirm_delete');
+        $this->assertDatabaseHas('feedback_submissions', ['id' => $feedback->id]);
+        $this->withSession(['admin_authenticated' => true])->delete(route('admin.feedback.destroy', $feedback), ['confirm_delete' => '1'])->assertRedirect(route('admin.feedback.index'));
+        $this->assertDatabaseMissing('feedback_submissions', ['id' => $feedback->id]);
+    }
+
+    public function test_archiving_preserves_feedback(): void
+    {
+        $feedback = $this->createFeedbackSubmission();
+        $this->withSession(['admin_authenticated' => true])->patch(route('admin.feedback.update', $feedback), ['status' => 'archived'])->assertRedirect();
+        $this->assertDatabaseHas('feedback_submissions', ['id' => $feedback->id, 'status' => 'archived']);
+    }
+
     private function createFeedbackSubmission(array $attributes = []): FeedbackSubmission
     {
         return FeedbackSubmission::create(array_merge([
