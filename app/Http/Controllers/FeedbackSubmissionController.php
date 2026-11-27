@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\FeedbackSubmission;
 use App\Http\Requests\StoreFeedbackSubmissionRequest;
 use App\Mail\NewFeedbackSubmissionNotification;
+use App\Services\FeedbackProtection;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
@@ -14,8 +16,12 @@ class FeedbackSubmissionController extends Controller
 {
     public function create()
     {
+        $prison = $this->feedbackPrison(request());
+
         return view('feedback.create', [
             'feedbackTypes' => StoreFeedbackSubmissionRequest::TYPES,
+            'formToken' => app(FeedbackProtection::class)->token(request(), 'feedback', $prison),
+            'feedbackPrison' => $prison,
         ]);
     }
 
@@ -25,18 +31,25 @@ class FeedbackSubmissionController extends Controller
             return redirect()->route('feedback.create')->with('success', 'Tusen takk for innspillet!');
         }
 
+        $protection = app(FeedbackProtection::class);
+        $prison = $this->feedbackPrison($request);
+        $protection->validateToken($request, 'feedback', $prison);
         $validated = $request->validated();
 
-        $feedbackSubmission = FeedbackSubmission::create([
-            'type' => $validated['type'],
-            'title' => $validated['title'],
-            'message' => $validated['message'],
-            'is_anonymous' => $validated['submission_type'] === 'anonymous',
-            'name' => $validated['name'] ?? null,
-            'email' => $validated['email'] ?? null,
-        ]);
+        $feedbackSubmission = $protection->once($request, 'feedback', $prison, $validated, function () use ($validated) {
+            return FeedbackSubmission::create([
+                'type' => $validated['type'],
+                'title' => $validated['title'],
+                'message' => $validated['message'],
+                'is_anonymous' => $validated['submission_type'] === 'anonymous',
+                'name' => $validated['name'] ?? null,
+                'email' => $validated['email'] ?? null,
+            ]);
+        });
 
-        $this->sendNotification($feedbackSubmission);
+        if ($feedbackSubmission) {
+            $this->sendNotification($feedbackSubmission);
+        }
 
         return redirect()
             ->route('feedback.create')
@@ -47,6 +60,17 @@ class FeedbackSubmissionController extends Controller
     {
         if ($request->input('website') !== null && $request->input('website') !== '') {
             return response()->json(['message' => 'Takk for tilbakemeldingen. Den er sendt.'], 201);
+        }
+
+        $protection = app(FeedbackProtection::class);
+        try {
+            $protection->validateToken($request, 'activity-room', $prison);
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+                'errors' => $exception->errors(),
+                'form_token' => $protection->token($request, 'activity-room', $prison),
+            ], 422);
         }
 
         $validated = $request->validate([
@@ -64,20 +88,31 @@ class FeedbackSubmissionController extends Controller
         $prisonName = config('prisons.all.'.$prison.'.name', $prison);
         $pageUrl = route('prison.activity-rooms', ['prison' => $prison]);
 
-        $feedbackSubmission = FeedbackSubmission::create([
-            'type' => 'improvement',
-            'title' => 'Tilbakemelding fra aktivitetsrom',
-            'message' => trim($validated['message'])."\n\nSide: {$pageUrl}\nFengsel: {$prisonName} ({$prison})",
-            'is_anonymous' => empty($validated['name']) && empty($validated['email']),
-            'name' => $validated['name'] ?? null,
-            'email' => $validated['email'] ?? null,
-        ]);
+        $feedbackSubmission = $protection->once($request, 'activity-room', $prison, $validated, function () use ($validated, $pageUrl, $prisonName, $prison) {
+            return FeedbackSubmission::create([
+                'type' => 'improvement',
+                'title' => 'Tilbakemelding fra aktivitetsrom',
+                'message' => trim($validated['message'])."\n\nSide: {$pageUrl}\nFengsel: {$prisonName} ({$prison})",
+                'is_anonymous' => empty($validated['name']) && empty($validated['email']),
+                'name' => $validated['name'] ?? null,
+                'email' => $validated['email'] ?? null,
+            ]);
+        });
 
-        $this->sendNotification($feedbackSubmission, config('feedback.activity_room_notification_email'));
+        if ($feedbackSubmission) {
+            $this->sendNotification($feedbackSubmission, config('feedback.activity_room_notification_email'));
+        }
 
         return response()->json([
             'message' => 'Takk for tilbakemeldingen. Den er sendt.',
         ], 201);
+    }
+
+    private function feedbackPrison(Request $request): ?string
+    {
+        $prison = $request->query('prison');
+
+        return is_string($prison) && array_key_exists($prison, config('prisons.all')) ? $prison : null;
     }
 
     private function sendNotification(FeedbackSubmission $feedbackSubmission, ?string $recipient = null): void

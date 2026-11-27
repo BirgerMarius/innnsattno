@@ -33,9 +33,11 @@
                 </div>
             @endif
 
-            <form action="{{ route('feedback.store') }}" method="POST" class="feedback-form" data-disable-on-submit>
+            <form action="{{ route('feedback.store', $feedbackPrison ? ['prison' => $feedbackPrison] : []) }}" method="POST" class="feedback-form" data-disable-on-submit>
                 <div hidden aria-hidden="true"><label for="feedback-website">Nettside</label><input id="feedback-website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
                 @csrf
+                <input type="hidden" name="form_token" value="{{ $formToken }}">
+                @error('form_token')<div class="alert alert-danger" role="alert">{{ $message }}</div>@enderror
 
                 <div class="mb-3">
                     <label for="type" class="form-label">Hva gjelder innspillet?</label>

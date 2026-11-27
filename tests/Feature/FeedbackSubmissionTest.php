@@ -103,6 +103,7 @@ class FeedbackSubmissionTest extends TestCase
         config()->set('feedback.notification_email', 'varsling@example.test');
 
         $this->post('/forslag-og-tilbakemeldinger', [
+            'form_token' => $this->token(),
             'type' => 'bug',
             'title' => 'Feil lenke',
             'message' => 'En lenke virker ikke.',
@@ -220,6 +221,14 @@ class FeedbackSubmissionTest extends TestCase
         $this->assertDatabaseHas('feedback_submissions', ['message' => $payload['message']]);
     }
 
+    private function token(): string
+    {
+        $this->startSession();
+        request()->setLaravelSession($this->app['session.store']);
+        $this->withCookie(config('session.cookie'), $this->app['session.store']->getId())->withCredentials();
+        return app(\App\Services\FeedbackProtection::class)->token(request(), 'feedback');
+    }
+
     private function renderFeedbackMail(NewFeedbackSubmissionNotification $mail): string
     {
         return view('emails.feedback.new-submission', [
@@ -232,6 +241,7 @@ class FeedbackSubmissionTest extends TestCase
     private function validAnonymousPayload(): array
     {
         return [
+            'form_token' => $this->token(),
             'type' => 'new_idea',
             'title' => 'Legg til mer informasjon',
             'message' => 'Det hadde vaert nyttig med en oversikt over flere tjenester.',

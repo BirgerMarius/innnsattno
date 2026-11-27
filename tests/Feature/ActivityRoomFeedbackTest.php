@@ -18,6 +18,7 @@ class ActivityRoomFeedbackTest extends TestCase
         config()->set('feedback.activity_room_notification_email', 'innsatt@innsatt.no');
 
         $response = $this->postJson(route('prison.activity-rooms.feedback.store', 'ringerike'), [
+            'form_token' => $this->token(),
             'message' => 'Starttiden bør være tydeligere.',
             'name' => 'Ola Nordmann',
             'email' => 'ola@example.test',
@@ -41,6 +42,7 @@ class ActivityRoomFeedbackTest extends TestCase
     public function test_activity_room_feedback_returns_validation_errors_without_storing_a_submission(): void
     {
         $response = $this->postJson(route('prison.activity-rooms.feedback.store', 'ringerike'), [
+            'form_token' => $this->token(),
             'message' => '',
             'email' => 'ikke-en-epost',
         ]);
@@ -48,10 +50,18 @@ class ActivityRoomFeedbackTest extends TestCase
         $response->assertUnprocessable()->assertJsonValidationErrors(['message', 'email']);
         $this->assertSame(0, FeedbackSubmission::count());
     }
+    private function token(): string
+    {
+        $this->startSession();
+        request()->setLaravelSession($this->app['session.store']);
+        $this->withCookie(config('session.cookie'), $this->app['session.store']->getId())->withCredentials();
+        return app(\App\Services\FeedbackProtection::class)->token(request(), 'activity-room', 'ringerike');
+    }
+
     public function test_honeypot_blocks_activity_feedback_and_email(): void
     {
         Mail::fake();
-        $this->postJson(route('prison.activity-rooms.feedback.store', 'ringerike'), ['message' => 'Spam', 'website' => 'spam'])->assertCreated();
+        $this->postJson(route('prison.activity-rooms.feedback.store', 'ringerike'), ['message' => 'Spam', 'website' => 'spam', 'form_token' => $this->token()])->assertCreated();
         $this->assertSame(0, FeedbackSubmission::count());
         Mail::assertNothingSent();
     }

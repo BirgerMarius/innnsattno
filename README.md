@@ -474,7 +474,9 @@ forsiden i sju dager.
 Forslagsskjemaet og tilbakemeldingen fra aktivitetsrommet har en skjult
 felle for automatiske innsendinger og en grense på fem forespørsler per minutt
 per IP-adresse. Fellen stopper ikke all spam, og det gjøres ingen filtrering på
-språk, lenker eller tekstmønstre. Gamle faner avvises ikke på grunn av alder.
+språk, lenker eller tekstmønstre. Skjematoken er knyttet til sesjon, skjema og eventuell fengselskontekst, og gjelder i inntil 24 timer. Ved tokenfeil beholdes teksten og brukeren kan prøve igjen. Identiske innsendinger fra samme sesjon og kontekst lagres og varsles bare én gang i fem minutter. Sesjonen kan utløpe før tokenet. Vernet stopper ikke roboter som henter skjemaet eller varierer innholdet.
+
+Duplikatvernet krever et felles cachelager med atomiske låser på alle webinstanser. Cachetømming fjerner duplikatkvitteringene. Sesjonslager og APP_KEY må også være felles ved flere instanser. Kontroller dette og at skjema-HTML ikke mellomlagres på tvers av sesjoner. Ingen migreringer eller nye miljøvariabler trengs; vanlig deploy via «innsatt»-menyen er tilstrekkelig når disse forutsetningene er oppfylt.
 
 Etter deploy kan administrator finne aktuelle innspill under «Henvendelser»,
 kontrollere tittel, dato og innhold, og velge «Slett permanent» etter å ha

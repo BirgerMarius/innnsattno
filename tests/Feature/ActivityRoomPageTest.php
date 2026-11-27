@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ActivityRoomPageTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_activity_room_page_is_prison_prefixed_and_excludes_clarity(): void
     {
         foreach (['ringerike', 'ilseng', 'kongsvinger'] as $prison) {
