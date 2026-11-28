@@ -32,6 +32,24 @@ class LearningPrototypeTest extends TestCase
             ->assertSee(route('learning.print', ['hverdagsliv', 'budsjett']), false);
     }
 
+    public function test_driving_theory_exercise_and_print_booklet_are_linked(): void
+    {
+        $pdf = 'pdf/teoriprovehefte-klasse-b.pdf';
+
+        $this->get(route('learning.index'))
+            ->assertOk()
+            ->assertSee(route('learning.driving-theory'), false)
+            ->assertSee(asset($pdf), false);
+
+        $response = $this->get(route('learning.driving-theory'))
+            ->assertOk()
+            ->assertSee('Vis fasit og forklaringer')
+            ->assertSee(asset($pdf), false);
+
+        $this->assertSame(45, substr_count($response->getContent(), '<fieldset data-answer='));
+        $this->assertFileExists(public_path($pdf));
+    }
+
     public function test_each_prototype_sheet_has_an_illustration_and_at_least_five_questions(): void
     {
         $sheets = [

@@ -1,0 +1,577 @@
+{
+  "title": "Teoriprøvehefte for klasse B",
+  "checked": "28. november 2026",
+  "facts": {
+    "minutes": 90,
+    "questions": 45,
+    "pass": 38
+  },
+  "sections": [
+    {
+      "title": "Vikeplikt og samhandling",
+      "questions": [
+        {
+          "question": "Du nærmer deg et kryss uten skilt eller signal. En bil kommer fra høyre. Hvem skal vente?",
+          "options": [
+            "Bilen fra høyre skal vente.",
+            "Den som kom sist til krysset, skal vente.",
+            "Jeg skal vente.",
+            "Den som har lavest fart, skal vente."
+          ],
+          "answer": 2,
+          "explanation": "Høyreregelen gir deg vikeplikt for trafikk fra høyre i et uregulert kryss."
+        },
+        {
+          "question": "Du kjører ut fra en parkeringsplass og inn på en vei. Hvem har du vikeplikt for?",
+          "options": [
+            "Trafikanter på veien fra begge retninger.",
+            "Bare trafikanter som kommer fra høyre.",
+            "Bare gående langs veien.",
+            "Ingen, hvis jeg bruker blinklys."
+          ],
+          "answer": 0,
+          "explanation": "Ved utkjøring fra en parkeringsplass har du vikeplikt for trafikken på veien."
+        },
+        {
+          "question": "Du skal svinge til venstre i et kryss. En møtende bil skal rett fram. Hva gjør du?",
+          "options": [
+            "Svinger først dersom jeg blinker.",
+            "Svinger først dersom jeg kom til krysset først.",
+            "Stopper midt i den møtendes kjørefelt.",
+            "Venter til bilen har passert."
+          ],
+          "answer": 3,
+          "explanation": "Når du svinger til venstre, må du slippe fram møtende trafikk som du vil krysse."
+        },
+        {
+          "question": "En gående er i ferd med å gå ut i et gangfelt uten trafikklys. Hva gjør du?",
+          "options": [
+            "Fortsetter til personen er midt i gangfeltet.",
+            "Setter ned farten og stanser om nødvendig.",
+            "Venter bare hvis personen kommer fra høyre.",
+            "Blinker med lysene og kjører videre."
+          ],
+          "answer": 1,
+          "explanation": "Vikeplikten gjelder for gående i gangfeltet og for dem som er på vei ut i det."
+        },
+        {
+          "question": "Du skal inn i en rundkjøring med vikepliktskilt. Hvem har du vikeplikt for?",
+          "options": [
+            "Trafikken som allerede er i rundkjøringen.",
+            "Bare biler som kommer bak meg.",
+            "Bare biler som skal ut ved første avkjøring.",
+            "Ingen dersom jeg skal rett fram."
+          ],
+          "answer": 0,
+          "explanation": "Vent ved innkjøringen hvis du ellers vil hindre trafikken i rundkjøringen."
+        },
+        {
+          "question": "Du vil bytte fra høyre til venstre kjørefelt. En bil er ved siden av deg i venstre felt. Hva gjør du?",
+          "options": [
+            "Skifter felt når jeg har satt på blinklyset.",
+            "Skifter felt fordi bilen ligger til venstre.",
+            "Halverer avstanden til bilen foran og bytter felt.",
+            "Venter til jeg kan skifte felt uten å hindre den."
+          ],
+          "answer": 3,
+          "explanation": "Den som skifter felt, har vikeplikt for trafikken i feltet det skal kjøres inn i."
+        },
+        {
+          "question": "To ordinære felt i samme retning blir til ett. Hvordan skal førerne samarbeide?",
+          "options": [
+            "Biler i høyre felt skal alltid vente til alle har passert.",
+            "Tilpasser farten og slipper hverandre inn vekselvis.",
+            "Biler i venstre felt skal alltid vente til alle har passert.",
+            "Alle holder samme fart til feltene møtes."
+          ],
+          "answer": 1,
+          "explanation": "Ved slik innsnevring skal førerne gjensidig tilpasse farten så trafikken kan flettes."
+        },
+        {
+          "question": "En buss gir tegn om å kjøre ut fra en holdeplass på en vei skiltet 60 km/t. Hvem har vikeplikt?",
+          "options": [
+            "Bussen har alltid vikeplikt.",
+            "Jeg har vikeplikt bare når grensen er 50 km/t eller lavere.",
+            "Jeg har vikeplikt for bussen.",
+            "Den som er nærmest holdeplasskiltet, skal kjøre først."
+          ],
+          "answer": 2,
+          "explanation": "Ved 60 km/t eller lavere skal du vike for bussen. Bussføreren skal også unngå fare."
+        },
+        {
+          "question": "Et utrykningskjøretøy med blålys nærmer seg bakfra. Hva gjør du?",
+          "options": [
+            "Øker farten til neste kryss.",
+            "Fortsetter som før hvis det ikke bruker sirene.",
+            "Bråstopper midt i feltet med en gang.",
+            "Gir fri vei, og stanser om nødvendig."
+          ],
+          "answer": 3,
+          "explanation": "Gi fri vei til utrykningskjøretøy med blinkende blått lys. Gjør det på en forutsigbar måte."
+        }
+      ]
+    },
+    {
+      "title": "Skilt, signal og oppmerking",
+      "questions": [
+        {
+          "question": "Hva krever et STOPP-skilt når det er stopplinje ved krysset?",
+          "options": [
+            "At jeg bare stanser hvis annen trafikk er synlig.",
+            "At jeg ruller sakte over linjen hvis sikten er god.",
+            "At bilen stanser helt ved stopplinjen.",
+            "At jeg stanser først etter å ha kjørt inn i krysset."
+          ],
+          "answer": 2,
+          "explanation": "Stopp helt ved linjen. Deretter må du overholde vikeplikten."
+        },
+        {
+          "question": "Lyset skifter til gult før du kommer til stopplinjen. Du kan stanse trygt. Hva gjør du?",
+          "options": [
+            "Stanser før stopplinjen.",
+            "Øker farten før lyset blir rødt.",
+            "Fortsetter fordi gult lys er det samme som grønt.",
+            "Fortsetter hvis bilen bak også vil kjøre."
+          ],
+          "answer": 0,
+          "explanation": "Fast gult betyr at du skal stanse når du kan gjøre det uten fare."
+        },
+        {
+          "question": "En politibetjent dirigerer deg til å stanse samtidig som lyset er grønt. Hva gjør du?",
+          "options": [
+            "Følger det grønne lyset.",
+            "Stanser bare hvis andre biler står stille.",
+            "Følger instruksen bare hvis det også blinkes med blålys.",
+            "Følger politiets tegn og stanser."
+          ],
+          "answer": 3,
+          "explanation": "Politiets trafikkdirigering går foran signaler, skilt og de vanlige trafikkreglene."
+        },
+        {
+          "question": "Hva forteller skiltet «Forkjørsveg», en gul rombe med hvit kant?",
+          "options": [
+            "Det er alltid 80 km/t på veien.",
+            "Trafikk fra sideveier har vikeplikt der forkjørsreguleringen gjelder.",
+            "Det er forbudt å møte annen trafikk.",
+            "Jeg har vikeplikt i alle kryss fram til nytt skilt."
+          ],
+          "answer": 1,
+          "explanation": "Skiltet markerer forkjørsveg. Du må fortsatt følge signaler, andre anvisninger og kravet om aktsomhet."
+        },
+        {
+          "question": "Hva betyr en hvit, langsgående sperrelinje mellom kjørefeltene?",
+          "options": [
+            "Jeg har ikke lov til å kjøre på eller over den.",
+            "Den kan krysses når jeg bruker blinklys.",
+            "Den kan alltid krysses for å kjøre forbi en syklist.",
+            "Den angir hvor det er påbudt å bytte felt."
+          ],
+          "answer": 0,
+          "explanation": "En sperrelinje skal verken krysses eller kjøres på ved vanlig kjøring."
+        },
+        {
+          "question": "Hva forteller et trekantet skilt med rød kant og symbolet for veiarbeid?",
+          "options": [
+            "At veien alltid er stengt for gjennomkjøring.",
+            "At personbiler må parkere dersom de ser arbeidere.",
+            "At det kan være fare knyttet til veiarbeid lenger fram.",
+            "At veiarbeidet er avsluttet."
+          ],
+          "answer": 2,
+          "explanation": "Varselskiltet gjør deg oppmerksom på arbeid eller forhold som krever ekstra oppmerksomhet."
+        },
+        {
+          "question": "Kan du frivillig stanse for å slippe av en passasjer tre meter før et gangfelt?",
+          "options": [
+            "Ja, hvis det tar mindre enn ett minutt.",
+            "Nei, det er forbudt å stanse der.",
+            "Ja, hvis jeg bruker nødblink.",
+            "Ja, hvis jeg blir sittende i bilen."
+          ],
+          "answer": 1,
+          "explanation": "Stanseforbudet gjelder på gangfeltet og nærmere enn fem meter foran det."
+        },
+        {
+          "question": "Ved en planovergang blinker rødt lys, men bommen står oppe. Hva skal du gjøre?",
+          "options": [
+            "Kjøre gjennom så lenge bommen står oppe.",
+            "Følge bilen foran hvis den kjører over.",
+            "Kjøre fram på sporet for å se om toget kommer.",
+            "Stanse før overgangen og vente til signalet tillater passering."
+          ],
+          "answer": 3,
+          "explanation": "Rødt blinksignal betyr stopp. Bommens stilling gir deg ikke tillatelse til å kjøre."
+        },
+        {
+          "question": "Hva er den alminnelige fartsgrensen i tettbygd strøk når ingen annen grense er skiltet?",
+          "options": [
+            "30 km/t.",
+            "60 km/t.",
+            "50 km/t.",
+            "80 km/t."
+          ],
+          "answer": 2,
+          "explanation": "I tettbygd strøk er grensen 50 km/t med mindre en annen grense gjelder."
+        }
+      ]
+    },
+    {
+      "title": "Fart, sikt og veggrep",
+      "questions": [
+        {
+          "question": "Hva er den alminnelige fartsgrensen utenfor tettbygd strøk når ingen annen grense er skiltet?",
+          "options": [
+            "80 km/t.",
+            "60 km/t.",
+            "70 km/t.",
+            "90 km/t."
+          ],
+          "answer": 0,
+          "explanation": "Utenfor tettbygd strøk er grensen 80 km/t. Sikt, føre og trafikk kan kreve lavere fart."
+        },
+        {
+          "question": "Farten dobles. Hvor mye kan bremselengden øke ved omtrent samme veggrep og bremseevne?",
+          "options": [
+            "Til omtrent dobbelt så lang.",
+            "Til omtrent tre ganger så lang.",
+            "Den holder seg omtrent lik.",
+            "Til omtrent fire ganger så lang."
+          ],
+          "answer": 3,
+          "explanation": "Ved samme nedbremsing øker bremselengden omtrent med kvadratet av farten."
+        },
+        {
+          "question": "Du kjører i 72 km/t og bruker ett sekund på å reagere. Hvor langt ruller bilen før du bremser?",
+          "options": [
+            "Omtrent 10 meter.",
+            "Omtrent 20 meter.",
+            "Omtrent 36 meter.",
+            "Omtrent 72 meter."
+          ],
+          "answer": 1,
+          "explanation": "72 km/t er 20 m/s. I ett sekund kjører bilen derfor omtrent 20 meter."
+        },
+        {
+          "question": "Du nærmer deg en uoversiktlig sving. Hvordan skal du tilpasse farten?",
+          "options": [
+            "Slik at jeg holder skiltet fartsgrense gjennom svingen.",
+            "Slik at jeg kan stanse etter at svingen er passert.",
+            "Slik at jeg kan stanse på den delen av veien jeg ser.",
+            "Slik at bilen bak slipper å senke farten."
+          ],
+          "answer": 2,
+          "explanation": "Du må kunne stanse over den strekningen du har oversikt over, og foran en påregnelig hindring."
+        },
+        {
+          "question": "Det regner kraftig. Hva bør du gjøre med avstanden til bilen foran?",
+          "options": [
+            "Øke avstanden og tilpasse farten.",
+            "Beholde samme avstand hvis bilen har ABS.",
+            "Redusere avstanden for å se baklysene bedre.",
+            "Bare øke avstanden hvis det også er mørkt."
+          ],
+          "answer": 0,
+          "explanation": "Våt vei kan gi lengre bremselengde. Større avstand gir deg tid til å reagere."
+        },
+        {
+          "question": "Du bruker fjernlys og møter en bil i mørket. Når skal du blende ned?",
+          "options": [
+            "Først idet bilene passerer hverandre.",
+            "Når den møtende føreren har blinket to ganger.",
+            "Bare når vegbelysningen virker.",
+            "Før fjernlyset blender den møtende føreren."
+          ],
+          "answer": 3,
+          "explanation": "Fjernlys skal brukes slik at andre trafikanter ikke blir blendet."
+        },
+        {
+          "question": "Et sakte kjøretøy ligger foran deg rett før en bakketopp. Du ser ikke motgående trafikk. Hva gjør du?",
+          "options": [
+            "Kjører forbi raskt for å begrense tiden i motgående felt.",
+            "Venter til jeg har fri sikt og kan passere trygt.",
+            "Kjører forbi hvis det er stiplet linje.",
+            "Kjører forbi når sjåføren foran blinker til høyre."
+          ],
+          "answer": 1,
+          "explanation": "Du trenger oversikt over strekningen du må bruke. Vegoppmerking eller signal fra andre erstatter ikke sikten."
+        },
+        {
+          "question": "Bilen begynner å vannplane. Hva er en god første reaksjon?",
+          "options": [
+            "Slipper gassen rolig og holder styringen mest mulig rett.",
+            "Bremser hardt og styrer brått mot veikanten.",
+            "Øker farten for å komme ut av vannet.",
+            "Rykker i rattet for å få hjulene til å gripe igjen."
+          ],
+          "answer": 0,
+          "explanation": "Rolige bevegelser gir bilen bedre mulighet til å gjenvinne grep."
+        },
+        {
+          "question": "Du merker at du nikker til og har vansker med å holde oppmerksomheten. Hva gjør du?",
+          "options": [
+            "Åpner vinduet og fortsetter til målet.",
+            "Holder høyere fart for å komme raskere fram.",
+            "Skrur opp musikken og fortsetter uansett.",
+            "Stanser på et egnet sted og hviler før eventuell videre kjøring."
+          ],
+          "answer": 3,
+          "explanation": "Tretthet kan gjøre deg uskikket til å kjøre trygt. Ta en reell pause på et sikkert sted."
+        }
+      ]
+    },
+    {
+      "title": "Fører, passasjerer og bil",
+      "questions": [
+        {
+          "question": "Hva er promillegrensen for føring av motorvogn i Norge?",
+          "options": [
+            "0,5 promille.",
+            "0,8 promille.",
+            "0,2 promille.",
+            "1,0 promille."
+          ],
+          "answer": 2,
+          "explanation": "Grensen er 0,2 promille. Alkohol kan svekke kjøreevnen også ved lav konsentrasjon."
+        },
+        {
+          "question": "Du vil skrive en melding på håndholdt mobil mens bilen står midlertidig i kø. Hva gjør du?",
+          "options": [
+            "Venter til jeg kan parkere et egnet sted.",
+            "Skriver mens bilen står stille i køen.",
+            "Skriver dersom motoren har stoppet automatisk.",
+            "Skriver dersom jeg holder bremsen inne."
+          ],
+          "answer": 0,
+          "explanation": "Midlertidig stans i kø er en del av kjøringen. Parker trygt før du bruker håndholdt mobil."
+        },
+        {
+          "question": "Et barn på 130 cm skal sitte på i en personbil med bilbelter. Hvordan sikrer du barnet?",
+          "options": [
+            "Med vanlig bilbelte alene hvis turen er kort.",
+            "Med godkjent barnesikringsutstyr tilpasset barnet.",
+            "Med vanlig bilbelte alene i baksetet.",
+            "På fanget til en voksen som har på bilbelte."
+          ],
+          "answer": 1,
+          "explanation": "Barn under 135 cm skal bruke godkjent utstyr som passer barnets høyde og vekt."
+        },
+        {
+          "question": "Du vil sette et bakovervendt barnesete foran. Bilen har aktiv kollisjonspute på passasjersiden. Hva gjør du?",
+          "options": [
+            "Flytter passasjersetet litt bakover og lar kollisjonsputen være aktiv.",
+            "Bruker setet som det er hvis bilen bare skal kjøre sakte.",
+            "Dekker kollisjonsputen med et håndkle.",
+            "Bruker en annen plass eller sørger for at kollisjonsputen er deaktivert."
+          ],
+          "answer": 3,
+          "explanation": "Et bakovervendt barnesete foran en aktiv kollisjonspute kan gi alvorlig skade og er forbudt."
+        },
+        {
+          "question": "Hvor bør du legge og sikre en tung bag før avreise?",
+          "options": [
+            "Løst på hattehylla, slik at den ligger i ro.",
+            "På et passasjersete uten feste.",
+            "Lavt i bagasjerommet, tett mot seteryggen og forsvarlig sikret.",
+            "Lengst bak i bagasjerommet, løs og unna seteryggen."
+          ],
+          "answer": 2,
+          "explanation": "Plassering lavt og tett mot seteryggen reduserer bevegelse. Fest tung last."
+        },
+        {
+          "question": "Du skal inn i en tunnel. Kjørelysene foran er på, men baklysene er slukket. Hva gjør du?",
+          "options": [
+            "Velger en lysinnstilling som også tenner baklysene.",
+            "Lar det være fordi kjørelysene foran er på.",
+            "Slår av lysene foran for å unngå refleksjoner.",
+            "Bruker bare tåkebaklyset gjennom hele tunnelen."
+          ],
+          "answer": 0,
+          "explanation": "Baklysene skal være tent i tunnel. Føreren må sjekke at bilen bruker riktig lys."
+        },
+        {
+          "question": "Hva er minste tillatte mønsterdybde ved kjøring med personbil i sommerperioden?",
+          "options": [
+            "1,0 mm.",
+            "1,6 mm.",
+            "2,5 mm.",
+            "3,0 mm."
+          ],
+          "answer": 1,
+          "explanation": "Minstekravet i sommerperioden er 1,6 mm. Du må alltid ha tilstrekkelig veggrep for føret."
+        },
+        {
+          "question": "Hva er minste tillatte mønsterdybde for personbildekk i den fastsatte vinterperioden?",
+          "options": [
+            "1,6 mm.",
+            "2 mm.",
+            "5 mm.",
+            "3 mm."
+          ],
+          "answer": 3,
+          "explanation": "Kravet for personbil er 3 mm i vinterperioden. Start- og sluttdato kan variere med landsdelen."
+        },
+        {
+          "question": "Hva er oppgaven til ABS under hard bremsing?",
+          "options": [
+            "Garantere at bremselengden alltid blir kortere.",
+            "Sørge for at bilen aldri kan skli sideveis.",
+            "Hindre at hjulene låser seg, slik at styring kan beholdes.",
+            "Øke grepet mellom dekksiden og veien."
+          ],
+          "answer": 2,
+          "explanation": "ABS regulerer bremsetrykket for å hindre hjullås. Fart og veggrep avgjør fortsatt hvor langt bilen bruker på å stanse."
+        }
+      ]
+    },
+    {
+      "title": "Kjøretøy, førerrett og uhell",
+      "questions": [
+        {
+          "question": "Et varsel for lavt dekktrykk lyser. Hva gjør du?",
+          "options": [
+            "Fyller alle dekk til det høyeste trykket som står på dekksiden.",
+            "Stanser trygt og sjekker dekkene og trykket mot bilens anbefaling.",
+            "Nullstiller varslet og kjører videre uten å sjekke.",
+            "Senker trykket i de andre dekkene til varslet slukker."
+          ],
+          "answer": 1,
+          "explanation": "Se etter skade eller lekkasje. Bruk bilens anbefalte dekktrykk for last og dekk."
+        },
+        {
+          "question": "Du kjører mot en sving på glatt føre. Når bør mesteparten av fartsreduksjonen være gjort?",
+          "options": [
+            "Før jeg svinger inn, mens bilen går mest mulig rett.",
+            "Midt i svingen, når jeg kjenner hvor glatt det er.",
+            "På vei ut av svingen.",
+            "Så sent som mulig, med et kort og hardt trykk på bremsen."
+          ],
+          "answer": 0,
+          "explanation": "Tilpass farten før svingen. Brå bremsing og styring samtidig kan overskride veggrepet."
+        },
+        {
+          "question": "Hvilken kjøremåte gir lavere energibruk og god tid til å reagere?",
+          "options": [
+            "Akselererer helt fram til hver stans og bremser hardt.",
+            "Varierer farten ofte selv om trafikken flyter jevnt.",
+            "Holder kort avstand og kopierer hver fartsendring foran.",
+            "Ser langt fram, holder avstand og slipper gassen tidlig."
+          ],
+          "answer": 3,
+          "explanation": "Forutse endringer slik at du kan holde en jevn fart og unngå unødvendig bremsing."
+        },
+        {
+          "question": "Du er involvert i et trafikkuhell. Hvilken plikt har du på stedet?",
+          "options": [
+            "Bare stanse hvis jeg mener jeg har skyld.",
+            "Kjøre videre hvis bilen min fungerer og ingen vinker.",
+            "Stanse, hjelpe skadde og medvirke til nødvendige tiltak.",
+            "Vente i bilen uten å undersøke eller hjelpe."
+          ],
+          "answer": 2,
+          "explanation": "De involverte skal stanse og hjelpe ved behov. Tenk også på egen sikkerhet og faren for nye uhell."
+        },
+        {
+          "question": "Hvilket nummer ringer du for akutt medisinsk hjelp ved en alvorlig personskade?",
+          "options": [
+            "110.",
+            "113.",
+            "112.",
+            "116 117."
+          ],
+          "answer": 1,
+          "explanation": "113 er medisinsk nødnummer. Oppgi hvor du er og hva som har skjedd, og følg veiledningen du får."
+        },
+        {
+          "question": "Hva er høyeste tillatte totalvekt og passasjertall for en vanlig personbil i klasse B?",
+          "options": [
+            "3 500 kg og inntil 8 passasjerer i tillegg til føreren.",
+            "3 500 kg og inntil 8 personer inkludert føreren.",
+            "4 250 kg og inntil 12 passasjerer i tillegg til føreren.",
+            "7 500 kg og inntil 8 passasjerer i tillegg til føreren."
+          ],
+          "answer": 0,
+          "explanation": "For vanlig personbil i klasse B er grensen 3 500 kg og åtte passasjerer i tillegg til føreren."
+        },
+        {
+          "question": "Med ordinær klasse B vil du bruke en tilhenger med tillatt totalvekt over 750 kg. Hva er vektgrensen for bil og henger til sammen?",
+          "options": [
+            "Maks 3 500 kg i samlet aktuell vekt.",
+            "Maks 4 250 kg i samlet tillatt totalvekt.",
+            "Maks 3 500 kg i samlet tillatt totalvekt.",
+            "Maks 4 250 kg i samlet aktuell vekt."
+          ],
+          "answer": 2,
+          "explanation": "For denne kombinasjonen er det summen av tillatte totalvekter som avgjør førerretten. Bilens trekkgrenser gjelder også."
+        },
+        {
+          "question": "Hva kreves som hovedregel av ledsageren ved privat øvelseskjøring i klasse B?",
+          "options": [
+            "Minst 20 år og førerkort i klassen i minst ett år.",
+            "Minst 23 år og fem år i en valgfri førerkortklasse.",
+            "Minst 25 år og bestått teoriprøve i klasse B.",
+            "Minst 25 år og sammenhengende førerrett i klassen de siste fem årene."
+          ],
+          "answer": 3,
+          "explanation": "Ledsageren skal ha fylt 25 år og hatt førerrett i samme klasse sammenhengende de siste fem årene."
+        },
+        {
+          "question": "Førerkortet ditt i klasse B har kode 78. Hva betyr det?",
+          "options": [
+            "Jeg kan kjøre bil med manuelt gir hvis jeg har med ledsager.",
+            "Førerretten i klassen er begrenset til biler med automatgir.",
+            "Jeg kan bare kjøre elbil.",
+            "Jeg kan trekke tilhenger med samme rettigheter som B96."
+          ],
+          "answer": 1,
+          "explanation": "Kode 78 begrenser førerretten til automatgir. En praktisk prøve med manuelt gir kan fjerne begrensningen."
+        }
+      ]
+    }
+  ],
+  "sources": [
+    [
+      "Statens vegvesen • Gjennomføring av teoriprøven",
+      "https://www.vegvesen.no/forerkort/ta-forerkort/teoriprove/gjennomforing-av-teoriproven/"
+    ],
+    [
+      "Statens vegvesen • Temaliste for klasse B",
+      "https://www.vegvesen.no/globalassets/forerkort/ta-forerkort/temaliste-til-teoriprove-klasse-b-bokmal.pdf"
+    ],
+    [
+      "Statens vegvesen • Læreplan V851",
+      "https://www.vegvesen.no/fag/trafikk/godkjenning-og-tilsyn-med-trafikkopplaring/forskrifter-og-laereplaner/"
+    ],
+    [
+      "Lovdata • Vegtrafikkloven",
+      "https://lovdata.no/lov/1965-06-18-4"
+    ],
+    [
+      "Lovdata • Trafikkreglene",
+      "https://lovdata.no/forskrift/1986-03-21-747"
+    ],
+    [
+      "Lovdata • Skiltforskriften",
+      "https://lovdata.no/forskrift/2005-10-07-1219"
+    ],
+    [
+      "Statens vegvesen • Krav til dekk",
+      "https://www.vegvesen.no/kjoretoy/eie-og-vedlikeholde/dekk-og-kjetting/"
+    ],
+    [
+      "Statens vegvesen • Sikker kjøring",
+      "https://www.vegvesen.no/trafikkinformasjon/trafikksikkerhet/sikker-kjoring/"
+    ],
+    [
+      "Statens vegvesen • Førerkort klasse B",
+      "https://www.vegvesen.no/forerkort/har-forerkort/forerkortklasser/personbil-klasse-b/"
+    ],
+    [
+      "Statens vegvesen • Øvelseskjøring",
+      "https://www.vegvesen.no/forerkort/ta-forerkort/ovelseskjoring/ovelseskjoring-i-de-ulike-forerkortklassene/personbil/"
+    ],
+    [
+      "Helsenorge • Ring 113",
+      "https://www.helsenorge.no/forstehjelp/ring-113/"
+    ]
+  ]
+}

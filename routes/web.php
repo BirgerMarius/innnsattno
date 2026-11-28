@@ -122,6 +122,7 @@ Route::post('/forslag-og-tilbakemeldinger', [FeedbackSubmissionController::class
 Route::get('/fagstoff', [ProfessionalResourceController::class, 'index'])
     ->name('professional-resources.index');
 Route::get('/laer-noe-nytt', [LearningController::class, 'index'])->name('learning.index');
+Route::get('/laer-noe-nytt/teoriprove-klasse-b', [LearningController::class, 'drivingTheory'])->name('learning.driving-theory');
 Route::get('/laer-noe-nytt/{category}/{sheet}', [LearningController::class, 'show'])->name('learning.show');
 Route::get('/laer-noe-nytt/{category}/{sheet}/utskrift', [LearningController::class, 'print'])->name('learning.print');
 Route::get('/mat-oppskrifter', [RecipeController::class, 'index'])->name('recipes.index');

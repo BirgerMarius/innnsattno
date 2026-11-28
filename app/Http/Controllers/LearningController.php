@@ -101,6 +101,18 @@ class LearningController extends Controller
         return view('learning.index', ['categories' => $this->sheets]);
     }
 
+    public function drivingTheory()
+    {
+        $theory = json_decode(
+            file_get_contents(resource_path('learning/teoriprove-klasse-b.json')),
+            true,
+            512,
+            JSON_THROW_ON_ERROR,
+        );
+
+        return view('learning.driving-theory', ['theory' => $theory]);
+    }
+
     public function show(string $category, string $sheet)
     {
         return view('learning.show', $this->sheetData($category, $sheet));

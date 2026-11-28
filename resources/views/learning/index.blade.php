@@ -25,6 +25,10 @@
                         @foreach($category['sheets'] as $sheetSlug => $learningSheet)
                             <li><a href="{{ route('learning.show', [$categorySlug, $sheetSlug]) }}">{{ $learningSheet['title'] }} <span aria-hidden="true">→</span></a></li>
                         @endforeach
+                        @if ($categorySlug === 'hverdagsliv')
+                            <li><a href="{{ route('learning.driving-theory') }}">Teoriprøve for klasse B <span aria-hidden="true">→</span></a></li>
+                            <li><a href="{{ asset('pdf/teoriprovehefte-klasse-b.pdf') }}">Teoriprøvehefte for klasse B (PDF)</a></li>
+                        @endif
                     </ul>
                 </section>
             @endforeach
