@@ -63,6 +63,8 @@ Route::get('/', function () {
 });
 
 Route::get('/tv', [FrontPageController::class, 'index'])->name('tv');
+Route::get('/{prison}/kalender', [\App\Http\Controllers\PrisonCalendarController::class, 'index'])
+    ->where('prison', $prisonRoutePattern)->name('prison.calendar');
 Route::get('/{prison}/aktivitetsrom', [ActivityRoomController::class, 'index'])
     ->where('prison', $prisonRoutePattern)->name('prison.activity-rooms');
 Route::post('/{prison}/aktivitetsrom/tilbakemelding', [FeedbackSubmissionController::class, 'storeActivityRoom'])

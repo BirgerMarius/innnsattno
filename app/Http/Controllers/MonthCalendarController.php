@@ -78,7 +78,7 @@ class MonthCalendarController extends Controller
         ];
     }
 
-    private function norwegianHolidays(int $year): array
+    public function norwegianHolidays(int $year): array
     {
         $easterSunday = Carbon::create($year, 3, 21, 0, 0, 0, config('app.timezone'))
             ->addDays(easter_days($year));

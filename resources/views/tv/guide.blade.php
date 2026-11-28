@@ -174,7 +174,7 @@
 
     @php
 $todayText = now()->locale('nb')->translatedFormat('l j. F Y');
-$weekNumber = now()->weekOfYear;
+$weekNumber = now('Europe/Oslo')->isoWeek;
 $nextFlagDay = $flagDayOverview['next'];
 $flagDayName = fn (array $flagDay) => $flagDay['name'].(isset($flagDay['age']) ? ' ('.$flagDay['age'].' år)' : '');
 @endphp
@@ -212,11 +212,11 @@ $isEvenWeek = $weekNumber % 2 === 0;
             @endif
         </a>
 
-        <span class="front-page-date-item">
+        <a class="front-page-date-item front-page-date-link" href="{{ route('prison.calendar', ['prison' => $prison['slug']]) }}" aria-label="Åpne kalender, uke {{ $weekNumber }}">
             <strong>📆 Ukenummer:</strong>
             UKE {{ $weekNumber }}
             <span class="text-muted">({{ $isEvenWeek ? 'Partallsuke' : 'Oddetallsuke' }})</span>
-        </span>
+        </a>
 
         @if ($flagDayOverview['is_flag_day'])
             <span class="front-page-date-item front-page-flag-today">
