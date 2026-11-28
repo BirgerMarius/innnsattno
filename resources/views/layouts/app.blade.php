@@ -6,7 +6,7 @@
 
     <title>@yield('title', 'INNSATT.NO')</title>
 
-    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    @include('partials.favicon')
 
     <link href="{{ asset('vendor/bootstrap/5.3.7/css/bootstrap.min.css') }}" rel="stylesheet">
 

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Bønnetider - {{ $prison['name'] }}</title>
+    @include('partials.favicon')
 
     <style>
     @page {

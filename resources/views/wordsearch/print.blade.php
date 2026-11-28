@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="robots" content="noindex,follow">
 <title>Ordjakt</title>
+@include('partials.favicon')
 
 <style>
 

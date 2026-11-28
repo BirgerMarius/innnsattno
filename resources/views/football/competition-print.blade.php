@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $leagueName }} – kampoversikt | Innsatt.no</title>
+    @include('partials.favicon')
     <style>
         /* Keeps a safe area for Chrome's optional header and footer. */
         @page { size: A4 portrait; margin: 10mm; }

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Sudoku</title>
+    @include('partials.favicon')
 
     <style>
 

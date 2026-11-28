@@ -5,6 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex,follow">
     <title>{{ $title }}</title>
-    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    @include('partials.favicon')
 </head>
 <body>

@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Nations League – utskrift | Innsatt.no</title>
+    @include('partials.favicon')
     <style>
         @page { size: A4 portrait; margin: 8mm; }
         * { box-sizing: border-box; }

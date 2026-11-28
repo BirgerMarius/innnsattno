@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="nb"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{ $competitionName }} – utskrift | Innsatt.no</title>
+@include('partials.favicon')
 <style>
 @page { size: A4 portrait; margin: 10mm; }
 * { box-sizing: border-box; } body { color:#111; font-family:Arial,sans-serif; font-size:9pt; line-height:1.2; margin:0 auto; max-width:190mm; }

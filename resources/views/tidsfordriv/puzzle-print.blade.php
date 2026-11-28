@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex,follow">
 <title>{{ $meta['title'] }}{{ $answer ? ' – fasit' : '' }}</title>
+@include('partials.favicon')
 <style>
 @page { size:A4; margin:14mm; }
 body { color:#111; font-family:Arial,sans-serif; margin:0; }

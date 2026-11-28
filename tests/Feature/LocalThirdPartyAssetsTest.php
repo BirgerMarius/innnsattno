@@ -6,6 +6,14 @@ use Tests\TestCase;
 
 class LocalThirdPartyAssetsTest extends TestCase
 {
+    public function test_calendar_screen_and_print_pages_use_the_site_favicon(): void
+    {
+        $favicon = '<link rel="icon" type="image/png" href="'.asset('favicon.png').'">';
+
+        $this->get('/manedskalender')->assertOk()->assertSee($favicon, false);
+        $this->get('/manedskalender/utskrift?periode=current_month')->assertOk()->assertSee($favicon, false);
+    }
+
     public function test_shared_layout_uses_local_bootstrap_without_jquery(): void
     {
         $response = $this->get('/oppdrag');
